@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI短剧</title>
+<style>
+:root {
+  --bg: #f3f3f5;
+  --card: #fff;
+  --line: #ececef;
+  --text: #161616;
+  --muted: #8d8d93;
+  --accent: #fe2c55;
+  --gold: #e6c27a;
+}
+* { box-sizing: border-box; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+body {
+  margin: 0;
+  background: #d8d4ce;
+  color: var(--text);
+  font: 15px/1.45 "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+}
+.stage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px 0;
+}
+.legend { margin: 0; color: #5c5854; font-size: 13px; }
+.phone {
+  width: 390px;
+  height: min(844px, calc(100vh - 72px));
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 32px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(40, 30, 20, .28), inset 0 0 0 1px rgba(255, 255, 255, .08);
+}
+.phone.immersive { background: #000; color: #fff; }
+.status, .head, .tabs { flex: none; }
+.status {
+  height: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 18px 0;
+  font-size: 12px;
+  font-weight: 650;
+}
+.sys { display: flex; align-items: flex-end; gap: 2px; height: 10px; }
+.sys i { width: 3px; background: currentColor; border-radius: 1px; display: block; }
+.sys i:nth-child(1) { height: 4px; }
+.sys i:nth-child(2) { height: 6px; }
+.sys i:nth-child(3) { height: 9px; }
+.sys b { width: 16px; height: 8px; margin-left: 4px; border: 1px solid currentColor; border-radius: 2px; position: relative; }
+.sys b::after { content: ""; position: absolute; inset: 1px 3px 1px 1px; background: currentColor; }
+.head { height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 8px; background: var(--bg); }
+.head[hidden], .tabs[hidden] { display: none !important; }
+.head button { width: 36px; height: 36px; border: 0; background: transparent; display: grid; place-items: center; }
+.head h1 { flex: 1; margin: 0; text-align: center; font-size: 16px; font-weight: 650; }
+.head .spacer { width: 36px; }
+.view { flex: 1; min-height: 0; overflow: auto; background: var(--bg); }
+.view.home, .view.player { overflow: hidden; background: #000; }
+.tabs {
+  display: flex; border-top: 1px solid var(--line); background: #fff;
+  padding-bottom: 4px;
+}
+.phone.immersive .tabs { background: #000; border-top-color: #1c1c1c; }
+.tabs button {
+  flex: 1; border: 0; background: transparent; color: #9a9aa0;
+  padding: 6px 0 8px; font-size: 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.tabs button.on { color: var(--text); }
+.phone.immersive .tabs button.on { color: #fff; }
+.tabs .ico { width: 22px; height: 22px; }
+.tabs button.make .ico {
+  width: 28px; height: 22px; background: var(--accent); color: #fff;
+  border-radius: 8px; padding: 2px 0;
+}
+h2 { margin: 0 0 8px; font-size: 20px; }
+h3 { margin: 16px 0 8px; font-size: 15px; }
+p { margin: 6px 0; }
+.sub, .empty, .logs small { color: var(--muted); }
+.pad { padding: 8px 14px 24px; }
+.ico { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; display: block; }
+.ico.solid { fill: currentColor; stroke: none; }
+.hallbar { display: flex; align-items: flex-end; gap: 8px; padding: 4px 16px 0; }
+.peer { flex: 1; display: flex; gap: 22px; align-items: flex-end; }
+.peer button { border: 0; background: transparent; color: #9a9aa0; font-size: 17px; padding: 4px 0 8px; position: relative; }
+.peer button.on { color: #111; font-size: 20px; font-weight: 750; }
+.peer button.on::after {
+  content: ""; position: absolute; left: 2px; right: 2px; bottom: 0; height: 3px;
+  border-radius: 99px; background: var(--accent);
+}
+.iconbtn {
+  width: 34px; height: 34px; margin-bottom: 4px; border: 0; border-radius: 50%;
+  background: #fff; display: grid; place-items: center; color: #222;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
+}
+.chips { display: flex; gap: 8px; overflow: auto; padding: 12px 14px; }
+.chips::-webkit-scrollbar, .feed::-webkit-scrollbar, .hscroll::-webkit-scrollbar { display: none; }
+.chips button, .prow button {
+  border: 0; background: #fff; color: #444; border-radius: 999px; padding: 6px 12px; white-space: nowrap;
+}
+.chips button.on { background: #ffe8ee; color: var(--accent); font-weight: 650; }
+.primary, .ghost {
+  width: 100%; margin-top: 10px; border-radius: 12px; padding: 12px; font-weight: 650;
+}
+.primary { border: 0; background: var(--accent); color: white; }
+.ghost { border: 1px solid #e4e4e8; background: #fff; }
+.covers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 8px; padding: 0 12px 18px; }
+.cover, .hscroll .cover { border: 0; background: transparent; padding: 0; text-align: left; color: inherit; }
+.face {
+  display: block; aspect-ratio: 3/4; border-radius: 8px; position: relative; overflow: hidden;
+  background: linear-gradient(165deg, var(--a), var(--b));
+}
+.face em {
+  position: absolute; left: 6px; top: 6px; font-style: normal; font-size: 10px;
+  background: rgba(0, 0, 0, .45); color: #fff; border-radius: 4px; padding: 1px 4px;
+}
+.cover b, .hscroll b { display: block; margin-top: 6px; font-size: 13px; font-weight: 650; line-height: 1.3; }
+.cover small, .hscroll small { display: block; color: var(--muted); font-size: 11px; }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.block {
+  padding: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  background: #fff; border-radius: 12px;
+}
+.block small, .row small { color: var(--muted); }
+.ranks { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.rank {
+  width: 100%; display: flex; gap: 10px; align-items: center; text-align: left; color: inherit;
+  background: #fff; border: 0; border-radius: 12px; padding: 8px;
+}
+.rank > em { width: 22px; text-align: center; font-style: normal; font-weight: 750; color: #c8c8cc; font-size: 16px; }
+.rank.top > em { color: var(--accent); }
+.rank .face { width: 52px; height: 70px; aspect-ratio: auto; flex: none; }
+.rank span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rank button { align-self: flex-start; margin-top: 6px; border: 0; background: #f2f2f4; border-radius: 8px; padding: 4px 8px; }
+.rank small { color: var(--muted); }
+.hscroll { display: flex; gap: 10px; overflow: auto; padding: 0 0 4px; }
+.hscroll .cover { width: 104px; flex: none; }
+.cont {
+  width: 100%; display: flex; gap: 12px; align-items: center; text-align: left; color: inherit;
+  background: #fff; border: 0; border-radius: 14px; padding: 10px;
+}
+.cont .face { width: 68px; height: 90px; aspect-ratio: auto; flex: none; border-radius: 8px; }
+.cont span { flex: 1; min-width: 0; }
+.meter { height: 3px; background: #eee; border-radius: 99px; margin: 8px 0 0; }
+.meter i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.pagehead { display: flex; align-items: center; padding: 4px 2px 8px; }
+.pagehead h2 { flex: 1; margin: 0; }
+.tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tool {
+  min-height: 112px; border: 0; border-radius: 16px; color: #fff; text-align: left; padding: 14px;
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 2px;
+  background: linear-gradient(155deg, var(--a), var(--b));
+}
+.tool small { color: rgba(255, 255, 255, .82); }
+.quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+.quick button {
+  background: #fff; border: 0; border-radius: 14px; padding: 12px 4px 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: 12px; color: inherit;
+}
+.quick .bubble {
+  width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; color: #fff;
+  background: var(--c, var(--accent));
+}
+.empty { padding: 28px 12px; text-align: center; }
+label.fld { display: block; margin: 12px 0; font-size: 13px; color: var(--muted); }
+label.fld b { display: block; color: var(--text); margin-bottom: 6px; }
+input, textarea, select {
+  width: 100%; background: #fff; border: 1px solid #e6e6ea;
+  border-radius: 10px; padding: 10px 12px; color: inherit;
+}
+textarea { min-height: 72px; resize: vertical; }
+.searchbox {
+  display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 999px;
+  padding: 0 12px; margin: 4px 0 14px; color: var(--muted);
+}
+.searchbox input { border: 0; background: transparent; padding: 10px 0; }
+.ava {
+  width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center;
+  background: linear-gradient(160deg, #ffd0c2, #fe2c55); color: #fff; font-size: 28px; font-weight: 700; flex: none;
+}
+.idcard { display: flex; align-items: center; gap: 18px; }
+.stats { flex: 1; display: flex; justify-content: space-around; }
+.stats b { display: block; font-size: 18px; font-weight: 750; }
+.stats small { color: var(--muted); font-size: 12px; }
+.bio { margin: 10px 0; color: #333; }
+.followbtn { border: 0; background: var(--accent); color: #fff; border-radius: 999px; padding: 6px 18px; font-weight: 650; }
+.followbtn.on { background: #f2f2f4; color: #666; }
+.balance { font-size: 40px; margin: 0; }
+.logs p, .rowline { display: flex; gap: 8px; align-items: center; }
+.logs span, .rowline span { flex: 1; }
+.plus { color: #1f9d55; }
+.warn { color: #d23b3b; }
+.toast {
+  position: absolute; left: 50%; bottom: 78px; transform: translateX(-50%) translateY(8px);
+  background: rgba(28, 28, 30, .95); padding: 8px 12px; border-radius: 999px;
+  opacity: 0; pointer-events: none; transition: .2s; font-size: 13px; z-index: 6;
+  max-width: 86%; text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.sheets { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.mask {
+  pointer-events: auto; position: absolute; inset: 0; background: rgba(0, 0, 0, .55);
+  display: flex; align-items: flex-end;
+}
+.panel {
+  width: 100%; background: #fff; color: #161616; border-radius: 16px 16px 0 0; padding: 16px 16px 28px;
+  max-height: 70%; overflow: auto;
+}
+.panel h3 { margin: 0 0 8px; }
+.panel button {
+  display: block; width: 100%; text-align: left; margin-top: 8px;
+  background: #f6f6f8; border: 0; border-radius: 10px; padding: 10px; color: inherit;
+}
+.panel button.on { outline: 1px solid var(--accent); }
+.panel button:disabled { opacity: .4; }
+@media (max-width: 520px) {
+  .stage { padding: 0; }
+  .phone { width: 100%; height: 100vh; border-radius: 0; }
+  .legend { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+.home { position: relative; height: 100%; }
+.seg {
+  position: absolute; z-index: 3; top: 8px; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 18px;
+}
+.seg button { background: transparent; border: 0; color: rgba(255, 255, 255, .7); font-size: 17px; padding: 4px 2px; }
+.seg button.on { color: white; font-weight: 750; box-shadow: inset 0 -2px 0 #fff; }
+.feed { height: 100%; overflow: auto; scroll-snap-type: y mandatory; }
+.slide { height: 100%; scroll-snap-align: start; scroll-snap-stop: always; position: relative; }
+.slide .bg, .pv {
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, .78), rgba(0, 0, 0, .05) 46%),
+    linear-gradient(165deg, var(--a), var(--b));
+}
+.slide .bg { position: absolute; inset: 0; width: 100%; border: 0; color: white; }
+.cap {
+  position: absolute; z-index: 2; left: 14px; right: 74px; bottom: 16px;
+  text-align: left; color: #fff; text-shadow: 0 1px 6px rgba(0, 0, 0, .45); pointer-events: none;
+}
+.cap .at { pointer-events: auto; border: 0; background: transparent; color: #fff; padding: 0; font-weight: 700; }
+.cap strong { display: block; margin-top: 6px; font-size: 18px; }
+.cap em { display: block; margin-top: 2px; font-style: normal; font-size: 13px; color: rgba(255, 255, 255, .88); }
+.pill {
+  position: absolute; z-index: 2; top: 46px; left: 14px;
+  background: rgba(0, 0, 0, .45); border-radius: 99px; padding: 3px 8px; font-size: 12px; font-style: normal; color: #fff;
+}
+.slide .rail, .pv .rail {
+  position: absolute; z-index: 2; right: 6px; display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+.slide .rail { bottom: 22px; }
+.pv .rail { bottom: 148px; }
+.rail button.act {
+  width: 48px; border: 0; background: transparent; color: white;
+  display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .45);
+}
+.rail button.act.on { color: var(--accent); }
+.rail .ico { width: 30px; height: 30px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .35)); }
+.avatwrap { position: relative; width: 48px; height: 56px; }
+.rail .avatar {
+  width: 46px; height: 46px; border: 2px solid #fff; border-radius: 50%; padding: 0;
+  background: linear-gradient(160deg, #f6d0b0, #c56b4a); color: #fff;
+  display: grid; place-items: center; font-size: 18px; font-weight: 750;
+}
+.fplus {
+  position: absolute; left: 14px; bottom: 0; width: 18px; height: 18px; border-radius: 50%;
+  border: 0; background: var(--accent); color: #fff; font-size: 14px; line-height: 18px; padding: 0;
+}
+.feed .empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.pv { height: 100%; position: relative; color: white; }
+.back {
+  position: absolute; z-index: 2; top: 8px; left: 8px; width: 36px; height: 36px;
+  border: 0; background: transparent; color: white; display: grid; place-items: center;
+}
+.playbig {
+  position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%);
+  width: 64px; height: 64px; border: 0; background: rgba(0, 0, 0, .35); color: white;
+  border-radius: 50%; display: grid; place-items: center;
+}
+.playbig .ico { width: 28px; height: 28px; }
+.pinfo { position: absolute; left: 14px; right: 62px; bottom: 10px; }
+.pinfo h2 { margin: 4px 0; font-size: 22px; }
+.pinfo p { margin: 0; color: rgba(255, 255, 255, .84); }
+.prow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.prow button { color: white; background: rgba(0, 0, 0, .28); }
+.byline { display: flex; align-items: center; gap: 8px; }
+.byline button { border: 0; background: transparent; color: #fff; padding: 0; font-weight: 700; }
+.byline .followbtn { padding: 2px 10px; font-size: 12px; }
+.scrub { position: relative; height: 22px; margin-top: 8px; }
+.scrub::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 9px; height: 3px;
+  background: rgba(255, 255, 255, .35); border-radius: 99px;
+}
+.scrub i { position: absolute; left: 0; top: 9px; height: 3px; background: white; border-radius: 99px; }
+.ptime { margin-top: 2px; font-size: 12px; }
+.lock {
+  position: absolute; inset: 0; z-index: 3; background: rgba(0, 0, 0, .72);
+  display: flex; flex-direction: column; justify-content: center; padding: 28px; text-align: center;
+}
+.ending {
+  min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 24px; background: linear-gradient(165deg, #10211e, #1c6b5e);
+}
+.block button, .rowline button, .pad > button:not(.primary):not(.ghost):not(.tool):not(.cover):not(.iconbtn):not(.followbtn) {
+  border: 0; background: #f2f2f4; border-radius: 8px; padding: 6px 10px; color: inherit;
+}
+.pad > button.on { background: var(--accent); color: white; }
+.comments p { background: var(--card); border-radius: 10px; padding: 8px 10px; }
+.comments button { border: 0; background: transparent; color: var(--accent); }
+
+</style>
+</head>
+<body>
+<div class="stage">
+  <div id="app" class="phone">
+    <div class="status"><span>9:41</span><span class="sys" aria-hidden="true"><i></i><i></i><i></i><b></b></span></div>
+    <header class="head" hidden>
+      <button type="button" data-act="back" aria-label="返回"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg></button>
+      <h1></h1>
+      <i class="spacer"></i>
+    </header>
+    <div class="view"></div>
+    <nav class="tabs">
+      <button type="button" data-go="home"><svg class="ico" viewBox="0 0 24 24"><path d="M4.5 11.5L12 5l7.5 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-4V20H5.5a1 1 0 0 1-1-1z"/></svg><span>首页</span></button>
+      <button type="button" data-go="theater"><svg class="ico" viewBox="0 0 24 24"><path d="M5 5h6v6H5zm8 0h6v6h-6zM5 13h6v6H5zm8 0h6v6h-6z"/></svg><span>剧场</span></button>
+      <button type="button" data-go="create" class="make"><svg class="ico" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg><span>创作</span></button>
+      <button type="button" data-go="chase"><svg class="ico" viewBox="0 0 24 24"><path d="M7 5h10a1 1 0 0 1 1 1v13l-6-3.2L6 19V6a1 1 0 0 1 1-1z"/></svg><span>追剧</span></button>
+      <button type="button" data-go="me"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.2"/><path d="M5.5 19.2c1.2-3 3.5-4.4 6.5-4.4s5.3 1.4 6.5 4.4"/></svg><span>我的</span></button>
+    </nav>
+    <div class="toast" role="status"></div>
+    <div class="sheets"></div>
+  </div>
+  <p class="legend">演示原型，数据写在页面里。不含运营后台。</p>
+</div>
+<script>
+/* 演示数据。余额、作品和任务会在页面里改，刷新就回到这里。 */
+const COST = { image: 8, i2v: 20, t2v: 30, shot: 15, unlock: 12, template: 20 };
+
+const AITV = {
+  authors: [
+    { id: "su", name: "苏晚", bio: "写甜宠，也剪雨戏。" },
+    { id: "zhou", name: "周衡", bio: "专门做逆袭。" },
+  ],
+  dramas: [
+    {
+      id: "d1", title: "错嫁豪门", genre: "甜宠", status: "连载", ai: false,
+      authorId: "su", hot: 98, likeBase: 12000,
+      desc: "暴雨夜，她坐上了别人的婚车。",
+      a: "#4a1524", b: "#c45b63",
+      episodes: [
+        { n: 1, title: "雨夜错车", dur: 92 },
+        { n: 2, title: "婚约", dur: 88 },
+        { n: 3, title: "宴会", dur: 95, locked: true },
+        { n: 4, title: "即将更新", dur: 0, ready: false },
+      ],
+    },
+    {
+      id: "d2", title: "重启人生", genre: "逆袭", status: "完结", ai: false,
+      authorId: "zhou", hot: 91, likeBase: 8600,
+      desc: "被裁员那天，她把人生按了重启。",
+      a: "#142033", b: "#3d6b8a",
+      episodes: [
+        { n: 1, title: "工牌", dur: 76 },
+        { n: 2, title: "回头", dur: 84 },
+        { n: 3, title: "上台", dur: 90 },
+      ],
+    },
+    {
+      id: "d3", title: "雾港来信", genre: "悬疑", status: "连载", ai: true,
+      authorId: "me", hot: 76, likeBase: 5400,
+      desc: "一封不属于她的信，把她留在了雾港。",
+      a: "#10211e", b: "#1f6f62",
+      episodes: [
+        { n: 1, title: "进港", dur: 80 },
+        { n: 2, title: "旧识", dur: 84 },
+        { n: 3, title: "即将更新", dur: 0, ready: false },
+      ],
+    },
+  ],
+  clips: [
+    { dramaId: "d1", ep: 1, label: "片段" },
+    { dramaId: "d2", ep: 2, label: "片段" },
+    { dramaId: "d3", ep: 1, label: "片段" },
+    { dramaId: "d1", ep: 3, label: "预告" },
+  ],
+  templates: [
+    { id: "t1", title: "雨夜错车", from: "错嫁豪门", dramaId: "d1", prompt: "暴雨，红色尾灯，女人拎着行李箱上车" },
+    { id: "t2", title: "灯塔", from: "雾港来信", dramaId: "d3", prompt: "夜雾，灯塔亮起，女人站在码头" },
+  ],
+  assets: [
+    { type: "角色", name: "沈昭", note: "参考图 2 张" },
+    { type: "场景", name: "灯塔码头", note: "夜雾、湿地面" },
+  ],
+  roles: [
+    { name: "沈昭", note: "参考图 2 张，可跨集复用" },
+    { name: "陈港", note: "参考图 1 张" },
+  ],
+  members: [
+    { name: "林夏", role: "导演" },
+    { name: "苏晚", role: "编剧" },
+    { name: "周衡", role: "剪辑" },
+  ],
+  activities: [
+    { name: "另一个结局", desc: "用雾港来信的角色，写她没有上船的那一晚。" },
+  ],
+  plans: [
+    { id: "p30", name: "体验包", points: 30, price: "¥6" },
+    { id: "p200", name: "创作月卡", points: 200, price: "¥30" },
+  ],
+};
+
+const S = {
+  screen: "home",
+  tab: "home",
+  stack: [],
+  params: {},
+  sheet: null,
+  homeTab: "rec",
+  hallTab: "list",
+  theater: "all",
+  search: "",
+  prompt: "",
+  imgStyle: "电影",
+  seconds: 5,
+  ratio: "9:16",
+  pickImage: "img1",
+  playing: false,
+  autoNext: true,
+  progress: { "d2-2": 0.42 },
+  likes: {},
+  follows: { su: true },
+  favs: ["d2"],
+  booked: {},
+  unlocked: {},
+  history: [{ id: "d2", ep: 2, at: "昨天" }],
+  points: 40,
+  logs: [
+    { t: "今天", label: "图生视频失败退回", delta: 20 },
+    { t: "今天", label: "图生视频·码头夜色", delta: -20 },
+    { t: "昨天", label: "图片·女主定妆", delta: -8 },
+  ],
+  images: [{ id: "img1", title: "女主定妆", style: "电影" }],
+  tasks: [{ id: "task0", kind: "图生视频", title: "码头夜色", status: "fail", cost: 20, refunded: true }],
+  works: [
+    { id: "w1", title: "雾港来信", kind: "短剧", status: "live" },
+    { id: "w2", title: "码头重逢", kind: "视频", status: "review" },
+    { id: "w3", title: "未命名片段", kind: "视频", status: "draft" },
+    { id: "w4", title: "雾港花絮", kind: "视频", status: "reject", reason: "封面有水印，请更换后再提交" },
+  ],
+  workTab: "review",
+  editing: null,
+  pub: { title: "", genre: "悬疑", dramaId: "", ep: "1", file: "", from: "" },
+  comments: {
+    d1: [
+      { name: "阿禾", text: "这集雨戏太狠了" },
+      { name: "苏晚", text: "下一集宴会见" },
+    ],
+  },
+  comment: "",
+  user: { name: "林夏", bio: "在做一部悬疑短剧" },
+  series: { title: "", desc: "", status: "连载", eps: [] },
+  epTitle: "",
+  script: {
+    outline: "沈昭回到雾港，寻找一封不属于她的信。",
+    beat: "第1集：船进港。第2集：她认出灯塔下的人。",
+    lines: "沈昭：这封信不是写给我的。\n陈港：那你为什么还在等。",
+  },
+  shots: [
+    { title: "码头全景", desc: "夜雾，船灯", done: true },
+    { title: "女主回头", desc: "近景，发丝湿", done: true },
+    { title: "灯塔亮起", desc: "远景一闪", done: false },
+    { title: "信落到脚边", desc: "特写", done: false },
+  ],
+  dub: true,
+  sub: true,
+  extras: [{ id: "ex1", title: "如果她没有上船" }],
+  collab: [
+    { name: "第3集分镜", who: "苏晚", done: false },
+    { name: "第2集成片", who: "周衡", done: true },
+  ],
+  joined: false,
+  inbox: [
+    { title: "错嫁豪门更新了", body: "第3集《宴会》已上线", go: "player", dramaId: "d1", ep: 3 },
+    { title: "活动邀请", body: "来给《雾港来信》写一个结局", go: "activity" },
+    { title: "苏晚回复了你", body: "下一集宴会见", go: "comments", dramaId: "d1" },
+  ],
+};
+
+let seq = 20;
+
+function uid(prefix) {
+  seq += 1;
+  return prefix + seq;
+}
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
+
+function fmt(n) {
+  if (n < 10000) return String(n);
+  return (n / 10000).toFixed(1).replace(/\.0$/, "") + "万";
+}
+
+function clock(sec) {
+  const s = Math.max(0, Math.floor(sec || 0));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return m + ":" + (r < 10 ? "0" : "") + r;
+}
+
+function drama(id) {
+  return AITV.dramas.find((d) => d.id === id);
+}
+
+function author(id) {
+  if (id === "me") return { id: "me", name: S.user.name, bio: S.user.bio };
+  return AITV.authors.find((a) => a.id === id);
+}
+
+function epOf(d, n) {
+  return d.episodes.find((e) => e.n === Number(n));
+}
+
+function isReady(ep) {
+  return ep.ready !== false;
+}
+
+function isLocked(d, n) {
+  const ep = epOf(d, n);
+  return !!(ep && ep.locked && !S.unlocked[d.id + "-" + n]);
+}
+
+function likeCount(d) {
+  return fmt(d.likeBase + (S.likes[d.id] ? 1 : 0));
+}
+
+function upsertHistory(id, ep) {
+  S.history = [{ id, ep, at: "刚刚" }, ...S.history.filter((h) => h.id !== id)].slice(0, 8);
+}
+
+function toast(msg) {
+  const el = document.querySelector(".toast");
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove("show"), 1600);
+}
+
+function spend(cost, label) {
+  if (S.points < cost) {
+    toast("积分不足，可在我的里购买套餐");
+    return false;
+  }
+  S.points -= cost;
+  S.logs.unshift({ t: "刚刚", label, delta: -cost });
+  return true;
+}
+
+function refund(cost, label) {
+  S.points += cost;
+  S.logs.unshift({ t: "刚刚", label, delta: cost });
+}
+
+function svg(name, solid) {
+  const p = {
+    search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16.5L20 20.5"/>',
+    back: '<path d="M14.5 5.5L8 12l6.5 6.5"/>',
+    heart: '<path d="M12 19.2s-6.4-3.9-6.4-8.2A3.6 3.6 0 0 1 12 8.2a3.6 3.6 0 0 1 6.4 2.8c0 4.3-6.4 8.2-6.4 8.2z"/>',
+    comment: '<path d="M6 6.5h12v8H9l-3 3v-3H6z"/>',
+    star: '<path d="M12 4.5l1.8 3.8 4.2.6-3 3 .7 4.2L12 14.4 8.3 16.1l.7-4.2-3-3 4.2-.6z"/>',
+    flag: '<path d="M6 4.5v15M6 5.5h10l-2 3 2 3H6"/>',
+    play: '<path d="M9 7.2v9.6l8-4.8z"/>',
+    pause: '<path d="M8 7h3v10H8zm5 0h3v10h-3z"/>',
+    bell: '<path d="M6.5 16.5h11l-1.2-2V11a4.3 4.3 0 0 0-8.6 0v3.5z"/><path d="M10 16.5a2 2 0 0 0 4 0"/>',
+  };
+  const fill = solid || name === "play" || name === "pause";
+  return `<svg class="ico${fill ? " solid" : ""}" viewBox="0 0 24 24" aria-hidden="true">${p[name] || ""}</svg>`;
+}
+
+function poster(d, ep) {
+  const n = d.episodes.filter(isReady).length;
+  const badge = d.ai ? "AI" : d.status;
+  return `<button type="button" class="cover" data-go="player" data-id="${d.id}" data-ep="${ep || 1}" style="--a:${d.a};--b:${d.b}"><i class="face"><em>${esc(badge)}</em></i><b>${esc(d.title)}</b><small>${esc(d.genre)} · ${n}集</small></button>`;
+}
+
+function shelf(list) {
+  if (!list.length) return "";
+  return `<div class="hscroll">${list.join("")}</div>`;
+}
+
+function railLike(id) {
+  const on = S.likes[id] ? " on" : "";
+  return `<button type="button" class="act${on}" data-act="like" data-id="${id}">${svg("heart", !!S.likes[id])}<small>${likeCount(drama(id))}</small></button>`;
+}
+
+function authorBtn(id) {
+  const a = author(id);
+  const plus = id !== "me" && !S.follows[id]
+    ? `<button type="button" class="fplus" data-act="follow" data-id="${id}" aria-label="关注">+</button>`
+    : "";
+  return `<div class="avatwrap"><button type="button" class="avatar" data-go="author" data-id="${id}" aria-label="${esc(a.name)}">${esc(a.name.slice(0, 1))}</button>${plus}</div>`;
+}
+
+function clipCard(c) {
+  const d = drama(c.dramaId);
+  const ep = epOf(d, c.ep);
+  const a = author(d.authorId);
+  return `<article class="slide" style="--a:${d.a};--b:${d.b}">
+    <i class="pill">${esc(c.label)}</i>
+    <button type="button" class="bg" data-go="player" data-id="${d.id}" data-ep="${c.ep}" aria-label="${esc(d.title)}"></button>
+    <div class="cap">
+      <button type="button" class="at" data-go="author" data-id="${d.authorId}">@${esc(a.name)}</button>
+      <strong>${esc(d.title)}</strong>
+      <em>第${ep.n}集 · ${esc(ep.title)}</em>
+    </div>
+    <div class="rail">${authorBtn(d.authorId)}${railLike(d.id)}</div>
+  </article>`;
+}
+
+function viewHome() {
+  const clips = AITV.clips.filter((c) => S.homeTab !== "follow" || S.follows[drama(c.dramaId).authorId]);
+  const seg = `<div class="seg">
+    <button type="button" data-act="home-tab" data-val="rec" class="${S.homeTab === "rec" ? "on" : ""}">推荐</button>
+    <button type="button" data-act="home-tab" data-val="follow" class="${S.homeTab === "follow" ? "on" : ""}">关注</button>
+  </div>`;
+  const feed = clips.length
+    ? clips.map(clipCard).join("")
+    : `<div class="empty">关注的人还没有片段<button type="button" data-go="theater">去剧场</button></div>`;
+  return `<div class="home">${seg}<div class="feed">${feed}</div></div>`;
+}
+
+function theaterList() {
+  const f = S.theater;
+  return AITV.dramas.filter((d) => {
+    if (f === "all") return true;
+    if (f === "热门") return d.hot >= 90;
+    if (f === "连载" || f === "完结") return d.status === f;
+    if (f === "AI短剧") return d.ai;
+    return d.genre === f;
+  });
+}
+
+function viewTheater() {
+  const tab = S.hallTab === "rank" ? "rank" : "list";
+  const bar = `<div class="hallbar"><div class="peer">
+      <button type="button" data-act="hall-tab" data-val="list" class="${tab === "list" ? "on" : ""}">剧场</button>
+      <button type="button" data-act="hall-tab" data-val="rank" class="${tab === "rank" ? "on" : ""}">榜单</button>
+    </div><button type="button" class="iconbtn" data-go="search" aria-label="搜索">${svg("search")}</button></div>`;
+  if (tab === "rank") {
+    const rows = [...AITV.dramas].sort((a, b) => b.hot - a.hot).map((d, i) => {
+      const n = d.episodes.filter(isReady).length;
+      return `<button type="button" class="rank${i < 3 ? " top" : ""}" data-go="player" data-id="${d.id}" data-ep="1" style="--a:${d.a};--b:${d.b}"><em>${i + 1}</em><i class="face"></i><span><b>${esc(d.title)}</b><small>${esc(d.genre)} · ${esc(d.status)} · ${n}集</small><small>热度 ${d.hot}</small></span></button>`;
+    }).join("");
+    return `<div class="hall">${bar}<div class="ranks">${rows}</div></div>`;
+  }
+  const filters = ["全部", "热门", "连载", "完结", "AI短剧", "甜宠", "逆袭", "悬疑"];
+  const chips = filters.map((name) => {
+    const val = name === "全部" ? "all" : name;
+    const on = S.theater === val ? "on" : "";
+    return `<button type="button" data-act="filter" data-val="${val}" class="${on}">${name}</button>`;
+  }).join("");
+  const list = theaterList().map((d) => poster(d)).join("") || `<p class="empty">这个分类还没有剧</p>`;
+  return `<div class="hall">${bar}<div class="chips">${chips}</div><div class="covers">${list}</div></div>`;
+}
+
+function searchRows() {
+  const q = S.search.trim();
+  const list = AITV.dramas.filter((d) => !q || (d.title + d.genre + d.desc).includes(q));
+  if (!list.length) return `<p class="empty">没有找到「${esc(q)}」</p>`;
+  return list.map(poster).join("");
+}
+
+function viewSearch() {
+  return `<div class="pad"><label class="searchbox">${svg("search")}<input data-field="search" value="${esc(S.search)}" placeholder="搜剧名、题材" /></label><div class="result covers">${searchRows()}</div></div>`;
+}
+
+function viewRanks() {
+  S.hallTab = "rank";
+  return viewTheater();
+}
+
+function viewChase() {
+  const cont = S.history[0];
+  const cd = cont && drama(cont.id);
+  const p = cont ? (S.progress[cont.id + "-" + cont.ep] || 0) : 0;
+  const keep = cd
+    ? `<button type="button" class="cont" data-go="player" data-id="${cd.id}" data-ep="${cont.ep}" style="--a:${cd.a};--b:${cd.b}"><i class="face"></i><span><b>${esc(cd.title)}</b><small>第${cont.ep}集 · ${esc(cont.at)} · ${Math.round(p * 100)}%</small><i class="meter"><i style="width:${p * 100}%"></i></i></span></button>`
+    : `<p class="empty">还没有观看记录</p>`;
+  const favs = S.favs.map(drama).filter(Boolean).map((d) => poster(d));
+  const hist = S.history.map((h) => poster(drama(h.id), h.ep));
+  const booked = Object.keys(S.booked).filter((id) => S.booked[id]).map((id) => poster(drama(id)));
+  return `<div class="pad">
+    <div class="pagehead"><h2>追剧</h2><button type="button" class="iconbtn" data-go="inbox" aria-label="消息">${svg("bell")}</button></div>
+    <h3>继续观看</h3>${keep}
+    <h3>收藏</h3>${favs.length ? shelf(favs) : `<p class="empty">收藏的剧会在这里</p>`}
+    <h3>历史</h3>${shelf(hist)}
+    <h3>预约</h3>${booked.length ? shelf(booked) : `<p class="empty">在播放页可以预约连载</p>`}
+  </div>`;
+}
+
+function viewComments() {
+  const id = S.params.id || "d1";
+  const list = S.comments[id] || [];
+  const rows = list.map((c) => `<p><b>${esc(c.name)}</b> ${esc(c.text)} <button type="button" data-act="reply" data-name="${esc(c.name)}">回复</button></p>`).join("");
+  return `<div class="pad"><div class="comments">${rows || `<p class="empty">还没有评论</p>`}</div>
+    <label class="fld"><b>写评论</b><input data-field="comment" value="${esc(S.comment)}" /></label>
+    <button type="button" class="primary" data-act="send-comment">发送</button></div>`;
+}
+
+let tickTimer = 0;
+
+function stopTick() {
+  clearInterval(tickTimer);
+  tickTimer = 0;
+}
+
+function enterPlayer() {
+  const ep = Number(S.params.ep || 1);
+  S.params = { id: S.params.id, ep };
+  const key = S.params.id + "-" + ep;
+  if (S.progress[key] == null) S.progress[key] = 0.08;
+  S.playing = false;
+  stopTick();
+  upsertHistory(S.params.id, ep);
+}
+
+function setEp(n) {
+  const d = drama(S.params.id);
+  if (n < 1) return;
+  if (n > d.episodes.length) {
+    toast("已经是最后一集");
+    return;
+  }
+  const ep = epOf(d, n);
+  if (!isReady(ep)) {
+    toast("这一集还没更新");
+    return;
+  }
+  S.playing = false;
+  stopTick();
+  S.params = { id: d.id, ep: n };
+  const key = d.id + "-" + n;
+  if (S.progress[key] == null) S.progress[key] = 0.05;
+  upsertHistory(d.id, n);
+  S.sheet = null;
+  render();
+}
+
+function startTick() {
+  stopTick();
+  tickTimer = setInterval(() => {
+    if (S.screen !== "player" || !S.playing) {
+      stopTick();
+      return;
+    }
+    const d = drama(S.params.id);
+    const ep = epOf(d, S.params.ep);
+    const key = d.id + "-" + ep.n;
+    S.progress[key] = Math.min(1, (S.progress[key] || 0) + 0.01);
+    const fill = document.querySelector(".scrub i");
+    const lab = document.querySelector(".ptime");
+    if (fill) fill.style.width = (S.progress[key] * 100) + "%";
+    if (lab) lab.textContent = clock(S.progress[key] * ep.dur) + " / " + clock(ep.dur);
+    if (S.progress[key] < 1) return;
+    S.playing = false;
+    stopTick();
+    const nxt = epOf(d, ep.n + 1);
+    if (S.autoNext && nxt && isReady(nxt)) {
+      setEp(ep.n + 1);
+      if (!isLocked(d, ep.n + 1)) {
+        S.playing = true;
+        startTick();
+        render();
+        toast("正在播放下一集");
+      }
+      return;
+    }
+    render();
+    toast("本集已播完");
+  }, 200);
+}
+
+function togglePlay() {
+  const d = drama(S.params.id);
+  if (isLocked(d, S.params.ep)) {
+    toast("先解锁这一集");
+    return;
+  }
+  const key = d.id + "-" + S.params.ep;
+  if ((S.progress[key] || 0) >= 1) S.progress[key] = 0;
+  S.playing = !S.playing;
+  if (S.playing) startTick();
+  else stopTick();
+  render();
+}
+
+function viewPlayer() {
+  const d = drama(S.params.id);
+  const ep = epOf(d, S.params.ep);
+  const key = d.id + "-" + ep.n;
+  const p = S.progress[key] || 0;
+  const locked = isLocked(d, ep.n);
+  const a = author(d.authorId);
+  const tpl = AITV.templates.find((t) => t.dramaId === d.id);
+  const mine = d.authorId === "me";
+  const lock = `<div class="lock"><p>第${ep.n}集是精品内容</p><button type="button" class="primary" data-act="unlock">${COST.unlock} 积分解锁</button><button type="button" class="ghost" data-go="plans">去买套餐</button></div>`;
+  const play = `<button type="button" class="playbig" data-act="play" aria-label="${S.playing ? "暂停" : "播放"}">${svg(S.playing ? "pause" : "play")}</button>`;
+  const book = d.status === "连载" ? `<button type="button" data-act="book" data-id="${d.id}">${S.booked[d.id] ? "已预约" : "预约更新"}</button>` : "";
+  const useTpl = tpl ? `<button type="button" data-go="template" data-id="${tpl.id}">用此模板</button>` : "";
+  const favOn = S.favs.includes(d.id);
+  return `<section class="pv" style="--a:${d.a};--b:${d.b}">
+    <button type="button" class="back" data-act="back" aria-label="返回">${svg("back")}</button>
+    ${locked ? lock : play}
+    <div class="rail">
+      ${authorBtn(d.authorId)}
+      ${railLike(d.id)}
+      <button type="button" class="act" data-go="comments" data-id="${d.id}">${svg("comment")}<small>${(S.comments[d.id] || []).length}</small></button>
+      <button type="button" class="act${favOn ? " on" : ""}" data-act="fav">${svg("star", favOn)}<small>${favOn ? "已追" : "追剧"}</small></button>
+      <button type="button" class="act" data-act="report">${svg("flag")}<small>举报</small></button>
+    </div>
+    <div class="pinfo">
+      <div class="byline">
+        <button type="button" data-go="author" data-id="${d.authorId}">@${esc(a.name)}</button>
+        ${mine ? "" : `<button type="button" class="followbtn${S.follows[d.authorId] ? " on" : ""}" data-act="follow">${S.follows[d.authorId] ? "已关注" : "关注"}</button>`}
+      </div>
+      <h2>${esc(d.title)}</h2>
+      <p>第${ep.n}集 · ${esc(ep.title)}</p>
+      <div class="prow">
+        <button type="button" data-act="eps">选集</button>
+        <button type="button" data-act="prev">上一集</button>
+        <button type="button" data-act="next">下一集</button>
+        <button type="button" data-act="autonext">连播${S.autoNext ? "开" : "关"}</button>
+        <button type="button" data-act="related">相关</button>${book}${useTpl}
+      </div>
+      <div class="scrub"><i style="width:${p * 100}%"></i></div>
+      <p class="ptime">${clock(p * (ep.dur || 0))} / ${clock(ep.dur || 0)}</p>
+    </div>
+  </section>`;
+}
+
+function epsSheet() {
+  const d = drama(S.params.id);
+  const btns = d.episodes.map((ep) => {
+    let state = "可看";
+    if (!isReady(ep)) state = "未更新";
+    else if (isLocked(d, ep.n)) state = "精品";
+    const on = ep.n === S.params.ep ? "on" : "";
+    const off = isReady(ep) ? "" : "disabled";
+    return `<button type="button" class="${on}" data-act="pick-ep" data-ep="${ep.n}" ${off}>第${ep.n}集 ${esc(ep.title)} <small>${state}</small></button>`;
+  }).join("");
+  return `<div class="mask"><div class="panel"><h3>选集</h3>${btns}</div></div>`;
+}
+
+function reportSheet() {
+  const reasons = ["内容不适", "涉嫌侵权", "虚假信息", "其他"];
+  const btns = reasons.map((r) => `<button type="button" data-act="do-report">${r}</button>`).join("");
+  return `<div class="mask"><div class="panel"><h3>举报</h3>${btns}</div></div>`;
+}
+
+function relatedSheet() {
+  const items = AITV.dramas.filter((d) => d.id !== S.params.id).map((d) => `<button type="button" data-go="player" data-id="${d.id}" data-ep="1">${esc(d.title)} · ${esc(d.genre)}</button>`).join("");
+  return `<div class="mask"><div class="panel"><h3>相关推荐</h3>${items}</div></div>`;
+}
+
+function sheetHtml() {
+  if (S.sheet === "eps") return epsSheet();
+  if (S.sheet === "report") return reportSheet();
+  if (S.sheet === "related") return relatedSheet();
+  return "";
+}
+
+function viewCreate() {
+  const tools = [
+    { go: "image", name: "AI 图片", desc: "描述一张画面", a: "#5b2a4a", b: "#e25b78" },
+    { go: "i2v", name: "图生视频", desc: "让定妆动起来", a: "#1d3a5f", b: "#3d8fd4" },
+    { go: "t2v", name: "文生视频", desc: "提示词直接出片", a: "#2a2458", b: "#7a5cff" },
+    { go: "template", name: "模板创作", desc: "改设定再发布", a: "#3a2a18", b: "#d4893a" },
+  ].map((it) => `<button type="button" class="tool" data-go="${it.go}" style="--a:${it.a};--b:${it.b}"><b>${it.name}</b><small>${it.desc}</small></button>`).join("");
+  const quick = [
+    { go: "assets", name: "素材", c: "#3d6b8a" },
+    { go: "tasks", name: "任务", c: "#c45b63" },
+    { act: "open-publish", name: "发布", c: "#fe2c55" },
+    { go: "works", name: "作品", c: "#1f6f62" },
+    { go: "series", name: "建剧", c: "#8a5a2b" },
+    { go: "project", name: "项目", c: "#5b4a8a" },
+    { go: "points", name: "积分", c: "#c47a28" },
+    { go: "plans", name: "套餐", c: "#333" },
+  ].map((it) => {
+    const attr = it.act ? `data-act="${it.act}"` : `data-go="${it.go}"`;
+    return `<button type="button" ${attr}><i class="bubble" style="--c:${it.c}">${esc(it.name.slice(0, 1))}</i>${esc(it.name)}</button>`;
+  }).join("");
+  const tones = [["#4a1524", "#c45b63"], ["#142033", "#3d6b8a"], ["#3a2a18", "#d4893a"], ["#10211e", "#1f6f62"]];
+  const recent = S.works.slice(0, 6).map((w, i) => {
+    const d = AITV.dramas.find((x) => x.title === w.title);
+    const tone = d ? [d.a, d.b] : tones[i % tones.length];
+    return `<button type="button" class="cover" data-go="works" style="--a:${tone[0]};--b:${tone[1]}"><i class="face"></i><b>${esc(w.title)}</b><small>${esc(w.kind)}</small></button>`;
+  }).join("");
+  return `<div class="pad"><div class="pagehead"><h2>创作</h2><button type="button" class="ghost" style="width:auto;margin:0;padding:6px 12px" data-go="points">${S.points} 积分</button></div>
+    <div class="tools">${tools}</div><div class="quick">${quick}</div>
+    <h3>最近作品</h3><div class="hscroll">${recent}</div></div>`;
+}
+
+function viewImage() {
+  const styles = ["电影", "写实", "动画"].map((s) => `<button type="button" data-act="set-style" data-val="${s}" class="${S.imgStyle === s ? "on" : ""}">${s}</button>`).join("");
+  return `<div class="pad"><p class="sub">当前积分 ${S.points} · 本次消耗 ${COST.image}</p>
+    <label class="fld"><b>描述</b><textarea data-field="prompt">${esc(S.prompt)}</textarea></label>
+    <div class="chips">${styles}</div>
+    <button type="button" class="primary" data-act="gen-image">生成并保存</button></div>`;
+}
+
+function viewI2v() {
+  const picks = S.images.map((img) => `<button type="button" data-act="pick-img" data-id="${img.id}" class="${S.pickImage === img.id ? "on" : ""}">${esc(img.title)}</button>`).join("");
+  const empty = S.images.length ? "" : `<p class="empty">先去生成一张图片</p>`;
+  return `<div class="pad"><p class="sub">当前积分 ${S.points} · 本次消耗 ${COST.i2v}</p>
+    <div class="chips">${picks}</div>${empty}
+    <label class="fld"><b>动作描述</b><textarea data-field="prompt">${esc(S.prompt)}</textarea></label>
+    <button type="button" class="primary" data-act="gen-i2v">生成视频</button>
+    <button type="button" class="ghost" data-act="fail-i2v">演示失败退回</button></div>`;
+}
+
+function viewT2v() {
+  const secs = [5, 10].map((n) => `<button type="button" data-act="set-sec" data-val="${n}" class="${S.seconds === n ? "on" : ""}">${n}秒</button>`).join("");
+  const ratios = ["9:16", "16:9"].map((r) => `<button type="button" data-act="set-ratio" data-val="${r}" class="${S.ratio === r ? "on" : ""}">${r}</button>`).join("");
+  return `<div class="pad"><p class="sub">当前积分 ${S.points} · 本次消耗 ${COST.t2v}</p>
+    <label class="fld"><b>提示词</b><textarea data-field="prompt">${esc(S.prompt)}</textarea></label>
+    <button type="button" class="ghost" data-act="assist">帮我写提示词</button>
+    <p class="sub">更多参数</p>
+    <div class="chips">${secs}${ratios}</div>
+    <button type="button" class="primary" data-act="gen-t2v">生成视频</button></div>`;
+}
+
+function viewTasks() {
+  if (!S.tasks.length) return `<p class="empty">还没有生成任务</p>`;
+  const rows = S.tasks.map((t) => {
+    const name = t.status === "run" ? "生成中" : t.status === "ok" ? "成功" : "失败";
+    let extra = "";
+    if (t.status === "ok") extra = `<button type="button" data-act="to-publish" data-id="${t.id}">去发布</button>`;
+    if (t.status === "fail") extra = `<small>已退回 ${t.cost} 积分</small><button type="button" data-act="retry" data-id="${t.id}">重新生成</button>`;
+    return `<div class="block"><b>${esc(t.kind)} · ${esc(t.title)}</b><small>${name}</small>${extra}</div>`;
+  }).join("");
+  return `<div class="pad list">${rows}</div>`;
+}
+
+function viewTemplate() {
+  const tpl = AITV.templates.find((t) => t.id === S.params.id);
+  if (!tpl) {
+    const rows = AITV.templates.map((t) => `<button type="button" class="block" data-go="template" data-id="${t.id}"><b>${esc(t.title)}</b><small>来自 ${esc(t.from)}</small></button>`).join("");
+    return `<div class="pad list">${rows}</div>`;
+  }
+  return `<div class="pad"><p class="sub">来自 ${esc(tpl.from)} · 消耗 ${COST.template} 积分</p>
+    <label class="fld"><b>改一点设定</b><textarea data-field="prompt">${esc(S.prompt || tpl.prompt)}</textarea></label>
+    <button type="button" class="primary" data-act="gen-template">生成并去发布</button></div>`;
+}
+
+function viewAssets() {
+  const rows = AITV.assets.map((a) => `<div class="block"><b>${esc(a.type)} · ${esc(a.name)}</b><small>${esc(a.note)}</small><button type="button" data-act="reuse" data-name="${esc(a.name)}">用于下一集</button></div>`).join("");
+  return `<div class="pad"><p class="sub">项目 · 雾港来信。下一集可以直接用这些素材。</p><div class="list">${rows}</div></div>`;
+}
+
+function viewPublish() {
+  const dramas = AITV.dramas.map((d) => `<option value="${d.id}" ${S.pub.dramaId === d.id ? "selected" : ""}>${esc(d.title)}</option>`).join("");
+  const d = drama(S.pub.dramaId);
+  const eps = d ? d.episodes.filter(isReady).map((e) => `<option value="${e.n}" ${String(S.pub.ep) === String(e.n) ? "selected" : ""}>第${e.n}集 ${esc(e.title)}</option>`).join("") : "";
+  const from = S.pub.from ? `<p class="sub">模板来源 · ${esc(S.pub.from)}</p>` : "";
+  const file = S.pub.file ? `<p class="sub">文件 · ${esc(S.pub.file)}</p>` : "";
+  const epField = d ? `<label class="fld"><b>关联集数</b><select data-field="linkEp">${eps}</select></label>` : "";
+  return `<div class="pad">${from}${file}
+    <label class="fld"><b>标题</b><input data-field="title" value="${esc(S.pub.title)}" /></label>
+    <div class="chips">${["甜宠", "逆袭", "悬疑", "其他"].map((g) => `<button type="button" class="${S.pub.genre === g ? "on" : ""}" data-act="pub-genre" data-val="${g}">${g}</button>`).join("")}</div>
+    <label class="fld"><b>关联全集</b><select data-field="linkDrama"><option value="">不关联</option>${dramas}</select></label>
+    ${epField}
+    <button type="button" class="ghost" data-act="pick-upload">选择本地视频</button>
+    <button type="button" class="primary" data-act="submit-pub">提交审核</button></div>`;
+}
+
+function startTask(kind, title, cost, ok) {
+  if (!spend(cost, kind + "·" + title)) return;
+  const task = { id: uid("task"), kind, title, status: "run", cost };
+  S.tasks.unshift(task);
+  go("tasks");
+  setTimeout(() => {
+    task.status = "ok";
+    if (ok) ok(task);
+    if (S.screen === "tasks") render();
+    toast(title + " 已生成");
+  }, 800);
+}
+
+function viewProject() {
+  const items = [
+    ["script", "剧本", "大纲和对白", "#5b2a4a", "#e25b78"],
+    ["board", "分镜", "单镜生成替换", "#1d3a5f", "#3d8fd4"],
+    ["roles", "角色", "跨集复用", "#2a2458", "#7a5cff"],
+    ["cut", "成片", "配音字幕导出", "#3a2a18", "#d4893a"],
+    ["spinoff", "番外", "不进正片", "#10211e", "#1f6f62"],
+    ["collab", "协作", "成员和任务", "#4a1524", "#c45b63"],
+  ].map(([go, name, desc, a, b]) => `<button type="button" class="tool" data-go="${go}" style="--a:${a};--b:${b}"><b>${name}</b><small>${desc}</small></button>`).join("");
+  return `<div class="pad"><p class="sub">当前项目 · 雾港来信</p><div class="tools">${items}</div>
+    <button type="button" class="ghost" data-go="series">剧目和分集</button></div>`;
+}
+
+function viewScript() {
+  return `<div class="pad">
+    <label class="fld"><b>故事大纲</b><textarea data-field="outline">${esc(S.script.outline)}</textarea></label>
+    <label class="fld"><b>分集剧情</b><textarea data-field="beat">${esc(S.script.beat)}</textarea></label>
+    <label class="fld"><b>对白</b><textarea data-field="lines">${esc(S.script.lines)}</textarea></label>
+    <button type="button" class="primary" data-act="save-script">保存剧本</button></div>`;
+}
+
+function viewBoard() {
+  const rows = S.shots.map((s, i) => {
+    const act = s.done ? "replace-shot" : "gen-shot";
+    const label = s.done ? "替换这一镜" : `生成这一镜 · ${COST.shot}积分`;
+    return `<div class="block"><b>${i + 1}. ${esc(s.title)}</b><small>${esc(s.desc)} · ${s.done ? "已生成" : "未生成"}</small><button type="button" data-act="${act}" data-i="${i}">${label}</button></div>`;
+  }).join("");
+  return `<div class="pad list">${rows}</div>`;
+}
+
+function viewRoles() {
+  const rows = AITV.roles.map((r) => `<div class="block"><b>${esc(r.name)}</b><small>${esc(r.note)}</small><button type="button" data-act="reuse" data-name="${esc(r.name)}">跨集复用</button></div>`).join("");
+  return `<div class="pad list">${rows}</div>`;
+}
+
+function viewCut() {
+  const rows = S.shots.map((s, i) => `<div class="rowline"><span>${i + 1}. ${esc(s.title)}</span><button type="button" data-act="move-shot" data-i="${i}" data-dir="-1">上移</button><button type="button" data-act="move-shot" data-i="${i}" data-dir="1">下移</button></div>`).join("");
+  return `<div class="pad list">${rows}
+    <button type="button" class="${S.dub ? "on" : ""}" data-act="toggle-dub">配音 ${S.dub ? "开" : "关"}</button>
+    <button type="button" class="${S.sub ? "on" : ""}" data-act="toggle-sub">字幕 ${S.sub ? "开" : "关"}</button>
+    <button type="button" class="primary" data-act="export-cut">导出成片</button></div>`;
+}
+
+function viewSpin() {
+  if (S.params.watch) {
+    const x = S.extras.find((e) => e.id === S.params.watch);
+    return `<div class="ending"><p>番外 · 不进正片</p><h2>${esc(x ? x.title : "")}</h2><p>她把信留在码头。船笛响了一次，她没有回头。</p></div>`;
+  }
+  const ready = drama("d3").episodes.filter(isReady).length;
+  const rows = S.extras.map((x) => `<button type="button" class="block" data-go="spinoff" data-watch="${x.id}"><b>${esc(x.title)}</b><small>单独展示</small></button>`).join("");
+  return `<div class="pad"><p class="sub">正片仍是 ${ready} 集。番外不会出现在选集里。</p><div class="list">${rows}</div><button type="button" class="primary" data-act="add-extra">写一个结局</button></div>`;
+}
+
+function viewCollab() {
+  const people = AITV.members.map((m) => `<p>${esc(m.name)} · ${esc(m.role)}</p>`).join("");
+  const tasks = S.collab.map((t, i) => `<div class="rowline"><span>${esc(t.name)} · ${esc(t.who)}</span><button type="button" data-act="done-task" data-i="${i}">${t.done ? "已完成" : "标记完成"}</button></div>`).join("");
+  return `<div class="pad">${people}<h3>任务</h3><div class="list">${tasks}</div><p class="sub">版本 v0.3 · 今天</p></div>`;
+}
+
+function viewSeries() {
+  const eps = S.series.eps.map((name) => `<p>${esc(name)}</p>`).join("");
+  const status = ["连载", "完结"].map((s) => `<option ${S.series.status === s ? "selected" : ""}>${s}</option>`).join("");
+  return `<div class="pad">
+    <label class="fld"><b>剧名</b><input data-field="seriesTitle" value="${esc(S.series.title)}" /></label>
+    <label class="fld"><b>简介</b><textarea data-field="seriesDesc">${esc(S.series.desc)}</textarea></label>
+    <label class="fld"><b>状态</b><select data-field="seriesStatus">${status}</select></label>
+    <label class="fld"><b>新增分集</b><input data-field="epTitle" value="${esc(S.epTitle)}" placeholder="例如 第1集 进港" /></label>
+    <button type="button" class="ghost" data-act="add-ep">添加分集</button>
+    ${eps}
+    <button type="button" class="primary" data-act="save-series">提交剧目审核</button></div>`;
+}
+
+function profileHead(a, id) {
+  const mine = id === "me";
+  const follows = Object.keys(S.follows).filter((k) => S.follows[k]).length;
+  const dramas = AITV.dramas.filter((d) => d.authorId === id);
+  const likes = dramas.reduce((n, d) => n + d.likeBase, 0);
+  const hot = dramas.reduce((n, d) => n + d.hot, 0);
+  const follow = mine ? `<button type="button" class="ghost" style="width:auto;margin-top:8px" data-go="profile">编辑资料</button>`
+    : `<button type="button" class="followbtn${S.follows[id] ? " on" : ""}" data-act="follow" data-id="${id}">${S.follows[id] ? "已关注" : "关注"}</button>`;
+  const a1 = mine ? follows : dramas.length;
+  const a2 = mine ? "128" : fmt(likes);
+  const a3 = mine ? fmt(likes || 0) : String(hot);
+  const l1 = mine ? "关注" : "作品";
+  const l2 = mine ? "粉丝" : "获赞";
+  const l3 = mine ? "获赞" : "热度";
+  return `<div class="idcard"><i class="ava">${esc(a.name.slice(0, 1))}</i>
+    <div class="stats"><div><b>${a1}</b><small>${l1}</small></div>
+    <div><b>${a2}</b><small>${l2}</small></div>
+    <div><b>${a3}</b><small>${l3}</small></div></div></div>
+    <b>${esc(a.name)}</b><p class="bio">${esc(a.bio)}</p>${follow}`;
+}
+
+function viewMe() {
+  const shorts = [
+    ["works", "作品"], ["points", "积分"], ["inbox", "消息"], ["plans", "套餐"],
+    ["stats", "数据"], ["activity", "活动"], ["earn", "收益"], ["author", "主页"],
+  ];
+  const quick = shorts.map(([go, name]) => {
+    const id = go === "author" ? ` data-id="me"` : "";
+    return `<button type="button" data-go="${go}"${id}><i class="bubble">${esc(name.slice(0, 1))}</i>${name}</button>`;
+  }).join("");
+  const cards = AITV.dramas.filter((d) => d.authorId === "me").map((d) => poster(d)).join("")
+    || S.works.filter((w) => w.status === "live").map((w) => `<button type="button" class="cover" data-go="author" data-id="me" style="--a:#10211e;--b:#1f6f62"><i class="face"></i><b>${esc(w.title)}</b><small>${esc(w.kind)}</small></button>`).join("");
+  return `<div class="pad">${profileHead(author("me"), "me")}<div class="quick">${quick}</div><h3>作品</h3><div class="covers">${cards}</div></div>`;
+}
+
+function viewProfile() {
+  return `<div class="pad">
+    <label class="fld"><b>昵称</b><input data-field="nickname" value="${esc(S.user.name)}" /></label>
+    <label class="fld"><b>简介</b><textarea data-field="userbio">${esc(S.user.bio)}</textarea></label>
+    <button type="button" class="primary" data-act="save-profile">保存</button></div>`;
+}
+
+function viewAuthor() {
+  const id = S.params.id || "me";
+  const a = author(id);
+  const cards = AITV.dramas.filter((d) => d.authorId === id).map((d) => poster(d)).join("") || `<p class="empty">还没有短剧</p>`;
+  return `<div class="pad">${profileHead(a, id)}<h3>短剧</h3><div class="covers">${cards}</div></div>`;
+}
+
+function workRow(w) {
+  let ops = "";
+  if (w.status === "draft") ops = `<button type="button" data-act="edit-work" data-id="${w.id}">继续编辑</button>`;
+  if (w.status === "reject") ops = `<button type="button" data-act="resubmit" data-id="${w.id}">修改重提</button>`;
+  if (w.status === "live") ops = `<button type="button" data-go="author" data-id="me">在主页查看</button>`;
+  const from = w.from ? " · 模板 " + esc(w.from) : "";
+  const link = w.link ? " · 已关联全集" : "";
+  const reason = w.status === "reject" ? `<small class="warn">${esc(w.reason)}</small>` : "";
+  return `<div class="rank"><i class="face" style="--a:#4a1524;--b:#c45b63"></i><span><b>${esc(w.title)}</b><small>${esc(w.kind)}${from}${link}</small>${reason}${ops}</span></div>`;
+}
+
+function viewWorks() {
+  const tabs = [["draft", "草稿"], ["review", "审核中"], ["live", "已发布"], ["reject", "驳回"]];
+  const chips = tabs.map(([k, n]) => `<button type="button" data-act="work-tab" data-val="${k}" class="${S.workTab === k ? "on" : ""}">${n}</button>`).join("");
+  const list = S.works.filter((w) => w.status === S.workTab).map(workRow).join("") || `<p class="empty">这里是空的</p>`;
+  return `<div class="pad"><div class="chips">${chips}</div><div class="list">${list}</div></div>`;
+}
+
+function viewPoints() {
+  const rows = S.logs.map((l) => `<p><span>${esc(l.label)}</span><b class="${l.delta > 0 ? "plus" : ""}">${l.delta > 0 ? "+" : ""}${l.delta}</b><small>${esc(l.t)}</small></p>`).join("");
+  return `<div class="pad"><p class="balance">${S.points}</p><p class="sub">生成前会提示消耗。失败会退回，并写进下面的记录。</p><div class="logs">${rows}</div></div>`;
+}
+
+function viewPlans() {
+  const rows = AITV.plans.map((p) => `<div class="block"><b>${esc(p.name)}</b><small>${p.points} 积分 · ${p.price}</small><button type="button" data-act="buy" data-points="${p.points}" data-name="${esc(p.name)}">购买</button></div>`).join("");
+  return `<div class="pad"><p class="sub">看剧和创作额度分开。这里只增加创作积分。</p><div class="list">${rows}</div></div>`;
+}
+
+function viewInbox() {
+  if (!S.inbox.length) return `<p class="empty">没有新消息</p>`;
+  const rows = S.inbox.map((m) => {
+    const id = m.dramaId ? ` data-id="${m.dramaId}"` : "";
+    const ep = m.ep ? ` data-ep="${m.ep}"` : "";
+    return `<button type="button" class="block" data-go="${m.go}"${id}${ep}><b>${esc(m.title)}</b><small>${esc(m.body)}</small></button>`;
+  }).join("");
+  return `<div class="pad list">${rows}</div>`;
+}
+
+function viewStats() {
+  const bars = [80, 62, 30].map((n, i) => `<label>第${i + 1}集<div class="meter"><i style="width:${n}%"></i></div></label>`).join("");
+  return `<div class="pad"><p>播放 2.4万</p><p>完播 38%</p><p>追剧 860</p><h3>分集</h3>${bars}</div>`;
+}
+
+function viewActivity() {
+  const rows = AITV.activities.map((a) => `<div class="block"><b>${esc(a.name)}</b><small>${esc(a.desc)}</small><button type="button" data-act="join">${S.joined ? "已报名" : "报名"}</button></div>`).join("");
+  return `<div class="pad list">${rows}</div>`;
+}
+
+function viewEarn() {
+  return `<div class="pad"><p class="balance">128</p><p class="sub">本月可查看收益，单位：元</p><p>雾港来信 · 播放 96</p><p>模板被使用 32</p></div>`;
+}
+
+const acts = {
+  back() { back(); },
+  "home-tab"(el) { S.homeTab = el.dataset.val; render(); },
+  "hall-tab"(el) { S.hallTab = el.dataset.val; render(); },
+  filter(el) { S.theater = el.dataset.val; render(); },
+  play: togglePlay,
+  prev() { setEp(S.params.ep - 1); },
+  next() { setEp(S.params.ep + 1); },
+  "pick-ep"(el) { setEp(Number(el.dataset.ep)); },
+  eps() { S.sheet = "eps"; render(); },
+  related() { S.sheet = "related"; render(); },
+  report() { S.sheet = "report"; render(); },
+  autonext() { S.autoNext = !S.autoNext; render(); },
+  like(el) {
+    const id = el.dataset.id || S.params.id;
+    S.likes[id] = !S.likes[id];
+    render();
+  },
+  fav() {
+    const id = S.params.id;
+    const i = S.favs.indexOf(id);
+    if (i >= 0) S.favs.splice(i, 1);
+    else S.favs.unshift(id);
+    render();
+    toast(i >= 0 ? "已从追剧移除" : "已加入追剧");
+  },
+  follow(el) {
+    const id = el.dataset.id || drama(S.params.id).authorId;
+    if (id === "me") return;
+    S.follows[id] = !S.follows[id];
+    render();
+  },
+  book(el) {
+    const id = el.dataset.id;
+    S.booked[id] = !S.booked[id];
+    if (S.booked[id]) {
+      const d = drama(id);
+      S.inbox.unshift({ title: "已预约 " + d.title, body: "更新后会提醒你", go: "player", dramaId: id, ep: 1 });
+      toast("已预约，更新后会出现在消息里");
+    } else toast("已取消预约");
+    render();
+  },
+  "do-report"() { S.sheet = null; render(); toast("已收到举报"); },
+  unlock() {
+    const d = drama(S.params.id);
+    const n = S.params.ep;
+    if (!spend(COST.unlock, "解锁《" + d.title + "》第" + n + "集")) return;
+    S.unlocked[d.id + "-" + n] = true;
+    render();
+    toast("已解锁");
+  },
+  reply(el) { S.comment = "回复 " + el.dataset.name + "："; render("comment"); },
+  "send-comment"() {
+    const text = S.comment.trim();
+    if (!text) return;
+    const id = S.params.id || "d1";
+    S.comments[id] = S.comments[id] || [];
+    S.comments[id].push({ name: S.user.name, text });
+    S.comment = "";
+    render();
+  },
+  "set-style"(el) { S.imgStyle = el.dataset.val; render(); },
+  "set-sec"(el) { S.seconds = Number(el.dataset.val); render(); },
+  "set-ratio"(el) { S.ratio = el.dataset.val; render(); },
+  "pick-img"(el) { S.pickImage = el.dataset.id; render(); },
+  "pub-genre"(el) { S.pub.genre = el.dataset.val; render(); },
+  "work-tab"(el) { S.workTab = el.dataset.val; render(); },
+  assist() {
+    S.prompt = "夜雾里的码头，女人拎着一封信，灯塔突然亮起，电影感，竖屏";
+    render("prompt");
+  },
+  "gen-image"() {
+    const title = S.prompt.trim() || "未命名图片";
+    startTask("图片", title, COST.image, () => {
+      S.images.unshift({ id: uid("img"), title, style: S.imgStyle });
+    });
+  },
+  "gen-i2v"() {
+    if (!S.images.find((i) => i.id === S.pickImage)) { toast("先准备一张图片"); return; }
+    startTask("图生视频", S.prompt.trim() || "未命名视频", COST.i2v);
+  },
+  "fail-i2v"() {
+    const title = S.prompt.trim() || "未命名视频";
+    if (!spend(COST.i2v, "图生视频·" + title)) return;
+    const task = { id: uid("task"), kind: "图生视频", title, status: "run", cost: COST.i2v };
+    S.tasks.unshift(task);
+    go("tasks");
+    setTimeout(() => {
+      task.status = "fail";
+      refund(COST.i2v, "生成失败退回");
+      if (S.screen === "tasks") render();
+      toast("生成失败，积分已退回");
+    }, 700);
+  },
+  "gen-t2v"() { startTask("文生视频", S.prompt.trim() || "未命名视频", COST.t2v); },
+  retry(el) {
+    const t = S.tasks.find((x) => x.id === el.dataset.id);
+    if (t.kind === "图片") {
+      startTask("图片", t.title, COST.image, () => S.images.unshift({ id: uid("img"), title: t.title, style: S.imgStyle }));
+    } else startTask(t.kind, t.title, t.cost || COST.i2v);
+  },
+  "to-publish"(el) {
+    const t = S.tasks.find((x) => x.id === el.dataset.id);
+    S.editing = null;
+    S.pub = { title: t.title, genre: S.pub.genre || "悬疑", dramaId: "", ep: "1", file: t.title, from: "" };
+    go("publish");
+  },
+  "gen-template"() {
+    const tpl = AITV.templates.find((t) => t.id === S.params.id);
+    if (!spend(COST.template, "模板·" + tpl.title)) return;
+    S.tasks.unshift({ id: uid("task"), kind: "模板", title: tpl.title, status: "ok", cost: COST.template });
+    S.editing = null;
+    S.pub = { title: tpl.title + "·新作", genre: "悬疑", dramaId: tpl.dramaId, ep: "1", file: tpl.title, from: tpl.title };
+    go("publish");
+    toast("已生成，确认后提交审核");
+  },
+  reuse(el) { toast("已用于下一集：" + el.dataset.name); },
+  "open-publish"() {
+    S.editing = null;
+    S.pub = { title: "", genre: "悬疑", dramaId: "", ep: "1", file: "", from: "" };
+    go("publish");
+  },
+  "pick-upload"() { S.pub.file = "夜戏.mp4"; render("title"); toast("已选择本地视频"); },
+  "edit-work"(el) {
+    const w = S.works.find((x) => x.id === el.dataset.id);
+    S.editing = w.id;
+    S.pub = { title: w.title, genre: "悬疑", dramaId: "", ep: "1", file: "", from: "" };
+    go("publish");
+  },
+  "submit-pub"() {
+    const title = (S.pub.title || "").trim();
+    if (!title) { toast("先填写标题"); return; }
+    if (S.editing) {
+      const w = S.works.find((x) => x.id === S.editing);
+      w.title = title;
+      w.status = "review";
+      w.reason = "";
+      w.link = S.pub.dramaId;
+      S.editing = null;
+    } else {
+      S.works.unshift({ id: uid("w"), title, kind: S.pub.dramaId ? "短剧分集" : "视频", status: "review", link: S.pub.dramaId, from: S.pub.from });
+    }
+    S.workTab = "review";
+    go("works");
+    toast("已提交审核");
+  },
+  resubmit(el) {
+    const w = S.works.find((x) => x.id === el.dataset.id);
+    w.status = "review";
+    w.reason = "";
+    S.workTab = "review";
+    render();
+    toast("已重新提交审核");
+  },
+  "save-profile"() {
+    if (!S.user.name.trim()) { toast("昵称不能为空"); return; }
+    render();
+    toast("资料已保存");
+  },
+  buy(el) {
+    const n = Number(el.dataset.points);
+    S.points += n;
+    S.logs.unshift({ t: "刚刚", label: "购买" + el.dataset.name, delta: n });
+    render();
+    toast("额度已到账");
+  },
+  "add-ep"() {
+    const name = S.epTitle.trim() || ("第" + (S.series.eps.length + 1) + "集");
+    S.series.eps.push(name);
+    S.epTitle = "";
+    render();
+  },
+  "save-series"() {
+    if (!S.series.title.trim()) { toast("先填写剧名"); return; }
+    if (!S.series.eps.length) { toast("至少加一集"); return; }
+    S.works.unshift({ id: uid("w"), title: S.series.title.trim(), kind: "短剧", status: "review" });
+    S.workTab = "review";
+    go("works");
+    toast("剧目已提交审核");
+  },
+  "save-script"() { toast("剧本已保存"); },
+  "gen-shot"(el) { shoot(el, false); },
+  "replace-shot"(el) { shoot(el, true); },
+  "move-shot"(el) {
+    const i = Number(el.dataset.i);
+    const j = i + Number(el.dataset.dir);
+    if (j < 0 || j >= S.shots.length) return;
+    const arr = S.shots;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    render();
+  },
+  "toggle-dub"() { S.dub = !S.dub; render(); },
+  "toggle-sub"() { S.sub = !S.sub; render(); },
+  "export-cut"() { toast("已导出竖屏成片"); },
+  "add-extra"() {
+    S.extras.unshift({ id: uid("ex"), title: "她选择留下" });
+    render();
+    toast("已新建番外，不会出现在正片选集");
+  },
+  "done-task"(el) {
+    const t = S.collab[Number(el.dataset.i)];
+    t.done = !t.done;
+    render();
+  },
+  join() {
+    if (S.joined) { toast("已经报过名了"); return; }
+    S.joined = true;
+    S.points += 20;
+    S.logs.unshift({ t: "刚刚", label: "活动扶持额度", delta: 20 });
+    render();
+    toast("已报名，扶持额度 +20");
+  },
+};
+
+function shoot(el, replace) {
+  const shot = S.shots[Number(el.dataset.i)];
+  const label = (replace ? "替换镜头·" : "生成镜头·") + shot.title;
+  if (!spend(COST.shot, label)) return;
+  shot.done = true;
+  if (replace) shot.desc = "已替换";
+  render();
+  toast(replace ? "这一镜已替换" : "这一镜已生成");
+}
+
+const TABS = ["home", "theater", "create", "chase", "me"];
+const META = {
+  search: ["搜索", ""],
+  ranks: ["榜单", ""],
+  comments: ["评论", ""],
+  image: ["AI 图片", ""],
+  i2v: ["图生视频", ""],
+  t2v: ["文生视频", ""],
+  tasks: ["生成任务", ""],
+  template: ["模板创作", ""],
+  assets: ["素材库", ""],
+  publish: ["发布作品", ""],
+  project: ["短剧项目", ""],
+  script: ["剧本", ""],
+  board: ["分镜", ""],
+  roles: ["角色", ""],
+  cut: ["成片", ""],
+  spinoff: ["番外", ""],
+  collab: ["协作", ""],
+  series: ["建剧", ""],
+  author: ["作者主页", ""],
+  works: ["我的作品", ""],
+  points: ["积分", ""],
+  plans: ["创作套餐", ""],
+  inbox: ["消息", ""],
+  stats: ["作品数据", ""],
+  activity: ["活动", ""],
+  earn: ["收益", ""],
+  profile: ["资料", ""],
+};
+const views = {
+  home: viewHome, theater: viewTheater, create: viewCreate, chase: viewChase, me: viewMe,
+  player: viewPlayer, search: viewSearch, ranks: viewRanks, comments: viewComments,
+  image: viewImage, i2v: viewI2v, t2v: viewT2v, tasks: viewTasks, template: viewTemplate,
+  assets: viewAssets, publish: viewPublish, project: viewProject, script: viewScript,
+  board: viewBoard, roles: viewRoles, cut: viewCut, spinoff: viewSpin, collab: viewCollab,
+  series: viewSeries, author: viewAuthor, works: viewWorks, points: viewPoints,
+  plans: viewPlans, inbox: viewInbox, stats: viewStats, activity: viewActivity,
+  earn: viewEarn, profile: viewProfile,
+};
+
+function isTab(name) {
+  return TABS.includes(name);
+}
+
+function go(screen, params) {
+  params = params || {};
+  if (screen === "ranks") {
+    S.hallTab = "rank";
+    screen = "theater";
+  }
+  S.sheet = null;
+  if (screen === "template") S.prompt = "";
+  if (isTab(screen)) {
+    S.stack = [];
+    S.tab = screen;
+    S.screen = screen;
+    S.params = {};
+  } else {
+    if (isTab(S.screen)) S.tab = S.screen;
+    S.stack.push({ screen: S.screen, params: S.params });
+    if (S.stack.length > 20) S.stack.shift();
+    S.screen = screen;
+    S.params = params;
+    if (screen === "player") enterPlayer();
+  }
+  render();
+}
+
+function back() {
+  S.playing = false;
+  stopTick();
+  S.sheet = null;
+  const prev = S.stack.pop();
+  if (!prev) {
+    S.screen = S.tab;
+    S.params = {};
+  } else {
+    S.screen = prev.screen;
+    S.params = prev.params;
+  }
+  render();
+}
+
+function render(focusField) {
+  const phone = document.getElementById("app");
+  if (S.screen !== "player") stopTick();
+  const tab = phone.querySelector(".tabs");
+  tab.hidden = S.screen === "player";
+  const current = isTab(S.screen) ? S.screen : S.tab;
+  tab.querySelectorAll("button").forEach((b) => {
+    const on = b.dataset.go === current;
+    b.classList.toggle("on", on);
+    if (on) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
+  });
+  const head = phone.querySelector(".head");
+  const meta = META[S.screen];
+  head.hidden = !meta;
+  if (meta) head.querySelector("h1").textContent = meta[0];
+  phone.classList.toggle("immersive", S.screen === "home" || S.screen === "player");
+  const view = phone.querySelector(".view");
+  view.className = "view " + S.screen;
+  const draw = views[S.screen];
+  view.innerHTML = draw ? draw() : `<p class="empty">没有这个页面</p>`;
+  phone.querySelector(".sheets").innerHTML = sheetHtml();
+  if (!focusField) return;
+  const el = view.querySelector(`[data-field="${focusField}"]`);
+  if (!el) return;
+  el.focus();
+  const n = el.value.length;
+  if (el.setSelectionRange) el.setSelectionRange(n, n);
+}
+
+const fields = {
+  search(v) {
+    S.search = v;
+    const box = document.querySelector(".result");
+    if (box) box.innerHTML = searchRows();
+  },
+  prompt(v) { S.prompt = v; },
+  title(v) { S.pub.title = v; },
+  comment(v) { S.comment = v; },
+  outline(v) { S.script.outline = v; },
+  beat(v) { S.script.beat = v; },
+  lines(v) { S.script.lines = v; },
+  seriesTitle(v) { S.series.title = v; },
+  seriesDesc(v) { S.series.desc = v; },
+  epTitle(v) { S.epTitle = v; },
+  nickname(v) { S.user.name = v; },
+  userbio(v) { S.user.bio = v; },
+};
+
+function onClick(e) {
+  if (e.target.classList.contains("mask")) {
+    S.sheet = null;
+    render();
+    return;
+  }
+  const el = e.target.closest("[data-act],[data-go]");
+  if (!el || !e.currentTarget.contains(el)) return;
+  if (el.dataset.act) {
+    const fn = acts[el.dataset.act];
+    if (fn) fn(el, e);
+    return;
+  }
+  const p = {};
+  if (el.dataset.id) p.id = el.dataset.id;
+  if (el.dataset.ep) p.ep = Number(el.dataset.ep);
+  if (el.dataset.watch) p.watch = el.dataset.watch;
+  go(el.dataset.go, p);
+}
+
+function onScrub(e) {
+  const bar = e.target.closest(".scrub");
+  if (!bar || S.screen !== "player") return;
+  const d = drama(S.params.id);
+  const ep = epOf(d, S.params.ep);
+  if (isLocked(d, ep.n)) return;
+  const key = d.id + "-" + ep.n;
+  const move = (ev) => {
+    const r = bar.getBoundingClientRect();
+    const p = Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width));
+    S.progress[key] = p;
+    bar.querySelector("i").style.width = (p * 100) + "%";
+    const lab = document.querySelector(".ptime");
+    if (lab) lab.textContent = clock(p * ep.dur) + " / " + clock(ep.dur);
+  };
+  move(e);
+  const up = () => {
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", up);
+  };
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", up);
+}
+
+const app = document.getElementById("app");
+app.addEventListener("click", onClick);
+app.addEventListener("input", (e) => {
+  const fn = fields[e.target.dataset.field];
+  if (fn) fn(e.target.value);
+});
+app.addEventListener("change", (e) => {
+  const f = e.target.dataset.field;
+  if (f === "linkDrama") {
+    S.pub.dramaId = e.target.value;
+    render();
+  } else if (f === "linkEp") S.pub.ep = e.target.value;
+  else if (f === "seriesStatus") S.series.status = e.target.value;
+});
+app.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.dataset.field === "comment") {
+    e.preventDefault();
+    acts["send-comment"]();
+  }
+});
+app.addEventListener("pointerdown", onScrub);
+render();
+
+</script>
+</body>
+</html>
