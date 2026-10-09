@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>文档目录</title>
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --paper: #fff;
+    --ink: #1c1c1f;
+    --muted: #5e5e66;
+    --line: #e4e2de;
+    --accent: #8d2f86;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.65 "PingFang SC", "Noto Sans SC", sans-serif;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px 64px;
+  }
+  h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
+  .meta { color: var(--muted); font-size: 13px; margin: 0 0 28px; }
+  section { margin-bottom: 28px; }
+  h2 { font-size: 13px; letter-spacing: 0.06em; color: var(--accent); margin: 0 0 10px; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  a {
+    display: block;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: inherit;
+    text-decoration: none;
+  }
+  a:hover { border-color: var(--accent); }
+  strong { display: block; font-size: 16px; }
+  span, .empty { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>文档目录</h1>
+  <p class="meta">站点入口。从这里打开各个项目里已发布的页面。</p>
+
+  <section>
+    <h2>千幕</h2>
+    <ul>
+      <li>
+        <a href="千幕/千幕二期-首页技能与画布Agent.html">
+          <strong>千幕二期 · 首页技能与画布 Agent</strong>
+          <span>PRD</span>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>方舟</h2>
+    <p class="empty">还没有页面。</p>
+  </section>
+
+  <section>
+    <h2>51吃瓜</h2>
+    <p class="empty">还没有页面。</p>
+  </section>
+</main>
+</body>
+</html>
