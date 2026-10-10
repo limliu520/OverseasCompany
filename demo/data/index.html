@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>每日数据</title>
+<style>
+  :root {
+    --bg: #f3f5f8;
+    --card: #fff;
+    --ink: #1c2430;
+    --muted: #5c6b7c;
+    --line: #e7ecf2;
+    --blue: #5b8ff9;
+    --green: #5ad8a6;
+    --slate: #5d7092;
+    --gold: #f6bd16;
+    --coral: #e8684a;
+    --cyan: #6dc8ec;
+    --purple: #9270ca;
+    --soft: #f7f9fc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: auto; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .wrap { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+  header.top {
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    padding: 28px 0 20px;
+  }
+  .kicker { color: var(--blue); font-size: 12px; letter-spacing: .12em; font-weight: 600; }
+  h1 { margin: 6px 0 8px; font-size: 28px; line-height: 1.3; font-weight: 650; }
+  .lead { margin: 0; color: var(--muted); max-width: 760px; }
+  .rules { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .rule {
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 12px;
+    color: #3d4c5f;
+    font-size: 12px;
+  }
+  nav.bar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: rgba(255,255,255,.96);
+    border-bottom: 1px solid var(--line);
+  }
+  nav.bar .wrap { display: flex; gap: 6px; padding: 10px 0; overflow-x: auto; }
+  nav.bar a {
+    flex: 0 0 auto;
+    text-decoration: none;
+    color: #3d4c5f;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  nav.bar a:hover { border-color: var(--blue); color: var(--blue); }
+  main { padding: 22px 0 64px; }
+  section.mod { margin: 0 0 28px; scroll-margin-top: 62px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 12px;
+  }
+  .mod-title { display: flex; gap: 12px; align-items: flex-start; }
+  .num {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: #eef4ff; color: #2f6fed;
+    display: grid; place-items: center;
+    font-weight: 700; flex: 0 0 auto;
+  }
+  h2 { margin: 0 0 6px; font-size: 20px; }
+  .goal { margin: 0; color: #314056; }
+  .chain {
+    margin: 10px 0 0;
+    padding: 8px 12px;
+    background: var(--soft);
+    border-radius: 8px;
+    color: #314056;
+  }
+  .card-h { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .card-h h3 { margin: 0; font-size: 15px; }
+  .axis-note { color: var(--muted); font-size: 12px; margin: -4px 0 10px; }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+  button.chip {
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: #314056;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  button.chip:hover { border-color: var(--blue); color: #2f6fed; }
+  .split { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(260px, .8fr); gap: 18px; align-items: start; }
+  .plot {
+    background: #fbfcfe;
+    border: 1px solid #eef2f6;
+    border-radius: 12px;
+    padding: 10px 10px 6px;
+    min-height: 220px;
+  }
+  .defs { display: flex; flex-direction: column; gap: 12px; }
+  .def { display: grid; grid-template-columns: 10px 1fr; gap: 8px; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; margin-top: 6px; }
+  .def strong { display: block; font-size: 13px; }
+  .def p { margin: 2px 0; color: var(--muted); font-size: 12px; }
+  .def .up { color: #0f766e; }
+  .def .down { color: #be3b2f; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  th, td { padding: 7px 8px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child, th.left, td.left { text-align: left; }
+  th { color: var(--muted); font-weight: 600; background: #fbfcfe; }
+  tr.weekend td { background: #f8fafc; }
+  tr.crash td { background: #fff6f4; }
+  .table-wrap { overflow-x: auto; }
+  .f-row { display: grid; grid-template-columns: 92px 1fr 72px; gap: 8px; align-items: center; margin: 7px 0; }
+  .f-name { font-size: 12px; color: #314056; }
+  .f-track { background: #eef2f6; border-radius: 6px; height: 16px; }
+  .f-bar { height: 16px; border-radius: 6px; background: var(--blue); }
+  .f-val { text-align: right; font-variant-numeric: tabular-nums; font-size: 12px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 2px 2px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+  .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .think { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .think article { background: var(--soft); border-radius: 10px; padding: 12px 14px; }
+  .think h3 { margin: 0 0 6px; font-size: 14px; }
+  .think ol { margin: 0; padding-left: 18px; color: #314056; }
+  .think li { margin: 3px 0; }
+  footer.note { color: var(--muted); font-size: 12px; padding: 8px 2px 0; }
+  .mask {
+    position: fixed; inset: 0; background: rgba(20, 32, 48, .45);
+    display: grid; place-items: center; z-index: 20; padding: 20px;
+  }
+  .mask[hidden] { display: none; }
+  .sheet {
+    width: min(420px, 100%);
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 18px 14px;
+    border: 1px solid var(--line);
+  }
+  .sheet h3 { margin: 0 0 6px; font-size: 16px; }
+  .sheet p.tip { margin: 0 0 12px; color: var(--muted); font-size: 12px; }
+  .opt { padding: 8px 0; border-top: 1px solid var(--line); }
+  .opt b { display: block; margin-bottom: 4px; }
+  .opt span { display: block; color: var(--muted); font-size: 12px; margin: 4px 0; }
+  .sheet button.close {
+    margin-top: 12px; width: 100%;
+    border: 0; background: #1c2430; color: #fff;
+    border-radius: 8px; padding: 8px 12px;
+    font-family: inherit; cursor: pointer;
+  }
+  @media (max-width: 860px) {
+    .split, .think { grid-template-columns: 1fr; }
+    h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="kicker">示例产品 · 截至 2026-10-09</div>
+    <h1>每日数据</h1>
+    <p class="lead">从人从哪来，到还在不在、钱有没有留下，再到自己找、叫回来、消息有没有把人叫来。每一块先看要确认的事，再看用户走到哪一步。右边写这个数变高、变低时，业务上发生了什么。</p>
+    <div class="rules">
+      <span class="rule">和昨天比，也和上周同一天比</span>
+      <span class="rule">看多天时，同一个人只算一次</span>
+      <span class="rule">留存按新用户来的那天算，没到的日期先空着</span>
+      <span class="rule">10 月 2 日有故障，当天的下跌先看这里</span>
+    </div>
+  </div>
+</header>
+<nav class="bar">
+  <div class="wrap">
+    <a href="#m1">1 人从哪来</a>
+    <a href="#m2">2 有多少人</a>
+    <a href="#m3">3 用得深不深</a>
+    <a href="#m4">4 会不会再来</a>
+    <a href="#m5">5 钱</a>
+    <a href="#m6">6 还会不会付钱</a>
+    <a href="#m7">7 是不是故障</a>
+    <a href="#m8">8 搜索</a>
+    <a href="#m9">9 召回</a>
+    <a href="#m10">10 推送</a>
+    <a href="#m11">有变化时先看哪里</a>
+  </div>
+</nav>
+<main class="wrap" id="main"></main>
+<div class="mask" id="mask" hidden>
+  <div class="sheet" role="dialog" aria-modal="true">
+    <h3 id="mask-title">查看条件</h3>
+    <p class="tip">这张图可以按下面的条件分开看。</p>
+    <div id="mask-body"></div>
+    <button class="close" type="button" id="mask-close">关闭</button>
+  </div>
+</div>
+<script>
+const COLORS = { blue:"#5B8FF9", green:"#5AD8A6", slate:"#5D7092", gold:"#F6BD16", coral:"#E8684A", cyan:"#6DC8EC", purple:"#9270CA" };
+
+function pad(n){ return String(n).padStart(2,"0"); }
+function iso(dt){ return dt.getFullYear()+"-"+pad(dt.getMonth()+1)+"-"+pad(dt.getDate()); }
+function md(dt){ return pad(dt.getMonth()+1)+"/"+pad(dt.getDate()); }
+function addDays(dt, n){ const x = new Date(dt); x.setDate(x.getDate()+n); return x; }
+function weekend(dt){ const w = dt.getDay(); return w===0 || w===6; }
+function fmtNum(v){ return v==null ? "—" : Math.round(v).toLocaleString("zh-CN"); }
+function fmtPct(v){ return v==null ? "—" : (v*100).toFixed(1)+"%"; }
+function fmtMin(v){ return v==null ? "—" : v.toFixed(1); }
+function fmtMoney(v){ return v==null ? "—" : "¥"+Math.round(v).toLocaleString("zh-CN"); }
+function esc(s){ return String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+
+function buildRows(){
+  const end = new Date(2026, 9, 9);
+  const n = 45;
+  const rows = [];
+  for (let i = 0; i < n; i++){
+    const dt = addDays(end, i-(n-1));
+    const t = i/(n-1);
+    const we = weekend(dt) ? 1 : 0;
+    const crash = iso(dt)==="2026-10-02" ? 1 : 0;
+    const wave = Math.sin(i*0.85)*0.025;
+    const feed = 0.12 + t*0.30;
+    const organic = 0.36 - t*0.08;
+    const unknown = Math.max(0.03, 0.07 - t*0.03);
+    const store = Math.max(0.2, 1 - feed - organic - unknown);
+    const sumShare = store+organic+feed+unknown;
+    const share = { store:store/sumShare, organic:organic/sumShare, feed:feed/sumShare, unknown:unknown/sumShare };
+    const newcomers = Math.round((1900 + t*1100 + we*260 - crash*480) * (1+wave));
+    const oldUsers = Math.round((12600 - t*1600 + we*520 - crash*900) * (1+wave*0.4));
+    const dau = newcomers + oldUsers;
+    const openFromInstall = 0.74 - crash*0.11 - feed*0.03;
+    const installFromDownload = 0.78 - crash*0.04;
+    const downloadFromClick = 0.44;
+    const clickFromTouch = 0.085;
+    const firstOpen = newcomers;
+    const installs = firstOpen / openFromInstall;
+    const downloads = installs / installFromDownload;
+    const clicks = downloads / downloadFromClick;
+    const touches = clicks / clickFromTouch;
+    const feedUsers = Math.round(newcomers * share.feed);
+    const spend = feedUsers * (6.8 + t*1.6);
+    const sessions = 3.15 + t*0.15 + we*0.25 - crash*0.35 + Math.sin(i)*0.05;
+    const onceShare = 0.31 + feed*0.12 + crash*0.06;
+    const perSession = 6.4 - t*0.7 - crash*0.8;
+    const perUserMin = sessions * perSession;
+    const firstMin = 9.2 - feed*4 - crash*1.5;
+    const firstReturn = 0.28 - feed*0.08 - crash*0.05;
+    const payRate = 0.046 - feed*0.012 - crash*0.004;
+    const payUsers = Math.round(dau * payRate);
+    const arppu = 36 + (1-t)*6 - crash*2;
+    const gross = payUsers * arppu;
+    const refundRate = 0.035 + (t>0.72 ? 0.018 : 0) + crash*0.01;
+    const refund = gross * refundRate;
+    const revenue = gross - refund;
+    const newRevenue = revenue * (0.28 + feed*0.35);
+    const oldRevenue = revenue - newRevenue;
+    const firstPayShare = 0.34 + feed*0.22;
+    const clickBuy = Math.round(dau * (0.09 - crash*0.01));
+    const orders = Math.round(clickBuy * 0.64);
+    const paySuccessRate = 0.94 - crash*0.07;
+    const payOkOrders = Math.round(orders * paySuccessRate);
+    const expire = Math.round(160 + we*24 + Math.sin(i*0.5)*12);
+    const renewRate = 0.46 - t*0.08 - crash*0.04;
+    const renewed = Math.round(expire * renewRate);
+    const lateRate = 0.07 + crash*0.03;
+    const eligible = Math.round(2100 + we*80 - t*150);
+    const repurchaseRate = 0.125 - t*0.02;
+    const repurchaseUsers = Math.round(eligible * repurchaseRate);
+    const repurchaseArpu = 22 + Math.sin(i*0.4)*2;
+    const searchEnter = Math.round(dau * (0.16 + t*0.05 - crash*0.02));
+    const searchSubmit = Math.round(searchEnter * (0.74 - crash*0.06));
+    const noResult = 0.14 + t*0.07 + crash*0.02;
+    const searchWithResult = Math.round(searchSubmit * (1 - noResult));
+    const searchClick = 0.48 - t*0.06 - crash*0.04;
+    const searchClicked = Math.round(searchWithResult * searchClick);
+    const searchDone = 0.36 - t*0.05 - crash*0.05;
+    const searchContinued = Math.round(searchClicked * searchDone);
+    const searchTimes = Math.round(searchSubmit * (1.35 + t*0.25));
+    const searchPerUser = searchTimes / dau;
+    const pool30 = Math.round(dau / 0.21);
+    const silent7 = Math.round(pool30 * (0.34 + t*0.05));
+    const silent30 = Math.round(pool30 * (0.16 + t*0.03));
+    const newSilent7 = Math.round(dau * (0.025 + t*0.008 + crash*0.01));
+    const newSilent30 = Math.round(newSilent7 * 0.38);
+    const back7 = 0.11 - t*0.02 - crash*0.015;
+    const back30 = 0.05 - t*0.01 - crash*0.008;
+    const returned7 = Math.round(silent7 * back7);
+    const returned30 = Math.round(silent30 * back30);
+    const backTwice = 0.41 - t*0.06 - crash*0.08;
+    const backD7 = 0.24 - t*0.04 - crash*0.05;
+    const sent = Math.round(oldUsers * 0.42 + newcomers * 0.15);
+    const arriveRate = 0.86 - crash*0.14;
+    const arrived = Math.round(sent * arriveRate);
+    const pushClickRate = 0.075 - t*0.015 - crash*0.01;
+    const pushClicks = Math.round(arrived * pushClickRate);
+    const pushStay = 0.44 - t*0.08 - crash*0.06;
+    const pushStayed = Math.round(pushClicks * pushStay);
+    const pushFirst = Math.round(pushClicks * 0.62);
+    const pushOff = Math.round(dau * (0.003 + t*0.0025));
+    const pushReachUsers = Math.round(dau * (0.32 + t*0.04));
+    const pushPerUser = arrived / Math.max(pushReachUsers, 1);
+    const starts = Math.round(dau * (3.6 + we*0.2));
+    const crashRate = 0.0035 + crash*0.021;
+    const loadFail = 0.011 + crash*0.046;
+    const slow = 0.055 + crash*0.04;
+    const d1base = 0.45 - share.feed*0.20 - crash*0.07;
+    rows.push({
+      dt, date: iso(dt), label: md(dt), we: weekend(dt), crash: crash===1,
+      newcomers, oldUsers, dau, share, feedUsers, spend,
+      touches, clicks, downloads, installs, firstOpen, openFromInstall,
+      installFromDownload, downloadFromClick, clickFromTouch,
+      sessions, onceShare, perSession, perUserMin, firstMin, firstReturn,
+      payUsers, payRate, arppu, revenue, newRevenue, oldRevenue, firstPayShare,
+      refund, refundRate, clickBuy, orders, payOkOrders, paySuccessRate,
+      expire, renewRate, renewed, lateRate, eligible, repurchaseRate, repurchaseUsers, repurchaseArpu,
+      starts, crashRate, loadFail, slow, payFail: 1-paySuccessRate,
+      d1: d1base, d3: d1base*0.74, d7: d1base*0.52, d15: d1base*0.34, d30: d1base*0.2,
+      oldD1: 0.58 - t*0.04 - crash*0.06,
+      payD7: 0.4 - t*0.05 - crash*0.04,
+      newPay7: 0.072 - share.feed*0.03 - crash*0.008,
+      searchEnter, searchSubmit, noResult, searchWithResult, searchClicked, searchClick, searchDone, searchContinued, searchPerUser,
+      silent7, silent30, newSilent7, newSilent30, back7, back30, returned7, returned30, backTwice, backD7,
+      sent, arriveRate, arrived, pushClickRate, pushClicks, pushStay, pushStayed, pushFirst, pushOff, pushPerUser
+    });
+  }
+  const endTime = rows[rows.length-1].dt.getTime();
+  const byTime = new Map(rows.map(r => [r.dt.getTime(), r]));
+  rows.forEach(r => {
+    const ok = days => addDays(r.dt, days).getTime() <= endTime;
+    if (!ok(1)) r.d1 = null;
+    if (!ok(3)) r.d3 = null;
+    if (!ok(7)) r.d7 = null;
+    if (!ok(15)) r.d15 = null;
+    if (!ok(30)) r.d30 = null;
+    if (!ok(1)) r.oldD1 = null;
+    if (!ok(7)) r.payD7 = null;
+    if (!ok(6)) r.newPay7 = null;
+    if (!ok(7)) r.backD7 = null;
+    const ahead = byTime.get(addDays(r.dt, 6).getTime());
+    r.feedD7 = ok(7) ? (0.2 - r.share.feed*0.04) : null;
+    r.storeD7 = ok(7) ? 0.33 : null;
+    r.organicD7 = ok(7) ? 0.29 : null;
+    r.unknownD7 = ok(7) ? 0.15 : null;
+    r.feedPay7 = ok(6) ? 0.041 : null;
+    r.storePay7 = ok(6) ? 0.086 : null;
+    r.organicPay7 = ok(6) ? 0.07 : null;
+    r.cac = r.feedUsers ? r.spend / r.feedUsers : null;
+    r.active7 = Math.round(r.dau / (0.40 + (r.we?0.02:0)));
+    r.active30 = Math.round(r.dau / 0.21);
+    r.heavy7 = 0.22 - (r.share.feed*0.06);
+    r.daysPerUser7 = 2.55 - r.share.feed*0.35;
+    void ahead;
+  });
+  return rows;
+}
+
+const rows = buildRows();
+const last = rows[rows.length-1];
+const recent = rows.slice(-30);
+const tableRows = rows.slice(-14);
+const cohort = rows.find(r => r.date==="2026-09-18");
+
+function lineChart(spec){
+  const w = 680, h = 250;
+  const pad = { l:46, r: spec.right ? 46 : 14, t:16, b:28 };
+  const series = spec.series;
+  const labels = spec.labels;
+  const vals = series.flatMap(s => s.data.filter(v => v!=null && !Number.isNaN(v)));
+  let min = 0;
+  let max = Math.max(...vals, 1);
+  if (spec.tight && vals.length){
+    const lo = Math.min(...vals);
+    const span = Math.max(max - lo, max * 0.02);
+    min = Math.max(0, lo - span * 0.8);
+    max = max + span * 0.35;
+  } else {
+    max = max * 1.12;
+  }
+  const innerW = w - pad.l - pad.r;
+  const innerH = h - pad.t - pad.b;
+  const x = i => pad.l + (labels.length<=1 ? innerW/2 : innerW * i/(labels.length-1));
+  const y = v => pad.t + innerH * (1 - (v-min)/(max-min));
+  let rightMin = 0, rightMax = 1, yR = () => 0;
+  if (spec.right){
+    const rv = spec.right.data.filter(v => v!=null);
+    rightMax = Math.max(...rv, 0.01);
+    if (spec.tight && rv.length){
+      const lo = Math.min(...rv);
+      const span = Math.max(rightMax - lo, rightMax * 0.02);
+      rightMin = Math.max(0, lo - span * 0.8);
+      rightMax = rightMax + span * 0.35;
+    } else {
+      rightMax = rightMax * 1.15;
+    }
+    yR = v => pad.t + innerH * (1 - (v-rightMin)/(rightMax-rightMin));
+  }
+  const grid = [0,1,2,3].map(i => {
+    const v = min + (max-min)*i/3;
+    const yy = y(v);
+    return `<line x1="${pad.l}" y1="${yy}" x2="${w-pad.r}" y2="${yy}" stroke="#e7ecf2"/>
+      <text x="${pad.l-6}" y="${yy+3}" text-anchor="end" font-size="10" fill="#8b98a8">${esc(spec.format(v))}</text>`;
+  }).join("");
+  let rightLabels = "";
+  if (spec.right){
+    rightLabels = [0,1,2,3].map(i => {
+      const v = rightMin + (rightMax-rightMin)*i/3;
+      const yy = yR(v);
+      return `<text x="${w-pad.r+6}" y="${yy+3}" font-size="10" fill="${spec.right.color}">${esc(spec.right.format(v))}</text>`;
+    }).join("");
+  }
+  function path(data, mapY){
+    let d = "", pen = false;
+    data.forEach((v,i) => {
+      if (v==null){ pen = false; return; }
+      d += (pen ? "L" : "M") + x(i) + " " + mapY(v) + " ";
+      pen = true;
+    });
+    return d;
+  }
+  const lines = series.map(s => `<path d="${path(s.data, y)}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`).join("");
+  const rightLine = spec.right ? `<path d="${path(spec.right.data, yR)}" fill="none" stroke="${spec.right.color}" stroke-width="2" stroke-dasharray="4 3"/>` : "";
+  const marks = (spec.marks||[]).map(m => {
+    const i = labels.indexOf(m);
+    if (i<0) return "";
+    return `<line x1="${x(i)}" y1="${pad.t}" x2="${x(i)}" y2="${h-pad.b}" stroke="#E8684A" stroke-dasharray="3 3" opacity="0.7"/>
+      <text x="${x(i)+4}" y="${pad.t+12}" font-size="10" fill="#E8684A">故障</text>`;
+  }).join("");
+  const step = Math.max(1, Math.ceil(labels.length/6));
+  const xlab = labels.map((lb,i) => i%step===0 ? `<text x="${x(i)}" y="${h-8}" text-anchor="middle" font-size="10" fill="#8b98a8">${esc(lb)}</text>` : "").join("");
+  const legendItems = series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join("");
+  const rightLeg = spec.right ? `<span><i style="background:${spec.right.color}"></i>${esc(spec.right.name)}</span>` : "";
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="250" role="img">${grid}${marks}${lines}${rightLine}${rightLabels}${xlab}</svg>
+    <div class="legend">${legendItems}${rightLeg}</div>`;
+}
+
+function bars(items){
+  const max = Math.max(...items.map(d => d.value), 1);
+  return items.map(d => {
+    const w = Math.max(4, d.value/max*100);
+    return `<div class="f-row"><div class="f-name">${esc(d.name)}</div><div class="f-track"><div class="f-bar" style="width:${w}%;background:${d.color}"></div></div><div class="f-val">${esc(d.text)}</div></div>`;
+  }).join("");
+}
+
+function donut(parts){
+  const total = parts.reduce((s,p)=>s+p.value,0) || 1;
+  const r = 42, c = 2*Math.PI*r;
+  let offset = 0;
+  const segs = parts.map(p => {
+    const len = c * p.value/total;
+    const el = `<circle cx="60" cy="60" r="${r}" fill="none" stroke="${p.color}" stroke-width="16" stroke-dasharray="${len} ${c-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 60 60)"/>`;
+    offset += len;
+    return el;
+  }).join("");
+  const legend = parts.map(p => `<span><i style="background:${p.color}"></i>${esc(p.name)} ${fmtPct(p.value/total)}</span>`).join("");
+  return `<div style="display:flex;gap:12px;align-items:center"><svg width="120" height="120" viewBox="0 0 120 120">${segs}</svg><div class="legend" style="flex-direction:column;align-items:flex-start">${legend}</div></div>`;
+}
+
+function defsHtml(list){
+  return `<div class="defs">${list.map(d => `<div class="def"><i class="swatch" style="background:${d.color||"#5D7092"}"></i><div><strong>${esc(d.name)}</strong><p>${esc(d.how)}</p><p class="up">涨：${esc(d.up)}</p><p class="down">跌：${esc(d.down)}</p></div></div>`).join("")}</div>`;
+}
+
+function chip(id){ return `<button class="chip" type="button" data-filter="${id}">筛选</button>`; }
+
+function table(columns, data){
+  const head = `<tr>${columns.map((c,i)=>`<th class="${i===0?"left":""}">${esc(c.name)}</th>`).join("")}</tr>`;
+  const body = data.map(r => {
+    const cls = r.crash ? "crash" : (r.we ? "weekend" : "");
+    const tds = columns.map((c,i) => `<td class="${i===0?"left":""}">${c.cell(r)}</td>`).join("");
+    return `<tr class="${cls}">${tds}</tr>`;
+  }).join("");
+  return `<div class="table-wrap"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+
+function card(title, axis, filterId, plot, defs, extra){
+  return `<div class="card"><div class="card-h"><h3>${esc(title)}</h3><div class="filters">${chip(filterId)}</div></div>
+    <p class="axis-note">${esc(axis)}</p>
+    <div class="split"><div class="plot">${plot}</div>${defsHtml(defs)}</div>${extra||""}</div>`;
+}
+
+const filters = {
+  date: { title:"日期", options:[["某一天或一段日期","看一周、一个月时，同一个人来了几天只算一个人。"],["对比","和昨天比，再和上周同一天比。"]] },
+  channel: { title:"渠道", options:[["应用商店","从商店来的人。"],["自然量","没有花钱买来的人。"],["信息流","投放来的人。"],["未知","还没识别出来源的人，单独看。"]] },
+  who: { title:"人群", options:[["全部用户","当天打开过的人。"],["新用户","当天第一次打开的人。"],["老用户","当天来过、但不是第一次打开的人。"]] },
+  cohort: { title:"新增日", options:[["按来的那天","看这一天新来的人，后来第几天还在。"],["还没到的日期","第 7 天、第 30 天还没到，先空着。"]] },
+  version: { title:"版本", options:[["全部版本","先看整体。"],["按版本","和某一次发布对上时，按版本看。"]] }
+};
+
+const labels30 = recent.map(r => r.label);
+const crashMarks = ["10/02"];
+function pSeries(name, color, pick, list){
+  return { name, color, data: (list || recent).map(r => { const v = pick(r); return v==null ? null : +(Number(v)*100).toFixed(1); }) };
+}
+
+const main = document.getElementById("main");
+const m1funnel = [
+  ["触达", last.touches],
+  ["点击", last.clicks],
+  ["下载", last.downloads],
+  ["安装", last.installs],
+  ["首次打开", last.firstOpen]
+];
+function funnelTable(steps, comments){
+  const head = `<tr><th class="left">步骤</th><th>人数</th><th>占上一步</th><th class="left">这一步少了说明什么</th></tr>`;
+  const body = steps.map((s,i) => {
+    const prev = i===0 ? null : s[1]/steps[i-1][1];
+    return `<tr><td class="left">${esc(s[0])}</td><td>${fmtNum(s[1])}</td><td>${i===0?"—":fmtPct(prev)}</td><td class="left">${esc(comments[i])}</td></tr>`;
+  }).join("");
+  return `<div class="table-wrap"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+
+const channelRank = [
+  { name:"信息流", value:last.newcomers*last.share.feed, color:COLORS.coral, text:fmtNum(last.newcomers*last.share.feed) },
+  { name:"应用商店", value:last.newcomers*last.share.store, color:COLORS.blue, text:fmtNum(last.newcomers*last.share.store) },
+  { name:"自然量", value:last.newcomers*last.share.organic, color:COLORS.green, text:fmtNum(last.newcomers*last.share.organic) },
+  { name:"未知", value:last.newcomers*last.share.unknown, color:COLORS.slate, text:fmtNum(last.newcomers*last.share.unknown) }
+].sort((a,b)=>b.value-a.value);
+
+const html = [];
+html.push(`<section class="mod" id="m1"><div class="mod-title"><div class="num">1</div><div><h2>人从哪来</h2><p class="goal">看今天新来了多少人，人从哪个渠道来，装完有没有打开。</p><p class="chain">触达 → 点击 → 下载 → 安装 → 首次打开。没有投放时，从安装看起。</p></div></div>`);
+html.push(card(
+  "10 月 9 日，从看到到打开",
+  "这一天每一步还剩多少人。",
+  "acq-funnel",
+  bars(m1funnel.map((s,i) => ({ name:s[0], value:s[1], color:COLORS.blue, text:fmtNum(s[1]) }))),
+  [
+    { name:"触达 → 点击", color:COLORS.blue, how:"点的人 ÷ 看到的人。", up:"素材或商店页更能让人点。", down:"展示很多但没人点，问题在素材，不在产品里面。" },
+    { name:"下载 → 安装", color:COLORS.cyan, how:"安装成功 ÷ 下载。", up:"装完的人变多。", down:"包体或系统把人挡住了，人还没进产品。" },
+    { name:"安装 → 首次打开", color:COLORS.gold, how:"第一次打开 ÷ 安装成功。", up:"装完更愿意打开。", down:"装了没用。10 月 2 日故障那天，这一步会一起掉。" }
+  ],
+  funnelTable(m1funnel, ["起点","没点，是素材或商店页","点了没下载，是落地信息","下了没装完，是安装环节","装了没打开，人还没开始用"])
+));
+html.push(card(
+  "每天各渠道新来的人",
+  "看新增是从哪个渠道长出来的。",
+  "acq-trend",
+  lineChart({
+    labels: labels30,
+    format: v => v>=10000 ? (v/10000).toFixed(1)+"万" : String(Math.round(v)),
+    marks: crashMarks,
+    series: [
+      { name:"应用商店", color:COLORS.blue, data: recent.map(r => Math.round(r.newcomers*r.share.store)) },
+      { name:"自然量", color:COLORS.green, data: recent.map(r => Math.round(r.newcomers*r.share.organic)) },
+      { name:"信息流", color:COLORS.coral, data: recent.map(r => Math.round(r.newcomers*r.share.feed)) },
+      { name:"未知", color:COLORS.slate, data: recent.map(r => Math.round(r.newcomers*r.share.unknown)) }
+    ]
+  }),
+  [
+    { name:"应用商店", color:COLORS.blue, how:"从商店来的新用户。", up:"商店来的人变多。", down:"商店来的人变少。" },
+    { name:"自然量", color:COLORS.green, how:"没有花钱买来的新用户。", up:"不是买来的人变多。", down:"不是买来的人变少。总的新用户还在涨时，增长更靠投放。" },
+    { name:"信息流", color:COLORS.coral, how:"投放来的新用户。", up:"人变多时，看这批人第 7 天还在不在。留存更低，就是买来了打开。", down:"投放少了。总的新用户跟着少，增长原先靠这一条。" },
+    { name:"未知", color:COLORS.slate, how:"还没识别出来源的新用户。", up:"识别不到的人变多，渠道判断会不准。", down:"来源更清楚了。" }
+  ],
+  table([
+    { name:"日期", cell:r=>r.label },
+    { name:"新用户", cell:r=>fmtNum(r.newcomers) },
+    { name:"商店", cell:r=>fmtNum(r.newcomers*r.share.store) },
+    { name:"自然", cell:r=>fmtNum(r.newcomers*r.share.organic) },
+    { name:"信息流", cell:r=>fmtNum(r.newcomers*r.share.feed) },
+    { name:"未知", cell:r=>fmtNum(r.newcomers*r.share.unknown) },
+    { name:"安装→打开", cell:r=>fmtPct(r.openFromInstall) },
+    { name:"信息流花费", cell:r=>fmtMoney(r.spend) },
+    { name:"信息流成本", cell:r=>"¥"+r.cac.toFixed(1) }
+  ], tableRows)
+));
+html.push(card(
+  "10 月 9 日各渠道新用户",
+  "看这一天，新用户主要从哪来。",
+  "acq-rank",
+  bars(channelRank),
+  [
+    { name:"渠道占比", color:COLORS.coral, how:"这个渠道的新用户 ÷ 当天全部新用户。", up:"这个渠道对今天的新用户影响更大。还要看它的 7 日留存和 7 天内付费。", down:"这个渠道今天带来的人少了。" }
+  ]
+));
+html.push(card(
+  "每一步还剩下多少",
+  "从看到、到点、到下载、到装完、到打开，每天的比例。",
+  "acq-step",
+  lineChart({
+    labels: labels30,
+    format: v => Math.round(v)+"%",
+    marks: crashMarks,
+    series: [
+      pSeries("看到后点击", COLORS.blue, r => r.clickFromTouch),
+      pSeries("点击后下载", COLORS.cyan, r => r.downloadFromClick),
+      pSeries("下载后安装", COLORS.gold, r => r.installFromDownload),
+      pSeries("安装后打开", COLORS.coral, r => r.openFromInstall)
+    ]
+  }),
+  [
+    { name:"看到后点击", color:COLORS.blue, how:"点击的人 ÷ 看到的人。", up:"更愿意点进来。", down:"看到了但没点，素材或商店页需要看。" },
+    { name:"点击后下载", color:COLORS.cyan, how:"下载的人 ÷ 点击的人。", up:"点进来之后更多人下载了。", down:"点了但没下载。" },
+    { name:"下载后安装", color:COLORS.gold, how:"安装成功 ÷ 下载。", up:"下载之后更多人装完了。", down:"人卡在安装。人还没进产品。" },
+    { name:"安装后打开", color:COLORS.coral, how:"第一次打开 ÷ 安装成功。", up:"装完之后更多人打开了。", down:"装了没打开。故障那天这一步会一起掉。" }
+  ]
+));
+html.push(card(
+  "信息流花了多少钱，带来一个人要多少钱",
+  "左边是花费，右边虚线是每个人的成本。只算信息流。",
+  "acq-cac",
+  lineChart({
+    labels: labels30,
+    format: v => v>=10000 ? (v/10000).toFixed(1)+"万" : "¥"+Math.round(v),
+    marks: crashMarks,
+    tight: true,
+    series: [{ name:"信息流花费", color:COLORS.gold, data: recent.map(r => Math.round(r.spend)) }],
+    right: { name:"获客成本", color:COLORS.coral, data: recent.map(r => +r.cac.toFixed(1)), format: v => "¥"+v.toFixed(0) }
+  }),
+  [
+    { name:"信息流花费", color:COLORS.gold, how:"当天信息流花掉的钱。", up:"投放花得更多。", down:"投放少花了。" },
+    { name:"获客成本", color:COLORS.coral, how:"信息流花费 ÷ 信息流新用户。", up:"每个人更贵。还要看这批人第 7 天还在不在。", down:"更便宜。留存也低的话，是更便宜、但留不住的人。" }
+  ]
+));
+html.push(card(
+  "自然量和信息流各占新用户多少",
+  "两条都是占当天新用户的比例。",
+  "acq-organic",
+  lineChart({
+    labels: labels30,
+    format: v => Math.round(v)+"%",
+    series: [
+      pSeries("自然量占比", COLORS.green, r => r.share.organic),
+      pSeries("信息流占比", COLORS.coral, r => r.share.feed)
+    ]
+  }),
+  [
+    { name:"自然量占比", color:COLORS.green, how:"自然量新用户 ÷ 当天新用户。", up:"更多人不是买来的。", down:"新用户变多、这个比例变低，增长更靠投放。" },
+    { name:"信息流占比", color:COLORS.coral, how:"信息流新用户 ÷ 当天新用户。", up:"今天的新用户更靠投放。还要看这批人后来还在不在、7 天内付不付钱。", down:"投放对今天新用户的影响变小。" }
+  ]
+));
+html.push(`</section>`);
+
+html.push(`<section class="mod" id="m2"><div class="mod-title"><div class="num">2</div><div><h2>有多少人、来得勤不勤</h2><p class="goal">看今天有多少人来过，以及来过的人是不是更勤。看一天时，用当天日活。看多天时，同一个人只算一次。</p><p class="chain">近 30 日来过 → 近 7 日来过 → 当天日活。人可以 30 天里来过，今天没来。</p></div></div>`);
+const scaleSteps = [["近30日活跃", last.active30],["近7日活跃", last.active7],["日活", last.dau]];
+html.push(card(
+  "10 月 9 日，来过的人里有多少人今天在",
+  "近 30 天来过、近 7 天来过、今天来过，一层比一层少。",
+  "scale-funnel",
+  bars(scaleSteps.map(s => ({ name:s[0], value:s[1], color:COLORS.cyan, text:fmtNum(s[1]) }))),
+  [
+    { name:"日活 ÷ 近30日活跃", color:COLORS.cyan, how:"来过的人里，当天能见到的比例。", up:"来过的人出现得更密，习惯更勤。", down:"月内来过的人变稀。日活还能被新人撑住。" }
+  ],
+  funnelTable(scaleSteps, ["近 30 天至少来过 1 天的人","近 7 天还来的人。变少是一周内出现变稀","当天打开过的人"])
+));
+html.push(card(
+  "日活、新用户、老用户",
+  "看日活是新人撑起来的，还是原来的人还在。右边虚线是新用户占日活。",
+  "scale-trend",
+  lineChart({
+    labels: labels30,
+    format: v => v>=10000 ? (v/10000).toFixed(1)+"万" : String(Math.round(v)),
+    marks: crashMarks,
+    series: [
+      { name:"日活", color:COLORS.blue, data: recent.map(r=>r.dau) },
+      { name:"新用户", color:COLORS.green, data: recent.map(r=>r.newcomers) },
+      { name:"老用户", color:COLORS.gold, data: recent.map(r=>r.oldUsers) }
+    ],
+    right: { name:"新用户占比", color:COLORS.coral, data: recent.map(r => +(r.newcomers/r.dau*100).toFixed(1)), format: v => Math.round(v)+"%" }
+  }),
+  [
+    { name:"日活", color:COLORS.blue, how:"当天打开过的人数。", up:"先看是新用户还是老用户。对过周末、假期、故障再下结论。", down:"先看第 7 节有没有崩溃。没有故障，再看老用户。" },
+    { name:"新用户占日活", color:COLORS.green, how:"当天新用户 ÷ 日活。", up:"今天更靠新人。这批人留不住的话，后面几天会回落。", down:"新增对当天活跃的贡献变小。" },
+    { name:"老用户", color:COLORS.gold, how:"日活 − 新用户。", up:"原来的人回来得更多。", down:"原来的人没来。新用户把日活补上时，这个数仍要单独看。" }
+  ],
+  table([
+    { name:"日期", cell:r=>r.label },
+    { name:"日活", cell:r=>fmtNum(r.dau) },
+    { name:"新用户", cell:r=>fmtNum(r.newcomers) },
+    { name:"老用户", cell:r=>fmtNum(r.oldUsers) },
+    { name:"新用户占比", cell:r=>fmtPct(r.newcomers/r.dau) },
+    { name:"付费人数占比", cell:r=>fmtPct(r.payUsers/r.dau) },
+    { name:"近7日活跃", cell:r=>fmtNum(r.active7) },
+    { name:"近30日活跃", cell:r=>fmtNum(r.active30) },
+    { name:"近7日人均天数", cell:r=>r.daysPerUser7.toFixed(2) }
+  ], tableRows)
+));
+html.push(card(
+  "付钱的人占今天来的人有多少",
+  "和收入里的付费率是同一个数，放在人数这里看占比。",
+  "scale-payshare",
+  lineChart({
+    labels: labels30,
+    format: v => v.toFixed(1)+"%",
+    marks: crashMarks,
+    tight: true,
+    series: [pSeries("付费人数占比", COLORS.coral, r => r.payUsers/r.dau)]
+  }),
+  [
+    { name:"付费人数占比", color:COLORS.coral, how:"当天付费人数 ÷ 日活。", up:"来的人里，付钱的比例更高。", down:"人还在，付钱的人变少。" }
+  ]
+));
+html.push(card(
+  "近 7 日来过的人、近 30 日来过的人",
+  "看一段日子里来过的盘子。右边虚线是近 7 日每个人平均来几天。",
+  "scale-roll",
+  lineChart({
+    labels: labels30,
+    format: v => v>=10000 ? (v/10000).toFixed(1)+"万" : String(Math.round(v)),
+    marks: crashMarks,
+    series: [
+      { name:"近7日活跃", color:COLORS.blue, data: recent.map(r => r.active7) },
+      { name:"近30日活跃", color:COLORS.cyan, data: recent.map(r => r.active30) }
+    ],
+    right: { name:"人均使用天数", color:COLORS.gold, data: recent.map(r => +r.daysPerUser7.toFixed(2)), format: v => v.toFixed(1)+"天" }
+  }),
+  [
+    { name:"近7日活跃", color:COLORS.blue, how:"最近 7 天里至少来过 1 天的人数。", up:"这一周来过的人变多。", down:"这一周出现的人变少。日活被新人撑住时，这里仍会掉。" },
+    { name:"近30日活跃", color:COLORS.cyan, how:"最近 30 天里至少来过 1 天的人数。", up:"一个月里来过的人变多。", down:"月内来过的人变少。" },
+    { name:"人均使用天数", color:COLORS.gold, how:"最近 7 天的活跃天数合计 ÷ 这 7 天的去重人数。看一天时不出。", up:"同一个人来得更勤。", down:"人还在名单里，但来的天数变少。" }
+  ]
+));
+html.push(`</section>`);
+
+html.push(`<section class="mod" id="m3"><div class="mod-title"><div class="num">3</div><div><h2>用得深不深</h2><p class="goal">人还在的时候，看用得有没有变浅。变浅常常比人数下跌更早出现。</p><p class="chain">人均时长 = 人均打开次数 × 每次停留。三个数要对得上。只打开 1 次的人变多，是来了就走。</p></div></div>`);
+html.push(card(
+  "10 月 9 日，时长是次数变了还是每次变了",
+  "人均时长等于次数乘上每次停留。",
+  "depth-split",
+  `<div class="f-row"><div class="f-name">人均时长</div><div class="f-track"><div class="f-bar" style="width:100%;background:${COLORS.blue}"></div></div><div class="f-val">${fmtMin(last.perUserMin)} 分</div></div>
+   <div class="f-row"><div class="f-name">人均次数</div><div class="f-track"><div class="f-bar" style="width:62%;background:${COLORS.green}"></div></div><div class="f-val">${fmtMin(last.sessions)} 次</div></div>
+   <div class="f-row"><div class="f-name">单次时长</div><div class="f-track"><div class="f-bar" style="width:48%;background:${COLORS.gold}"></div></div><div class="f-val">${fmtMin(last.perSession)} 分</div></div>
+   <p class="axis-note" style="margin-top:8px">${fmtMin(last.sessions)} × ${fmtMin(last.perSession)} = ${fmtMin(last.sessions*last.perSession)} 分钟。</p>`,
+  [
+    { name:"人均时长", color:COLORS.blue, how:"当天会话时长 ÷ 日活。两次操作隔 30 分钟算新的一次，只算前台。", up:"先拆次数和单次。对不上核心价值之前，不把时长变长说成变好。", down:"人还在、待得更短，用得更浅。" },
+    { name:"人均次数", color:COLORS.green, how:"会话次数 ÷ 日活。", up:"打开更多。若单次更短，是来得碎，不是看得更深。", down:"打开变少。" },
+    { name:"单次时长", color:COLORS.gold, how:"会话时长 ÷ 会话次数。", up:"每次待得更久。", down:"每次打开就走。" }
+  ]
+));
+html.push(card(
+  "每天的时长和次数",
+  "分钟看左边，次数看右边虚线。",
+  "depth-trend",
+  lineChart({
+    labels: labels30,
+    format: v => v.toFixed(0)+"分",
+    marks: crashMarks,
+    series: [
+      { name:"人均时长", color:COLORS.blue, data: recent.map(r=>+r.perUserMin.toFixed(1)) },
+      { name:"单次时长", color:COLORS.gold, data: recent.map(r=>+r.perSession.toFixed(1)) }
+    ],
+    right: { name:"人均次数", color:COLORS.green, data: recent.map(r=>+r.sessions.toFixed(2)), format: v => v.toFixed(1)+"次" }
+  }),
+  [
+    { name:"人均时长", color:COLORS.blue, how:"当天会话时长 ÷ 日活。两次操作隔 30 分钟算新的一次，只算前台。", up:"先看是次数多了，还是每次更久。", down:"人还在，待得更短。" },
+    { name:"人均次数", color:COLORS.green, how:"会话次数 ÷ 日活。", up:"打开更多。单次更短时，是来得碎。", down:"打开变少。" },
+    { name:"单次时长", color:COLORS.gold, how:"会话时长 ÷ 会话次数。", up:"每次待得更久。", down:"每次打开就走。" }
+  ]
+));
+html.push(card(
+  "只打开 1 次的人占多少",
+  "当天只开了一次就走的人，占日活的比例。",
+  "depth-once",
+  lineChart({
+    labels: labels30,
+    format: v => Math.round(v)+"%",
+    marks: crashMarks,
+    series: [pSeries("只打开1次", COLORS.coral, r => r.onceShare)]
+  }),
+  [
+    { name:"只打开 1 次", color:COLORS.coral, how:"当天只开 1 次的人 ÷ 日活。", up:"更多人来了就走。", down:"当天至少再打开一次的人变多。" }
+  ]
+));
+html.push(card(
+  "新用户当天待了多久，会不会再打开一次",
+  "左边是分钟，右边虚线是当天再打开一次的比例。只算第一次打开的人。",
+  "depth-first",
+  lineChart({
+    labels: labels30,
+    format: v => v.toFixed(0)+"分",
+    marks: crashMarks,
+    series: [{ name:"首日时长", color:COLORS.purple, data: recent.map(r => +r.firstMin.toFixed(1)) }],
+    right: { name:"首日回访", color:COLORS.cyan, data: recent.map(r => +(r.firstReturn*100).toFixed(1)), format: v => Math.round(v)+"%" }
+  }),
+  [
+    { name:"首日人均时长", color:COLORS.purple, how:"新用户当天的时长 ÷ 新用户。", up:"新人当天待得更久。", down:"新人当天更浅。还要看第二天还在不在。" },
+    { name:"首日回访率", color:COLORS.cyan, how:"当天打开达到 2 次的新用户 ÷ 新用户。", up:"新人当天更愿意再打开。", down:"新人当天来一次就走。" }
+  ]
+));
+html.push(card(
+  "近 7 日里，来得勤的人占多少",
+  "最近 7 天里来了 4 天及以上的人。看一天时不出这个数。",
+  "depth-heavy",
+  lineChart({
+    labels: labels30,
+    format: v => Math.round(v)+"%",
+    tight: true,
+    series: [pSeries("近7日高频", COLORS.slate, r => r.heavy7)]
+  }),
+  [
+    { name:"近 7 日高频占比", color:COLORS.slate, how:"最近 7 天里来了 4 天及以上的人 ÷ 这 7 天的去重人数。", up:"来得勤的人变多。", down:"来得勤的人变少。新人把人数补上时，这里仍会掉。" }
+  ],
+  table([
+    { name:"日期", cell:r=>r.label },
+    { name:"人均时长", cell:r=>fmtMin(r.perUserMin) },
+    { name:"人均次数", cell:r=>fmtMin(r.sessions) },
+    { name:"单次时长", cell:r=>fmtMin(r.perSession) },
+    { name:"只打开1次", cell:r=>fmtPct(r.onceShare) },
+    { name:"首日时长", cell:r=>fmtMin(r.firstMin) },
+    { name:"首日回访", cell:r=>fmtPct(r.firstReturn) },
+    { name:"近7日高频", cell:r=>fmtPct(r.heavy7) }
+  ], tableRows)
+));
+html.push(`</section>`);
+
+html.push(`<section class="mod" id="m4"><div class="mod-title"><div class="num">4</div><div><h2>会不会再来</h2><p class="goal">看某一天来的新人，第 1 天、第 7 天、第 30 天还在不在。</p><p class="chain">某一天的新增 → 次日 → 3 日 → 7 日 → 15 日 → 30 日。下面看的是 9 月 18 日来的那批人。第 30 天要到 10 月 18 日，所以先空着。</p></div></div>`);
+const retSteps = [
+  ["新增", cohort.newcomers, "这批人的分母"],
+  ["次日还在", cohort.newcomers*cohort.d1, "第二天没回来。先看当天崩溃和加载失败"],
+  ["3日还在", cohort.newcomers*cohort.d3, "头三天还在不在"],
+  ["7日还在", cohort.newcomers*cohort.d7, "一周后还在不在。回来过但这里断，是没有再来的理由"],
+  ["15日还在", cohort.newcomers*cohort.d15, "短期还在，看有没有变成习惯"],
+  ["30日还在", null, "第 30 天还没到，先空着"]
+];
+html.push(card(
+  "9 月 18 日这批新人后来还在多少",
+  "从这一天新来的人看起。第 30 天还没到，所以空着。",
+  "ret-funnel",
+  bars(retSteps.filter(s => s[1]!=null).map(s => ({ name:s[0], value:s[1], color:COLORS.purple, text:fmtNum(s[1]) }))) + `<p class="axis-note">第 30 天还没到</p>`,
+  [
+    { name:"次日就少了", color:COLORS.coral, how:"第二天回来的人明显少。", up:"第二天回来的人变多。", down:"先看这批人来的那天有没有崩溃、加载失败、启动变慢。" },
+    { name:"7 日还在、15 日变少", color:COLORS.purple, how:"一周后还在，半个月后少了。", up:"留下来的时间在变长。", down:"回来过，之后又少了。接着看来得勤的人和续费。" },
+    { name:"第 30 天", color:COLORS.slate, how:"要到 10 月 18 日才有这批人的第 30 天。现在空着。", up:"到了那天，看还剩多少人。", down:"到了那天，看少了多少。" }
+  ],
+  `<div class="table-wrap"><table><thead><tr><th class="left">步骤</th><th>人数</th><th>占这批新增</th><th class="left">说明</th></tr></thead><tbody>${
+    retSteps.map(s => `<tr><td class="left">${esc(s[0])}</td><td>${s[1]==null?"—":fmtNum(s[1])}</td><td>${s[1]==null?"—":fmtPct(s[1]/cohort.newcomers)}</td><td class="left">${esc(s[2])}</td></tr>`).join("")
+  }</tbody></table></div>`
+));
+html.push(card(
+  "各批新人后来还在的比例",
+  "每一天是一批新来的人。线停住的地方，是这一天还没到。",
+  "ret-trend",
+  lineChart({
+    labels: rows.map(r => r.label),
+    format: v => Math.round(v)+"%",
+    series: [
+      { name:"次日", color:COLORS.blue, data: rows.map(r => r.d1==null?null:+(r.d1*100).toFixed(1)) },
+      { name:"3日", color:COLORS.cyan, data: rows.map(r => r.d3==null?null:+(r.d3*100).toFixed(1)) },
+      { name:"7日", color:COLORS.green, data: rows.map(r => r.d7==null?null:+(r.d7*100).toFixed(1)) },
+      { name:"15日", color:COLORS.gold, data: rows.map(r => r.d15==null?null:+(r.d15*100).toFixed(1)) },
+      { name:"30日", color:COLORS.coral, data: rows.map(r => r.d30==null?null:+(r.d30*100).toFixed(1)) }
+    ]
+  }),
+  [
+    { name:"次日到第 30 天", color:COLORS.blue, how:"这一天的新用户，到第 N 天还打开的比例。", up:"这批人留下来的更多。看少在第几天。", down:"第二天就少，先看当天有没有故障。第 7 天以后少，看后来有没有再来的理由。" }
+  ],
+  table([
+    { name:"新增日", cell:r=>r.label },
+    { name:"新增", cell:r=>fmtNum(r.newcomers) },
+    { name:"次留", cell:r=>fmtPct(r.d1) },
+    { name:"3留", cell:r=>fmtPct(r.d3) },
+    { name:"7留", cell:r=>fmtPct(r.d7) },
+    { name:"15留", cell:r=>fmtPct(r.d15) },
+    { name:"30留", cell:r=>fmtPct(r.d30) },
+    { name:"老用户次留", cell:r=>fmtPct(r.oldD1) },
+    { name:"付费7留", cell:r=>fmtPct(r.payD7) },
+    { name:"商店7留", cell:r=>fmtPct(r.storeD7) },
+    { name:"自然7留", cell:r=>fmtPct(r.organicD7) },
+    { name:"信息流7留", cell:r=>fmtPct(r.feedD7) }
+  ], tableRows)
+));
+html.push(card(
+  "老用户第二天还来多少，付过钱的人第 7 天还来多少",
+  "老用户按前一天算。付过钱的人按付钱那天算，第 7 天还没到的先空着。",
+  "ret-old",
+  lineChart({
+    labels: labels30,
+    format: v => Math.round(v)+"%",
+    marks: crashMarks,
+    series: [
+      pSeries("老用户次日", COLORS.gold, r => r.oldD1),
+      pSeries("付费用户7日", COLORS.purple, r => r.payD7)
+    ]
+  }),
+  [
+    { name:"老用户次日", color:COLORS.gold, how:"昨天的老用户里，今天还来的比例。", up:"原来的人还在回来。", down:"原来的人少了。新用户把日活补上时，这里仍要单独看。" },
+    { name:"付费用户 7 日", color:COLORS.purple, how:"当天付过钱的人，第 7 天还打开的比例。", up:"付完钱一周内还在用。", down:"付完钱就不用了，后面的续费和再次购买会跟着少。" }
+  ]
+));
+html.push(card(
+  "各渠道新用户第 7 天还在的比例",
+  "按新用户来的那天算。第 7 天还没到的日期先空着。",
+  "ret-channel",
+  lineChart({
+    labels: labels30,
+    format: v => Math.round(v)+"%",
+    series: [
+      pSeries("应用商店", COLORS.blue, r => r.storeD7),
+      pSeries("自然量", COLORS.green, r => r.organicD7),
+      pSeries("信息流", COLORS.coral, r => r.feedD7),
+      pSeries("未知", COLORS.slate, r => r.unknownD7)
+    ]
+  }),
+  [
+    { name:"应用商店", color:COLORS.blue, how:"商店来的新用户，第 7 天还打开的比例。", up:"商店来的人更能留下来。", down:"商店来的人第 7 天更少回来。" },
+    { name:"自然量", color:COLORS.green, how:"没有花钱买来的新用户，第 7 天还打开的比例。", up:"不是买来的人更能留下来。", down:"不是买来的人第 7 天更少回来。" },
+    { name:"信息流", color:COLORS.coral, how:"投放来的新用户，第 7 天还打开的比例。", up:"投放来的人更能留下来。", down:"人变多、这个比例变低，买到的是打开。" },
+    { name:"未知", color:COLORS.slate, how:"还没识别出来源的新用户，第 7 天还打开的比例。", up:"来源不明的人也能留下来。", down:"来源不明的人留得更差。渠道判断会更不准。" }
+  ]
+));
+html.push(`</section>`);
+
+html.push(`<section class="mod" id="m5"><div class="mod-title"><div class="num">5</div><div><h2>钱</h2><p class="goal">收入少了的时候，看是人少、付钱的人少、每人付得少，还是退款和支付没走完。</p><p class="chain">点击购买 → 下单 → 支付成功。退款单独看。购买入口在哪个页面，按各自产品看。</p></div></div>`);
+const paySteps = [["点击购买", last.clickBuy],["下单", last.orders],["支付成功", last.payOkOrders]];
+html.push(card(
+  "10 月 9 日，从点购买到付成",
+  "这一天点了购买、下了单、付成的订单。",
+  "pay-funnel",
+  bars(paySteps.map(s => ({ name:s[0], value:s[1], color:COLORS.gold, text:fmtNum(s[1]) }))),
+  [
+    { name:"点击到下单", color:COLORS.gold, how:"下单 ÷ 点击购买。", up:"点了之后更愿意下单。", down:"下单步骤把人拦住了。" },
+    { name:"下单到支付成功", color:COLORS.coral, how:"支付成功的订单 ÷ 创建的订单。", up:"钱更走得完。", down:"支付没走完。收入少时先看这一步。" }
+  ],
+  funnelTable(paySteps, ["看到价格之后点了购买","点了但订单没建起来","订单里真正付成的"])
+));
+html.push(card(
+  "收入从谁来，付费率怎样",
+  "金额看左边，付费率看右边虚线。",
+  "pay-trend",
+  lineChart({
+    labels: labels30,
+    format: v => v>=10000 ? (v/10000).toFixed(1)+"万" : String(Math.round(v)),
+    marks: crashMarks,
+    series: [
+      { name:"收入", color:COLORS.blue, data: recent.map(r=>Math.round(r.revenue)) },
+      { name:"新用户收入", color:COLORS.green, data: recent.map(r=>Math.round(r.newRevenue)) },
+      { name:"老用户收入", color:COLORS.gold, data: recent.map(r=>Math.round(r.oldRevenue)) }
+    ],
+    right: { name:"付费率", color:COLORS.coral, data: recent.map(r=>+(r.payRate*100).toFixed(2)), format: v => v.toFixed(1)+"%" }
+  }) + `<div style="margin-top:12px"><p class="axis-note">10 月 9 日，收入里新人的钱和老人的钱各占多少。</p>${donut([
+    { name:"新用户收入", value:last.newRevenue, color:COLORS.green },
+    { name:"老用户收入", value:last.oldRevenue, color:COLORS.gold }
+  ])}</div>`,
+  [
+    { name:"收入", color:COLORS.blue, how:"当天支付成功 − 当天退款。退款记在退款当天。", up:"今天留下的钱变多。接着看是人数、付费率，还是每人金额。", down:"接着看退款和支付有没有走完。" },
+    { name:"新用户收入 / 老用户收入", color:COLORS.green, how:"按付钱的人是不是当天新用户拆开。", up:"看钱是靠新人第一笔，还是靠原来的人。", down:"新人的钱少了，看 7 天内付费和渠道。原来的人的钱少了，看续费、再次购买、人还在不在。" },
+    { name:"付费率", color:COLORS.coral, how:"付费人数 ÷ 日活。付费人数是当天至少付成 1 笔、且没被全额退掉的人。", up:"付钱的人占比变高。", down:"每人金额没变时，是付钱的人变少。" }
+  ],
+  table([
+    { name:"日期", cell:r=>r.label },
+    { name:"收入", cell:r=>fmtMoney(r.revenue) },
+    { name:"新用户收入", cell:r=>fmtMoney(r.newRevenue) },
+    { name:"老用户收入", cell:r=>fmtMoney(r.oldRevenue) },
+    { name:"付费率", cell:r=>fmtPct(r.payRate) },
+    { name:"付费人数", cell:r=>fmtNum(r.payUsers) }
+  ], tableRows)
+));
+html.push(card(
+  "付费人数",
+  "当天至少付成 1 笔、且没被全额退掉的人数。",
+  "pay-users",
+  lineChart({
+    labels: labels30,
+    format: v => String(Math.round(v)),
+    marks: crashMarks,
+    series: [{ name:"付费人数", color:COLORS.purple, data: recent.map(r => r.payUsers) }]
+  }),
+  [
+    { name:"付费人数", color:COLORS.purple, how:"当天付成且没有被全额退掉的人数。", up:"付钱的人变多。", down:"付钱的人变少。日活还在时，是愿意付钱的人少了。" }
+  ]
+));
+html.push(card(
+  "每个人带来多少钱，付过钱的人平均付多少",
+  "左边是全部来过的人平均，右边虚线是付过钱的人平均。",
+  "pay-arpu",
+  lineChart({
+    labels: labels30,
+    format: v => "¥"+v.toFixed(1),
+    marks: crashMarks,
+    series: [{ name:"人均收入", color:COLORS.blue, data: recent.map(r => +(r.revenue/r.dau).toFixed(2)) }],
+    right: { name:"付费用户人均", color:COLORS.purple, data: recent.map(r => r.arppu), format: v => "¥"+Math.round(v) }
+  }),
+  [
+    { name:"人均收入", color:COLORS.blue, how:"当天收入 ÷ 日活。", up:"每个来过的人带来的钱变多。", down:"人还在，每个人带来的钱变少。" },
+    { name:"付费用户人均收入", color:COLORS.purple, how:"当天收入 ÷ 付费人数。", up:"已经付钱的人付得更多。", down:"付费率没降时，是每人付得更少，或退款变多。" }
+  ]
+));
+html.push(card(
+  "退了多少，退款率怎样",
+  "左边是退款金额，右边虚线是退款率。",
+  "pay-refund",
+  lineChart({
+    labels: labels30,
+    format: v => v>=10000 ? (v/10000).toFixed(1)+"万" : "¥"+Math.round(v),
+    marks: crashMarks,
+    series: [{ name:"退款金额", color:COLORS.slate, data: recent.map(r => Math.round(r.refund)) }],
+    right: { name:"退款率", color:COLORS.coral, data: recent.map(r => +(r.refundRate*100).toFixed(2)), format: v => v.toFixed(1)+"%" }
+  }),
+  [
+    { name:"退款金额", color:COLORS.slate, how:"记在退款当天，从当天收入里扣掉。", up:"退掉的钱变多。", down:"退掉的钱变少。" },
+    { name:"退款率", color:COLORS.coral, how:"当天退款 ÷ 当天支付成功（退掉之前）。", up:"付出去的钱留不住。付费率正常时，收入仍会少。", down:"退掉的比例变低。" }
+  ]
+));
+html.push(card(
+  "收入里，第一次付钱和新用户的钱各占多少",
+  "两条都是占当天收入的比例。",
+  "pay-first",
+  lineChart({
+    labels: labels30,
+    format: v => Math.round(v)+"%",
+    marks: crashMarks,
+    series: [
+      pSeries("首付收入占比", COLORS.cyan, r => r.firstPayShare),
+      pSeries("新用户收入占比", COLORS.green, r => r.newRevenue/r.revenue)
+    ]
+  }),
+  [
+    { name:"首付收入占比", color:COLORS.cyan, how:"用户历史第一笔的金额 ÷ 当天收入。", up:"更靠第一次付钱，后面的钱没接上。", down:"后面继续付钱的占比更高。" },
+    { name:"新用户收入占比", color:COLORS.green, how:"当天新用户付成的钱 ÷ 当天收入。", up:"今天的钱更靠新人。", down:"今天的钱更多来自原来的人。" }
+  ]
+));
+html.push(card(
+  "付成的订单有多少，付成的比例怎样",
+  "左边是付成的订单数，右边虚线是支付成功率。",
+  "pay-success",
+  lineChart({
+    labels: labels30,
+    format: v => String(Math.round(v)),
+    marks: crashMarks,
+    tight: true,
+    series: [{ name:"支付成功订单", color:COLORS.gold, data: recent.map(r => r.payOkOrders) }],
+    right: { name:"支付成功率", color:COLORS.green, data: recent.map(r => +(r.paySuccessRate*100).toFixed(1)), format: v => v.toFixed(1)+"%" }
+  }),
+  [
+    { name:"支付成功订单", color:COLORS.gold, how:"当天付成的订单数。", up:"付成的订单变多。", down:"付成的订单变少。比例没掉时，是下单的人少了。" },
+    { name:"支付成功率", color:COLORS.green, how:"支付成功的订单 ÷ 创建的订单。", up:"钱更走得完。", down:"和故障同一天掉时，先看支付。收入少，先看这里。" }
+  ]
+));
+html.push(card(
+  "新用户 7 天内付费，按渠道看",
+  "从新用户来的那天起算 7 天。还没满 7 天的先空着。全部是各渠道合在一起。",
+  "pay-new7",
+  lineChart({
+    labels: labels30,
+    format: v => v.toFixed(1)+"%",
+    series: [
+      pSeries("全部新用户", COLORS.slate, r => r.newPay7),
+      pSeries("应用商店", COLORS.blue, r => r.storePay7),
+      pSeries("自然量", COLORS.green, r => r.organicPay7),
+      pSeries("信息流", COLORS.coral, r => r.feedPay7)
+    ]
+  }),
+  [
+    { name:"全部新用户", color:COLORS.slate, how:"某天全部新用户，第 0 天到第 6 天付钱的比例。", up:"这批新人 7 天内更愿意付钱。", down:"看是哪个渠道把整体拉低了。" },
+    { name:"应用商店", color:COLORS.blue, how:"商店来的新用户，第 0 天到第 6 天付成的比例。", up:"商店来的人更愿意在第一周付钱。", down:"商店来的人第一周更不愿意付钱。" },
+    { name:"自然量", color:COLORS.green, how:"没有花钱买来的新用户，第 0 天到第 6 天付成的比例。", up:"不是买来的人更愿意在第一周付钱。", down:"不是买来的人第一周更不愿意付钱。" },
+    { name:"信息流", color:COLORS.coral, how:"投放来的新用户，第 0 天到第 6 天付成的比例。", up:"投放来的人更愿意在第一周付钱。", down:"和第 7 天还在的比例差得很远时，是来的人不一样。" }
+  ],
+  table([
+    { name:"日期", cell:r=>r.label },
+    { name:"人均收入", cell:r=>"¥"+(r.revenue/r.dau).toFixed(2) },
+    { name:"付费人均", cell:r=>"¥"+r.arppu.toFixed(0) },
+    { name:"退款金额", cell:r=>fmtMoney(r.refund) },
+    { name:"退款率", cell:r=>fmtPct(r.refundRate) },
+    { name:"支付成功", cell:r=>fmtPct(r.paySuccessRate) },
+    { name:"首付占比", cell:r=>fmtPct(r.firstPayShare) },
+    { name:"新人7日付费", cell:r=>fmtPct(r.newPay7) }
+  ], tableRows)
+));
+html.push(`</section>`);
+
+html.push(`<section class="mod" id="m6"><div class="mod-title"><div class="num">6</div><div><h2>还会不会继续付钱</h2><p class="goal">订阅看到期之后还续不续。按次购买看还会不会再买。两件事分开看。</p><p class="chain">订阅：当天到期 → 到期当天或之前扣上下一期。到期之后再订，单独看。按次：以前买过、这段还在用 → 这段再次买成。</p></div></div>`);
+const renewSteps = [["当天到期", last.expire],["按期续上", last.renewed]];
+const buySteps = [["可复购的人", last.eligible],["再次买成", last.repurchaseUsers]];
+html.push(card(
+  "10 月 9 日，到期续上了多少，又买了多少",
+  "上面是订阅到期。下面是以前买过、这段还在用的人。",
+  "renew-funnel",
+  `<p class="axis-note">订阅</p>${bars(renewSteps.map(s=>({name:s[0],value:s[1],color:COLORS.blue,text:fmtNum(s[1])})))}
+   <p class="axis-note">按次再买</p>${bars(buySteps.map(s=>({name:s[0],value:s[1],color:COLORS.green,text:fmtNum(s[1])})))}`,
+  [
+    { name:"续费率", color:COLORS.blue, how:"按期扣上的人 ÷ 当天到期的人。", up:"到期后更愿意留下。先看是不是到期的人变少了。", down:"到期时已经多日不来，是人先不用了。还在用但不续，是价格、权益或扣款。" },
+    { name:"过期后再订阅", color:COLORS.cyan, how:"没按期续上的人里，稍后又订上的比例。单独算，不放进续费率。", up:"扣款或提醒没接上，人还要。", down:"过期之后也没有再订。" },
+    { name:"复购率", color:COLORS.green, how:"以前买过、这段仍在用的人里，再次买成的比例。", up:"买过的人还愿意再买。", down:"人还在、这个比例变低：还在用，但不愿意再买。人先少了，是人走了。" }
+  ],
+  `<div class="table-wrap"><table><thead><tr><th class="left">步骤</th><th>人数</th><th>占上一步</th><th class="left">说明</th></tr></thead><tbody>
+    <tr><td class="left">当天到期</td><td>${fmtNum(last.expire)}</td><td>—</td><td class="left">当天订阅到期的人。人突然变多时，续费金额跟着高，先看是不是到期集中</td></tr>
+    <tr><td class="left">按期续上</td><td>${fmtNum(last.renewed)}</td><td>${fmtPct(last.renewed/last.expire)}</td><td class="left">到期当天或之前扣上下一期</td></tr>
+    <tr><td class="left">到期未续</td><td>${fmtNum(last.expire-last.renewed)}</td><td>${fmtPct(1-last.renewed/last.expire)}</td><td class="left">这批人还可以再去联系</td></tr>
+    <tr><td class="left">可再次购买的人</td><td>${fmtNum(last.eligible)}</td><td>—</td><td class="left">以前买过，而且这段还在用</td></tr>
+    <tr><td class="left">再次买成</td><td>${fmtNum(last.repurchaseUsers)}</td><td>${fmtPct(last.repurchaseRate)}</td><td class="left">按次购买的再次支付</td></tr>
+  </tbody></table></div>`
+));
+html.push(card(
+  "过期之后又订上的比例",
+  "没按期续上的人里，稍后又订上的比例。不放进续费率。",
+  "renew-late",
+  lineChart({
+    labels: labels30,
+    format: v => v.toFixed(1)+"%",
+    marks: crashMarks,
+    tight: true,
+    series: [{ name:"过期后再订阅", color:COLORS.cyan, data: recent.map(r=>+(r.lateRate*100).toFixed(1)) }]
+  }),
+  [
+    { name:"过期后再订阅", color:COLORS.cyan, how:"没按期续上的人里，稍后又订上的比例。", up:"扣款或提醒没接上，人还要。", down:"过期之后也没有再订。" }
+  ]
+));
+html.push(card(
+  "到期的人、按期续上的人、到期没续的人",
+  "人数看左边，续费率看右边虚线。",
+  "renew-expire",
+  lineChart({
+    labels: labels30,
+    format: v => String(Math.round(v)),
+    marks: crashMarks,
+    series: [
+      { name:"到期人数", color:COLORS.slate, data: recent.map(r => r.expire) },
+      { name:"按期续上", color:COLORS.blue, data: recent.map(r => r.renewed) },
+      { name:"到期未续", color:COLORS.coral, data: recent.map(r => r.expire - r.renewed) }
+    ],
+    right: { name:"续费率", color:COLORS.purple, data: recent.map(r => +(r.renewRate*100).toFixed(1)), format: v => Math.round(v)+"%" }
+  }),
+  [
+    { name:"到期人数", color:COLORS.slate, how:"当天订阅到期的人数。", up:"到期集中。续费金额变高，先看是不是人多了。", down:"当天该续的人少。" },
+    { name:"到期未续", color:COLORS.coral, how:"当天到期、没有按期扣上的人数。", up:"还能再去联系的人变多。", down:"没续上的人变少。" },
+    { name:"续费率", color:COLORS.purple, how:"按期扣上的人 ÷ 当天到期的人。", up:"到期后更愿意留下。", down:"还在用但不续，看价格、权益或扣款。人已经不来了，是人先不用了。" }
+  ]
+));
+html.push(card(
+  "还可以再买的人，再次买成的比例",
+  "左边是以前买过、这段还在用的人。右边虚线是其中再次买成的比例。",
+  "renew-eligible",
+  lineChart({
+    labels: labels30,
+    format: v => String(Math.round(v)),
+    marks: crashMarks,
+    series: [{ name:"可再次购买", color:COLORS.green, data: recent.map(r => r.eligible) }],
+    right: { name:"复购率", color:COLORS.gold, data: recent.map(r => +(r.repurchaseRate*100).toFixed(1)), format: v => v.toFixed(1)+"%" }
+  }),
+  [
+    { name:"可再次购买", color:COLORS.green, how:"以前买过非订阅、这段仍在用的人数。", up:"买过且还在用的人变多。", down:"人先少了，再次购买的底子变小。" },
+    { name:"复购率", color:COLORS.gold, how:"以前买过、这段仍在用的人里，再次买成的比例。", up:"买过的人还愿意再买。", down:"人还在、比例变低：还在用，但不愿意再买。" }
+  ]
+));
+html.push(card(
+  "再次购买的人，平均付多少",
+  "再次购买的净收入 ÷ 再次购买的人数。",
+  "renew-arpu",
+  lineChart({
+    labels: labels30,
+    format: v => "¥"+Math.round(v),
+    tight: true,
+    series: [{ name:"复购人均收入", color:COLORS.gold, data: recent.map(r => +r.repurchaseArpu.toFixed(1)) }]
+  }),
+  [
+    { name:"复购人均收入", color:COLORS.gold, how:"再次购买的净收入 ÷ 再次购买的人数。", up:"还在买，而且买得更大。", down:"复购率稳、这个数变低：还在买，买得更小。" }
+  ],
+  table([
+    { name:"日期", cell:r=>r.label },
+    { name:"到期人数", cell:r=>fmtNum(r.expire) },
+    { name:"续费率", cell:r=>fmtPct(r.renewRate) },
+    { name:"到期未续", cell:r=>fmtNum(r.expire-r.renewed) },
+    { name:"过期再订阅", cell:r=>fmtPct(r.lateRate) },
+    { name:"可再次购买", cell:r=>fmtNum(r.eligible) },
+    { name:"再次买成", cell:r=>fmtNum(r.repurchaseUsers) },
+    { name:"复购率", cell:r=>fmtPct(r.repurchaseRate) },
+    { name:"复购人均", cell:r=>"¥"+r.repurchaseArpu.toFixed(0) }
+  ], tableRows)
+));
+html.push(`</section>`);
+
+html.push(`<section class="mod" id="m7"><div class="mod-title"><div class="num">7</div><div><h2>是不是故障</h2><p class="goal">人数或收入某一天掉得厉害时，先看这里。和故障对不上，再看获客、留存、付费。</p><p class="chain">打开：启动 → 没有崩溃 → 页面加载成功。付钱：下单 → 支付成功。某个功能做不成，按各自产品看。</p></div></div>`);
+const openSteps = [
+  ["启动", last.starts],
+  ["没有崩溃", last.starts*(1-last.crashRate)],
+  ["页面加载成功", last.starts*(1-last.crashRate)*(1-last.loadFail)]
+];
+const payOkSteps = [["下单", last.orders],["支付成功", last.payOkOrders]];
+html.push(card(
+  "10 月 9 日，打得开吗，钱走得完吗",
+  "上面是打开。下面是支付。",
+  "fault-funnel",
+  `<p class="axis-note">打开</p>${bars(openSteps.map(s=>({name:s[0],value:s[1],color:COLORS.slate,text:fmtNum(s[1])})))}
+   <p class="axis-note">支付</p>${bars(payOkSteps.map(s=>({name:s[0],value:s[1],color:COLORS.coral,text:fmtNum(s[1])})))}`,
+  [
+    { name:"崩溃率", color:COLORS.coral, how:"崩溃的启动次数 ÷ 启动次数。", up:"和人数、收入同一天变高，先看故障。", down:"崩溃少了。人数还少的话，去看获客或留存。" },
+    { name:"页面加载失败率", color:COLORS.gold, how:"加载失败或超时 ÷ 页面打开次数。", up:"人是打不开，不是不愿意来。", down:"页面更打得开。" },
+    { name:"支付失败率", color:COLORS.purple, how:"没有付成的订单 ÷ 创建的订单。", up:"收入少时先看这个。", down:"支付更走得完。" },
+    { name:"慢启动占比", color:COLORS.cyan, how:"冷启动超过约定秒数的次数 ÷ 冷启动次数。", up:"安装后打开变差、第二天回来的人变少时，一起看。", down:"启动更稳。" }
+  ],
+  funnelTable(openSteps, ["当天启动次数","启动里没有崩的","没崩而且页面加载成功"])
+));
+html.push(card(
+  "崩溃和页面打不开",
+  "10 月 2 日标出来。人数、打开、收入和这一天对上时，先看故障。",
+  "fault-crash",
+  lineChart({
+    labels: labels30,
+    format: v => v.toFixed(1)+"%",
+    marks: crashMarks,
+    series: [
+      { name:"崩溃率", color:COLORS.coral, data: recent.map(r=>+(r.crashRate*100).toFixed(2)) },
+      { name:"加载失败", color:COLORS.gold, data: recent.map(r=>+(r.loadFail*100).toFixed(2)) }
+    ]
+  }),
+  [
+    { name:"崩溃率", color:COLORS.coral, how:"崩溃的启动次数 ÷ 启动次数。", up:"和人数、收入同一天变高。", down:"崩溃少了。" },
+    { name:"加载失败", color:COLORS.gold, how:"加载失败或超时 ÷ 页面打开次数。", up:"页面打不开的比例变高。", down:"页面更打得开。" }
+  ]
+));
+html.push(card(
+  "启动变慢的比例",
+  "冷启动超过约定秒数的次数 ÷ 冷启动次数。",
+  "fault-slow",
+  lineChart({
+    labels: labels30,
+    format: v => v.toFixed(1)+"%",
+    marks: crashMarks,
+    tight: true,
+    series: [{ name:"慢启动", color:COLORS.cyan, data: recent.map(r=>+(r.slow*100).toFixed(2)) }]
+  }),
+  [
+    { name:"慢启动", color:COLORS.cyan, how:"冷启动超过约定秒数的次数 ÷ 冷启动次数。", up:"启动变慢。安装后打开变差时一起看。", down:"启动更稳。" }
+  ]
+));
+html.push(card(
+  "没付成的订单有多少，失败的比例怎样",
+  "左边是没付成的订单数，右边虚线是支付失败率。",
+  "fault-pay",
+  lineChart({
+    labels: labels30,
+    format: v => String(Math.round(v)),
+    marks: crashMarks,
+    tight: true,
+    series: [{ name:"没付成的订单", color:COLORS.purple, data: recent.map(r => Math.round(r.orders * r.payFail)) }],
+    right: { name:"支付失败率", color:COLORS.coral, data: recent.map(r => +(r.payFail*100).toFixed(1)), format: v => v.toFixed(1)+"%" }
+  }),
+  [
+    { name:"没付成的订单", color:COLORS.purple, how:"创建了但没有付成的订单数。", up:"没走完的订单变多。", down:"没走完的订单变少。" },
+    { name:"支付失败率", color:COLORS.coral, how:"没有付成的订单 ÷ 创建的订单。", up:"收入少、这里一起变高，先看支付。", down:"支付更走得完。" }
+  ]
+));
+html.push(card(
+  "启动次数",
+  "当天打开产品的次数。10 月 2 日和崩溃对在一起。",
+  "fault-starts",
+  lineChart({
+    labels: labels30,
+    format: v => v>=10000 ? (v/10000).toFixed(1)+"万" : String(Math.round(v)),
+    marks: crashMarks,
+    series: [{ name:"启动次数", color:COLORS.slate, data: recent.map(r => r.starts) }]
+  }),
+  [
+    { name:"启动次数", color:COLORS.slate, how:"当天启动的次数。", up:"打开变多。", down:"和崩溃同一天少，是打不开。崩溃没有变高时，是人少了。" }
+  ],
+  table([
+    { name:"日期", cell:r=>r.label },
+    { name:"启动次数", cell:r=>fmtNum(r.starts) },
+    { name:"崩溃率", cell:r=>fmtPct(r.crashRate) },
+    { name:"加载失败", cell:r=>fmtPct(r.loadFail) },
+    { name:"支付失败", cell:r=>fmtPct(r.payFail) },
+    { name:"慢启动", cell:r=>fmtPct(r.slow) },
+    { name:"日活", cell:r=>fmtNum(r.dau) }
+  ], tableRows)
+));
+html.push(`</section>`);
+
+const recallDay = rows[rows.length - 15];
+html.push(`<section class="mod" id="m8"><div class="mod-title"><div class="num">8</div><div><h2>自己找得到吗</h2><p class="goal">看今天有多少人自己去搜，搜到没有，点开之后有没有接着用。</p><p class="chain">进入搜索 → 提交有效词 → 有结果 → 点击结果 → 点开后接着用。</p></div></div>`);
+const searchSteps = [
+  ["进入搜索", last.searchEnter],
+  ["提交有效词", last.searchSubmit],
+  ["有结果", last.searchWithResult],
+  ["点击结果", last.searchClicked],
+  ["点开后接着用", last.searchContinued]
+];
+html.push(card(
+  "10 月 9 日，从打开搜索到接着用",
+  "这一天进了搜索的人，后面还剩多少。",
+  "search-funnel",
+  bars(searchSteps.map(s => ({ name:s[0], value:s[1], color:COLORS.cyan, text:fmtNum(s[1]) }))),
+  [
+    { name:"进了却没搜", color:COLORS.cyan, how:"提交有效词的人 ÷ 进入搜索的人。空词不算。", up:"点进来的人更多真的搜了。", down:"点进来又不搜。" },
+    { name:"搜了没有结果", color:COLORS.coral, how:"没有结果的次数 ÷ 有效搜索。", up:"库里没有，或叫法和库里对不上。", down:"搜得到的比例变高。" },
+    { name:"有结果没点", color:COLORS.gold, how:"点过结果的有效搜索 ÷ 有结果的搜索。", up:"结果更让人想点。", down:"无结果没有变多时，是排序没有把要的放前面。" },
+    { name:"点开后没接着用", color:COLORS.purple, how:"点开结果的人里，当天还有一次使用的比例。", up:"点开之后还在用。", down:"标题和结果不符，点开就走。" }
+  ],
+  funnelTable(searchSteps, ["今天进过搜索的人","去掉空词之后提交了的人","提交里搜到了结果的人","有结果并且点了的人","点开之后当天还在用的人"])
+));
+html.push(card(
+  "进搜索的人有多少，占今天来的人多少",
+  "左边是人数，右边虚线是占日活的比例。",
+  "search-arrive",
+  lineChart({
+    labels: labels30,
+    format: v => String(Math.round(v)),
+    marks: crashMarks,
+    series: [{ name:"进入搜索", color:COLORS.cyan, data: recent.map(r => r.searchEnter) }],
+    right: { name:"搜索到达率", color:COLORS.blue, data: recent.map(r => +(r.searchEnter/r.dau*100).toFixed(1)), format: v => v.toFixed(1)+"%" }
+  }),
+  [
+    { name:"进入搜索", color:COLORS.cyan, how:"当天进过搜索的人数。", up:"自己去找的人变多。", down:"自己去找的人变少。" },
+    { name:"搜索到达率", color:COLORS.blue, how:"进过搜索的人 ÷ 日活。", up:"今天来的人里，更多人在自己找。和无结果一起看。", down:"来的人还在，进搜索的比例变低。" }
+  ]
+));
+html.push(card(
+  "每个人搜几次，有多少次没有结果",
+  "左边是人均有效搜索次数，右边虚线是无结果率。",
+  "search-empty",
+  lineChart({
+    labels: labels30,
+    format: v => v.toFixed(1)+"次",
+    marks: crashMarks,
+    tight: true,
+    series: [{ name:"人均有效搜索", color:COLORS.blue, data: recent.map(r => +r.searchPerUser.toFixed(2)) }],
+    right: { name:"无结果率", color:COLORS.coral, data: recent.map(r => +(r.noResult*100).toFixed(1)), format: v => v.toFixed(1)+"%" }
+  }),
+  [
+    { name:"人均有效搜索", color:COLORS.blue, how:"去掉空词后的提交次数 ÷ 日活。", up:"搜得更多。无结果也高时，是反复搜不到。", down:"搜得更少。" },
+    { name:"无结果率", color:COLORS.coral, how:"没有结果的次数 ÷ 有效搜索。", up:"缺口变大。缺什么看搜了什么词。", down:"搜得到的变多。" }
+  ]
+));
+html.push(card(
+  "有结果之后点不点，点开之后还用不用",
+  "两条都是比例。",
+  "search-click",
+  lineChart({
+    labels: labels30,
+    format: v => Math.round(v)+"%",
+    marks: crashMarks,
+    series: [
+      pSeries("结果点击率", COLORS.gold, r => r.searchClick),
+      pSeries("点开后接着用", COLORS.purple, r => r.searchDone)
+    ]
+  }),
+  [
+    { name:"结果点击率", color:COLORS.gold, how:"点过结果的有效搜索 ÷ 有结果的搜索。", up:"搜到之后更愿意点。", down:"无结果率没变时，是结果没有把要的放前面。" },
+    { name:"点开后接着用", color:COLORS.purple, how:"点开结果的人里，当天还有一次使用的比例。", up:"搜索把人送到了还要用的地方。", down:"点开就走。" }
+  ],
+  table([
+    { name:"日期", cell:r=>r.label },
+    { name:"进入搜索", cell:r=>fmtNum(r.searchEnter) },
+    { name:"到达率", cell:r=>fmtPct(r.searchEnter/r.dau) },
+    { name:"人均次数", cell:r=>r.searchPerUser.toFixed(2) },
+    { name:"无结果", cell:r=>fmtPct(r.noResult) },
+    { name:"结果点击", cell:r=>fmtPct(r.searchClick) },
+    { name:"接着用", cell:r=>fmtPct(r.searchDone) }
+  ], tableRows)
+));
+html.push(`</section>`);
+
+html.push(`<section class="mod" id="m9"><div class="mod-title"><div class="num">9</div><div><h2>走了的人回来没有</h2><p class="goal">看沉默的人有多少，回来的是自己打开，还是只回来一次又走。7 天没来和 30 天没来分开看。</p><p class="chain">连续没来 → 再次打开 → 回来当天再打开一次 → 回来后第 7 天还在。</p></div></div>`);
+const recallSteps = [
+  ["连续 7 天没来", recallDay.silent7],
+  ["当天回来", recallDay.returned7],
+  ["回来后第 7 天还在", Math.round(recallDay.returned7 * recallDay.backD7)]
+];
+html.push(card(
+  recallDay.label + " 这批连续 7 天没来的人",
+  "从这一天已经连续 7 天没来的人看起。回来后第 7 天按回来那天算。",
+  "recall-funnel",
+  bars(recallSteps.map(s => ({ name:s[0], value:s[1], color:COLORS.purple, text:fmtNum(s[1]) }))),
+  [
+    { name:"回来了", color:COLORS.purple, how:"期初连续 7 天没来的人里，当天再次打开的比例。", up:"更多沉默的人打开了。打开不等于留下来。", down:"叫回来的和自己回来的都少了。" },
+    { name:"回来后第 7 天", color:COLORS.coral, how:"回来当天为第 0 天，第 7 天还打开的比例。", up:"回来之后还在。", down:"回来一次又走。" }
+  ],
+  funnelTable(recallSteps, ["这一天已经连续 7 天没来的人","其中当天又打开的人","回来之后第 7 天还在的人"])
+));
+html.push(card(
+  "连续 7 天没来的人，连续 30 天没来的人",
+  "7 天没来的人，和 30 天没来的人。",
+  "recall-stock",
+  lineChart({
+    labels: labels30,
+    format: v => v>=10000 ? (v/10000).toFixed(1)+"万" : String(Math.round(v)),
+    series: [
+      { name:"7日沉默", color:COLORS.gold, data: recent.map(r => r.silent7) },
+      { name:"30日沉默", color:COLORS.slate, data: recent.map(r => r.silent30) }
+    ]
+  }),
+  [
+    { name:"7日沉默", color:COLORS.gold, how:"到这一天，已经连续 7 天没来的人数。", up:"一周没来的池子变大。", down:"一周没来的人变少。" },
+    { name:"30日沉默", color:COLORS.slate, how:"到这一天，已经连续 30 天没来的人数。", up:"一个月没来的池子变大。", down:"一个月没来的人变少。" }
+  ]
+));
+html.push(card(
+  "今天新变成沉默的人",
+  "当天第一次达到 7 天没来，或第一次达到 30 天没来。",
+  "recall-new",
+  lineChart({
+    labels: labels30,
+    format: v => String(Math.round(v)),
+    marks: crashMarks,
+    series: [
+      { name:"新进入7日沉默", color:COLORS.gold, data: recent.map(r => r.newSilent7) },
+      { name:"新进入30日沉默", color:COLORS.coral, data: recent.map(r => r.newSilent30) }
+    ]
+  }),
+  [
+    { name:"新进入7日沉默", color:COLORS.gold, how:"当天第一次连续 7 天没来的人数。", up:"离开在加快。", down:"新离开的人变少。" },
+    { name:"新进入30日沉默", color:COLORS.coral, how:"当天第一次连续 30 天没来的人数。", up:"离开更久的人在变多。", down:"新跨过 30 天的人变少。池子变大也可能只是以前离开的人还在。" }
+  ]
+));
+html.push(card(
+  "7 天没来的人里，今天回来多少",
+  "左边是回来的人数，右边虚线是占这个池子的比例。30 天没来的人另看下一张。",
+  "recall-back7",
+  lineChart({
+    labels: labels30,
+    format: v => String(Math.round(v)),
+    marks: crashMarks,
+    series: [{ name:"7日池回来", color:COLORS.purple, data: recent.map(r => r.returned7) }],
+    right: { name:"7日回流率", color:COLORS.blue, data: recent.map(r => +(r.back7*100).toFixed(1)), format: v => v.toFixed(1)+"%" }
+  }),
+  [
+    { name:"7日池回来", color:COLORS.purple, how:"连续 7 天没来的人里，当天再次打开的人数。", up:"回来的人变多。看他们第 7 天还在不在。", down:"回来的人变少。" },
+    { name:"7日回流率", color:COLORS.blue, how:"回来的人 ÷ 连续 7 天没来的人。", up:"这个池子里打开的比例变高。当天人数被拉高时，还要看有没有留下来。", down:"打开的比例变低。" }
+  ]
+));
+html.push(card(
+  "30 天没来的人里，今天回来多少",
+  "左边是回来的人数，右边虚线是占这个池子的比例。",
+  "recall-back30",
+  lineChart({
+    labels: labels30,
+    format: v => String(Math.round(v)),
+    marks: crashMarks,
+    series: [{ name:"30日池回来", color:COLORS.slate, data: recent.map(r => r.returned30) }],
+    right: { name:"30日回流率", color:COLORS.cyan, data: recent.map(r => +(r.back30*100).toFixed(1)), format: v => v.toFixed(1)+"%" }
+  }),
+  [
+    { name:"30日池回来", color:COLORS.slate, how:"连续 30 天没来的人里，当天再次打开的人数。", up:"离开更久的人回来了。", down:"离开更久的人更少回来。" },
+    { name:"30日回流率", color:COLORS.cyan, how:"回来的人 ÷ 连续 30 天没来的人。", up:"这个池子的打开比例变高。", down:"不要和 7 日回流率合成一个数。" }
+  ]
+));
+html.push(card(
+  "回来之后有没有留下",
+  "回来当天再打开一次，以及回来后第 7 天还在。第 7 天没到的先空着。",
+  "recall-stay",
+  lineChart({
+    labels: labels30,
+    format: v => Math.round(v)+"%",
+    marks: crashMarks,
+    series: [
+      pSeries("回来当天再打开", COLORS.green, r => r.backTwice),
+      pSeries("回来后第7天", COLORS.coral, r => r.backD7)
+    ]
+  }),
+  [
+    { name:"回来当天再打开", color:COLORS.green, how:"回来的人里，当天打开达到 2 次的比例。", up:"回来之后没有马上走。", down:"只带来一次打开。" },
+    { name:"回来后第 7 天", color:COLORS.coral, how:"回来当天为第 0 天，第 7 天还打开的比例。", up:"回来的人留下来了。", down:"回来一次又走。当天人数高、这里低，不能把召回当成增长。" }
+  ],
+  table([
+    { name:"日期", cell:r=>r.label },
+    { name:"7日沉默", cell:r=>fmtNum(r.silent7) },
+    { name:"30日沉默", cell:r=>fmtNum(r.silent30) },
+    { name:"新7日沉默", cell:r=>fmtNum(r.newSilent7) },
+    { name:"7日回来", cell:r=>fmtNum(r.returned7) },
+    { name:"7日回流", cell:r=>fmtPct(r.back7) },
+    { name:"30日回流", cell:r=>fmtPct(r.back30) },
+    { name:"当天再打开", cell:r=>fmtPct(r.backTwice) },
+    { name:"回来后7天", cell:r=>fmtPct(r.backD7) }
+  ], tableRows)
+));
+html.push(`</section>`);
+
+html.push(`<section class="mod" id="m10"><div class="mod-title"><div class="num">10</div><div><h2>消息有没有把人叫来</h2><p class="goal">看消息发得出去吗，点开了吗，点开之后有没有留下。当天本来就会来的人，不算消息带来的。</p><p class="chain">发送 → 到达 → 点击 → 点开后还在用。</p></div></div>`);
+const pushSteps = [
+  ["发送", last.sent],
+  ["到达", last.arrived],
+  ["点击", last.pushClicks],
+  ["点开后还在", last.pushStayed]
+];
+html.push(card(
+  "10 月 9 日，从发出到点开后还在",
+  "这一天消息走到了哪一步。",
+  "push-funnel",
+  bars(pushSteps.map(s => ({ name:s[0], value:s[1], color:COLORS.blue, text:fmtNum(s[1]) }))),
+  [
+    { name:"发了没到", color:COLORS.blue, how:"到达 ÷ 发送。", up:"更多消息送到了。", down:"发不出去，先看到达，不先改文案。" },
+    { name:"到了没点", color:COLORS.gold, how:"点击 ÷ 到达。", up:"这条消息更让人想开。", down:"送到了但没人想开。" },
+    { name:"点开就走", color:COLORS.coral, how:"点击的人里，当天打开达到 2 次的比例。", up:"点开之后还在用。", down:"点开推送就走。只打开 1 次的人变多时先看这里。" }
+  ],
+  funnelTable(pushSteps, ["当天发出的条数","送到设备的条数","点开的人数","点开的人里当天还在用的人"])
+));
+html.push(card(
+  "发出多少，送到的比例怎样",
+  "左边是条数，右边虚线是到达率。",
+  "push-send",
+  lineChart({
+    labels: labels30,
+    format: v => v>=10000 ? (v/10000).toFixed(1)+"万" : String(Math.round(v)),
+    marks: crashMarks,
+    tight: true,
+    series: [
+      { name:"发送", color:COLORS.slate, data: recent.map(r => r.sent) },
+      { name:"到达", color:COLORS.blue, data: recent.map(r => r.arrived) }
+    ],
+    right: { name:"到达率", color:COLORS.green, data: recent.map(r => +(r.arriveRate*100).toFixed(1)), format: v => Math.round(v)+"%" }
+  }),
+  [
+    { name:"发送", color:COLORS.slate, how:"当天发出的条数。", up:"发得更多。", down:"发得更少。" },
+    { name:"到达", color:COLORS.blue, how:"送到的条数。", up:"送到的变多。", down:"送到的变少。" },
+    { name:"到达率", color:COLORS.green, how:"到达 ÷ 发送。", up:"发得出去的比例变高。", down:"发不出去。先看到达，不先改文案。" }
+  ]
+));
+html.push(card(
+  "点开的人有多少，点开的比例怎样",
+  "左边是点开的人数，右边虚线是点击率。点击率是点开 ÷ 送到。",
+  "push-rate",
+  lineChart({
+    labels: labels30,
+    format: v => String(Math.round(v)),
+    marks: crashMarks,
+    tight: true,
+    series: [{ name:"点击", color:COLORS.gold, data: recent.map(r => r.pushClicks) }],
+    right: { name:"点击率", color:COLORS.coral, data: recent.map(r => +(r.pushClickRate*100).toFixed(1)), format: v => v.toFixed(1)+"%" }
+  }),
+  [
+    { name:"点击", color:COLORS.gold, how:"点开消息的人数。", up:"点开的人变多。", down:"点开的人变少。" },
+    { name:"点击率", color:COLORS.coral, how:"点击 ÷ 到达。", up:"送到之后更愿意点开。", down:"这条消息没让人想开。每个人收到的条数变多之后，这里容易跟着低。" }
+  ]
+));
+html.push(card(
+  "点开的人里，还在用的有多少",
+  "左边是点开后当天还在用的人数，右边虚线是占点击人数的比例。",
+  "push-stay",
+  lineChart({
+    labels: labels30,
+    format: v => String(Math.round(v)),
+    marks: crashMarks,
+    series: [{ name:"点开后还在", color:COLORS.green, data: recent.map(r => r.pushStayed) }],
+    right: { name:"点击后还在", color:COLORS.purple, data: recent.map(r => +(r.pushStay*100).toFixed(1)), format: v => Math.round(v)+"%" }
+  }),
+  [
+    { name:"点开后还在", color:COLORS.green, how:"点击的人里，当天打开达到 2 次的人数。", up:"点开之后留下的人变多。", down:"点开之后留下的人变少。" },
+    { name:"点击后还在的比例", color:COLORS.purple, how:"点开后还在的人 ÷ 点击的人。", up:"点开之后更愿意留下。", down:"点开就走。" }
+  ]
+));
+html.push(card(
+  "今天第一次打开，是因为点了消息的人",
+  "左边是人数，右边虚线是占日活。当天本来就会来的人，不算在里面。",
+  "push-dau",
+  lineChart({
+    labels: labels30,
+    format: v => String(Math.round(v)),
+    marks: crashMarks,
+    series: [{ name:"消息带来的人", color:COLORS.coral, data: recent.map(r => r.pushFirst) }],
+    right: { name:"占日活", color:COLORS.gold, data: recent.map(r => +(r.pushFirst/r.dau*100).toFixed(1)), format: v => v.toFixed(1)+"%" }
+  }),
+  [
+    { name:"消息带来的人", color:COLORS.coral, how:"当天第一次打开是点消息进来的人数。", up:"被消息叫来的人变多。看这批人第二天还在不在。", down:"被消息叫来的人变少。" },
+    { name:"占日活", color:COLORS.gold, how:"消息点进来的人 ÷ 日活。", up:"今天的人数更靠消息。", down:"今天的人数更少靠消息。" }
+  ]
+));
+html.push(card(
+  "关掉通知的人，以及每个人收到几条",
+  "左边是关掉的人数，右边虚线是至少收到 1 条的人平均收到几条。",
+  "push-off",
+  lineChart({
+    labels: labels30,
+    format: v => String(Math.round(v)),
+    marks: crashMarks,
+    series: [{ name:"关闭通知", color:COLORS.coral, data: recent.map(r => r.pushOff) }],
+    right: { name:"人均到达条数", color:COLORS.slate, data: recent.map(r => +r.pushPerUser.toFixed(2)), format: v => v.toFixed(1)+"条" }
+  }),
+  [
+    { name:"关闭通知", color:COLORS.coral, how:"当天关掉推送或站内消息的人数。", up:"关掉的人变多。回来的人没有变好时，是打扰变多。", down:"关掉的人变少。" },
+    { name:"人均到达条数", color:COLORS.slate, how:"到达条数 ÷ 至少到达 1 条的人数。", up:"同一批人被发得更多。点击率随后容易变低。", down:"每个人收到的变少。" }
+  ],
+  table([
+    { name:"日期", cell:r=>r.label },
+    { name:"发送", cell:r=>fmtNum(r.sent) },
+    { name:"到达率", cell:r=>fmtPct(r.arriveRate) },
+    { name:"点击率", cell:r=>fmtPct(r.pushClickRate) },
+    { name:"点开后还在", cell:r=>fmtPct(r.pushStay) },
+    { name:"消息带来", cell:r=>fmtNum(r.pushFirst) },
+    { name:"占日活", cell:r=>fmtPct(r.pushFirst/r.dau) },
+    { name:"关闭通知", cell:r=>fmtNum(r.pushOff) },
+    { name:"人均条数", cell:r=>r.pushPerUser.toFixed(2) }
+  ], tableRows)
+));
+html.push(`</section>`);
+
+html.push(`<section class="mod" id="m11"><div class="mod-title"><div class="num">11</div><div><h2>有变化时先看哪里</h2><p class="goal">10 月 2 日人数和收入一起掉，先对故障。对不上，再按下面看。</p></div></div>
+<div class="card"><div class="think">
+  <article><h3>人数少了</h3><ol><li>崩了没有，页面打不开没有。</li><li>新用户少，看从看到到打开，以及哪个渠道少了。老用户少，看老用户第二天还来多少。</li><li>一段日子里，来过的人没少、每天的人数少了：每个人来的天数变少。</li><li>对一下是不是周末、假期结束、活动结束。</li></ol></article>
+  <article><h3>后来回来的人少了</h3><ol><li>看少在第二天、第 7 天，还是第 15、30 天。</li><li>第二天就少，看这批人来的那天有没有崩溃、加载失败、启动变慢。</li><li>故障没有一起变差，看是不是渠道换了。</li><li>再看这个产品里，人第一天做了什么。那部分按各自产品看。</li></ol></article>
+  <article><h3>用得浅了</h3><ol><li>看是打开次数少了，还是每次待得更短。</li><li>只打开 1 次的人变多：来了就走。先看是不是点开消息就走。</li></ol></article>
+  <article><h3>收入少了</h3><ol><li>看付费人数、付费率、付过钱的人平均付多少。</li><li>付费率低了，看是订单少了，还是支付没走完。</li><li>付成了但钱少，看退款率和每人金额。</li><li>新人看 7 天内付费和渠道。原来的人看续费、再次购买、人还在不在。</li><li>支付失败一起变高，先看故障。</li></ol></article>
+  <article><h3>续费或再次购买少了</h3><ol><li>续费：到期的人当时还来不来。不来，是人先不用了。还来但不续，看价格和扣款。</li><li>再次购买：买过的人还来不来。不来，看留存。来了不买，是不愿意再买。</li></ol></article>
+  <article><h3>搜索、召回、消息</h3><ol><li>搜索：先进搜索的人变没变，再看无结果、点开之后还用不用。</li><li>召回：当天人数高的时候，看回来的人第 7 天还在不在。7 天没来和 30 天没来分开看。</li><li>消息：到达低是发不出去。点击低是不想开。点开就走、关掉通知变多，是打扰。</li></ol></article>
+  <article><h3>按什么分开看</h3><ol><li>每张图可以按日期看，也能和昨天、上周同一天比。</li><li>获客按渠道。人数按新用户、老用户。留存按人来的那天。故障按版本。</li><li>核心场景、内容，按各自产品看。</li></ol></article>
+</div></div></section>`);
+
+html.push(`<footer class="note">浅灰是周末。浅红是 10 月 2 日故障。留存还没到的日期空着。</footer>`);
+main.innerHTML = html.join("");
+
+const mask = document.getElementById("mask");
+const maskBody = document.getElementById("mask-body");
+const maskTitle = document.getElementById("mask-title");
+const filterMap = {
+  "acq-funnel": ["date","channel"],
+  "acq-trend": ["date","channel"],
+  "acq-rank": ["date","channel"],
+  "acq-step": ["date","channel"],
+  "acq-cac": ["date","channel"],
+  "acq-organic": ["date","channel"],
+  "scale-funnel": ["date"],
+  "scale-trend": ["date","who"],
+  "scale-payshare": ["date","who"],
+  "scale-roll": ["date"],
+  "depth-split": ["date","who"],
+  "depth-trend": ["date","who"],
+  "depth-once": ["date","who"],
+  "depth-first": ["date"],
+  "depth-heavy": ["date"],
+  "ret-funnel": ["cohort","channel"],
+  "ret-trend": ["cohort","channel"],
+  "ret-old": ["cohort","who"],
+  "ret-channel": ["cohort","channel"],
+  "pay-funnel": ["date","who"],
+  "pay-trend": ["date","who","channel"],
+  "pay-users": ["date","who","channel"],
+  "pay-arpu": ["date","who"],
+  "pay-refund": ["date"],
+  "pay-first": ["date","channel"],
+  "pay-success": ["date","version"],
+  "pay-new7": ["date","channel"],
+  "renew-funnel": ["date"],
+  "renew-late": ["date"],
+  "renew-expire": ["date"],
+  "renew-eligible": ["date"],
+  "renew-arpu": ["date"],
+  "fault-funnel": ["date","version"],
+  "fault-crash": ["date","version"],
+  "fault-slow": ["date","version"],
+  "fault-pay": ["date","version"],
+  "fault-starts": ["date","version"],
+  "search-funnel": ["date"],
+  "search-arrive": ["date"],
+  "search-empty": ["date"],
+  "search-click": ["date"],
+  "recall-funnel": ["date"],
+  "recall-stock": ["date"],
+  "recall-new": ["date"],
+  "recall-back7": ["date"],
+  "recall-back30": ["date"],
+  "recall-stay": ["date"],
+  "push-funnel": ["date"],
+  "push-send": ["date"],
+  "push-rate": ["date"],
+  "push-stay": ["date"],
+  "push-dau": ["date"],
+  "push-off": ["date"]
+};
+document.getElementById("main").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-filter]");
+  if (!btn) return;
+  const ids = filterMap[btn.getAttribute("data-filter")] || ["date"];
+  maskTitle.textContent = "查看条件";
+  maskBody.innerHTML = ids.map(id => {
+    const block = filters[id];
+    return `<div class="opt"><b>${esc(block.title)}</b>${block.options.map(o => `<span>${esc(o[0])}：${esc(o[1])}</span>`).join("<br>")}</div>`;
+  }).join("");
+  mask.hidden = false;
+});
+document.getElementById("mask-close").addEventListener("click", () => { mask.hidden = true; });
+mask.addEventListener("click", (e) => { if (e.target === mask) mask.hidden = true; });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") mask.hidden = true; });
+</script>
+</body>
+</html>
