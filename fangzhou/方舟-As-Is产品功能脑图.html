@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>方舟 · As-Is 产品功能脑图</title>
+<style>
+  :root {
+    --bg: #f3f5f8;
+    --line: #9aa3ad;
+    --center: #e53935;
+    --l1: #1e88e5;
+    --l2: #fff;
+    --l2-border: #90caf9;
+    --l2b: #43a047;
+    --text: #263238;
+    --muted: #607d8b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: #fff;
+    border-bottom: 1px solid #e0e4ea;
+    padding: 10px 16px 12px;
+  }
+  header h1 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
+  header p { margin: 0 0 10px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tabs button {
+    border: 1px solid #cfd8dc;
+    background: #fff;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .tabs button.active {
+    background: var(--l1);
+    border-color: var(--l1);
+    color: #fff;
+  }
+  .tabs button.all-tab.active {
+    background: var(--center);
+    border-color: var(--center);
+  }
+  .stage-wrap {
+    overflow: auto;
+    height: calc(100vh - 120px);
+    padding: 24px 20px 80px;
+  }
+  .mind {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    min-width: max-content;
+  }
+  .center {
+    flex: 0 0 auto;
+    align-self: center;
+    background: var(--center);
+    color: #fff;
+    border-radius: 10px;
+    padding: 16px 14px;
+    width: 118px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1.35;
+    box-shadow: 0 2px 8px rgba(229,57,53,.35);
+  }
+  .hint { margin-top: 8px; font-size: 11px; color: rgba(255,255,255,.85); font-weight: 500; }
+  .branches {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-left: 36px;
+    position: relative;
+  }
+  .branches::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 12px; bottom: 12px;
+    width: 2px; background: var(--line);
+  }
+  .branch {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+  }
+  .branch::before {
+    content: "";
+    position: absolute;
+    left: -36px; top: 18px;
+    width: 36px; height: 2px;
+    background: var(--line);
+  }
+  .l1 {
+    flex: 0 0 auto;
+    background: var(--l1);
+    color: #fff;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(30,136,229,.35);
+    margin-top: 4px;
+  }
+  .l1.mod {
+    border-radius: 10px;
+    background: #1565c0;
+  }
+  .l2s, .l3s {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-left: 28px;
+    position: relative;
+  }
+  .l2s::before, .l3s::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 10px; bottom: 10px;
+    width: 2px; background: var(--line);
+  }
+  .l2-item, .l3-item, .func-block {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    position: relative;
+  }
+  .l2-item::before, .l3-item::before, .func-block::before {
+    content: "";
+    position: absolute;
+    left: -28px; top: 14px;
+    width: 28px; height: 2px;
+    background: var(--line);
+  }
+  .l2, .l3 {
+    flex: 0 0 auto;
+    background: var(--l2);
+    border: 1px solid var(--l2-border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .l2.func {
+    background: #e8f5e9;
+    border-color: #81c784;
+    color: #1b5e20;
+  }
+  .logic {
+    font-size: 12px;
+    line-height: 1.55;
+    color: #37474f;
+    padding-top: 4px;
+    max-width: 640px;
+  }
+  .full .logic { max-width: 560px; }
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 0 5px;
+    border-radius: 4px;
+    margin-right: 4px;
+    vertical-align: 1px;
+    font-weight: 600;
+  }
+  .t-auto { background: #e8f5e9; color: #2e7d32; }
+  .t-cfg { background: #e3f2fd; color: #1565c0; }
+  .t-man { background: #fff3e0; color: #ef6c00; }
+  .t-watch { background: #f3e5f5; color: #6a1b9a; }
+  .func-block { flex-direction: column; gap: 6px; }
+  .func-head { display: flex; align-items: flex-start; gap: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>方舟 · As-Is 产品功能脑图（XMind 风格）</h1>
+  <p>
+    <b>完整大图</b>＝全部菜单一张图（默认）；其余 Tab 仍为单模块小图。<br>
+    结构：红心中心 → 蓝一级 → 绿/白二级 → 字段与逻辑。可横向纵向滚动。
+  </p>
+  <div class="tabs" id="tabs"></div>
+</header>
+<div class="stage-wrap"><div class="mind" id="stage"></div></div>
+<script>
+const tag = (t) => {
+  const map = { 自动: "t-auto", 配置: "t-cfg", 人工: "t-man", 巡检: "t-watch" };
+  return (t || []).map((x) => `<span class="tag ${map[x] || ""}">[${x}]</span>`).join("");
+};
+
+const modules = [
+  {
+    id: "overview",
+    tab: "总览",
+    center: "产品模块：\n方舟总览",
+    story: "← 点选故事 0",
+    funcs: [
+      {
+        name: "功能1：调度中心",
+        items: [
+          { title: "采集指标", logic: "今日采集、筛选通过、已驳回、已分发、待审核、未分发（无路由+失败）", tags: ["巡检"] },
+          { title: "内容指标", logic: "总文章、处理中、已发布、失败、评论待审", tags: ["巡检"] },
+          { title: "全链路条", logic: "采集→筛选→通过→分发→可用 ‖ 待处理→媒体处理→媒体就绪→AI生成→上传CMS→发布中→已创建", tags: ["巡检"] },
+          { title: "趋势与活动流", logic: "采集趋势24h、分类分布、实时事件（水印/CDN/finalize等）", tags: ["巡检"] }
+        ]
+      },
+      {
+        name: "功能2：舆情中心",
+        items: [
+          { title: "舆情监测看板", logic: "iframe 独立子系统；热搜/正负舆情/可信度/多平台标签", tags: ["巡检"] },
+          { title: "立即采集", logic: "触发舆情侧采集；与素材主状态机弱耦合", tags: ["人工"] }
+        ]
+      }
+    ]
+  },
+  {
+    id: "collect",
+    tab: "采集中心",
+    center: "产品模块：\n采集中心",
+    story: "← 点选故事 1 / 2 / 3.5",
+    funcs: [
+      {
+        name: "功能1：网站采集",
+        items: [
+          { title: "配置列表", logic: "站点名、主域名、链接、启用态、频率、下次采集、外站绑定展示；行内启用/停用/编辑/删除", tags: ["配置"] },
+          { title: "新增配置", logic: "创建人、站点名*、主域名*、网页链接*(≤50)、开启采集、判重、频率(30分~每天)、外站多选≤5、备注", tags: ["配置"] }
+        ]
+      },
+      {
+        name: "功能2：网站采集记录",
+        items: [
+          { title: "任务日志", logic: "筛状态/站名/日期；列含分片进度、素材编号、成败；失败可重试", tags: ["巡检"] }
+        ]
+      },
+      {
+        name: "功能3：去水印预处理",
+        items: [
+          { title: "预热队列", logic: "排队/处理中(并发3)/完成/失败过期/已复用；转编辑可复用产物，过期回退全量去水印", tags: ["自动", "巡检"] }
+        ]
+      },
+      {
+        name: "功能4：工作流监控",
+        items: [
+          { title: "加工流水线", logic: "已采集…待人工审核…可使用…已驳回/重复淘汰等计数", tags: ["巡检"] },
+          { title: "分发流水线", logic: "待分发 / 已分发 / 失败 / 跳过", tags: ["巡检"] },
+          { title: "未分发监控", logic: "按原因筛选、批量重试、去配规则、查看", tags: ["人工", "巡检"] }
+        ]
+      },
+      {
+        name: "功能5：素材管理",
+        items: [
+          { title: "素材列表", logic: "筛状态/分类/频道/归属(公共池|专属站)；配置分类（每行一类）", tags: ["巡检"] },
+          { title: "转入内容中心", logic: "选项目*、CMS账号*、封面数1–3 → 确认转编辑；需 AVAILABLE 且有媒体", tags: ["人工"] },
+          { title: "驳回素材", logic: "驳回理由*（可反馈自学习）", tags: ["人工"] }
+        ]
+      },
+      {
+        name: "功能6：审核队列",
+        items: [
+          { title: "人工审核", logic: "筛选未过进入；通过/驳回必填原因", tags: ["人工"] },
+          { title: "二次审核", logic: "自动通过（尤其图+视频）事后可驳；cleanup 后可看 TG 原帖", tags: ["人工"] },
+          { title: "垃圾素材", logic: "广告类别/得分/命中规则；详情；手动通过(理由*)重回加工分发", tags: ["人工"] },
+          { title: "源水印复核", logic: "模型判定 review/block/observe、复杂度、强信号；人工裁定回写记忆", tags: ["人工"] }
+        ]
+      },
+      {
+        name: "功能7：频道管理",
+        items: [
+          { title: "选 Userbot", logic: "底层 Telegram 账号；展示加入数/路由数；须连接才能采", tags: ["配置"] },
+          { title: "加入新频道", logic: "公开链接 / @用户名 / 私有邀请链接 → Userbot 加入", tags: ["配置"] },
+          { title: "新建路由", logic: "1 采集源 → N 分发目标；同 Userbot 须同时在源与目标；公共池 TG 分发用", tags: ["配置"] },
+          { title: "站点绑定", logic: "专属站点 vs 外站二选一、即时保存；未采集选站可自动变采集；判重可关；专属站不进 TG 分发", tags: ["配置"] },
+          { title: "采集配置", logic: "模式(直接消息/评论区/文件机器人)；快速转发；预筛选(浏览量/互动/关键词)；历史扫描", tags: ["配置"] },
+          { title: "开始采集", logic: "启动 Monitor 监听；未运行则采集频道不产生素材；支持全部开始采集", tags: ["配置", "人工"] }
+        ]
+      },
+      {
+        name: "功能8：Telegram 配置",
+        items: [
+          { title: "添加账号", logic: "快捷登录：标签*+手机号*→发码→验证码→两步密码；或高级 API ID/Hash", tags: ["配置"] },
+          { title: "连接/断开/删除", logic: "账号卡片操作；可管理绑定 Agent", tags: ["配置"] }
+        ]
+      },
+      {
+        name: "功能9：受保护源频道",
+        items: [
+          { title: "受限频道列表", logic: "防转发限制登记；重试（现网可能 Method Not Allowed）", tags: ["巡检"] }
+        ]
+      }
+    ]
+  },
+  {
+    id: "content",
+    tab: "内容中心",
+    center: "产品模块：\n内容中心",
+    story: "← 点选故事 4",
+    funcs: [
+      {
+        name: "功能1：工作流监控",
+        items: [
+          { title: "发布流水线", logic: "待处理→媒体处理中→媒体就绪→AI生成→上传CMS→发布中→已创建草稿；含失败列表。与采集「工作流监控」同名不同页", tags: ["巡检"] }
+        ]
+      },
+      {
+        name: "功能2：文章管理",
+        items: [
+          { title: "文章列表", logic: "筛项目/状态；行内编辑、预览、原素材、删除、重试、释放占用、对比", tags: ["巡检", "人工"] },
+          { title: "二次编辑文章", logic: "标题、分类、封面、关键词、标签、富文本正文、插图/视频；选中文字可重写；保存草稿 / 确认发布", tags: ["人工"] },
+          { title: "版本对比", logic: "AI 生成 vs 手动编辑差异", tags: ["人工"] }
+        ]
+      },
+      {
+        name: "功能3：CMS 账号",
+        items: [
+          { title: "账号卡片", logic: "测试连接、编辑、启停、删除；Token 状态", tags: ["配置"] },
+          { title: "添加/编辑账号", logic: "名称/用户名/密码/谷歌秘钥(+二维码)/项目/项目码/API线路；编辑部能力：AI评论、封禁引流、评论审核、帖子审核(+阈值词表)、社区评论审核", tags: ["配置"] }
+        ]
+      },
+      {
+        name: "功能4：AI评论",
+        items: [
+          { title: "项目汇总", logic: "评论文章数/评论数/状态/开关", tags: ["巡检"] },
+          { title: "评论配置", logic: "与项目同步；每篇条数、分散小时、单轮最多文章、风格规则、图片视觉理解", tags: ["配置"] },
+          { title: "手动触发", logic: "选项目；可选文章ID追加；不填则对当天文章追加", tags: ["人工"] }
+        ]
+      },
+      {
+        name: "功能5：站群审核",
+        items: [
+          { title: "AI评论审核", logic: "今日通过/拒绝/待人工；批量通过拒绝删除；风险标签——审自有站群", tags: ["人工"] },
+          { title: "用户审核", logic: "须先选 CMS 账号；批量通过/拒绝(预设原因)", tags: ["人工"] },
+          { title: "社区评论", logic: "须先选 CMS 账号；批量操作；可回复", tags: ["人工"] },
+          { title: "社区帖子", logic: "须先选 CMS 账号；发布帖子(标题/正文/图/话题/视频)；刷评论(偏移小时)", tags: ["人工"] },
+          { title: "审核自动化", logic: "样本/改判/自动化率看板，偏训练质检非日常队列", tags: ["巡检"] }
+        ]
+      }
+    ]
+  },
+  {
+    id: "ai",
+    tab: "AI审核中心",
+    center: "产品模块：\nAI审核中心",
+    story: "← 点选故事 5（与内容中心审核并行）",
+    funcs: [
+      {
+        name: "功能1：审核站点",
+        items: [
+          { title: "站点接入", logic: "名称*、短码、API域名*、站点定位*、账号密码、TOTP、写签名；力度宽松/标准/严格；转人工归属；溢出策略*；视频策略", tags: ["配置"] },
+          { title: "测试连接 / 规范", logic: "测连通；接口规范文档发给对方", tags: ["配置"] }
+        ]
+      },
+      {
+        name: "功能2：审核记录",
+        items: [
+          { title: "结果与待办", logic: "待人工角标；批量通过/拒绝/改判；看推送态；详情处置——审外部合作站评论", tags: ["人工", "巡检"] }
+        ]
+      },
+      {
+        name: "功能3：平台扩展",
+        items: [
+          { title: "能力市场", logic: "iframe 子系统（现网可能 500）", tags: ["巡检"] },
+          { title: "自主学习", logic: "知识库条目、适用 Agent、语义召回、待审草稿", tags: ["配置", "巡检"] }
+        ]
+      }
+    ]
+  },
+  {
+    id: "ext",
+    tab: "外站发布",
+    center: "产品模块：\n外站发布",
+    story: "← 点选故事 3",
+    funcs: [
+      {
+        name: "功能1：站点配置",
+        items: [
+          { title: "新增外站", logic: "代码/名称*/接口*/前缀/签名；自动推送或待人工确认；需视频；AI生成|原文|不生成文章；去水印+logo；切片m3u8；分集+标题格式；封面比例；对方分类；推送即发布；水印固定/循环/移动；附加JSON；初始账号", tags: ["配置"] },
+          { title: "测连接 / 编辑 / 删除", logic: "连通性与任务计数展示", tags: ["配置"] }
+        ]
+      },
+      {
+        name: "功能2：发布任务",
+        items: [
+          { title: "任务列表", logic: "处理中 / 待人工推送 / 已推送 / 失败；详情、推送、取消、重试", tags: ["自动", "人工"] },
+          { title: "推送逻辑", logic: "采集源绑定外站后加工完成建任务；关自动推送则停在「内容就绪·待推送」", tags: ["自动", "配置"] }
+        ]
+      }
+    ]
+  },
+  {
+    id: "admin",
+    tab: "管理中心",
+    center: "产品模块：\n管理中心",
+    story: "← 点选故事 2 / 6",
+    funcs: [
+      {
+        name: "功能1：项目管理",
+        items: [
+          { title: "新增/编辑项目", logic: "名称*、CMS项目码*、前台地址、跑马灯；图片封面尺寸；图/视频固定/四角循环/移动水印+位置+宽比", tags: ["配置"] },
+          { title: "采集自动流（专属站点）", logic: "开启「采集完成自动转编辑+自动发布」+自动发布账号——专属站少操作总开关", tags: ["配置", "自动"] },
+          { title: "文章模板", logic: "项目级 AI 写法规则配置", tags: ["配置"] }
+        ]
+      },
+      {
+        name: "功能2：账号与权限",
+        items: [
+          { title: "业务账号", logic: "用户名/密码/显示名；权限弹窗：CMS项目 + 外站发布站点两栏", tags: ["配置"] },
+          { title: "管理员账号", logic: "新增管理员；TOTP 双重认证", tags: ["配置"] }
+        ]
+      },
+      {
+        name: "功能3：全局策略",
+        items: [
+          { title: "配置管理", logic: "全局审核开关、图+视频自动通过、质量门禁、水印复杂度、清晰度/热度/完整性阈值；无极AI BaseURL/模型/Key", tags: ["配置"] },
+          { title: "广告过滤规则", logic: "整份 YAML 覆盖保存并热重载", tags: ["配置"] },
+          { title: "提示词管理", logic: "部门/Agent/槽位/版本/正文；采集与编辑提示词", tags: ["配置"] }
+        ]
+      },
+      {
+        name: "功能4：运维与其它",
+        items: [
+          { title: "部门与员工", logic: "Agent 列表：screening/dedup/… 成功率与心跳", tags: ["巡检"] },
+          { title: "任务管理", logic: "创建批量任务：筛选/去重/描述/分类/完整工作流等", tags: ["人工"] },
+          { title: "系统健康", logic: "SLA 监控、违规滞留、Agent 性能", tags: ["巡检"] },
+          { title: "批量导入", logic: "Google Sheet URL → 预览", tags: ["配置"] }
+        ]
+      }
+    ]
+  }
+];
+
+const tabs = document.getElementById("tabs");
+const stage = document.getElementById("stage");
+
+function stripFuncPrefix(name) {
+  return name.replace(/^功能\d+：/, "");
+}
+
+function renderModule(mod) {
+  stage.classList.remove("full");
+  stage.innerHTML = `
+    <div class="center">${mod.center.replace(/\n/g, "<br>")}<div class="hint">${mod.story || ""}</div></div>
+    <div class="branches">
+      ${mod.funcs.map((f) => `
+        <div class="branch">
+          <div class="l1">${f.name}</div>
+          <div class="l2s">
+            ${f.items.map((it) => `
+              <div class="l2-item">
+                <div class="l2">${tag(it.tags)}${it.title}</div>
+                <div class="logic">${it.logic}</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderFull() {
+  stage.classList.add("full");
+  stage.innerHTML = `
+    <div class="center">产品：方舟<br>As-Is 全菜单<div class="hint">完整大图 · 可滚动</div></div>
+    <div class="branches">
+      ${modules.map((mod) => `
+        <div class="branch">
+          <div class="l1 mod">${mod.tab}</div>
+          <div class="l2s">
+            ${mod.funcs.map((f) => `
+              <div class="func-block">
+                <div class="func-head">
+                  <div class="l2 func">${stripFuncPrefix(f.name)}</div>
+                </div>
+                <div class="l3s">
+                  ${f.items.map((it) => `
+                    <div class="l3-item">
+                      <div class="l3">${tag(it.tags)}${it.title}</div>
+                      <div class="logic">${it.logic}</div>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function setActive(btn) {
+  [...tabs.children].forEach((x) => x.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+const allBtn = document.createElement("button");
+allBtn.textContent = "完整大图（全菜单）";
+allBtn.className = "all-tab active";
+allBtn.onclick = () => { setActive(allBtn); renderFull(); };
+tabs.appendChild(allBtn);
+
+modules.forEach((m) => {
+  const b = document.createElement("button");
+  b.textContent = m.tab + "（小图）";
+  b.onclick = () => { setActive(b); renderModule(m); };
+  tabs.appendChild(b);
+});
+
+renderFull();
+</script>
+</body>
+</html>

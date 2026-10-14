@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>方舟重构 · 对外材料</title>
+<style>
+  :root {
+    --bg: #f6f5f3;
+    --paper: #fff;
+    --ink: #1c1c1f;
+    --muted: #5e5e66;
+    --line: #e4e2de;
+    --accent: #8d2f86;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.65 "PingFang SC", "Noto Sans SC", sans-serif;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px 64px;
+  }
+  .back {
+    display: inline-block;
+    color: var(--muted);
+    font-size: 13px;
+    text-decoration: none;
+    margin-bottom: 16px;
+  }
+  .back:hover { color: var(--accent); }
+  h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
+  .meta { color: var(--muted); font-size: 13px; margin: 0 0 28px; }
+  section { margin-bottom: 28px; }
+  h2 {
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin: 0 0 10px;
+  }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  a.card {
+    display: block;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: inherit;
+    text-decoration: none;
+  }
+  a.card:hover { border-color: var(--accent); }
+  strong { display: block; font-size: 16px; }
+  span { color: var(--muted); font-size: 13px; }
+  .note {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="../index.html">← 文档目录</a>
+  <h1>方舟重构</h1>
+  <p class="meta">对外展示用精选材料（总结 / 梳理）。工作底稿在「海外项目/方舟/重构资料」（不入库）。</p>
+
+  <section>
+    <h2>现状与目标结构</h2>
+    <ul>
+      <li>
+        <a class="card" href="./方舟-As-Is产品功能脑图.html">
+          <strong>现网功能脑图（As-Is）</strong>
+          <span>HTML 可交互脑图 · 现网能力与菜单结构梳理</span>
+        </a>
+      </li>
+      <li>
+        <a class="card" href="./方舟-To-Be信息架构与权限草案.md">
+          <strong>To-Be 信息架构与权限草案</strong>
+          <span>目标结构 · 接入/配置/工作台/权限 · 角色与可见性</span>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>过程与路径</h2>
+    <ul>
+      <li>
+        <a class="card" href="./方舟-运营视角点选路径.md">
+          <strong>运营视角点选路径</strong>
+          <span>从进料到分发/审核的常见操作路径梳理</span>
+        </a>
+      </li>
+    </ul>
+    <p class="note">.md 在浏览器中以源码打开；需要排版可读时可本地用编辑器查看。</p>
+  </section>
+</main>
+</body>
+</html>
