@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>方舟 To-Be · 四模块架构说明</title>
+<style>
+  :root {
+    --bg: #f0f4f8;
+    --paper: #ffffff;
+    --ink: #1a2332;
+    --muted: #5a6a7a;
+    --line: #d5dee8;
+    --blue: #2f6fed;
+    --blue-deep: #1e4fbf;
+    --blue-soft: #e8f0fe;
+    --blue-mid: #b7d0f8;
+    --teal: #0d9488;
+    --teal-soft: #e6f7f5;
+    --orange: #e67e22;
+    --orange-soft: #fff4e8;
+    --violet: #5b4b8a;
+    --violet-soft: #f0edf7;
+    --green: #16a34a;
+    --shadow: 0 1px 2px rgba(26, 35, 50, 0.04), 0 8px 24px rgba(26, 35, 50, 0.06);
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.65 "PingFang SC", "Noto Sans SC", "Segoe UI", sans-serif;
+  }
+  a { color: var(--blue-deep); }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 12px 24px;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  .brand {
+    font-weight: 600; font-size: 15px; color: var(--ink);
+    text-decoration: none; white-space: nowrap;
+  }
+  .brand span { color: var(--muted); font-weight: 400; margin-left: 8px; font-size: 12px; }
+  .nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  .nav a {
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+  }
+  .nav a:hover, .nav a.active {
+    color: var(--blue-deep);
+    background: var(--blue-soft);
+    border-color: var(--blue-mid);
+  }
+
+  main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  .hero {
+    background: linear-gradient(145deg, #ffffff 0%, #eaf2ff 100%);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 28px 32px 32px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+  }
+  .hero h1 {
+    margin: 0 0 10px;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .hero p {
+    margin: 0;
+    max-width: 720px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .hero-meta {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .chip {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    color: var(--muted);
+  }
+
+  .section-label {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--blue);
+    font-weight: 600;
+    margin: 0 0 10px;
+  }
+  .section-title {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 600;
+  }
+  .section-desc {
+    margin: 0 0 20px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* —— 总览架构图 —— */
+  .arch {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 0;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 40px;
+  }
+  .arch-rail {
+    background: linear-gradient(180deg, var(--blue-deep), #2a6bb8 40%, #1a8a7a 75%, #c45f12);
+    color: #fff;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    padding: 16px 0;
+  }
+  .arch-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  .layer {
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    padding: 14px 16px 16px;
+    background: #fafcfe;
+  }
+  .layer.ops { background: var(--blue-soft); border-color: var(--blue-mid); }
+  .layer.cfg { background: var(--teal-soft); border-color: #b6e4df; }
+  .layer.onboard { background: var(--orange-soft); border-color: #f0d0a8; }
+  .layer.admin { background: var(--violet-soft); border-color: #d5cfe8; }
+
+  .layer-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    margin-bottom: 12px; flex-wrap: wrap;
+  }
+  .layer-head h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .layer-head .tag {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .layer-head a {
+    font-size: 12px;
+    text-decoration: none;
+    color: var(--blue-deep);
+  }
+
+  .pills {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .pill {
+    font-size: 12px;
+    line-height: 1.3;
+    padding: 7px 11px;
+    border-radius: 8px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    color: var(--ink);
+  }
+  .layer.ops .pill { border-color: #c5d8f7; background: #fff; }
+  .layer.cfg .pill { border-color: #b6e4df; }
+  .layer.onboard .pill { border-color: #f0d0a8; }
+  .layer.admin .pill { border-color: #d5cfe8; }
+
+  .flow-arrow {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--teal);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    gap: 8px;
+    margin: -4px 0;
+  }
+  .flow-arrow::before,
+  .flow-arrow::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(90deg, transparent, #9ad5cf, transparent);
+  }
+
+  .principle {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 4px;
+  }
+  @media (max-width: 800px) {
+    .principle { grid-template-columns: 1fr; }
+    .arch { grid-template-columns: 1fr; }
+    .arch-rail {
+      writing-mode: horizontal-tb;
+      transform: none;
+      padding: 10px 16px;
+      letter-spacing: 0.12em;
+    }
+  }
+  .principle .card {
+    background: #fff;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .principle strong { display: block; font-size: 13px; margin-bottom: 4px; }
+  .principle span { font-size: 12px; color: var(--muted); }
+
+  /* —— 分模块 —— */
+  .module {
+    scroll-margin-top: 72px;
+    margin-bottom: 36px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .module-banner {
+    padding: 18px 24px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line);
+  }
+  .module-banner .idx {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-weight: 600; font-size: 14px; color: #fff;
+  }
+  .m1 .idx { background: var(--violet); }
+  .m2 .idx { background: var(--orange); }
+  .m3 .idx { background: var(--teal); }
+  .m4 .idx { background: var(--blue); }
+  .m1 .module-banner { background: linear-gradient(90deg, var(--violet-soft), #fff); }
+  .m2 .module-banner { background: linear-gradient(90deg, var(--orange-soft), #fff); }
+  .m3 .module-banner { background: linear-gradient(90deg, var(--teal-soft), #fff); }
+  .m4 .module-banner { background: linear-gradient(90deg, var(--blue-soft), #fff); }
+
+  .module-banner h2 { margin: 0; font-size: 20px; font-weight: 600; }
+  .module-banner .goal { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+
+  .module-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 0;
+  }
+  @media (max-width: 860px) {
+    .module-grid { grid-template-columns: 1fr; }
+  }
+  .panel {
+    padding: 20px 24px 24px;
+    border-right: 1px solid var(--line);
+  }
+  .module-grid .panel:last-child { border-right: none; }
+  @media (max-width: 860px) {
+    .panel { border-right: none; border-bottom: 1px solid var(--line); }
+    .module-grid .panel:last-child { border-bottom: none; }
+  }
+  .panel h3 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .menu-group { margin-bottom: 14px; }
+  .menu-group:last-child { margin-bottom: 0; }
+  .menu-group .g-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: var(--ink);
+  }
+  .menu-group ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .menu-group li {
+    font-size: 12px;
+    padding: 5px 9px;
+    border-radius: 6px;
+    background: #f5f8fb;
+    border: 1px solid var(--line);
+  }
+  .menu-group li.as-is {
+    color: var(--muted);
+  }
+  .menu-group li.as-is em {
+    font-style: normal;
+    color: #8a97a6;
+  }
+
+  .steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+  .steps li {
+    position: relative;
+    padding: 0 0 14px 36px;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .steps li:last-child { padding-bottom: 0; }
+  .steps li::before {
+    counter-increment: step;
+    content: counter(step);
+    position: absolute; left: 0; top: 0;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--blue-soft);
+    color: var(--blue-deep);
+    font-size: 12px; font-weight: 600;
+    display: grid; place-items: center;
+  }
+  .m1 .steps li::before { background: var(--violet-soft); color: var(--violet); }
+  .m2 .steps li::before { background: var(--orange-soft); color: #b85c10; }
+  .m3 .steps li::before { background: var(--teal-soft); color: var(--teal); }
+
+  .steps li::after {
+    content: "";
+    position: absolute;
+    left: 11px; top: 26px; bottom: 2px;
+    width: 2px;
+    background: var(--line);
+  }
+  .steps li:last-child::after { display: none; }
+
+  .key-fields {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px dashed var(--line);
+  }
+  .key-fields h4 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .key-fields p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--ink);
+    line-height: 1.7;
+  }
+
+  .boundary {
+    margin: 0 20px 20px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .boundary strong { color: var(--ink); }
+
+  .branches {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+  }
+  @media (max-width: 700px) {
+    .branches { grid-template-columns: 1fr; }
+  }
+  .branch {
+    border-radius: 10px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    background: #fff;
+  }
+  .branch h4 { margin: 0 0 6px; font-size: 13px; }
+  .branch p { margin: 0; font-size: 12px; color: var(--muted); }
+
+  .footer-note {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="./方舟-To-Be四模块架构说明.html">方舟 To-Be<span>四模块架构 · 沟通版</span></a>
+      <nav class="nav" id="nav">
+        <a href="#overview">整体</a>
+        <a href="#m-admin">方舟 Admin</a>
+        <a href="#m-onboard">项目入驻</a>
+        <a href="#m-config">业务配置</a>
+        <a href="#m-ops">业务运营</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>方舟重构 · 目标架构四模块</h1>
+      <p>
+        给技术与业务对齐用：先看整体关系，再按模块看定位、菜单与流程。
+        外部用户共用一套菜单（按功能授权显隐）；方舟 Admin 为对内平台能力。
+        后续细化（页面 / 按钮 / 字段）将按这四块分别推进。
+      </p>
+      <div class="hero-meta">
+        <span class="chip">对齐草案 v0.8 · 泳道图 v0.4</span>
+        <span class="chip">入驻 = 项目一次性 · 配置 = 随业务常改</span>
+        <span class="chip">采集归属项目 · Userbot 挂账号</span>
+      </div>
+    </section>
+
+    <!-- ========== 总 ========== -->
+    <div id="overview" style="scroll-margin-top:72px">
+      <p class="section-label">Overview</p>
+      <h2 class="section-title">整体：四层怎么叠在一起</h2>
+      <p class="section-desc">
+        自下而上：平台治理支撑入驻 → 入驻把项目一次配齐 → 配置让采源与出口随业务调整 → 运营处理日常待办与三条分发。
+      </p>
+
+      <div class="arch" aria-label="方舟四模块总览">
+        <div class="arch-rail">方舟 To-Be 架构</div>
+        <div class="arch-body">
+          <div class="layer ops">
+            <div class="layer-head">
+              <h3>④ 业务运营</h3>
+              <span class="tag">日常干活 · 待办与分发</span>
+              <a href="#m-ops">查看模块 →</a>
+            </div>
+            <div class="pills">
+              <span class="pill">工作台 · 统计+待办</span>
+              <span class="pill">主链路素材审核</span>
+              <span class="pill">文章编辑 / 修片</span>
+              <span class="pill">分支① CMS</span>
+              <span class="pill">分支② 外站</span>
+              <span class="pill">分支③ TG 分发</span>
+              <span class="pill">互动能力（可选）</span>
+            </div>
+          </div>
+
+          <div class="flow-arrow">内容进入 · 系统筛选 / 媒体 / AI · 人在断点上场</div>
+
+          <div class="layer cfg">
+            <div class="layer-head">
+              <h3>③ 业务配置</h3>
+              <span class="tag">随业务变化 · 随时可调</span>
+              <a href="#m-config">查看模块 →</a>
+            </div>
+            <div class="pills">
+              <span class="pill">账号资产 · Userbot / 加频道</span>
+              <span class="pill">网站采集配置</span>
+              <span class="pill">TG 绑定与采集参数</span>
+              <span class="pill">外站策略微调</span>
+              <span class="pill">可选功能开闭（按需）</span>
+            </div>
+          </div>
+
+          <div class="flow-arrow">项目可开干之后 · 配采源与出口</div>
+
+          <div class="layer onboard">
+            <div class="layer-head">
+              <h3>② 项目入驻</h3>
+              <span class="tag">项目级一次性 · 配齐才能跑</span>
+              <a href="#m-onboard">查看模块 →</a>
+            </div>
+            <div class="pills">
+              <span class="pill">创建 / 进入项目</span>
+              <span class="pill">基本信息与自动流</span>
+              <span class="pill">水印 · 文章模板</span>
+              <span class="pill">CMS 账号</span>
+              <span class="pill">外站发布对接（底座）</span>
+              <span class="pill">技术接入（待技术）</span>
+              <span class="pill">建号与功能授权</span>
+            </div>
+          </div>
+
+          <div class="flow-arrow">平台就绪 · 外部账号开户</div>
+
+          <div class="layer admin">
+            <div class="layer-head">
+              <h3>① 方舟 Admin</h3>
+              <span class="tag">对内平台 · 治理与排障</span>
+              <a href="#m-admin">查看模块 →</a>
+            </div>
+            <div class="pills">
+              <span class="pill">账号总览</span>
+              <span class="pill">接入治理 / 配额</span>
+              <span class="pill">全局策略 · 提示词</span>
+              <span class="pill">运维健康</span>
+              <span class="pill">反馈处理</span>
+              <span class="pill">公共池路由（例外）</span>
+            </div>
+          </div>
+
+          <div class="principle">
+            <div class="card">
+              <strong>菜单只有两套</strong>
+              <span>外部用户一套（功能显隐）+ 方舟 Admin 对内一套。业务 Admin / 业务人员不是两棵树。</span>
+            </div>
+            <div class="card">
+              <strong>入驻 ≠ 配置</strong>
+              <span>入驻：项目一次性底座。配置：Userbot、采源绑定等随业务常改。无 Userbot 也可先走网站采集。</span>
+            </div>
+            <div class="card">
+              <strong>料跟项目 · 号跟账号</strong>
+              <span>采集绑定决定素材进哪个项目；Userbot 养在账号下，多项目再分别绑定频道。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 分 1 ========== -->
+    <section class="module m1" id="m-admin">
+      <div class="module-banner">
+        <div class="idx">01</div>
+        <div>
+          <h2>方舟 Admin</h2>
+          <p class="goal">定位：平台对内治理与排障，不替代业务日常配置与运营。</p>
+        </div>
+      </div>
+      <div class="module-grid">
+        <div class="panel">
+          <h3>涉及菜单（对内）</h3>
+          <div class="menu-group">
+            <p class="g-title">账号与接入</p>
+            <ul>
+              <li>账号总览 · 业务 Admin / 业务人员 <em class="as-is">（管理员+业务账号 · 合）</em></li>
+              <li>接入审批 · 配额与能力名单 <em class="as-is">（新）</em></li>
+            </ul>
+          </div>
+          <div class="menu-group">
+            <p class="g-title">策略与运维</p>
+            <ul>
+              <li>自动通过 / 质量门禁 <em class="as-is">（配置管理）</em></li>
+              <li>广告过滤 · 提示词</li>
+              <li>系统健康 · 任务管理 · 批量导入</li>
+            </ul>
+          </div>
+          <div class="menu-group">
+            <p class="g-title">其他</p>
+            <ul>
+              <li>反馈处理 <em class="as-is">（新）</em></li>
+              <li>Userbot 总览（排障）· 公共池路由 · 舆情</li>
+            </ul>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>用户流程（平台侧）</h3>
+          <ol class="steps">
+            <li>治理开户 / 审批接入（若有生产闸门）</li>
+            <li>配置影响全站自动化的全局策略与提示词</li>
+            <li>监控健康、任务、跨账号 Userbot 异常</li>
+            <li>处理用户全局反馈并回复</li>
+            <li>公共池路由等例外能力（非默认主路径）</li>
+          </ol>
+          <div class="key-fields">
+            <h4>沟通重点</h4>
+            <p>日常养号、加频道已下放到外部账号；Admin 保留总览与排障，避免再成为业务配置瓶颈。</p>
+          </div>
+        </div>
+      </div>
+      <p class="boundary"><strong>交界：</strong>向下支撑「项目入驻」的开户与配额；不介入项目内自动流、采源绑定的日常修改。</p>
+    </section>
+
+    <!-- ========== 分 2 ========== -->
+    <section class="module m2" id="m-onboard">
+      <div class="module-banner">
+        <div class="idx">02</div>
+        <div>
+          <h2>项目入驻</h2>
+          <p class="goal">定位：把一个项目从 0 配到「可以开干」——项目级一次性配置（同一套菜单日后仍可改，但心智上算入驻完成态）。</p>
+        </div>
+      </div>
+      <div class="module-grid">
+        <div class="panel">
+          <h3>涉及菜单</h3>
+          <div class="menu-group">
+            <p class="g-title">项目底座（一次性）</p>
+            <ul>
+              <li>项目列表 · 创建/进入</li>
+              <li>基本信息与自动流</li>
+              <li>水印 · 文章模板</li>
+              <li>CMS 账号</li>
+              <li>外站发布对接（项目可用站）</li>
+            </ul>
+          </div>
+          <div class="menu-group">
+            <p class="g-title">接入与权限</p>
+            <ul>
+              <li>技术接入 <em class="as-is">（新 · 待技术细化）</em></li>
+              <li>接入向导 / 密钥 / 文档</li>
+              <li>可选功能开通</li>
+              <li>账号与授权（建号、勾功能）</li>
+            </ul>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>用户流程（首次）</h3>
+          <ol class="steps">
+            <li>首次登录（账号已有；自助注册另议）</li>
+            <li>创建项目，填写基本信息</li>
+            <li>配自动流：是否自动转编辑、是否自动发布及 CMS 账号</li>
+            <li>配水印、文章模板</li>
+            <li>添加并测通 CMS；按需配外站底座</li>
+            <li>技术接入联调（占位，待技术）</li>
+            <li>开通本项目需要的可选功能</li>
+            <li>创建业务账号并按功能/合集授权、绑项目</li>
+          </ol>
+          <div class="key-fields">
+            <h4>自动流（重点字段，非全表）</h4>
+            <p>
+              项目名 / CMS 项目码 · <strong>采集自动流开关</strong>（采完→自动转编辑）·
+              <strong>自动发布开关与 CMS 账号</strong>。水印位置、模板内容、CMS 登录与测连。
+            </p>
+          </div>
+        </div>
+      </div>
+      <p class="boundary"><strong>交界：</strong>入驻完成后进入「业务配置」配采源；无 Userbot 也可先只走网站采集。底座菜单与配置模块可见重叠——区别是<strong>时机与变更频率</strong>，不是两套页面。</p>
+    </section>
+
+    <!-- ========== 分 3 ========== -->
+    <section class="module m3" id="m-config">
+      <div class="module-banner">
+        <div class="idx">03</div>
+        <div>
+          <h2>业务配置</h2>
+          <p class="goal">定位：随业务变化随时调整的配置——采源、账号侧 TG 资产、出口策略等；让「料进得来、出口接得上」。</p>
+        </div>
+      </div>
+      <div class="module-grid">
+        <div class="panel">
+          <h3>涉及菜单（两个独立采源能力）</h3>
+          <div class="menu-group">
+            <p class="g-title">账号资产</p>
+            <ul>
+              <li>Telegram / Userbot · 登录</li>
+              <li>拉取频道 / 加入频道</li>
+            </ul>
+          </div>
+          <div class="menu-group">
+            <p class="g-title">项目内 · 网站采集（独立功能）</p>
+            <ul>
+              <li>网站采集配置</li>
+              <li>网站采集记录</li>
+            </ul>
+          </div>
+          <div class="menu-group">
+            <p class="g-title">项目内 · TG 采集（独立功能）</p>
+            <ul>
+              <li>站点绑定（绑本项目或外站）</li>
+              <li>采集模式 / 预筛选 / 历史扫描</li>
+              <li>开始 / 停止监听</li>
+            </ul>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>用户流程</h3>
+          <ol class="steps">
+            <li>（可选）账号下添加 Userbot 并加入频道——没有也可只用网站采集</li>
+            <li>进入当前项目</li>
+            <li>配网站采集：链接、频率、判重、关联外站</li>
+            <li>和/或 TG：从账号已加入频道中选择 → 绑定本项目 → 填采集参数 → 开监听</li>
+            <li>按需调整外站推送策略（自动 vs 待人工）</li>
+            <li>系统开始拉料；素材归属<strong>当前项目</strong></li>
+          </ol>
+          <div class="key-fields">
+            <h4>TG 绑定（重点，非全字段）</h4>
+            <p>
+              选频道 · 绑定目标（本项目 / 外站二选一）· 判重 · 采集模式（消息/评论区/文件机器人）·
+              预筛选（浏览量/互动/关键词）· 开监听。公共池路由为例外，不与专属绑定混为一谈。
+            </p>
+          </div>
+        </div>
+      </div>
+      <p class="boundary"><strong>交界：</strong>向上消费入驻完成的项目底座；向下把可用素材送进运营。一账号多项目 = 权限范围，不是账号级共享料池。</p>
+    </section>
+
+    <!-- ========== 分 4 ========== -->
+    <section class="module m4" id="m-ops">
+      <div class="module-banner">
+        <div class="idx">04</div>
+        <div>
+          <h2>业务运营</h2>
+          <p class="goal">定位：日常待办与三条主线分发；人只在系统断点上场。理想态可走向「配置 + 审核即可发」。</p>
+        </div>
+      </div>
+      <div class="module-grid">
+        <div class="panel">
+          <h3>涉及菜单</h3>
+          <div class="menu-group">
+            <p class="g-title">工作台与主链路</p>
+            <ul>
+              <li>工作台（统计+待办）</li>
+              <li>主链路·素材审核</li>
+              <li>采集异常 · 流水线</li>
+              <li>文章 · 修片 · 外站发布任务</li>
+            </ul>
+          </div>
+          <div class="menu-group">
+            <p class="g-title">互动（可选，开通后）</p>
+            <ul>
+              <li>AI 评论生成 / 审核</li>
+              <li>用户 / 社区帖评</li>
+              <li>外站评论审核</li>
+            </ul>
+          </div>
+          <div class="key-fields" style="margin-top:8px">
+            <h4>系统自动段（流程重点）</h4>
+            <p>拉取 → 筛选 →（待审才）人审 → 媒体处理 → <strong>AI 生成正文</strong>（TG 分发分支不经此步）→ 按绑定走分支。</p>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>用户流程 · 三条分支都是主线</h3>
+          <ol class="steps">
+            <li>打开工作台，按待办处理（审核 / 失败 / 待推送等）</li>
+            <li>自动流开：可跳过人工编辑直达发布；关：二次编辑 / 修片后确认</li>
+            <li>按项目绑定进入对应分发分支</li>
+          </ol>
+          <div class="branches">
+            <div class="branch">
+              <h4>① CMS</h4>
+              <p>上传自有后台 → 已创建。发文审多在站外（虚线）。</p>
+            </div>
+            <div class="branch">
+              <h4>② 外站</h4>
+              <p>自动推送，或停在待人工推送后点推送/重试。</p>
+            </div>
+            <div class="branch">
+              <h4>③ TG 分发</h4>
+              <p>按路由到频道；不经 AI 生成正文；未分发回异常处理。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="boundary"><strong>交界：</strong>主链路审核 ≠ AI/社区审核。反馈为全局浮层，不算运营菜单；处理在方舟 Admin。</p>
+    </section>
+
+    <p class="footer-note">
+      源文件：海外项目/方舟/重构资料 · 同步：fangzhou/ · 下一步按四模块分别细化页面与字段
+    </p>
+  </main>
+
+  <script>
+    const links = [...document.querySelectorAll("#nav a")];
+    const sections = links.map((a) => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const id = "#" + e.target.id;
+        links.forEach((a) => a.classList.toggle("active", a.getAttribute("href") === id));
+      });
+    }, { rootMargin: "-40% 0px -50% 0px", threshold: 0 });
+    sections.forEach((s) => io.observe(s));
+  </script>
+</body>
+</html>
