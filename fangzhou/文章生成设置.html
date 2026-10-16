@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>文章生成设置 · PRD 与原型</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto Sans SC", sans-serif; }
+  .bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20; height: 52px;
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 20px; background: #fff; border-bottom: 1px solid #e4e2de;
+  }
+  .bar a { color: #5e5e66; text-decoration: none; font-size: 13px; }
+  .tabs { display: flex; gap: 6px; }
+  .tab {
+    border: 1px solid transparent; background: transparent; color: #5e5e66;
+    border-radius: 8px; padding: 6px 14px; font: inherit; cursor: pointer;
+  }
+  .tab.on { color: #1c1c1f; background: #f6f5f3; border-color: #e4e2de; }
+  .pane { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; overflow: auto; }
+  #view-prd { background: #f6f5f3; }
+  #view-prd .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 24px 48px; }
+  #view-prd h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
+  #view-prd h2 { font-size: 18px; margin: 28px 0 10px; }
+  #view-prd h3 { font-size: 14px; margin: 16px 0 6px; color: #8d2f86; }
+  #view-prd .meta { color: #5e5e66; font-size: 13px; margin-bottom: 8px; }
+  #view-prd p { margin: 0 0 8px; }
+  #view-prd ul { margin: 0 0 8px; padding-left: 18px; }
+  #view-prd table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin: 8px 0 16px; }
+  #view-prd th, #view-prd td { border: 1px solid #e4e2de; padding: 8px 10px; text-align: left; vertical-align: top; }
+  #view-prd th { background: #f3f0f2; }
+  #view-prd figure { margin: 0 0 16px; }
+  #view-prd img { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid #e4e2de; }
+  #view-prd figcaption { color: #5e5e66; font-size: 12px; margin-top: 6px; }
+  #view-prd .pair {
+    display: grid; grid-template-columns: minmax(280px, 42%) 1fr; gap: 20px;
+    background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+    padding: 16px; margin: 16px 0;
+  }
+  #view-prd .id { font-size: 12px; color: #8d2f86; }
+  @media (max-width: 800px) { #view-prd .pair { grid-template-columns: 1fr; } }
+
+  #view-demo {
+    --bg: #0a0e1a;
+    --panel: #111827;
+    --card: #161e2e;
+    --line: rgba(56, 189, 248, .15);
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --dim: #64748b;
+    --cyan: #38bdf8;
+    --orange: #fb923c;
+    --danger: #f87171;
+    --ok: #4ade80;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  #view-demo {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.55 Inter, -apple-system, "PingFang SC", "Segoe UI", sans-serif;
+  }
+  #view-demo button, #view-demo input, #view-demo textarea, #view-demo select { font: inherit; color: inherit; }
+  #view-demo button { cursor: pointer; }
+  .app { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+  .side {
+    border-right: 1px solid var(--line);
+    padding: 18px 14px;
+    background: #0c1220;
+  }
+  .brand { font-weight: 700; letter-spacing: .04em; }
+  .brand small { display: block; color: var(--dim); font-weight: 400; font-size: 11px; margin-top: 2px; }
+  .nav-label { margin: 22px 8px 8px; color: var(--dim); font-size: 12px; }
+  .nav-item {
+    display: block; width: 100%; text-align: left;
+    background: transparent; border: 0; color: var(--muted);
+    padding: 8px 10px; border-radius: 8px;
+  }
+  .nav-item.active { color: var(--orange); background: rgba(251, 146, 60, .08); }
+  .main { padding: 22px 28px 48px; }
+  .top {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    margin-bottom: 16px;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; }
+  .back { color: var(--cyan); background: none; border: 0; padding: 0 0 6px; }
+  .actions { display: flex; gap: 8px; }
+  .btn {
+    border: 1px solid var(--line); background: transparent; color: var(--muted);
+    border-radius: 10px; padding: 8px 14px;
+  }
+  .btn:hover { border-color: rgba(56, 189, 248, .45); color: var(--text); }
+  .btn.primary {
+    border: 0; color: #fff;
+    background: linear-gradient(135deg, #38bdf8, #818cf8);
+  }
+  .btn.danger { color: var(--danger); border-color: rgba(248, 113, 113, .35); }
+  .tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .tab {
+    background: transparent; border: 1px solid transparent; color: var(--muted);
+    padding: 8px 14px; border-radius: 10px;
+  }
+  .tab.on { color: var(--text); border-color: var(--line); background: var(--panel); }
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 16px 18px; margin-bottom: 14px;
+  }
+  .card h2 { margin: 0 0 6px; font-size: 15px; }
+  .hint { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mode {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+  }
+  .mode.head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+  .mode.sub { cursor: pointer; text-align: left; width: 100%; color: inherit; }
+  .mode.sub.on { border-color: rgba(56, 189, 248, .7); box-shadow: inset 0 0 0 1px rgba(56, 189, 248, .35); }
+  .mode strong { display: block; margin-bottom: 4px; }
+  .switch {
+    width: 42px; height: 24px; border-radius: 99px; border: 0; position: relative; flex: none;
+    background: #334155;
+  }
+  .switch.on { background: linear-gradient(135deg, #38bdf8, #818cf8); }
+  .switch i {
+    position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+    background: #fff; transition: left .15s;
+  }
+  .switch.on i { left: 21px; }
+  .flow {
+    margin-top: 12px; padding: 8px 12px; border-radius: 8px;
+    background: rgba(56, 189, 248, .08); color: var(--cyan); font-size: 13px;
+  }
+  #view-demo table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  #view-demo th, #view-demo td { border-bottom: 1px solid var(--line); padding: 8px 6px; text-align: left; vertical-align: top; }
+  #view-demo th { color: var(--dim); font-weight: 500; }
+  .tag { color: var(--muted); font-size: 12px; }
+  #view-demo input[type="text"], #view-demo input[type="number"], #view-demo textarea, #view-demo select {
+    width: 100%; background: #0c1220; border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px 10px; outline: none;
+  }
+  #view-demo textarea { min-height: 88px; resize: vertical; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  #view-demo label.field { display: block; color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+  .topic {
+    border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 10px; background: var(--card);
+  }
+  .topic-top { display: grid; grid-template-columns: 220px 1fr auto; gap: 10px; align-items: start; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip {
+    border: 1px solid var(--line); background: transparent; color: var(--muted);
+    border-radius: 99px; padding: 3px 8px; font-size: 12px;
+  }
+  .chip.on { color: #fff; border-color: transparent; background: linear-gradient(135deg, #38bdf8, #818cf8); }
+  .row-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+  .preset { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 8px; }
+  .disabled { opacity: .45; pointer-events: none; }
+  .toast {
+    position: fixed; right: 20px; bottom: 20px; background: #1e293b; border: 1px solid var(--line);
+    padding: 10px 14px; border-radius: 10px; display: none;
+  }
+  .mask {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55);
+    display: none; align-items: stretch; justify-content: flex-end;
+  }
+  .mask.show { display: flex; }
+  .drawer {
+    width: min(560px, 100%); background: var(--panel); border-left: 1px solid var(--line);
+    padding: 20px; overflow: auto;
+  }
+  .drawer h2 { margin: 8px 0; font-size: 16px; }
+  .checks { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .check {
+    display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 13px;
+  }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .link-form { display: grid; grid-template-columns: 1fr 1.4fr auto; gap: 8px; margin-bottom: 12px; }
+
+</style>
+</head>
+<body>
+<div class="bar">
+  <a href="../index.html">← 文档目录</a>
+  <div class="tabs">
+    <button class="tab on" type="button" data-pane="prd">PRD</button>
+    <button class="tab" type="button" data-pane="demo">Demo</button>
+  </div>
+</div>
+<div class="pane" id="view-prd">
+<div class="wrap">
+    <h1>文章生成设置 · PRD 与原型</h1>
+    <div class="meta">版本 v1.1 · 2026-10-16 · 方舟后台 · 需求阶段</div>
+    <p>文章由大模型按项目「文章生成设置」写稿。运营需要两套提示词：沿用现在的结构模板，或粘贴自己的完整提示词，也可以两套一起用。两套不能同时关掉。</p>
+    <p>正文里的指定关键词要默认加上链接。配置和提示词放在同一处。只作用于开关打开之后新生成的内容，已有文章不回写。编辑器里，鼠标放在已加链接的文字上，浮层预览链接地址，并用删除去掉链接、保留文字。</p>
+
+    <h2>功能矩阵</h2>
+    <table>
+      <thead><tr><th>功能ID</th><th>功能名称</th><th>功能描述</th></tr></thead>
+      <tbody>
+        <tr><td>FZ-COPY-01</td><td>文案生成提示词管理</td><td>文章生成设置改为页面。内有模板提示词、自定义提示词两个 Tab，各有开关。可同时打开，不能同时关闭。同时打开时先走模板提示词，再用自定义提示词加工。Tab 下方状态句随开关变化。</td></tr>
+        <tr><td>FZ-LINK-01</td><td>文案链接配置</td><td>同一页面的第二个 Tab。关键词—链接表、总开关、Excel 下载/导入、单条增删改。只作用于新内容。编辑器悬停预览链接，垃圾桶删除去掉链接并保留文字。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>入口</h2>
+    <p>现网入口不变：管理中心 → 项目管理 → 项目卡片「文章模板」。现状是弹窗，本期改为独立页面。</p>
+
+    <div class="pair">
+      <figure>
+        <img src="prd-screens/demo-template.png" alt="文案生成提示词管理，模板提示词打开" />
+        <figcaption>只开模板提示词。状态句为「当前：只用模板提示词」。</figcaption>
+      </figure>
+      <div>
+        <div class="id">FZ-COPY-01</div>
+        <h2>文案生成提示词管理</h2>
+        <h3>两个 Tab</h3>
+        <p>点击「模板提示词」或「自定义提示词」标题切换，下面只显示当前这一套。各有开关。保存和取消只在这一页，保存的是提示词配置。</p>
+        <p>模板提示词就是现在的结构模板：启用哪些结构、适用题材和素材条件、题材类型及候选结构、正文篇幅、最多 10 条「按要求改写」预设。结构包括事件推进体 T01 到疑问导向体 T10，以及不套模板的「自然结构」。</p>
+        <p>自定义提示词是一个文本框，运营粘贴完整提示词。</p>
+        <h3>开关与状态句</h3>
+        <ul>
+          <li>可以只开一套，也可以两套一起开。不能两个都关。关掉最后一个时不生效，并提示至少保留一套。</li>
+          <li>已有项目首次进入：模板提示词为开，自定义提示词为关。</li>
+          <li>两个 Tab 下方固定一句状态，随开关即时变化：</li>
+        </ul>
+        <table>
+          <thead><tr><th>开关</th><th>状态句</th></tr></thead>
+          <tbody>
+            <tr><td>只开模板提示词</td><td>当前：只用模板提示词</td></tr>
+            <tr><td>只开自定义提示词</td><td>当前：只用自定义提示词，不套结构模板</td></tr>
+            <tr><td>两个都开</td><td>当前：先用模板提示词生成，再按自定义提示词加工</td></tr>
+          </tbody>
+        </table>
+        <h3>生成顺序</h3>
+        <ul>
+          <li>只开模板：在已启用且素材条件满足的模板里选。选题材后优先用该题材的候选结构；都不适合再用项目内其他已启用结构；仍不适合用自然结构。未启用或条件不符的不得使用。字数在最低建议和最高建议之间；事实不够可以低于最低建议，但不得低于绝对最低。三项都空则用系统默认（约 350～900 字，最少 250 字）。</li>
+          <li>只开自定义：不套结构模板，用粘贴的全文。文本为空不能保存。</li>
+          <li>两个都开：先按模板生成一版，再交给自定义提示词加工，加工结果作为最终稿。</li>
+        </ul>
+        <p>模板提示词关闭时，二次编辑不再提供结构模板选择。</p>
+      </div>
+    </div>
+
+    <figure>
+      <img src="prd-screens/demo-custom.png" alt="两套提示词都打开时的状态句和自定义提示词" />
+      <figcaption>两个开关都打开。状态句改为「当前：先用模板提示词生成，再按自定义提示词加工」。</figcaption>
+    </figure>
+
+    <div class="pair">
+      <figure>
+        <img src="prd-screens/demo-link.png" alt="文案链接配置" />
+        <figcaption>文案链接配置。总开关关闭时，状态句说明词表还能改、新稿不加链接。</figcaption>
+      </figure>
+      <div>
+        <div class="id">FZ-LINK-01</div>
+        <h2>文案链接配置</h2>
+        <p>这一页没有保存按钮。顶部总开关，默认关闭。新增、编辑、删除、导入和开关都立即生效。表字段：关键词、链接、编辑、删除。可下载 Excel 模板、导入 Excel。</p>
+        <p>模板列：关键词、链接，两列都必填。同一项目内关键词唯一，已有同词则更新链接。链接需以 http 或 https 开头。空行跳过，非法行指出行号，其他合法行仍导入。</p>
+        <p>关闭：词表保留，新内容不加链接。状态句：「当前关闭：词表可以继续改，新稿不加链接」。</p>
+        <p>打开：之后新生成的正文按当时词表加链接。状态句：「当前开启：之后新生成的正文会按这张表加链接」。</p>
+        <ul>
+          <li>只处理开关为开之后新生成的正文。已有文章不回写。</li>
+          <li>已经是链接的文字不再套链接。标题、关键词字段、标签不加。</li>
+          <li>同一关键词在一篇正文里只给第一次出现加链接。多词重叠时先匹配更长的关键词。</li>
+          <li>手改正文后不再自动重扫。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pair">
+      <figure>
+        <img src="prd-screens/editor-link-hover.png" alt="鼠标放在链接上预览地址，并用删除图标去掉链接" />
+        <figcaption>鼠标放在已有链接上：浮层左侧是 URL，右侧是垃圾桶图标和「删除」。</figcaption>
+      </figure>
+      <div>
+        <h2>编辑器里的链接</h2>
+        <p>鼠标放在正文里已有链接的文字上，出现浮层。左侧展示「URL: 实际地址」，右侧为垃圾桶图标加「删除」。</p>
+        <p>点击删除后去掉链接，蓝色下划线消失，文字保留。结果随文章保存。</p>
+      </div>
+    </div>
+
+    <h2>验收</h2>
+    <table>
+      <thead><tr><th>功能ID</th><th>验收标准</th></tr></thead>
+      <tbody>
+        <tr><td>FZ-COPY-01</td><td>文章模板进入的是页面。文案生成提示词管理里有模板提示词、自定义提示词两个 Tab，各有开关。Tab 下方状态句随开关变化，三条文案与上表一致。两个都关时不生效并提示。只开模板时按结构、题材、篇幅和预设生成。只开自定义时用粘贴全文。两个都开时先出模板稿，再按自定义提示词加工。</td></tr>
+        <tr><td>FZ-LINK-01</td><td>同一页面有文案链接配置。可下载模板、导入、单条增删改。总开关的状态句随开关变化。关闭时新稿不加链接。打开后只给新稿正文首次出现的关键词加链接。旧文章不改。编辑器悬停浮层展示 URL，点垃圾桶删除后文字还在、链接去掉，并随文章保存。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="pane" id="view-demo" hidden>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">无极-方舟<small>Wuji Ark System</small></div>
+    <div class="nav-label">管理中心</div>
+    <button class="nav-item" type="button">提示词管理</button>
+    <button class="nav-item" type="button">配置管理</button>
+    <button class="nav-item active" type="button">项目管理</button>
+  </aside>
+  <main class="main">
+    <div class="top">
+      <div>
+        <button class="back" type="button">← 返回项目管理</button>
+        <h1>文章生成设置 · 测试专用-吃瓜网</h1>
+        <div class="sub">提示词上次保存：2026/10/10 13:09:57 · zhangzhiyuan</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab on" type="button" data-tab="prompt">文案生成提示词管理</button>
+      <button class="tab" type="button" data-tab="link">文案链接配置</button>
+    </div>
+
+    <section id="pane-prompt">
+      <div class="actions" style="justify-content:flex-end;margin-bottom:12px">
+        <button class="btn" type="button" id="cancel">取消</button>
+        <button class="btn primary" type="button" id="save">保存</button>
+      </div>
+      <div class="modes">
+        <div class="mode sub on" data-sub="template">
+          <div class="mode head">
+            <div>
+              <strong>模板提示词</strong>
+              <span class="tag">原「结构模板」。按题材和素材条件选一套结构来写。</span>
+            </div>
+            <button class="switch on" type="button" id="sw-template" aria-label="模板提示词"><i></i></button>
+          </div>
+        </div>
+        <div class="mode sub" data-sub="custom">
+          <div class="mode head">
+            <div>
+              <strong>自定义提示词</strong>
+              <span class="tag">粘贴一整段自己的提示词。</span>
+            </div>
+            <button class="switch" type="button" id="sw-custom" aria-label="自定义提示词"><i></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="flow" id="flow">当前：只用模板提示词</div>
+
+      <div id="template-block">
+        <div class="card">
+          <h2>结构模板</h2>
+          <p class="hint">AI 从已启用、且素材条件满足的模板里挑一套。都不适合时用「自然结构」。至少启用一套。改内置模板只影响本项目，可恢复默认。</p>
+          <table>
+            <thead>
+              <tr><th>启用</th><th>模板</th><th>适用 / 条件</th><th>来源</th><th></th></tr>
+            </thead>
+            <tbody id="tpl-body"></tbody>
+          </table>
+          <div class="row-actions">
+            <button class="btn" type="button" id="add-tpl">+ 新增模板</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>题材类型</h2>
+          <p class="hint">每个题材可勾选多套结构作为候选。AI 先判断题材，再在候选里挑；候选都不适合时，再用项目里其他已启用结构。不配则用系统默认分类。下方用短码选择，避免每条题材重复一长列复选框。</p>
+          <div class="chips" id="legend"></div>
+          <div id="topics"></div>
+          <button class="btn" type="button" id="add-topic">+ 添加题材类型</button>
+        </div>
+
+        <div class="card">
+          <h2>正文篇幅（汉字数）</h2>
+          <p class="hint">AI 在最低建议和最高建议之间定字数。事实不够可以低于最低建议，但不低于绝对最低。三项都空 = 系统默认（约 350～900 字，最少 250 字）。</p>
+          <div class="grid3">
+            <div><div class="field">最低建议</div><input type="number" value="350" /></div>
+            <div><div class="field">最高建议</div><input type="number" value="900" /></div>
+            <div><div class="field">绝对最低</div><input type="number" value="250" /></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>「按要求改写」预设</h2>
+          <p class="hint">表达偏好，最多 10 条。生成主稿时按素材选用适用条目，把全文交给模型。人物称谓、不编造、连续动作合并由系统执行，不用写进预设。事实边界和图片、视频位置不会变。</p>
+          <div id="presets"></div>
+          <button class="btn" type="button" id="add-preset">+ 添加预设</button>
+        </div>
+      </div>
+
+      <div class="card" id="custom-block" hidden>
+        <h2>自定义提示词</h2>
+        <p class="hint">在这里粘贴完整提示词。</p>
+        <textarea id="custom-text" placeholder="在这里粘贴完整提示词"></textarea>
+      </div>
+    </section>
+
+    <section id="pane-link" hidden>
+      <div class="card">
+        <div class="mode head">
+          <div>
+            <h2>文案链接</h2>
+            <p class="hint">识别新生成正文里的关键词，给第一次出现加上链接。已有文章不回写。关闭后词表保留，但新稿不加链接。</p>
+          </div>
+          <button class="switch" type="button" id="sw-link" aria-label="文案链接总开关"><i></i></button>
+        </div>
+        <div class="flow" id="link-state"></div>
+        <div id="link-body">
+          <div class="toolbar">
+            <button class="btn" type="button" id="dl">下载 Excel 模板</button>
+            <button class="btn" type="button" id="imp">导入 Excel</button>
+          </div>
+          <div class="link-form">
+            <input type="text" id="kw" placeholder="关键词" />
+            <input type="text" id="url" placeholder="https:// 链接" />
+            <button class="btn primary" type="button" id="add-link">新增</button>
+          </div>
+          <table>
+            <thead><tr><th>关键词</th><th>链接</th><th></th></tr></thead>
+            <tbody id="link-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="mask" id="mask">
+  <div class="drawer">
+    <button class="back" type="button" id="close-drawer">← 返回列表</button>
+    <h2 id="drawer-title">编辑模板</h2>
+    <p class="hint">改内置模板只影响这个项目。一条一两句话就够，不要写成范文，也不要规定「第一段必须写什么」。</p>
+    <div class="field">模板名称 *</div>
+    <input type="text" id="f-name" />
+    <div class="field" style="margin-top:12px">适用档位 *</div>
+    <div class="checks" id="f-level"></div>
+    <div class="field">适用题材</div>
+    <input type="text" id="f-topic" placeholder="多个题材用顿号分隔" />
+    <div class="field" style="margin-top:12px">素材条件</div>
+    <div class="checks" id="f-cond"></div>
+    <p class="hint">素材不满足勾选的条件时，这套模板不会被选中。</p>
+    <div class="field">写作重点 *</div>
+    <textarea id="f-focus"></textarea>
+    <div class="field">组织方式 *</div>
+    <textarea id="f-org"></textarea>
+    <div class="field">H2 规则</div>
+    <textarea id="f-h2"></textarea>
+    <div class="field">结尾</div>
+    <textarea id="f-end"></textarea>
+    <div class="field">禁止</div>
+    <textarea id="f-ban"></textarea>
+    <div class="field">模板允许的结构</div>
+    <textarea id="f-struct"></textarea>
+    <div class="row-actions">
+      <button class="btn" type="button" id="drawer-cancel">取消</button>
+      <button class="btn primary" type="button" id="drawer-save">保存这套模板</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const TPL = [
+  { id:"T01", name:"事件推进体", on:true, fit:"非成人 / 成人 / 擦边", cond:"题材：吃瓜爆料、情感纠纷、人物八卦、社会猎奇", src:"内置" },
+  { id:"T02", name:"事实推进体", on:true, fit:"非成人 / 成人 / 擦边", cond:"", src:"内置" },
+  { id:"T03", name:"动作推进体", on:true, fit:"成人 / 擦边", cond:"题材：AV作品、成人影像·写真", src:"内置" },
+  { id:"T04", name:"倒叙钩子体", on:true, fit:"非成人 / 成人 / 擦边", cond:"", src:"内置" },
+  { id:"T05", name:"时间线实况体", on:false, fit:"非成人 / 成人 / 擦边", cond:"", src:"内置" },
+  { id:"T06", name:"人物档案体", on:true, fit:"非成人 / 成人 / 擦边", cond:"要有人名", src:"内置" },
+  { id:"T07", name:"前后反差体", on:true, fit:"非成人 / 成人 / 擦边", cond:"要有换装 / 姿势变化", src:"内置" },
+  { id:"T08", name:"看点清单体", on:false, fit:"非成人 / 成人 / 擦边", cond:"信息量 ≥ 3", src:"内置" },
+  { id:"T09", name:"剧情解说体", on:false, fit:"非成人 / 成人 / 擦边", cond:"要有作品 / 剧情", src:"内置" },
+  { id:"T10", name:"疑问导向体", on:false, fit:"非成人 / 成人 / 擦边", cond:"", src:"内置" }
+];
+const LEVELS = ["成人", "擦边", "非成人"];
+const CONDS = ["要有人名", "要有换装/姿势变化", "信息量≥3", "要有作品/剧情", "要有时间线"];
+let topics = [
+  { name:"吃瓜爆料", style:"围绕爆料主体、事件经过、关键证据和结果来写。未经确认的信息保留不确定表述。", picks:["T01","T02","T04"] },
+  { name:"网红人物", style:"围绕明确人物和本次素材里最有辨识度的行为来写，不堆背景。", picks:["T06","T07"] },
+  { name:"社会猎奇", style:"先交代人物、时间、地点和结果，不为了猎奇添未经确认的细节。", picks:["T01","T05"] }
+];
+let presets = ["口吻更口语，少写环境", "压到 400 字以内，保留关键动作"];
+let links = [
+  { kw:"51吃瓜", url:"https://example.com/51cg" }
+];
+let templateOn = true;
+let customOn = false;
+let linkOn = false;
+
+const toast = (msg) => {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.style.display = "block";
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { el.style.display = "none"; }, 2200);
+};
+
+function renderTpl() {
+  document.getElementById("tpl-body").innerHTML = TPL.map((t, i) => `
+    <tr>
+      <td><input type="checkbox" data-tpl="${i}" ${t.on ? "checked" : ""} /></td>
+      <td>${t.name} <span class="tag">${t.id}</span></td>
+      <td>${t.fit}${t.cond ? "<br><span class='tag'>"+t.cond+"</span>" : ""}</td>
+      <td class="tag">${t.src}</td>
+      <td>
+        <button class="btn" type="button" data-edit="${i}">编辑</button>
+        ${t.src === "内置" ? `<button class="btn" type="button" data-reset="${i}">恢复默认</button>` : ""}
+      </td>
+    </tr>`).join("");
+  document.getElementById("legend").innerHTML = TPL.map(t =>
+    `<span class="chip" title="${t.name}">${t.id} ${t.name}</span>`).join("");
+}
+
+function renderTopics() {
+  document.getElementById("topics").innerHTML = topics.map((topic, i) => `
+    <div class="topic">
+      <div class="topic-top">
+        <input type="text" data-tname="${i}" value="${topic.name}" placeholder="题材名称（如：网红私拍）" />
+        <textarea data-tstyle="${i}" placeholder="这个题材的写作风格指导（可留空）">${topic.style}</textarea>
+        <button class="btn danger" type="button" data-tdel="${i}">删除</button>
+      </div>
+      <div class="chips">
+        ${TPL.map(t => `<button type="button" class="chip ${topic.picks.includes(t.id) ? "on" : ""}" data-pick="${i}:${t.id}">${t.id}</button>`).join("")}
+      </div>
+    </div>`).join("");
+}
+
+function renderPresets() {
+  document.getElementById("presets").innerHTML = presets.map((p, i) => `
+    <div class="preset">
+      <input type="text" data-preset="${i}" value="${p}" placeholder="一条改写要求" />
+      <button class="btn danger" type="button" data-pdel="${i}">删除</button>
+    </div>`).join("");
+  document.getElementById("add-preset").disabled = presets.length >= 10;
+}
+
+function renderLinks() {
+  document.getElementById("link-rows").innerHTML = links.map((row, i) => `
+    <tr>
+      <td>${row.kw}</td>
+      <td class="tag">${row.url}</td>
+      <td>
+        <button class="btn" type="button" data-ledit="${i}">编辑</button>
+        <button class="btn danger" type="button" data-ldel="${i}">删除</button>
+      </td>
+    </tr>`).join("") || `<tr><td colspan="3" class="tag">还没有关键词</td></tr>`;
+  document.getElementById("link-state").textContent = linkOn
+    ? "当前开启：之后新生成的正文会按这张表加链接"
+    : "当前关闭：词表可以继续改，新稿不加链接";
+}
+
+function showPrompt(which) {
+  document.querySelectorAll(".mode.sub").forEach(el => el.classList.toggle("on", el.dataset.sub === which));
+  document.getElementById("template-block").hidden = which !== "template";
+  document.getElementById("custom-block").hidden = which !== "custom";
+}
+
+function syncModes() {
+  document.getElementById("sw-template").classList.toggle("on", templateOn);
+  document.getElementById("sw-custom").classList.toggle("on", customOn);
+  document.getElementById("sw-link").classList.toggle("on", linkOn);
+  const flow = document.getElementById("flow");
+  if (templateOn && customOn) flow.textContent = "当前：先用模板提示词生成，再按自定义提示词加工";
+  else if (templateOn) flow.textContent = "当前：只用模板提示词";
+  else flow.textContent = "当前：只用自定义提示词，不套结构模板";
+  renderLinks();
+}
+
+function toggleMode(which) {
+  if (which === "template") {
+    if (templateOn && !customOn) return toast("至少保留一套提示词");
+    templateOn = !templateOn;
+  } else {
+    if (customOn && !templateOn) return toast("至少保留一套提示词");
+    customOn = !customOn;
+    if (customOn && !document.getElementById("custom-text").value.trim()) {
+      toast("自定义提示词还是空的，保存前需要贴上全文");
+    }
+  }
+  syncModes();
+}
+
+document.querySelectorAll(".mode.sub").forEach(el => {
+  el.onclick = (event) => {
+    if (event.target.closest(".switch")) return;
+    showPrompt(el.dataset.sub);
+  };
+});
+document.getElementById("sw-template").onclick = (event) => { event.stopPropagation(); toggleMode("template"); };
+document.getElementById("sw-custom").onclick = (event) => { event.stopPropagation(); toggleMode("custom"); };
+document.getElementById("sw-link").onclick = () => { linkOn = !linkOn; syncModes(); toast(linkOn ? "链接已开启" : "链接已关闭"); };
+
+document.querySelectorAll("#view-demo [data-tab]").forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll("#view-demo [data-tab]").forEach(t => t.classList.toggle("on", t === tab));
+    document.getElementById("pane-prompt").hidden = tab.dataset.tab !== "prompt";
+    document.getElementById("pane-link").hidden = tab.dataset.tab !== "link";
+  };
+});
+
+function openDrawer(index) {
+  const t = index == null ? { name:"", fit:"", cond:"" } : TPL[index];
+  document.getElementById("drawer-title").textContent = index == null ? "新增模板" : "改写模板 · " + t.id;
+  document.getElementById("f-name").value = t.name || "";
+  document.getElementById("f-topic").value = "";
+  document.getElementById("f-level").innerHTML = LEVELS.map(lv =>
+    `<label class="check"><input type="checkbox" ${t.fit && t.fit.includes(lv) ? "checked" : ""}/>${lv}</label>`).join("");
+  document.getElementById("f-cond").innerHTML = CONDS.map(c =>
+    `<label class="check"><input type="checkbox" ${t.cond && t.cond.includes(c.replace("≥"," ≥ ").trim()) ? "checked" : ""}/>${c}</label>`).join("");
+  ["f-focus","f-org","f-h2","f-end","f-ban","f-struct"].forEach(id => {
+    document.getElementById(id).value = "";
+  });
+  document.getElementById("mask").classList.add("show");
+  document.getElementById("mask").dataset.index = index == null ? "" : String(index);
+}
+document.getElementById("close-drawer").onclick = () => document.getElementById("mask").classList.remove("show");
+document.getElementById("drawer-cancel").onclick = () => document.getElementById("mask").classList.remove("show");
+document.getElementById("drawer-save").onclick = () => {
+  const name = document.getElementById("f-name").value.trim();
+  if (!name) return toast("请填写模板名称");
+  const index = document.getElementById("mask").dataset.index;
+  if (index === "") TPL.push({ id:"T" + String(TPL.length + 1).padStart(2,"0"), name, on:true, fit:"自定义", cond:"", src:"本项目" });
+  else TPL[Number(index)].name = name;
+  document.getElementById("mask").classList.remove("show");
+  renderTpl(); renderTopics();
+  toast("这套模板已写回列表（原型，未提交）");
+};
+document.getElementById("add-tpl").onclick = () => openDrawer(null);
+
+document.getElementById("tpl-body").onclick = (e) => {
+  const edit = e.target.closest("[data-edit]");
+  const reset = e.target.closest("[data-reset]");
+  const box = e.target.closest("[data-tpl]");
+  if (edit) openDrawer(Number(edit.dataset.edit));
+  if (reset) toast("已恢复这套内置模板的系统默认（原型）");
+  if (box && box.type === "checkbox") TPL[Number(box.dataset.tpl)].on = box.checked;
+};
+
+document.getElementById("topics").onclick = (e) => {
+  const del = e.target.closest("[data-tdel]");
+  const pick = e.target.closest("[data-pick]");
+  if (del) { topics.splice(Number(del.dataset.tdel), 1); renderTopics(); }
+  if (pick) {
+    const [i, id] = pick.dataset.pick.split(":");
+    const topic = topics[Number(i)];
+    topic.picks = topic.picks.includes(id) ? topic.picks.filter(x => x !== id) : topic.picks.concat(id);
+    renderTopics();
+  }
+};
+document.getElementById("topics").oninput = (e) => {
+  if (e.target.dataset.tname != null) topics[e.target.dataset.tname].name = e.target.value;
+  if (e.target.dataset.tstyle != null) topics[e.target.dataset.tstyle].style = e.target.value;
+};
+document.getElementById("add-topic").onclick = () => {
+  topics.push({ name:"", style:"", picks:[] });
+  renderTopics();
+};
+
+document.getElementById("presets").onclick = (e) => {
+  const del = e.target.closest("[data-pdel]");
+  if (!del) return;
+  presets.splice(Number(del.dataset.pdel), 1);
+  renderPresets();
+};
+document.getElementById("presets").oninput = (e) => {
+  if (e.target.dataset.preset != null) presets[e.target.dataset.preset] = e.target.value;
+};
+document.getElementById("add-preset").onclick = () => {
+  if (presets.length >= 10) return toast("最多 10 条预设");
+  presets.push("");
+  renderPresets();
+};
+
+document.getElementById("add-link").onclick = () => {
+  const kw = document.getElementById("kw").value.trim();
+  const url = document.getElementById("url").value.trim();
+  if (!kw || !url) return toast("关键词和链接都要填");
+  if (!/^https?:\/\//.test(url)) return toast("链接需要以 http 或 https 开头");
+  const hit = links.find(x => x.kw === kw);
+  if (hit) hit.url = url; else links.push({ kw, url });
+  document.getElementById("kw").value = "";
+  document.getElementById("url").value = "";
+  renderLinks();
+  toast("已生效");
+};
+document.getElementById("link-rows").onclick = (e) => {
+  const del = e.target.closest("[data-ldel]");
+  const edit = e.target.closest("[data-ledit]");
+  if (del) { links.splice(Number(del.dataset.ldel), 1); renderLinks(); toast("已删除"); }
+  if (edit) {
+    const row = links[Number(edit.dataset.ledit)];
+    document.getElementById("kw").value = row.kw;
+    document.getElementById("url").value = row.url;
+    links.splice(Number(edit.dataset.ledit), 1);
+    renderLinks();
+  }
+};
+document.getElementById("dl").onclick = () => toast("已下载模板：关键词、链接（原型）");
+document.getElementById("imp").onclick = () => {
+  links.push({ kw:"导入示例", url:"https://example.com/demo" });
+  renderLinks();
+  toast("已导入并生效");
+};
+document.getElementById("save").onclick = () => {
+  if (customOn && !document.getElementById("custom-text").value.trim()) return toast("自定义提示词已打开，请先粘贴全文");
+  if (templateOn && !TPL.some(t => t.on)) return toast("模板提示词已打开，至少启用一套结构");
+  toast("已保存（原型，未提交到后台）");
+};
+document.getElementById("cancel").onclick = () => toast("已放弃未保存修改（原型）");
+
+renderTpl();
+renderTopics();
+renderPresets();
+syncModes();
+</script>
+
+</div>
+<script>
+const tabs = document.querySelectorAll(".bar .tab");
+function show(name) {
+  tabs.forEach(tab => tab.classList.toggle("on", tab.dataset.pane === name));
+  document.getElementById("view-prd").hidden = name !== "prd";
+  document.getElementById("view-demo").hidden = name !== "demo";
+  const pane = document.getElementById(name === "prd" ? "view-prd" : "view-demo");
+  pane.scrollTop = 0;
+  if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
+}
+tabs.forEach(tab => tab.onclick = () => show(tab.dataset.pane));
+show(location.hash === "#demo" ? "demo" : "prd");
+</script>
+</body>
+</html>
