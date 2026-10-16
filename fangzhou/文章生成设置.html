@@ -43,6 +43,76 @@
   #view-prd .id { font-size: 12px; color: #8d2f86; }
   @media (max-width: 800px) { #view-prd .pair { grid-template-columns: 1fr; } }
 
+  #view-cover { background: #0a0e1a; color: #e2e8f0; }
+  #view-cover .stage { max-width: 880px; margin: 0 auto; padding: 28px 20px 48px; }
+  #view-cover .block {
+    background: #111827; border: 1px solid rgba(56, 189, 248, .15); border-radius: 12px; padding: 16px 18px;
+  }
+  #view-cover h2 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: #e2e8f0; }
+  #view-cover .row { display: flex; gap: 16px; align-items: flex-start; }
+  #view-cover .preview {
+    width: 280px; aspect-ratio: 16 / 9; border-radius: 8px; background: #0b1220 center/cover no-repeat;
+    border: 1px solid rgba(56, 189, 248, .2); flex: none;
+  }
+  #view-cover .actions { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+  #view-cover .ghost, #view-cover .solid, #view-cover .texty {
+    font: inherit; cursor: pointer; border-radius: 8px;
+  }
+  #view-cover .ghost {
+    background: transparent; color: #e2e8f0; border: 1px solid rgba(56, 189, 248, .55); padding: 6px 12px;
+  }
+  #view-cover .solid {
+    border: 0; color: #0a0e1a; padding: 8px 16px; background: linear-gradient(135deg, #38bdf8, #818cf8);
+  }
+  #view-cover .solid:disabled { opacity: .4; cursor: default; }
+  #view-cover .texty { border: 0; background: transparent; color: #94a3b8; padding: 0; }
+  #view-cover .status { margin: 0; color: #94a3b8; font-size: 13px; }
+  #view-cover .mask {
+    position: fixed; inset: 0; z-index: 30; background: rgba(0, 0, 0, .55);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  #view-cover .mask[hidden] { display: none; }
+  #view-cover .modal {
+    width: min(760px, 100%); background: #111827; color: #e2e8f0;
+    border: 1px solid rgba(56, 189, 248, .2); border-radius: 12px; padding: 16px 16px 14px;
+  }
+  #view-cover .modal.sm { width: min(360px, 100%); }
+  #view-cover .modal .head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  #view-cover .modal h3 { margin: 0; font-size: 16px; }
+  #view-cover .modal p { margin: 8px 0 12px; color: #94a3b8; font-size: 13px; }
+  #view-cover .x { border: 0; background: transparent; color: #94a3b8; font: inherit; cursor: pointer; }
+  #view-cover .frame {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; aspect-ratio: 16 / 9;
+    border-radius: 8px; overflow: hidden; background: #0b1220; border: 1px solid rgba(56, 189, 248, .2);
+  }
+  #view-cover .slot { position: relative; overflow: hidden; background: #0b1220; border-right: 1px solid rgba(56, 189, 248, .15); }
+  #view-cover .slot:last-child { border-right: 0; }
+  #view-cover .slot img { position: absolute; max-width: none; user-select: none; touch-action: none; cursor: grab; }
+  #view-cover .add {
+    width: 100%; height: 100%; border: 0; background: transparent; color: #94a3b8;
+    font: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  }
+  #view-cover .tools {
+    position: absolute; left: 6px; right: 6px; bottom: 6px; z-index: 2;
+    display: flex; gap: 4px; justify-content: center;
+  }
+  #view-cover .tools button {
+    border: 0; border-radius: 6px; padding: 4px 8px; font: 12px/1.2 inherit; cursor: pointer;
+    background: rgba(10, 14, 26, .82); color: #e2e8f0;
+  }
+  #view-cover .foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+  #view-cover .src-actions { display: flex; flex-direction: column; gap: 8px; }
+  #view-cover .src-actions button, #view-cover .lib button.pick {
+    width: 100%; text-align: left; font: inherit; cursor: pointer; color: #e2e8f0;
+    background: #161e2e; border: 1px solid rgba(56, 189, 248, .25); border-radius: 8px; padding: 10px 12px;
+  }
+  #view-cover .lib-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  #view-cover .lib-grid button {
+    padding: 0; border-radius: 8px; overflow: hidden; border: 1px solid rgba(56, 189, 248, .25);
+    background: #0b1220; cursor: pointer; aspect-ratio: 3 / 4;
+  }
+  #view-cover .lib-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
   #view-demo {
     --bg: #0a0e1a;
     --panel: #111827;
@@ -186,15 +256,17 @@
   <div class="tabs">
     <button class="tab on" type="button" data-pane="prd">PRD</button>
     <button class="tab" type="button" data-pane="demo">Demo</button>
+    <button class="tab" type="button" data-pane="cover">自定义封面</button>
   </div>
 </div>
 <div class="pane" id="view-prd">
 <div class="wrap">
     <h1>文章生成设置优化 PRD</h1>
-    <div class="meta">版本 v1.1 · 2026-10-16 · 方舟后台 · 需求阶段</div>
+    <div class="meta">版本 v1.2 · 2026-10-16 · 方舟后台 · 需求阶段</div>
     <h2>需求背景</h2>
     <p>文章由大模型按项目「文章生成设置」写稿。运营需要两套提示词：沿用现在的结构模板，或粘贴自己的完整提示词，也可以两套一起用。两套不能同时关掉。</p>
     <p>正文里的指定关键词要默认加上链接。配置和提示词放在同一处。只作用于开关打开之后新生成的内容，已有文章不回写。编辑器里，鼠标放在已加链接的文字上，浮层预览链接地址，并用删除去掉链接、保留文字。</p>
+    <p>封面默认是一整张图，由系统生成，或通过「选择封面图」换成另一整张。生成结果常出现画面大小不一致、比例不协调、AI 感过强。运营需要按左、中、右三格自己放入图片并裁切，拼成一张新封面；不需要时可以回到原来的整张封面。</p>
 
     <h2>功能矩阵</h2>
     <table>
@@ -202,6 +274,7 @@
       <tbody>
         <tr><td>FZ-COPY-01</td><td>文案生成提示词管理</td><td>文章生成设置改为页面。内有模板提示词、自定义提示词两个 Tab，各有开关。可同时打开，不能同时关闭。同时打开时先走模板提示词，再用自定义提示词加工。Tab 下方状态句随开关变化。</td></tr>
         <tr><td>FZ-LINK-01</td><td>文案链接配置</td><td>同一页面的第二个 Tab。关键词—链接表、总开关、Excel 下载/导入、单条增删改。只作用于新内容。编辑器悬停预览链接，垃圾桶删除去掉链接并保留文字。</td></tr>
+        <tr><td>FZ-COVER-01</td><td>自定义封面</td><td>二次编辑封面区保留「选择封面图」（换一整张）。新增「自定义封面」：按项目封面尺寸把画面均分成左、中、右，每格从素材库或本地上传放入图片，拖动并用放大、缩小裁切。三格都有图才能保存成一张新封面。正在使用自定义封面时，可恢复进入自定义之前的那张整图。</td></tr>
       </tbody>
     </table>
 
@@ -282,12 +355,55 @@
       </div>
     </div>
 
+    <div class="pair">
+      <div>
+        <figure>
+          <img src="prd-screens/cover-modal.png" alt="自定义封面弹窗，左中右三格" />
+          <figcaption>自定义封面弹窗。画框按封面尺寸均分为左、中、右。空格点击后选择图片来源。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/cover-zoom.png" alt="格子内的放大、缩小和删除" />
+          <figcaption>图片放入后可拖动。放大、缩小在格子上，缩小不能小于铺满该格。删除后该格重新为空。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/cover-source.png" alt="选择图片来源：素材库或本地上传" />
+          <figcaption>选择图片来源。素材库只列出图片素材；本地上传一次选一张。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">FZ-COVER-01</div>
+        <h2>自定义封面</h2>
+        <p>位置在二次编辑的封面区，与「选择封面图」并排。本页只演示封面这一块。顶部「自定义封面」标签可操作。</p>
+        <h3>两套封面</h3>
+        <ul>
+          <li>默认封面是一整张图。系统生成的封面，以及「选择封面图」选中的图，都是整张，不拆成三格。</li>
+          <li>「选择封面图」保留。选中一张整图后，替换当前封面，并成为新的默认整图。此时退出自定义封面。</li>
+          <li>自定义封面从三个空格开始，三张都要手动添加。不会把当前整图拆进格子。</li>
+        </ul>
+        <h3>三格与裁切</h3>
+        <ul>
+          <li>弹窗里的画框使用该项目的图片封面尺寸，宽度均分为左、中、右。原型用 960×540 示意这个尺寸。</li>
+          <li>点击空格后选择来源。「素材库」打开当前素材库里的图片素材，点一张填入该格并关闭素材弹窗，回到封面编辑。「本地上传」打开本地文件夹，限 jpg、png、webp，一次一张。</li>
+          <li>同一张图可以放入多个格子。</li>
+          <li>放入后按该格最小边撑满，超出部分裁掉。原图小于格子时同样放大到铺满。可在格内拖动位置。放大、缩小继续裁切，缩小到刚好铺满为止，不能露出空白。</li>
+          <li>可以删除某一格的图片，该格回到空位后再选。不旋转，三格之间不能拖拽换位。</li>
+        </ul>
+        <h3>保存与恢复</h3>
+        <ul>
+          <li>三格都有图片，「保存」才可点。保存后按从左到右拼成一张封面，替换编辑器里的封面预览。关掉弹窗而不保存，这次编辑不生效。封面仍随文章「保存草稿 / 确认发布」。</li>
+          <li>再次打开自定义封面时，带出上次保存的三格和裁切，可改某一格后重新保存。</li>
+          <li>当前封面是自定义结果时，封面区显示「恢复默认封面」。点击后取消自定义，回到进入自定义之前的那张整图。没有使用自定义封面时不显示这个按钮。</li>
+        </ul>
+      </div>
+    </div>
+
     <h2>验收</h2>
     <table>
       <thead><tr><th>功能ID</th><th>验收标准</th></tr></thead>
       <tbody>
         <tr><td>FZ-COPY-01</td><td>文章模板进入的是页面。文案生成提示词管理里有模板提示词、自定义提示词两个 Tab，各有开关。Tab 下方状态句随开关变化，三条文案与上表一致。两个都关时不生效并提示。只开模板时按结构、题材、篇幅和预设生成。只开自定义时用粘贴全文。两个都开时先出模板稿，再按自定义提示词加工。</td></tr>
         <tr><td>FZ-LINK-01</td><td>同一页面有文案链接配置。可下载模板、导入、单条增删改。总开关的状态句随开关变化。关闭时新稿不加链接。打开后只给新稿正文首次出现的关键词加链接。旧文章不改。编辑器悬停浮层展示 URL，点垃圾桶删除后文字还在、链接去掉，并随文章保存。</td></tr>
+        <tr><td>FZ-COVER-01</td><td>封面区仍可「选择封面图」换一整张。自定义封面为左中右三格，来源是素材库图片或本地上传。图片按最小边铺满并可拖动、放大、缩小，缩小不露出空白。不满三张不能保存。保存后封面变为一张新图。使用自定义封面时可恢复进入自定义之前的整张默认封面。</td></tr>
       </tbody>
     </table>
   </div>
@@ -711,18 +827,330 @@ syncModes();
 </script>
 
 </div>
+<div class="pane" id="view-cover" hidden>
+  <div class="stage">
+    <section class="block">
+      <h2>封面</h2>
+      <div class="row">
+        <div class="preview" id="cover-preview"></div>
+        <div class="actions">
+          <button class="ghost" type="button" id="pick-whole">选择封面图</button>
+          <button class="ghost" type="button" id="open-custom">自定义封面</button>
+          <p class="status" id="cover-status">已有封面（可更换）</p>
+          <button class="texty" type="button" id="restore-default" hidden>恢复默认封面</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="mask" id="custom-mask" hidden>
+    <div class="modal" role="dialog" aria-labelledby="custom-title">
+      <div class="head">
+        <h3 id="custom-title">自定义封面</h3>
+        <button class="x" type="button" id="custom-close">关闭</button>
+      </div>
+      <p>按项目封面尺寸均分为左、中、右。原型尺寸 960×540。点击空格添加图片，拖动调整位置。</p>
+      <div class="frame" id="cover-frame"></div>
+      <div class="foot">
+        <button class="ghost" type="button" id="custom-cancel">取消</button>
+        <button class="solid" type="button" id="custom-save" disabled>保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mask" id="source-mask" hidden>
+    <div class="modal sm" role="dialog" aria-labelledby="source-title">
+      <div class="head">
+        <h3 id="source-title">选择图片来源</h3>
+        <button class="x" type="button" id="source-close">关闭</button>
+      </div>
+      <div class="src-actions">
+        <button type="button" id="src-lib">素材库</button>
+        <button type="button" id="src-local">本地上传</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mask" id="lib-mask" hidden>
+    <div class="modal" role="dialog" aria-labelledby="lib-title">
+      <div class="head">
+        <h3 id="lib-title">素材库 · 图片素材</h3>
+        <button class="x" type="button" id="lib-close">关闭</button>
+      </div>
+      <p>点一张图片，填入当前格子。</p>
+      <div class="lib-grid" id="lib-grid"></div>
+    </div>
+  </div>
+
+  <div class="mask" id="whole-mask" hidden>
+    <div class="modal sm" role="dialog" aria-labelledby="whole-title">
+      <div class="head">
+        <h3 id="whole-title">选择封面图</h3>
+        <button class="x" type="button" id="whole-close">关闭</button>
+      </div>
+      <p>选择一整张图片作为封面。</p>
+      <div class="src-actions" id="whole-list"></div>
+    </div>
+  </div>
+  <input id="file-slot" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+  <input id="file-whole" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+</div>
 <script>
 const tabs = document.querySelectorAll(".bar .tab");
 function show(name) {
   tabs.forEach(tab => tab.classList.toggle("on", tab.dataset.pane === name));
-  document.getElementById("view-prd").hidden = name !== "prd";
-  document.getElementById("view-demo").hidden = name !== "demo";
-  const pane = document.getElementById(name === "prd" ? "view-prd" : "view-demo");
-  pane.scrollTop = 0;
+  ["prd", "demo", "cover"].forEach(id => {
+    document.getElementById("view-" + id).hidden = name !== id;
+  });
+  document.getElementById("view-" + name).scrollTop = 0;
   if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
 }
 tabs.forEach(tab => tab.onclick = () => show(tab.dataset.pane));
-show(location.hash === "#demo" ? "demo" : "prd");
+show(["demo", "cover"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "prd");
+
+(function () {
+  const labels = ["左", "中", "右"];
+  const preview = document.getElementById("cover-preview");
+  const status = document.getElementById("cover-status");
+  const restoreBtn = document.getElementById("restore-default");
+  const frame = document.getElementById("cover-frame");
+  const saveBtn = document.getElementById("custom-save");
+  let active = 0;
+  let defaultUrl = "";
+  let usingCustom = false;
+  let applied = [null, null, null];
+  let slots = [null, null, null];
+
+  function paint(w, h, draw) {
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    draw(canvas.getContext("2d"), w, h);
+    return canvas.toDataURL("image/jpeg", 0.86);
+  }
+  function scene(g, w, h, c1, c2, title) {
+    const bg = g.createLinearGradient(0, 0, w, h);
+    bg.addColorStop(0, c1);
+    bg.addColorStop(1, c2);
+    g.fillStyle = bg;
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = "rgba(255,255,255,.22)";
+    g.beginPath();
+    g.arc(w * 0.72, h * 0.38, Math.min(w, h) * 0.28, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = "#fff";
+    g.font = "bold " + Math.round(h * 0.08) + "px sans-serif";
+    g.fillText(title, w * 0.08, h * 0.86);
+  }
+  const library = [
+    ["#1d4ed8", "#7dd3fc", "海边"],
+    ["#9f1239", "#fb7185", "夜景"],
+    ["#14532d", "#86efac", "街拍"],
+    ["#92400e", "#fdba74", "室内"],
+    ["#312e81", "#a5b4fc", "舞台"],
+    ["#134e4a", "#5eead4", "旅行"]
+  ].map(([a, b, name]) => paint(720, 960, (g, w, h) => scene(g, w, h, a, b, name)));
+  const wholes = [
+    paint(960, 540, (g, w, h) => scene(g, w, h, "#1e293b", "#38bdf8", "默认封面")),
+    paint(960, 540, (g, w, h) => scene(g, w, h, "#3f1d2e", "#fb7185", "整张封面 B")),
+    paint(960, 540, (g, w, h) => scene(g, w, h, "#1a2e23", "#86efac", "整张封面 C"))
+  ];
+  defaultUrl = wholes[0];
+  preview.style.backgroundImage = "url(" + defaultUrl + ")";
+
+  function cloneSlot(item) {
+    return item ? { url: item.url, natW: item.natW, natH: item.natH, zoom: item.zoom, x: item.x, y: item.y } : null;
+  }
+  function showMask(id, on) {
+    document.getElementById(id).hidden = !on;
+  }
+  function setCoverState() {
+    restoreBtn.hidden = !usingCustom;
+    status.textContent = usingCustom ? "当前为自定义封面（可更换）" : "已有封面（可更换）";
+  }
+  function useWhole(url) {
+    defaultUrl = url;
+    usingCustom = false;
+    applied = [null, null, null];
+    preview.style.backgroundImage = "url(" + url + ")";
+    setCoverState();
+    showMask("whole-mask", false);
+  }
+  function readFile(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !/^image\/(jpeg|png|webp)$/.test(file.type)) {
+        reject(new Error("type"));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  }
+  function measure(img) {
+    return new Promise(resolve => {
+      const el = new Image();
+      el.onload = () => resolve({ url: img, natW: el.naturalWidth, natH: el.naturalHeight, zoom: 1, x: 0, y: 0 });
+      el.src = img;
+    });
+  }
+  function cellBox(index) {
+    return frame.children[index].querySelector(".crop");
+  }
+  function place(index) {
+    const item = slots[index];
+    const box = cellBox(index);
+    if (!item || !box) return;
+    const slotW = box.clientWidth;
+    const slotH = box.clientHeight;
+    const base = Math.max(slotW / item.natW, slotH / item.natH);
+    const scale = base * item.zoom;
+    const w = item.natW * scale;
+    const h = item.natH * scale;
+    const maxX = Math.max(0, (w - slotW) / 2);
+    const maxY = Math.max(0, (h - slotH) / 2);
+    item.x = Math.min(maxX, Math.max(-maxX, item.x));
+    item.y = Math.min(maxY, Math.max(-maxY, item.y));
+    const img = box.querySelector("img");
+    img.style.width = w + "px";
+    img.style.height = h + "px";
+    img.style.left = ((slotW - w) / 2 + item.x) + "px";
+    img.style.top = ((slotH - h) / 2 + item.y) + "px";
+  }
+  function renderFrame() {
+    frame.innerHTML = slots.map((item, index) => {
+      if (!item) {
+        return '<div class="slot"><button class="add" type="button" data-add="' + index + '"><span>＋</span><span>' + labels[index] + ' · 添加图片</span></button></div>';
+      }
+      return '<div class="slot"><div class="crop"><img alt="" src="' + item.url + '" draggable="false" /></div>'
+        + '<div class="tools"><button type="button" data-zoom="in" data-i="' + index + '">放大</button>'
+        + '<button type="button" data-zoom="out" data-i="' + index + '">缩小</button>'
+        + '<button type="button" data-del="' + index + '">删除</button></div></div>';
+    }).join("");
+    frame.querySelectorAll(".crop").forEach(crop => {
+      crop.style.cssText = "position:absolute;inset:0;overflow:hidden;";
+    });
+    slots.forEach((item, index) => { if (item) place(index); });
+    saveBtn.disabled = slots.some(item => !item);
+  }
+  frame.onclick = (event) => {
+    const add = event.target.closest("[data-add]");
+    const del = event.target.closest("[data-del]");
+    const zoom = event.target.closest("[data-zoom]");
+    if (add) {
+      active = Number(add.dataset.add);
+      showMask("source-mask", true);
+    }
+    if (del) {
+      slots[Number(del.dataset.del)] = null;
+      renderFrame();
+    }
+    if (zoom) {
+      const item = slots[Number(zoom.dataset.i)];
+      item.zoom = zoom.dataset.zoom === "in" ? item.zoom * 1.12 : Math.max(1, item.zoom / 1.12);
+      place(Number(zoom.dataset.i));
+    }
+  };
+  frame.onpointerdown = (event) => {
+    const img = event.target.closest(".crop img");
+    if (!img) return;
+    const index = Array.from(frame.children).indexOf(img.closest(".slot"));
+    const item = slots[index];
+    const originX = event.clientX;
+    const originY = event.clientY;
+    const startX = item.x;
+    const startY = item.y;
+    event.preventDefault();
+    function move(ev) {
+      item.x = startX + (ev.clientX - originX);
+      item.y = startY + (ev.clientY - originY);
+      place(index);
+    }
+    function up() {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    }
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+
+  async function fillActive(url) {
+    slots[active] = await measure(url);
+    showMask("lib-mask", false);
+    showMask("source-mask", false);
+    renderFrame();
+  }
+  document.getElementById("lib-grid").innerHTML = library.map((url, index) =>
+    '<button type="button" data-lib="' + index + '"><img alt="素材' + (index + 1) + '" src="' + url + '" /></button>'
+  ).join("");
+  document.getElementById("lib-grid").onclick = (event) => {
+    const btn = event.target.closest("[data-lib]");
+    if (btn) fillActive(library[Number(btn.dataset.lib)]);
+  };
+  document.getElementById("whole-list").innerHTML = wholes.slice(1).map((url, index) =>
+    '<button class="pick" type="button" data-whole="' + (index + 1) + '">整张封面 ' + (index === 0 ? "B" : "C") + '</button>'
+  ).join("") + '<button class="pick" type="button" id="whole-local">本地上传一整张</button>';
+  document.getElementById("whole-list").onclick = (event) => {
+    const btn = event.target.closest("[data-whole]");
+    if (btn) useWhole(wholes[Number(btn.dataset.whole)]);
+    if (event.target.id === "whole-local") document.getElementById("file-whole").click();
+  };
+
+  document.getElementById("pick-whole").onclick = () => showMask("whole-mask", true);
+  document.getElementById("whole-close").onclick = () => showMask("whole-mask", false);
+  document.getElementById("open-custom").onclick = () => {
+    slots = applied.map(cloneSlot);
+    showMask("custom-mask", true);
+    renderFrame();
+  };
+  document.getElementById("custom-close").onclick = () => showMask("custom-mask", false);
+  document.getElementById("custom-cancel").onclick = () => showMask("custom-mask", false);
+  document.getElementById("source-close").onclick = () => showMask("source-mask", false);
+  document.getElementById("src-lib").onclick = () => { showMask("source-mask", false); showMask("lib-mask", true); };
+  document.getElementById("src-local").onclick = () => document.getElementById("file-slot").click();
+  document.getElementById("lib-close").onclick = () => showMask("lib-mask", false);
+  document.getElementById("file-slot").onchange = async (event) => {
+    const file = event.target.files[0];
+    event.target.value = "";
+    try { await fillActive(await readFile(file)); } catch (err) { /* 非图片不填入 */ }
+  };
+  document.getElementById("file-whole").onchange = async (event) => {
+    const file = event.target.files[0];
+    event.target.value = "";
+    try { useWhole(await readFile(file)); } catch (err) { /* 非图片不替换 */ }
+  };
+  document.getElementById("restore-default").onclick = () => {
+    usingCustom = false;
+    applied = [null, null, null];
+    preview.style.backgroundImage = "url(" + defaultUrl + ")";
+    setCoverState();
+  };
+  saveBtn.onclick = () => {
+    const outW = 960;
+    const outH = 540;
+    const cellW = outW / 3;
+    const canvas = document.createElement("canvas");
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext("2d");
+    slots.forEach((item, index) => {
+      const box = cellBox(index);
+      const img = box.querySelector("img");
+      const sx = cellW / box.clientWidth;
+      const sy = outH / box.clientHeight;
+      const left = parseFloat(img.style.left);
+      const top = parseFloat(img.style.top);
+      ctx.drawImage(img, index * cellW + left * sx, top * sy, parseFloat(img.style.width) * sx, parseFloat(img.style.height) * sy);
+    });
+    preview.style.backgroundImage = "url(" + canvas.toDataURL("image/jpeg", 0.9) + ")";
+    applied = slots.map(cloneSlot);
+    usingCustom = true;
+    setCoverState();
+    showMask("custom-mask", false);
+  };
+  setCoverState();
+})();
 </script>
 </body>
 </html>
