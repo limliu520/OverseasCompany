@@ -33,8 +33,18 @@
   #view-prd th, #view-prd td { border: 1px solid #e4e2de; padding: 8px 10px; text-align: left; vertical-align: top; }
   #view-prd th { background: #f3f0f2; }
   #view-prd figure { margin: 0 0 16px; }
-  #view-prd img { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid #e4e2de; }
+  #view-prd img { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid #e4e2de; cursor: zoom-in; }
   #view-prd figcaption { color: #5e5e66; font-size: 12px; margin-top: 6px; }
+  .lightbox {
+    position: fixed; inset: 0; z-index: 1000; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(0, 0, 0, 0.82); cursor: zoom-out;
+  }
+  .lightbox.is-open { display: flex; }
+  .lightbox img {
+    max-width: min(96vw, 1400px); max-height: 92vh; width: auto; height: auto;
+    border-radius: 8px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); cursor: default;
+  }
   #view-prd .pair {
     display: grid; grid-template-columns: minmax(280px, 42%) 1fr; gap: 20px;
     background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
@@ -112,6 +122,94 @@
     background: #0b1220; cursor: pointer; aspect-ratio: 3 / 4;
   }
   #view-cover .lib-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  #view-rewrite { background: #0a0e1a; color: #e2e8f0; }
+  #view-rewrite .stage { max-width: 980px; margin: 0 auto; padding: 28px 20px 48px; }
+  #view-rewrite .panel {
+    position: relative;
+    background: #111827; border: 1px solid rgba(56, 189, 248, .15); border-radius: 12px; padding: 16px 18px;
+  }
+  #view-rewrite .panel.is-busy .draft,
+  #view-rewrite .panel.is-busy .edit-tabs button,
+  #view-rewrite .panel.is-busy textarea,
+  #view-rewrite .panel.is-busy .go { pointer-events: none; }
+  #view-rewrite .draft.pending {
+    border-style: dashed; border-color: rgba(56, 189, 248, .7); color: #7dd3fc;
+    animation: rw-pulse 1.2s ease-in-out infinite; cursor: default;
+  }
+  #view-rewrite .rw-busy {
+    position: absolute; inset: 0; z-index: 5; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    background: rgba(10, 14, 26, .72); backdrop-filter: blur(3px);
+  }
+  #view-rewrite .rw-busy[hidden] { display: none; }
+  #view-rewrite .rw-busy-card {
+    width: min(420px, 100%); text-align: center;
+    background: #111827; border: 1px solid rgba(56, 189, 248, .35); border-radius: 14px;
+    padding: 22px 20px 18px; box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
+  }
+  #view-rewrite .rw-spin {
+    width: 36px; height: 36px; margin: 0 auto 14px; border-radius: 50%;
+    border: 3px solid rgba(56, 189, 248, .2); border-top-color: #38bdf8;
+    animation: rw-spin .8s linear infinite;
+  }
+  #view-rewrite .rw-busy-card strong { display: block; font-size: 16px; margin-bottom: 8px; }
+  #view-rewrite .rw-busy-card .tip {
+    margin: 0 0 10px; padding: 8px 10px; border-radius: 8px; text-align: left;
+    background: #0b1220; color: #cbd5e1; font-size: 13px; line-height: 1.45;
+    max-height: 4.2em; overflow: hidden;
+  }
+  #view-rewrite .rw-busy-card .eta { margin: 0 0 6px; color: #7dd3fc; font-size: 13px; }
+  #view-rewrite .rw-busy-card .lock { margin: 0; color: #64748b; font-size: 12px; }
+  @keyframes rw-spin { to { transform: rotate(360deg); } }
+  @keyframes rw-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .55; }
+  }
+  #view-rewrite .scene {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; font-size: 13px; color: #94a3b8;
+  }
+  #view-rewrite .scene button {
+    border: 1px solid rgba(56, 189, 248, .25); background: #161e2e; color: #e2e8f0;
+    border-radius: 8px; padding: 5px 10px; font: inherit; cursor: pointer;
+  }
+  #view-rewrite .scene button.on {
+    border-color: transparent; background: linear-gradient(135deg, #38bdf8, #818cf8); color: #0a0e1a;
+  }
+  #view-rewrite .ai-head {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px;
+  }
+  #view-rewrite .ai-head strong { font-size: 14px; }
+  #view-rewrite .drafts { display: flex; flex-wrap: wrap; gap: 8px; }
+  #view-rewrite .draft {
+    border: 1px solid rgba(148, 163, 184, .35); background: #0b1220; color: #e2e8f0;
+    border-radius: 999px; padding: 6px 12px; font: 13px/1.3 inherit; cursor: pointer;
+  }
+  #view-rewrite .draft.on { border-color: #fff; box-shadow: 0 0 0 1px #fff; }
+  #view-rewrite .plan { margin: 10px 0 0; color: #94a3b8; font-size: 12px; line-height: 1.55; }
+  #view-rewrite .edit-box {
+    margin-top: 16px; padding: 14px; border-radius: 12px; background: #0f172a;
+    border: 1px solid rgba(56, 189, 248, .18);
+  }
+  #view-rewrite .edit-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  #view-rewrite .edit-tabs button {
+    border: 1px solid transparent; background: transparent; color: #94a3b8;
+    border-radius: 8px; padding: 6px 12px; font: inherit; cursor: pointer;
+  }
+  #view-rewrite .edit-tabs button.on {
+    color: #e2e8f0; background: #161e2e; border-color: rgba(56, 189, 248, .35);
+  }
+  #view-rewrite .edit-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
+  #view-rewrite textarea {
+    width: 100%; min-height: 72px; resize: vertical; background: #0b1220; color: #e2e8f0;
+    border: 1px solid rgba(56, 189, 248, .2); border-radius: 8px; padding: 10px 12px; font: inherit;
+  }
+  #view-rewrite .go {
+    border: 0; border-radius: 8px; padding: 8px 16px; font: inherit; cursor: pointer; white-space: nowrap;
+    color: #0a0e1a; background: linear-gradient(135deg, #38bdf8, #818cf8);
+  }
+  #view-rewrite .go:disabled { opacity: .45; cursor: default; }
+  #view-rewrite .edit-hint { margin: 8px 0 0; color: #64748b; font-size: 12px; line-height: 1.5; }
 
   #view-demo {
     --bg: #0a0e1a;
@@ -257,16 +355,18 @@
     <button class="tab on" type="button" data-pane="prd">PRD</button>
     <button class="tab" type="button" data-pane="demo">Demo</button>
     <button class="tab" type="button" data-pane="cover">自定义封面</button>
+    <button class="tab" type="button" data-pane="rewrite">文章 AI 改稿</button>
   </div>
 </div>
 <div class="pane" id="view-prd">
 <div class="wrap">
     <h1>文章生成设置优化 PRD</h1>
-    <div class="meta">版本 v1.2 · 2026-10-16 · 方舟后台 · 需求阶段</div>
+    <div class="meta">版本 v1.4 · 2026-10-17 · 方舟后台 · 需求阶段</div>
     <h2>需求背景</h2>
     <p>文章由大模型按项目「文章生成设置」写稿。运营需要两套提示词：沿用现在的结构模板，或粘贴自己的完整提示词，也可以两套一起用。两套不能同时关掉。</p>
     <p>正文里的指定关键词要默认加上链接。配置和提示词放在同一处。只作用于开关打开之后新生成的内容，已有文章不回写。编辑器里，鼠标放在已加链接的文字上，浮层预览链接地址，并用删除去掉链接、保留文字。</p>
     <p>封面默认是一整张图，由系统生成，或通过「选择封面图」换成另一整张。生成结果常出现画面大小不一致、比例不协调、AI 感过强。运营需要按左、中、右三格自己放入图片并裁切，拼成一张新封面；不需要时可以回到原来的整张封面。</p>
+    <p>二次编辑顶部的 AI 稿件区，要按文章生成设置里启用的结构全部展示并可切换。去掉「不满意？再生一篇」。改写区改成「重新生成正文」和「基于当前正文进行修改」两个 Tab，都支持运营自己写提示词；新稿追加到 AI 稿件并自动选中。生成过程中整块锁定，不能切稿也不能再提交。</p>
 
     <h2>功能矩阵</h2>
     <table>
@@ -275,6 +375,7 @@
         <tr><td>FZ-COPY-01</td><td>文案生成提示词管理</td><td>文章生成设置改为页面。内有模板提示词、自定义提示词两个 Tab，各有开关。可同时打开，不能同时关闭。同时打开时先走模板提示词，再用自定义提示词加工。Tab 下方状态句随开关变化。</td></tr>
         <tr><td>FZ-LINK-01</td><td>文案链接配置</td><td>同一页面的第二个 Tab。关键词—链接表、总开关、Excel 下载/导入、单条增删改。只作用于新内容。编辑器悬停预览链接，垃圾桶删除去掉链接并保留文字。</td></tr>
         <tr><td>FZ-COVER-01</td><td>自定义封面</td><td>二次编辑封面区保留「选择封面图」（换一整张）。新增「自定义封面」：按项目封面尺寸把画面均分成左、中、右，每格从素材库或本地上传放入图片，拖动并用放大、缩小裁切。三格都有图才能保存成一张新封面。正在使用自定义封面时，可恢复进入自定义之前的那张整图。</td></tr>
+        <tr><td>FZ-EDIT-01</td><td>文章 AI 改稿</td><td>二次编辑顶部 AI 稿件：模板或模板+自定义时按启用结构全部展示并可切换，标签仍用模板名（模板+自定义时正文已经过自定义二次加工）；只开自定义时标签为「自定义提示词」。去掉「不满意？再生一篇」。下方改为「重新生成正文」「基于当前正文进行修改」两个 Tab，均可输入自定义提示词。生成中整块遮罩锁定，稿件列表末尾出现「生成中…」占位；完成后新稿进入 AI 稿件并选中。</td></tr>
       </tbody>
     </table>
 
@@ -397,6 +498,49 @@
       </div>
     </div>
 
+    <div class="pair">
+      <div>
+        <figure>
+          <img src="prd-screens/rewrite-drafts.png" alt="AI 稿件全部展示并可切换" />
+          <figcaption>AI 稿件区展示全部已启用结构。模板+自定义时标签仍是模板名。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/rewrite-tabs.png" alt="重新生成正文与基于当前正文进行修改" />
+          <figcaption>去掉「不满意？再生一篇」。下方两个 Tab，均可输入自定义提示词。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/rewrite-loading.png" alt="生成中整块遮罩锁定" />
+          <figcaption>生成中：整块遮罩说明任务与提示词；上方出现「生成中…」占位。期间不能切稿、不能再提交。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">FZ-EDIT-01</div>
+        <h2>文章 AI 改稿</h2>
+        <p>位置在二次编辑文章页顶部的 AI 稿件区。本页只演示这一块。顶部「文章 AI 改稿」标签可操作。Demo 里可用「生成模式」切换三种配置，观察标签变化。</p>
+        <h3>AI 稿件区</h3>
+        <ul>
+          <li>只用模板，或模板+自定义：按文章生成设置里已启用的结构全部展示。配置了 10 个就展示 10 个。标签仍用模板名称，可点击切换。模板+自定义时，正文是先按该模板生成、再按自定义提示词加工后的结果。</li>
+          <li>只用自定义提示词：AI 稿件只显示「自定义提示词」，不再出现结构模板名。</li>
+          <li>下方「不满意？再生一篇」整块删除。结构切换已由上方 AI 稿件承担。</li>
+        </ul>
+        <h3>改写区</h3>
+        <ul>
+          <li>整体改为两个 Tab：「重新生成正文」「基于当前正文进行修改」。</li>
+          <li>两个 Tab 都提供自定义提示词输入框。运营自行写要求后点生成或修改。</li>
+          <li>重新生成正文：按提示词重新出一篇正文，不依赖当前稿文字。</li>
+          <li>基于当前正文进行修改：以当前选中稿的标题、正文、关键词（含未保存手改）为底稿，按提示词改写。</li>
+          <li>完成后，新稿追加到上方 AI 稿件，并自动选中最新稿。切换到该稿后，标题、正文、关键词随之替换。</li>
+        </ul>
+        <h3>生成中状态</h3>
+        <ul>
+          <li>点击生成或修改后，AI 稿件区与改写区整体进入 loading：半透明遮罩 + 中间卡片，展示当前任务（重新生成正文 / 基于当前正文修改）、本次提示词摘要、预计时长。</li>
+          <li>稿件列表末尾出现「生成中…」占位条，表示结果将追加在这里。</li>
+          <li>遮罩期间不能切换稿件、不能切换改写 Tab、不能再次提交，也不弹角落 toast 代替锁定。</li>
+          <li>任务结束后遮罩关闭，新稿追加并自动选中；占位条消失。</li>
+        </ul>
+      </div>
+    </div>
+
     <h2>验收</h2>
     <table>
       <thead><tr><th>功能ID</th><th>验收标准</th></tr></thead>
@@ -404,6 +548,7 @@
         <tr><td>FZ-COPY-01</td><td>文章模板进入的是页面。文案生成提示词管理里有模板提示词、自定义提示词两个 Tab，各有开关。Tab 下方状态句随开关变化，三条文案与上表一致。两个都关时不生效并提示。只开模板时按结构、题材、篇幅和预设生成。只开自定义时用粘贴全文。两个都开时先出模板稿，再按自定义提示词加工。</td></tr>
         <tr><td>FZ-LINK-01</td><td>同一页面有文案链接配置。可下载模板、导入、单条增删改。总开关的状态句随开关变化。关闭时新稿不加链接。打开后只给新稿正文首次出现的关键词加链接。旧文章不改。编辑器悬停浮层展示 URL，点垃圾桶删除后文字还在、链接去掉，并随文章保存。</td></tr>
         <tr><td>FZ-COVER-01</td><td>封面区仍可「选择封面图」换一整张。自定义封面为左中右三格，来源是素材库图片或本地上传。图片按最小边铺满并可拖动、放大、缩小，缩小不露出空白。不满三张不能保存。保存后封面变为一张新图。使用自定义封面时可恢复进入自定义之前的整张默认封面。</td></tr>
+        <tr><td>FZ-EDIT-01</td><td>模板或模板+自定义时，AI 稿件展示全部已启用结构并可切换，标签为模板名；只开自定义时标签为「自定义提示词」。页面无「不满意？再生一篇」。下方有「重新生成正文」「基于当前正文进行修改」两个 Tab，均可输入自定义提示词。生成中整块遮罩锁定且列表末尾有「生成中…」占位，期间不能切稿或再提交。完成后新稿出现在 AI 稿件并被选中。</td></tr>
       </tbody>
     </table>
   </div>
@@ -895,18 +1040,55 @@ syncModes();
   <input id="file-slot" type="file" accept="image/jpeg,image/png,image/webp" hidden />
   <input id="file-whole" type="file" accept="image/jpeg,image/png,image/webp" hidden />
 </div>
+<div class="pane" id="view-rewrite" hidden>
+  <div class="stage">
+    <div class="scene">
+      <span>生成模式（演示用）</span>
+      <button type="button" class="on" data-mode="template">只用模板</button>
+      <button type="button" data-mode="both">模板 + 自定义</button>
+      <button type="button" data-mode="custom">只用自定义</button>
+    </div>
+    <section class="panel" id="rw-panel">
+      <div class="ai-head">
+        <strong id="rw-count">AI 稿件 0 篇</strong>
+        <div class="drafts" id="rw-drafts"></div>
+      </div>
+      <p class="plan" id="rw-plan"></p>
+      <div class="edit-box">
+        <div class="edit-tabs">
+          <button type="button" class="on" data-edit="regen">重新生成正文</button>
+          <button type="button" data-edit="revise">基于当前正文进行修改</button>
+        </div>
+        <div class="edit-row">
+          <textarea id="rw-prompt" placeholder="例：口吻更噪、少写环境、压到 300 字"></textarea>
+          <button class="go" type="button" id="rw-go">生成</button>
+        </div>
+        <p class="edit-hint" id="rw-hint">按提示词重新生成一篇正文。完成后追加到上方 AI 稿件并自动选中。</p>
+      </div>
+      <div class="rw-busy" id="rw-busy" hidden>
+        <div class="rw-busy-card" role="status" aria-live="polite">
+          <div class="rw-spin" aria-hidden="true"></div>
+          <strong id="rw-busy-title">正在生成</strong>
+          <p class="tip" id="rw-busy-tip"></p>
+          <p class="eta">预计约 1–2 分钟</p>
+          <p class="lock">生成期间不能切换稿件，也不能再次提交</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
 <script>
 const tabs = document.querySelectorAll(".bar .tab");
 function show(name) {
   tabs.forEach(tab => tab.classList.toggle("on", tab.dataset.pane === name));
-  ["prd", "demo", "cover"].forEach(id => {
+  ["prd", "demo", "cover", "rewrite"].forEach(id => {
     document.getElementById("view-" + id).hidden = name !== id;
   });
   document.getElementById("view-" + name).scrollTop = 0;
   if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
 }
 tabs.forEach(tab => tab.onclick = () => show(tab.dataset.pane));
-show(["demo", "cover"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "prd");
+show(["demo", "cover", "rewrite"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "prd");
 
 (function () {
   const labels = ["左", "中", "右"];
@@ -1150,6 +1332,203 @@ show(["demo", "cover"].includes(location.hash.slice(1)) ? location.hash.slice(1)
     showMask("custom-mask", false);
   };
   setCoverState();
+})();
+
+(function () {
+  const structs = [
+    "事件推进体", "看点清单体", "疑问导向体", "动作推进体", "事实推进体",
+    "对比解析体", "人物侧写体", "时间线体", "场景分镜体", "自然结构"
+  ];
+  const scores = [7.5, 7.5, 6.67, 6.33, 6.17, 6.0, 5.9, 5.8, 5.7, 5.5];
+  let mode = "template";
+  let editTab = "regen";
+  let drafts = [];
+  let selected = 0;
+  let nextId = 1;
+  let busy = false;
+  let busyTimer = 0;
+
+  const panelEl = document.getElementById("rw-panel");
+  const busyEl = document.getElementById("rw-busy");
+  const busyTitle = document.getElementById("rw-busy-title");
+  const busyTip = document.getElementById("rw-busy-tip");
+  const draftsEl = document.getElementById("rw-drafts");
+  const countEl = document.getElementById("rw-count");
+  const planEl = document.getElementById("rw-plan");
+  const promptEl = document.getElementById("rw-prompt");
+  const goBtn = document.getElementById("rw-go");
+  const hintEl = document.getElementById("rw-hint");
+  const sceneEl = document.querySelector("#view-rewrite .scene");
+
+  function seed() {
+    if (busy) return;
+    nextId = 1;
+    if (mode === "custom") {
+      drafts = [{
+        id: nextId++,
+        label: "自定义提示词",
+        score: 6.8,
+        kind: "custom",
+        title: "自定义提示词成稿",
+        text: "按项目粘贴的完整自定义提示词生成。不套结构模板。"
+      }];
+    } else {
+      const processed = mode === "both";
+      drafts = structs.map((name, i) => ({
+        id: nextId++,
+        label: (i === 3 ? "主稿 · " : "备稿 · ") + name,
+        score: scores[i],
+        kind: "template",
+        template: name,
+        processed,
+        title: name + (processed ? "（已二次加工）" : ""),
+        text: processed
+          ? "先按「" + name + "」成稿，再按自定义提示词加工后的正文。"
+          : "按结构模板「" + name + "」生成的正文。配置内已启用共 " + structs.length + " 套，全部展示。"
+      }));
+    }
+    selected = 0;
+  }
+
+  function planText() {
+    if (mode === "custom") {
+      return "AI 规划：只用自定义提示词 · 不套结构模板 · 标签固定为「自定义提示词」";
+    }
+    if (mode === "both") {
+      return "AI 规划：题材：成人影像写真 | 已启用结构全部展示（" + structs.length + "）| 标签仍用模板名 | 正文已按自定义提示词二次加工 | 建议字数：800";
+    }
+    return "AI 规划：题材：成人影像写真 | 已启用结构全部展示（" + structs.length + "）| 选中的表达偏好：无 | 建议字数：800";
+  }
+
+  function render() {
+    const shown = busy ? drafts.length + 1 : drafts.length;
+    countEl.textContent = "AI 稿件 " + shown + " 篇";
+    draftsEl.innerHTML = drafts.map((d, i) =>
+      '<button class="draft' + (i === selected && !busy ? " on" : "") + '" type="button" data-i="' + i + '"'
+      + (busy ? " disabled" : "") + ">"
+      + d.label + " " + d.score + "</button>"
+    ).join("") + (busy
+      ? '<button class="draft pending" type="button" disabled>生成中…</button>'
+      : "");
+    planEl.textContent = planText();
+    panelEl.classList.toggle("is-busy", busy);
+    busyEl.hidden = !busy;
+    goBtn.disabled = busy;
+    promptEl.disabled = busy;
+    sceneEl.querySelectorAll("button").forEach(btn => { btn.disabled = busy; });
+  }
+
+  function setEditTab(name) {
+    if (busy) return;
+    editTab = name;
+    document.querySelectorAll("#view-rewrite .edit-tabs button").forEach(btn => {
+      btn.classList.toggle("on", btn.dataset.edit === name);
+    });
+    goBtn.textContent = name === "regen" ? "生成" : "修改";
+    hintEl.textContent = name === "regen"
+      ? "按提示词重新生成一篇正文。完成后追加到上方 AI 稿件并自动选中。"
+      : "以当前选中稿的标题、正文、关键词为底稿改写。新稿追加到上方并自动选中，不立刻覆盖当前文字。";
+  }
+
+  function finishBusy(item) {
+    busy = false;
+    clearTimeout(busyTimer);
+    drafts.push(item);
+    selected = drafts.length - 1;
+    promptEl.value = "";
+    render();
+  }
+
+  function startBusy(tip, itemBuilder) {
+    if (busy) return;
+    busy = true;
+    busyTitle.textContent = editTab === "regen" ? "正在重新生成正文" : "正在基于当前正文修改";
+    busyTip.textContent = "提示词：" + tip;
+    render();
+    busyTimer = setTimeout(() => finishBusy(itemBuilder()), 2200);
+  }
+
+  sceneEl.onclick = (e) => {
+    const btn = e.target.closest("[data-mode]");
+    if (!btn || busy) return;
+    mode = btn.dataset.mode;
+    sceneEl.querySelectorAll("button").forEach(b => {
+      b.classList.toggle("on", b === btn);
+    });
+    seed();
+    render();
+  };
+  draftsEl.onclick = (e) => {
+    if (busy) return;
+    const btn = e.target.closest("[data-i]");
+    if (!btn) return;
+    selected = Number(btn.dataset.i);
+    render();
+  };
+  document.querySelector("#view-rewrite .edit-tabs").onclick = (e) => {
+    const btn = e.target.closest("[data-edit]");
+    if (btn) setEditTab(btn.dataset.edit);
+  };
+  goBtn.onclick = () => {
+    if (busy) return;
+    const tip = promptEl.value.trim() || "（未写提示词，按默认要求处理）";
+    const cur = drafts[selected];
+    const n = drafts.length + 1;
+    const tab = editTab;
+    startBusy(tip, () => tab === "regen"
+      ? {
+          id: nextId++,
+          label: mode === "custom" ? "自定义提示词 · 新稿" : "新稿 · 重新生成",
+          score: (6 + Math.random()).toFixed(2),
+          kind: "new",
+          title: "重新生成正文 #" + n,
+          text: "按自定义提示词「" + tip + "」重新生成的正文。",
+          from: "重新生成正文"
+        }
+      : {
+          id: nextId++,
+          label: "改写 · " + (cur.template || cur.label),
+          score: (6 + Math.random()).toFixed(2),
+          kind: "new",
+          title: "基于「" + cur.title + "」的修改稿",
+          text: "以当前稿为底，按「" + tip + "」改写后的正文。",
+          from: "基于当前正文进行修改"
+        });
+  };
+
+  seed();
+  setEditTab("regen");
+  render();
+})();
+</script>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="图片放大">
+  <img alt="" />
+</div>
+<script>
+(function () {
+  const box = document.getElementById("lightbox");
+  const big = box.querySelector("img");
+  function open(src, alt) {
+    big.src = src;
+    big.alt = alt || "";
+    box.classList.add("is-open");
+  }
+  function close() {
+    box.classList.remove("is-open");
+    big.removeAttribute("src");
+  }
+  document.addEventListener("click", (e) => {
+    if (e.target === box) {
+      close();
+      return;
+    }
+    const img = e.target.closest("#view-prd img");
+    if (!img || img.closest(".lightbox")) return;
+    open(img.currentSrc || img.src, img.alt);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") close();
+  });
 })();
 </script>
 </body>
