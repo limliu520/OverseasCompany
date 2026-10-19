@@ -30,3 +30,10 @@ alwaysApply: true
 
 - 禁止只改 `fangzhou/` 副本却不改 `海外项目/` 源文件，导致两边长期分叉。
 - 禁止假设两边是自动镜像；同步必须由本次改动显式完成。
+
+## 千幕 2.1.0
+
+| 编辑源（只改这里） | 同步目标 |
+| --- | --- |
+| `海外项目/千幕/2.1.0/qianmu-2.1.0-prd-demo.html` | `qianmu/qianmu-2.1.0-prd-demo.html`（同步时把 `prd-screens/` 路径改为 `../assets/qianmu-2.1.0/`） |
+| `海外项目/千幕/2.1.0/prd-screens/*` | `assets/qianmu-2.1.0/*` |

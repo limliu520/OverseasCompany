@@ -1,0 +1,2471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>千幕 2.1.0 · PRD 与 Demo</title>
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto Sans SC", sans-serif; }
+.bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 40; height: 52px;
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 20px; background: #fff; border-bottom: 1px solid #e4e2de;
+}
+.bar .brand { font-size: 13px; font-weight: 650; color: #1c1c1f; }
+.bar .tabs { display: flex; gap: 6px; }
+.bar .tab {
+  border: 1px solid transparent; background: transparent; color: #5e5e66;
+  border-radius: 8px; padding: 6px 14px; font: inherit; cursor: pointer;
+}
+.bar .tab.on { color: #1c1c1f; background: #f6f5f3; border-color: #e4e2de; }
+.pane { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; overflow: auto; }
+.pane[hidden] { display: none !important; }
+#view-prd { background: #f6f5f3; }
+#view-prd .prd-shell {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1120px);
+  gap: 20px;
+  max-width: 1340px;
+  margin: 0 auto;
+  padding: 20px 20px 48px;
+  align-items: start;
+}
+#view-prd .prd-nav {
+  position: sticky;
+  top: 12px;
+  max-height: calc(100vh - 76px);
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #e4e2de;
+  border-radius: 12px;
+  padding: 12px 10px;
+}
+#view-prd .prd-nav .nav-title {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  color: #8d2f86;
+  margin: 0 0 8px;
+  padding: 0 6px 8px;
+  border-bottom: 1px solid #efe8ef;
+}
+#view-prd .prd-nav a {
+  display: block;
+  padding: 7px 8px;
+  margin: 2px 0;
+  border-radius: 8px;
+  color: #3a3a42;
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1.35;
+  border: 1px solid transparent;
+}
+#view-prd .prd-nav a:hover { background: #f6f5f3; }
+#view-prd .prd-nav a.on {
+  background: #f3eef5;
+  border-color: #e4d4e6;
+  color: #6b2466;
+  font-weight: 600;
+}
+#view-prd .wrap { max-width: 1120px; margin: 0; padding: 8px 0 0; }
+#view-prd .pair { scroll-margin-top: 16px; }
+@media (max-width: 1100px) {
+  #view-prd .prd-shell { grid-template-columns: 1fr; padding: 16px; }
+  #view-prd .prd-nav {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    max-height: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 10px;
+  }
+  #view-prd .prd-nav .nav-title { width: 100%; margin-bottom: 4px; padding-bottom: 6px; }
+  #view-prd .prd-nav a { margin: 0; }
+}
+#view-prd h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
+#view-prd h2 { font-size: 18px; margin: 28px 0 10px; }
+#view-prd h3 { font-size: 14px; margin: 18px 0 8px; color: #8d2f86; font-weight: 650; }
+#view-prd h4 { font-size: 13px; margin: 14px 0 6px; color: #3a3a42; font-weight: 650; }
+#view-prd .pair > div > h3:first-of-type { margin-top: 10px; }
+#view-prd .meta { color: #5e5e66; font-size: 13px; margin-bottom: 8px; }
+#view-prd p { margin: 0 0 10px; }
+#view-prd ul { margin: 0 0 10px; padding-left: 18px; }
+#view-prd li { margin: 5px 0; }
+#view-prd li > ul { margin: 4px 0 6px; }
+#view-prd table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin: 8px 0 16px; }
+#view-prd th, #view-prd td { border: 1px solid #e4e2de; padding: 8px 10px; text-align: left; vertical-align: top; }
+#view-prd th { background: #f3f0f2; }
+#view-prd figure { margin: 0 0 12px; }
+#view-prd img { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid #e4e2de; cursor: zoom-in; }
+#view-prd figcaption { color: #5e5e66; font-size: 12px; margin-top: 6px; }
+#view-prd .pair {
+  display: grid; grid-template-columns: minmax(280px, 42%) 1fr; gap: 20px;
+  background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+  padding: 16px; margin: 16px 0;
+}
+#view-prd .id { font-size: 12px; color: #8d2f86; letter-spacing: 0.04em; }
+#view-prd .note { color: #5e5e66; font-size: 13px; margin-top: 24px; }
+
+#view-prd .shot-group { margin-bottom: 14px; }
+#view-prd .shot-label {
+  font-size: 11px; font-weight: 650; letter-spacing: 0.04em;
+  color: #8d2f86; margin: 0 0 8px; padding: 4px 0;
+  border-bottom: 1px solid #efe8ef;
+}
+#view-prd .shot-label.demo { color: #2f6b8d; border-bottom-color: #e0eef5; }
+#view-prd .inline-shot { margin: 8px 0 4px; }
+#view-prd .inline-shot img { max-width: 100%; border: 1px solid #e4e2de; border-radius: 8px; cursor: zoom-in; }
+#view-prd .inline-shot figcaption { font-size: 12px; color: #5e5e66; margin-top: 4px; }
+
+@media (max-width: 800px) { #view-prd .pair { grid-template-columns: 1fr; } }
+.lightbox {
+  position: fixed; inset: 0; z-index: 1000; display: none;
+  align-items: center; justify-content: center; padding: 24px;
+  background: rgba(0, 0, 0, 0.82); cursor: zoom-out;
+}
+.lightbox.is-open { display: flex; }
+.lightbox img {
+  max-width: min(96vw, 1400px); max-height: 92vh; width: auto; height: auto;
+  border-radius: 8px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); cursor: default;
+}
+#view-demo { background: #0f1014; overflow: hidden; }
+#view-demo .app { height: 100%; }
+
+#view-demo, :root {
+  --bg: #0f1014;
+  --panel: #1a1b22;
+  --panel-2: #22242e;
+  --line: #2d303b;
+  --text: #e8e9ef;
+  --muted: #8f94a5;
+  --accent: #8b6cff;
+  --accent-dim: #2a2440;
+  --danger: #e85d6a;
+  --ok: #5dcea6;
+  --radius: 12px;
+  --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+* { box-sizing: border-box; }
+#view-demo { height: 100%; margin: 0; font-family: var(--font); background: var(--bg); color: var(--text); }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; }
+.app { display: grid; grid-template-rows: 52px 1fr; height: 100%; }
+.top {
+  display: flex; align-items: center; gap: 12px; padding: 0 16px;
+  border-bottom: 1px solid var(--line); background: #14151b;
+}
+.top h1 { margin: 0; font-size: 15px; font-weight: 650; }
+.top .tag { font-size: 11px; color: #c4b5ff; background: var(--accent-dim); padding: 3px 8px; border-radius: 999px; }
+.top .spacer { flex: 1; }
+.top .hint { font-size: 12px; color: var(--muted); }
+.main { display: grid; grid-template-columns: 56px 1fr 340px; min-height: 0; }
+.rail {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 10px 0; border-right: 1px solid var(--line); background: #14151b;
+}
+.rail button {
+  width: 40px; height: 40px; border-radius: 10px; color: #b8bcc9;
+  display: grid; place-items: center; font-size: 11px; line-height: 1.1; text-align: center;
+}
+.rail button:hover, .rail button.active { background: var(--accent-dim); color: #fff; }
+.rail .sep { width: 24px; height: 1px; background: var(--line); margin: 4px 0; }
+.workspace { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.canvas {
+  flex: 1; position: relative; overflow: auto;
+  background-image: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px);
+  background-size: 22px 22px; background-color: #1a1a1a;
+}
+.canvas-inner { position: relative; width: 1280px; height: 1280px; }
+.canvas.dragover { outline: 2px dashed var(--accent); outline-offset: -8px; }
+.zone {
+  position: absolute; pointer-events: none; z-index: 0;
+  border: 1px dashed rgba(255,255,255,.08); border-radius: 16px;
+  background: rgba(255,255,255,.02);
+}
+.zone-title {
+  position: absolute; left: 14px; top: 10px; font-size: 11px; letter-spacing: .04em;
+  color: rgba(255,255,255,.38); font-weight: 600;
+}
+.edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.node {
+  position: absolute; width: 260px; z-index: 2;
+  background: #2c2c2e; border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px; box-shadow: 0 10px 28px rgba(0,0,0,.35);
+  user-select: none; cursor: default;
+}
+.node.selected {
+  border-color: rgba(255,255,255,.55);
+  box-shadow: 0 0 0 2px rgba(91,110,255,.35), 0 12px 32px rgba(0,0,0,.45);
+}
+.node.locked { opacity: .7; }
+.node-hd {
+  display: flex; align-items: center; gap: 8px; padding: 10px 12px 6px;
+  font-size: 13px; font-weight: 560; color: #f0f0f2;
+}
+.node-hd .ico {
+  width: 22px; height: 22px; border-radius: 6px; background: #3a3a3e;
+  display: grid; place-items: center; font-size: 11px; color: #c8c8d0; flex-shrink: 0;
+}
+.node-hd .tag { margin-left: auto; font-size: 12px; color: #777; opacity: .7; }
+.node-bd { padding: 0 10px 12px; position: relative; }
+.node .port {
+  position: absolute; top: 50%; width: 22px; height: 22px; margin-top: -11px;
+  border-radius: 50%; border: 1px solid rgba(255,255,255,.18); background: #353538;
+  color: #bbb; font-size: 14px; display: grid; place-items: center; z-index: 3;
+  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+}
+.node .port.L { left: -11px; }
+.node .port.R { right: -11px; }
+.media {
+  height: 148px; border-radius: 12px; background: #222224 center/cover no-repeat;
+  display: grid; place-items: center; position: relative; overflow: hidden; color: #eee;
+}
+.media.img { background-image: linear-gradient(145deg,#6b5a8a 0%,#3d6a7a 55%,#2a3a4a 100%); }
+.media.img.local { background-image: linear-gradient(145deg,#8a6a4a,#4a5a6a); }
+.media.vid { background-image: linear-gradient(145deg,#3a4a6a 0%,#2a3a40 100%); }
+.media.vid.empty {
+  background: #252528;
+  background-image: radial-gradient(circle at 30% 40%, rgba(120,100,255,.12), transparent 50%);
+}
+.media.aud {
+  background: #252528;
+  display: flex; flex-direction: column; justify-content: flex-end; padding: 10px;
+}
+.wave {
+  height: 48px; width: 100%; border-radius: 6px;
+  background: repeating-linear-gradient(90deg,
+    #6a7cff 0 2px, transparent 2px 5px,
+    #8a9aff 5px 6px, transparent 6px 9px,
+    #5a6ae0 9px 10px, transparent 10px 14px);
+  opacity: .85; margin-bottom: 28px;
+}
+.media .play {
+  width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,.4);
+  display: grid; place-items: center; border: 1px solid rgba(255,255,255,.22);
+  backdrop-filter: blur(4px);
+}
+/* 仅本地视频：悬停预览播时隐藏 ▶；生成视频要点击播放才进播放态 */
+.node:hover .media.vid.local:not(.empty) > .play,
+.media.vid.previewing > .play,
+.media.vid.playing > .play { display: none; }
+.media .corner {
+  position: absolute; top: 8px; right: 8px; display: none; gap: 6px;
+}
+.node:hover .media .corner, .node.selected .media .corner { display: flex; }
+.media .corner button, .toolchip {
+  font-size: 11px; padding: 5px 8px; border-radius: 8px;
+  background: rgba(20,20,22,.82); border: 1px solid rgba(255,255,255,.14); color: #eee;
+  backdrop-filter: blur(6px);
+}
+.media .meta {
+  position: absolute; left: 8px; bottom: 8px; right: 8px;
+  display: none; justify-content: space-between; align-items: center;
+  font-size: 11px; color: #eee;
+}
+.media.aud .meta { display: flex; position: absolute; }
+.badge {
+  position: absolute; left: 8px; bottom: 8px; font-size: 10px; padding: 3px 7px;
+  border-radius: 6px; background: rgba(0,0,0,.55); color: #d8d8ff; backdrop-filter: blur(4px);
+}
+.badge.res { left: auto; right: 8px; }
+/* 清晰度切换改到媒体区左下角 .res-pills */
+.text-body {
+  min-height: 110px; font-size: 13px; line-height: 1.55; color: #d8d8de;
+  white-space: pre-wrap; border-radius: 12px; background: #242426;
+  border: 1px solid rgba(255,255,255,.06); padding: 14px 12px;
+  outline: none; cursor: text;
+}
+.text-body:focus { border-color: rgba(139,108,255,.5); box-shadow: 0 0 0 1px rgba(139,108,255,.25); }
+.text-body.empty { color: #7a7a84; }
+.text-body:empty:before {
+  content: attr(data-placeholder); color: #7a7a84; pointer-events: none;
+}
+.ai-foot { margin-top: 8px; font-size: 11px; color: #7a7a84; }
+.subject-empty { font-size: 12px; color: #8a8a94; line-height: 1.55; padding: 4px 2px 8px; }
+.subject-name { font-size: 13px; color: #f0f0f2; margin-bottom: 4px; }
+.subject-desc { font-size: 12px; color: #7a7a84; margin-bottom: 8px; }
+.subject-grid {
+  display: grid; grid-template-columns: 1.4fr 1fr; grid-template-rows: 1fr 1fr 1fr;
+  gap: 6px; height: 168px;
+}
+.subject-grid .slot {
+  border-radius: 10px; background: #242426; border: 1px solid rgba(255,255,255,.08);
+  display: grid; place-items: center; font-size: 12px; color: #7a7a84; cursor: pointer; overflow: hidden;
+}
+.subject-grid .slot.main { grid-row: 1 / 4; }
+.subject-grid .slot.filled {
+  border-color: transparent;
+  background: linear-gradient(145deg,#7a5a3a,#3a4a5a 60%,#2a3540);
+  color: rgba(255,255,255,.9); font-size: 11px;
+}
+.subject-grid .slot.add { border-style: dashed; }
+.sub-actions { display: grid; gap: 6px; margin-top: 8px; }
+.sub-actions .btn { width: 100%; text-align: center; background: #242426; }
+.voice-row {
+  margin-top: 8px; display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; color: #8a8a94; padding: 8px 10px; border-radius: 10px; background: #242426;
+}
+.voice-row button { color: #b8a8ff; font-size: 11px; }
+.loading-mask {
+  position: absolute; inset: 0; border-radius: 12px; background: rgba(20,20,22,.78);
+  display: none; place-items: center; flex-direction: column; gap: 10px; z-index: 4;
+  backdrop-filter: blur(2px);
+}
+.node.generating .loading-mask { display: flex; }
+.node.generating .node-bd > .loading-mask { inset: 0 10px 12px; }
+.spin {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.15); border-top-color: var(--accent);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.res-pills {
+  position: absolute; left: 8px; bottom: 8px; display: flex; gap: 4px; z-index: 2;
+}
+.res-pills button {
+  font-size: 10px; padding: 3px 7px; border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.2); background: rgba(0,0,0,.55); color: #ddd;
+  backdrop-filter: blur(4px);
+}
+.res-pills button.on { border-color: #b8a8ff; color: #fff; background: rgba(60,48,100,.85); }
+.badge.res { display: none; }
+.gen-panel {
+  position: absolute; z-index: 8; width: 440px;
+  background: #2a2a2e; border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px; padding: 12px 14px 14px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.45);
+  display: none;
+}
+.gen-panel.show { display: block; }
+.gen-panel .atmenu {
+  position: fixed; width: 280px; max-height: min(280px, 42vh);
+  z-index: 70; box-shadow: 0 12px 32px rgba(0,0,0,.45);
+}
+.refs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; align-items: center; }
+.chip {
+  width: 52px; height: 52px; border-radius: 8px; background: #252836; border: 1px solid #3a3e4c;
+  position: relative; display: grid; place-items: center; font-size: 10px; color: #c9cdd8; overflow: hidden;
+}
+.chip .thumb { position: absolute; inset: 0; background: linear-gradient(135deg,#5a4a8a,#2a5a6a); }
+.chip .x {
+  position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%;
+  background: rgba(0,0,0,.65); font-size: 10px; display: grid; place-items: center; color: #fff;
+}
+.chip.add { border-style: dashed; cursor: pointer; font-size: 18px; color: var(--muted); }
+.chip .lab { position: absolute; bottom: 2px; left: 0; right: 0; text-align: center; font-size: 9px; background: rgba(0,0,0,.45); }
+.prompt-row { display: flex; gap: 10px; align-items: flex-end; }
+.prompt-ed {
+  flex: 1; min-height: 72px; max-height: 160px; overflow: auto;
+  border-radius: 10px; border: 1px solid var(--line);
+  background: #12131a; padding: 10px 12px; outline: none;
+  font-size: 13px; line-height: 1.55; color: #e8e9ef; white-space: pre-wrap;
+}
+.prompt-ed:focus { border-color: var(--accent); }
+.prompt-ed:empty:before {
+  content: attr(data-placeholder); color: #6a6a74; pointer-events: none;
+}
+.prompt-ed .mention {
+  display: inline-block; padding: 1px 8px; margin: 0 3px;
+  border-radius: 6px; background: rgba(139,108,255,.28);
+  color: #d2c4ff; font-weight: 650; vertical-align: baseline;
+  border: 1px solid rgba(180,160,255,.35);
+}
+.media .vid-time {
+  position: absolute; left: 8px; bottom: 8px; z-index: 2;
+  display: none; font-size: 11px; color: #fff;
+  padding: 3px 8px; border-radius: 6px; background: rgba(0,0,0,.55);
+  backdrop-filter: blur(4px);
+}
+/* 本地：悬停出时长；生成：仅播放中显示时长 */
+.node:hover .media.vid.local:not(.empty) .vid-time,
+.media.vid.previewing .vid-time,
+.media.vid.playing .vid-time { display: block; }
+.media.vid.previewing .vid-time,
+.media.vid.playing .vid-time { background: rgba(80,60,160,.65); }
+.media .vid-tools {
+  position: absolute; right: 8px; bottom: 8px; z-index: 2;
+  display: none; font-size: 11px; color: #eee; gap: 6px;
+  padding: 3px 8px; border-radius: 6px; background: rgba(0,0,0,.45);
+}
+.node:hover .media.vid.local:not(.empty) .vid-tools,
+.media.vid.playing .vid-tools,
+.node:hover .media.vid:not(.local):not(.empty) .vid-tools { display: flex; }
+/* 清晰度仍在左下；有时长时叠在时长上方 */
+.media.vid:has(.vid-time) .res-pills { left: 8px; right: auto; bottom: 36px; }
+.gen-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.btn {
+  border-radius: 10px; padding: 8px 14px; border: 1px solid var(--line);
+  background: var(--panel-2); color: #cfd3df; font-size: 12px;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 650; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.circle {
+  width: 40px; height: 40px; border-radius: 50%; padding: 0; display: grid; place-items: center;
+  background: #fff; color: #111; border: 0; font-size: 16px;
+}
+.btn.circle:disabled { background: #555; color: #999; }
+.side {
+  border-left: 1px solid var(--line); background: #14151b; overflow: auto;
+  padding: 12px; display: flex; flex-direction: column; gap: 10px;
+}
+.side h2 { margin: 0; font-size: 13px; }
+.side .muted { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.scen {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.scen button {
+  font-size: 11px; padding: 5px 8px; border-radius: 999px;
+  border: 1px solid var(--line); background: #1c1e27; color: #b8bcc9;
+}
+.scen button.on { border-color: var(--accent); background: var(--accent-dim); color: #fff; }
+.note-box {
+  border: 1px solid var(--line); border-radius: 10px; background: #1a1b22; padding: 10px 12px;
+  font-size: 12px; line-height: 1.55; color: #c9cdd8;
+}
+.note-box h3 { margin: 0 0 6px; font-size: 12px; color: #fff; }
+.note-box ul { margin: 0; padding-left: 18px; }
+.note-box li { margin: 4px 0; }
+.note-box .warn { color: #f0b46a; }
+.note-box .ok { color: var(--ok); }
+.modal-mask {
+  position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none;
+  align-items: center; justify-content: center; z-index: 50;
+}
+.modal-mask.show { display: flex; }
+.modal {
+  width: min(720px, 92vw); max-height: 80vh; overflow: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+}
+.modal hd, .modal .mhd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--line);
+}
+.modal .mhd h3 { margin: 0; font-size: 15px; }
+.tabs { display: flex; gap: 6px; padding: 12px 16px 0; }
+.tabs button {
+  padding: 6px 12px; border-radius: 8px; border: 1px solid transparent;
+  color: var(--muted); font-size: 12px;
+}
+.tabs button.on { color: #fff; background: var(--accent-dim); border-color: var(--accent); }
+.grid-assets {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 12px 16px;
+}
+.asset-card {
+  border: 1px solid var(--line); border-radius: 10px; background: #20222b; overflow: hidden;
+  cursor: pointer; position: relative;
+}
+.asset-card.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.asset-card .ph { height: 72px; background: linear-gradient(135deg,#453a70,#2a4a55); }
+.asset-card .ph.vid { background: linear-gradient(135deg,#2b3a55,#1a3a2a); }
+.asset-card .ph.aud { background: #2a2d3a; }
+.asset-card .nm { padding: 6px 8px; font-size: 11px; color: #c9cdd8; }
+.asset-card .ck {
+  position: absolute; top: 6px; left: 6px; width: 16px; height: 16px; border-radius: 4px;
+  border: 1px solid #fff; background: transparent;
+}
+.asset-card.sel .ck { background: var(--accent); border-color: var(--accent); }
+.mft {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; border-top: 1px solid var(--line); gap: 8px;
+}
+.ctx {
+  position: fixed; z-index: 60; min-width: 200px; display: none;
+  background: #1e2030; border: 1px solid #3a3e4c; border-radius: 10px;
+  padding: 6px; box-shadow: 0 12px 32px rgba(0,0,0,.45);
+}
+.ctx.show { display: block; }
+.ctx button {
+  display: flex; width: 100%; justify-content: space-between; align-items: center;
+  padding: 8px 10px; border-radius: 7px; font-size: 12px; color: #d5d8e2; text-align: left;
+}
+.ctx button:hover:not(:disabled) { background: #2a2d3c; }
+.ctx button:disabled { color: #5c6170; cursor: not-allowed; }
+.ctx .div { height: 1px; background: #2f3342; margin: 4px 0; }
+.ctx .has-sub { position: relative; }
+.ctx .has-sub > button.open,
+.ctx .has-sub:hover > button { background: #2a2d3c; }
+.ctx-sub {
+  display: none; position: absolute; left: calc(100% + 4px); top: 0;
+  min-width: 140px; background: #1e2030; border: 1px solid #3a3e4c;
+  border-radius: 10px; padding: 6px; box-shadow: 0 12px 32px rgba(0,0,0,.45);
+}
+.ctx .has-sub:hover .ctx-sub,
+.ctx .has-sub.open .ctx-sub { display: block; }
+.ctx-sub button { justify-content: flex-start; gap: 8px; }
+.ctx-sub .ico {
+  width: 20px; height: 20px; border-radius: 5px; background: #3a3a3e;
+  display: grid; place-items: center; font-size: 10px; color: #c8c8d0; flex-shrink: 0;
+}
+.atmenu {
+  background: #1e2030; border: 1px solid #3a3e4c; border-radius: 12px;
+  display: none; z-index: 20; max-height: 280px; overflow: auto;
+}
+.atmenu.show { display: block; }
+.atmenu .sec { padding: 8px 10px; font-size: 11px; color: var(--muted); }
+.atmenu button {
+  display: block; width: 100%; text-align: left; padding: 8px 12px; font-size: 12px; color: #d5d8e2;
+}
+.atmenu button:hover { background: #2a2d3c; }
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  background: #2a2d3c; border: 1px solid #4a4e5d; padding: 10px 14px; border-radius: 10px;
+  font-size: 12px; display: none; z-index: 80; max-width: 90vw;
+}
+.toast.show { display: block; }
+.drop-hint {
+  position: absolute; left: 50%; top: 20px; transform: translateX(-50%);
+  background: rgba(26,27,34,.92); border: 1px dashed var(--accent); color: #c4b5ff;
+  padding: 8px 14px; border-radius: 10px; font-size: 12px; pointer-events: none; display: none; z-index: 5;
+}
+.canvas.dragover .drop-hint { display: block; }
+
+</style>
+</head>
+<body>
+<div class="bar">
+  <span class="brand">千幕 2.1.0</span>
+  <div class="tabs">
+    <button type="button" class="tab on" data-pane="prd">PRD</button>
+    <button type="button" class="tab" data-pane="demo">Demo</button>
+  </div>
+</div>
+
+<div class="pane" id="view-prd">
+<div class="prd-shell">
+<nav class="prd-nav" id="prdNav" aria-label="需求快捷定位">
+  <div class="nav-title">需求定位</div>
+  <a href="#qm-2101" data-nav="qm-2101">本地拖入成节点</a>
+  <a href="#qm-2102" data-nav="qm-2102">当前画布生成素材</a>
+  <a href="#qm-2103" data-nav="qm-2103">超分</a>
+  <a href="#qm-2104" data-nav="qm-2104">节点 @</a>
+  <a href="#qm-2105" data-nav="qm-2105">右键菜单</a>
+  <a href="#qm-2106" data-nav="qm-2106">引用小块统一</a>
+  <a href="#qm-2107" data-nav="qm-2107">文本大模型</a>
+  <a href="#qm-2108" data-nav="qm-2108">主体节点</a>
+  <a href="#qm-2109" data-nav="qm-2109">生成中 loading</a>
+</nav>
+<div class="wrap">
+  <h1>千幕 2.1.0 · 需求 PRD</h1>
+  <p class="meta" style="margin-top:4px">每个需求块左侧同时展示：参考截图（原）与 Demo 现状（本期）。交互以 Demo 为准；原图可能缺少本期优化（例如图片悬停的「下载」）。</p>
+  <div class="meta">版本 2.1.0 · 2026-10-19 · 适用端：千幕 Web 画布。正式需求以本 HTML 为准。截图可点击放大。Demo 见顶部 Tab。</div>
+
+  <h2>版本目的</h2>
+  <p>一期画布在本地素材接入、生成结果批量管理、超分、节点引用、右键效率、文本生成与主体复用上能力不齐，创作者路径断裂或与即梦差距大。</p>
+  <p>本版交付：本地拖入素材节点、当前画布生成素材库（含搜/排/预览/定位/zip 等）、视频超分、节点 @（含视频@文本）、右键补齐、引用小块统一、文本大模型、主体基础能力、生成中循环 loading。</p>
+
+  <h2>需求功能矩阵</h2>
+  <table>
+    <thead><tr><th>功能ID</th><th>功能模块</th><th>功能名称</th><th>功能描述</th></tr></thead>
+    <tbody>
+      <tr><td>QM-2101</td><td>素材</td><td>本地拖入成节点</td><td>图/视/音/md 落节点；本地无生成条；本地视频悬停播、生成视频点播</td></tr>
+      <tr><td>QM-2102</td><td>资产管理</td><td>当前画布生成素材</td><td>Tab/搜/排序/预览/全选/下载 zip；定位仅单选，多选 Toast「仅支持单个节点定位」；只列成功；本期无删除</td></tr>
+      <tr><td>QM-2103</td><td>视频</td><td>超分</td><td>仅 AI 成片视频；节点超分 + 下载必选清晰度；超分成功写入同节点 pills；生成中走循环 loading</td></tr>
+      <tr><td>QM-2104</td><td>引用</td><td>节点 @</td><td>矩阵含视频@文本；输入框@名称+小块；连线四规则；不含 Agent @</td></tr>
+      <tr><td>QM-2105</td><td>效率</td><td>右键菜单</td><td>复制/副本/空白新建子菜单等；菜单不含「应用全部历史」</td></tr>
+      <tr><td>QM-2106</td><td>引用</td><td>引用小块统一</td><td>生成框上统一小块，与输入框 mention 同步增删</td></tr>
+      <tr><td>QM-2107</td><td>文本</td><td>文本大模型</td><td>统一大模型配置加文本节点；前端可选模型；正文可编+下方生成；不可@主体</td></tr>
+      <tr><td>QM-2108</td><td>主体</td><td>主体节点</td><td>身份锚点（名/主图/辅图/音色）；账号库导入与保存；图视音可@、文本不可</td></tr>
+      <tr><td>QM-2109</td><td>体验</td><td>生成中 loading</td><td>循环等待+通常耗时；无取消；无假进度</td></tr>
+    </tbody>
+  </table>
+
+  
+<section class="pair" id="qm-2101">
+  <div class="shots">
+  <div class="shot-group">
+    <div class="shot-label">参考截图（原 · 可能缺本期优化）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P0-1-视频-默认.png" alt="视频默认：居中播放" />
+      <figcaption>视频默认：居中播放</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P0-1-视频-悬停.png" alt="视频悬停（原参考）" />
+      <figcaption>视频悬停（原参考）</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P0-1-图片-悬停.png" alt="图片悬停（原参考：可能仅替换入口）" />
+      <figcaption>图片悬停（原参考：可能仅替换入口）</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P0-1-音频-示意1.png" alt="音频示意（原参考）" />
+      <figcaption>音频示意（原参考）</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-1-md文本.png" alt="无原参考截图：.md 拖入文本节点（Demo）" />
+      <figcaption>无原参考截图 → 用 Demo：.md → 文本节点，脚注「来源：.md 拖入」</figcaption>
+    </figure>
+  </div>
+  <div class="shot-group">
+    <div class="shot-label demo">Demo 现状（本期优化 · 以 Demo 为准）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-1-本地图片悬停.png" alt="Demo：本地图片悬停 →「更换」+「下载」" />
+      <figcaption>Demo：本地图片悬停 →「更换」+「下载」</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-1-图片悬停.png" alt="Demo：图片悬停双按钮特写" />
+      <figcaption>Demo：图片悬停双按钮特写</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-1-本地视频悬停.png" alt="Demo：本地视频悬停预览 · 时长 · 无居中▶" />
+      <figcaption>Demo：本地视频悬停预览 · 时长 · 无居中▶</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-1-音频.png" alt="Demo：音频节点" />
+      <figcaption>Demo：音频节点</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-1-md文本.png" alt="Demo：.md → 文本节点" />
+      <figcaption>Demo：.md → 文本节点</figcaption>
+    </figure>
+  </div>
+</div>
+  <div>
+    <div class="id">QM-2101</div>
+    <h2>P0-1 本地拖入成节点</h2>
+    <h3>功能逻辑</h3>
+    <p>用户把本地文件拖进画布（或点左侧上传，规则对齐）。按扩展名落成节点：图片→图片节点，视频→视频节点，音频→音频节点，.md→文本节点。拖入的图/视/音为纯素材：可预览、可被 @，节点下方没有大模型生成条。</p>
+    <h3>业务规则</h3>
+    <ul>
+      <li>支持扩展名：常见图片（png/jpg/jpeg/webp/gif）、视频（mp4/mov/webm）、音频（mp3/wav/m4a/aac）、Markdown（.md）。</li>
+      <li>其它扩展名：不落节点；Toast「不支持的文件类型：{ext}（仅图/视/音/md）」。</li>
+      <li>本地图/视/音：无底部提示词与生成按钮；AI 生成类节点才有生成条。</li>
+      <li>本地视频：悬停即预览播，▶ 隐藏，左下显示当前/总时长，右下静音·放大，右上更换+下载。</li>
+      <li>AI 生成视频：须点击 ▶ 才播放；悬停只出控件与清晰度，不自动播。</li>
+      <li>图片：无播放按钮；悬停右上「下载」「替换素材」。</li>
+      <li>音频：无修剪；右上更换+下载并排；左下时长，右下播放。</li>
+      <li>.md 拖入：正文进文本节点；脚注「来源：.md 拖入」；@ 时类型仍为「文本」。</li>
+    </ul>
+    <h3>页面交互</h3>
+    <ul>
+      <li>拖入命中画布空白或节点层上方可落点区域即创建节点（Demo 落在试验区示意）。</li>
+      <li>左侧栏上传与拖入同一套类型规则。</li>
+      <li>状态矩阵：本地视频悬停→预览播；生成视频默认▶→点击播放。</li>
+    </ul>
+    <h3>异常</h3>
+    <ul>
+      <li>文件损坏或读失败：不落节点；Toast「文件无法读取，请重试」。</li>
+      <li>同名文件：允许落多个节点，名称用文件名，不自动去重合并。</li>
+      <li>拖入过程中离开窗口：取消本次落点，不创建半成品节点。</li>
+    </ul>
+    <h3>数据流转</h3>
+    <p>本地文件 → 前端解析类型 → 创建对应节点并写入媒体/正文引用 → 可被下游 @ 与连线；不进入「当前画布生成素材」列表。</p>
+  </div>
+</section>
+<section class="pair" id="qm-2102">
+  <div class="shots">
+  <div class="shot-group">
+    <div class="shot-label">参考截图（原 · 可能缺本期优化）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-2-左侧栏生成入口.png" alt="Demo：左侧栏「生成」入口" />
+      <figcaption>Demo：左侧栏「生成」入口（当前画布生成素材）</figcaption>
+    </figure></div>
+  <div class="shot-group">
+    <div class="shot-label demo">Demo 现状（本期优化 · 以 Demo 为准）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-2-生成素材弹窗.png" alt="Demo：生成素材弹窗 · Tab/搜索/排序/全选/定位/下载" />
+      <figcaption>Demo：生成素材弹窗 · Tab/搜索/排序/全选/定位/下载（本期无删除）</figcaption>
+    </figure>
+  </div>
+</div>
+  <div>
+    <div class="id">QM-2102</div>
+    <h2>P0-2 当前画布生成素材</h2>
+    <h3>功能逻辑</h3>
+    <p>左侧栏提供「当前画布生成素材」入口，弹窗列出本画布 AI 已成功生成的图/视/音成品（不含本地拖入、不含生成中与失败）。支持类型 Tab、搜索、时间排序、勾选、预览、定位、下载（单文件/多选 zip）。本期不支持删除（底栏无删除/批量删除）。</p>
+    <p>弹窗内勾选存在四种相关态：列表空、未选（N=0）、单选（N=1）、多选（N≥2）；底栏按钮文案与点击结果按态区分，见下方状态矩阵。</p>
+    <h3>业务规则</h3>
+    <ul>
+      <li>范围：仅当前画布、ai 生成且已有成品；本地拖入永不进列表；生成中/失败不进列表。</li>
+      <li>Tab：全部 / 图片 / 视频 / 音频；切换 Tab 后重新计算「当前筛选结果」，已勾选但不在新结果里的项自动取消勾选。</li>
+      <li>搜索：匹配节点名或提示词摘要（不区分大小写）；清空搜索即恢复当前 Tab 下全量。</li>
+      <li>排序：生成时间新→旧 / 旧→新；仅改展示顺序，不改变勾选集合。</li>
+      <li>勾选：单击卡片切换勾选；已勾选卡片高亮 + 左上角勾选态。勾选数 N = 当前筛选结果中已勾选的卡片数。</li>
+      <li>底栏文案「已选择 N 个」：随勾选实时刷新；列表空时显示「已选择 0 个」。</li>
+      <li>全选当前：把当前筛选结果（当前 Tab + 搜索后的列表）全部勾选；若列表空则无操作、勾选仍为 0。</li>
+      <li>取消全选：清空全部勾选，N→0；不关闭弹窗、不改 Tab/搜索/排序。</li>
+      <li>下载：单选（N=1）按钮文案「下载」，直接下载与节点下载同一文件；多选（N≥2）文案「批量下载」，打包 zip；未选（N=0）文案仍为「下载」，点击不下载（见异常）。本期不提供删除。</li>
+      <li>预览：双击卡片（或点预览入口）在弹窗内放大预览；不关闭弹窗、不改勾选。未勾选也可预览当前卡片。</li>
+      <li>定位到画布（已定）：本期仅支持单个节点定位。按钮文案恒为「定位到画布」，不随 N 变成「批量定位」。遵循规范「不支持则不半执行」——多选时不定位第一项充数。
+        <ul>
+          <li>未选（N=0）：可点击；不定位；Toast「请先选择一项以定位」；弹窗不关；勾选不变；画布不变。</li>
+          <li>单选（N=1）：关闭弹窗；画布选中该节点；节点滚入视野；Toast「已定位到画布节点」。</li>
+          <li>多选（N≥2）：可点击；不执行定位（不关弹窗、不改画布、不改勾选）；Toast「仅支持单个节点定位」。</li>
+        </ul>
+      </li>
+      <li>列表空态文案：本画布还没有生成内容。去画布上生成后再来。（并说明本地拖入不会出现）。搜索无结果另见异常。</li>
+    </ul>
+    <h3>页面交互</h3>
+    <ul>
+      <li>入口：左侧栏与文本/图/视/音/主体/库/上传并列；点击打开弹窗，默认 Tab=全部、排序=新→旧、搜索空、勾选清空（N=0）。</li>
+      <li>关闭：点「关闭」或遮罩（若实现）关闭弹窗；不清除画布数据；再次打开按上条默认重置筛选与勾选。</li>
+      <li>以下操作按勾选态区分结果（按钮是否禁用见矩阵；本期底栏按钮均保持可点，未满足条件时用 Toast 拦截，避免灰态不易发现）：</li>
+    </ul>
+    <table>
+      <thead>
+        <tr><th>勾选态</th><th>底栏「已选择」</th><th>「定位到画布」</th><th>「下载」按钮</th><th>「全选当前」</th><th>「取消全选」</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>列表空（当前筛选 0 条）</td>
+          <td>已选择 0 个</td>
+          <td>可点 → Toast「请先选择一项以定位」；弹窗不关</td>
+          <td>文案「下载」；可点 → Toast「请先选择要下载的项」</td>
+          <td>可点 → 无变化（仍 0）</td>
+          <td>可点 → 无变化（仍 0）</td>
+        </tr>
+<tr>
+          <td>未选（有卡片，N=0）</td>
+          <td>已选择 0 个</td>
+          <td>可点 → Toast「请先选择一项以定位」；弹窗不关；画布不变</td>
+          <td>文案「下载」；可点 → Toast「请先选择要下载的项」；不触发下载</td>
+          <td>可点 → 勾选当前筛选全部；N=筛选条数；卡片全高亮</td>
+          <td>可点 → 保持 N=0</td>
+        </tr>
+<tr>
+          <td>单选（N=1）</td>
+          <td>已选择 1 个</td>
+          <td>可点 → 关弹窗；画布选中该节点并滚入视野；Toast「已定位到画布节点」</td>
+          <td>文案「下载」；可点 → 单文件下载（与节点下载同一文件）</td>
+          <td>可点 → 升为多选（全选当前筛选）</td>
+          <td>可点 → N=0，卡片取消高亮</td>
+        </tr>
+<tr>
+          <td>多选（N≥2）</td>
+          <td>已选择 N 个</td>
+          <td>可点 → 不定位；Toast「仅支持单个节点定位」；弹窗不关；勾选与画布不变</td>
+          <td>文案「批量下载」；可点 → 打包 zip 下载 N 项</td>
+          <td>可点 → 仍全选当前筛选（幂等）</td>
+          <td>可点 → N=0</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:13px;color:#5e5e66">预览（双击卡片）：四种勾选态下行为相同——弹窗内放大预览，不关弹窗、不改 N。切换 Tab / 搜索 / 排序：不关闭弹窗；Tab/搜索会重算筛选并剔除不在结果内的勾选；排序只改展示顺序。</p>
+    <h3>异常</h3>
+    <ul>
+      <li>未选点下载：触发条件 N=0（含列表空）→ 不发起下载 → Toast「请先选择要下载的项」→ 可继续勾选后重试。</li>
+      <li>未选点定位：触发条件 N=0 → 不关弹窗、不改画布 → Toast「请先选择一项以定位」→ 可继续勾选后重试。</li>
+      <li>多选点定位：触发条件 N≥2 → 不执行定位（不关弹窗、不改画布、不改勾选）→ Toast「仅支持单个节点定位」→ 用户取消多余勾选至 N=1 后可重试。</li>
+      <li>搜索无结果：网格空 + 文案「无匹配结果」；底栏仍「已选择 0 个」；不展示假下载项；下载/定位同未选拦截。</li>
+      <li>下载失败：Toast「下载失败，请重试」；勾选与弹窗保持；成品不删除（本期本无删除）。</li>
+      <li>单选定位时目标节点已不在画布：关弹窗后 Toast「节点已不存在」；列表下次打开刷新移除该项。</li>
+      <li>列表缓存含已删节点：打开/刷新列表时移除；不出现在勾选与下载包中。</li>
+    </ul>
+    <h3>数据流转</h3>
+    <p>画布节点生成成功 → 写入列表索引 → 用户筛选/勾选（维护选中 ID 集合）→ 下载：N=1 单文件 / N≥2 zip；定位：仅当 N=1 时关弹窗并将画布 selectedId 设为该项并滚入视野；N≠1 时不写画布选中。</p>
+  </div>
+</section>
+<section class="pair" id="qm-2103">
+  <div class="shots">
+  <div class="shot-group">
+    <div class="shot-label demo">Demo 现状（本期优化 · 以 Demo 为准）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-3-超分视频.png" alt="Demo：有成片视频 · 超分入口" />
+      <figcaption>Demo：有成片视频节点 ·「超分」入口（左下可先只有当前清晰度）</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-3-超分后清晰度切换.png" alt="Demo：超分完成后左下 720P / 1080P 切换" />
+      <figcaption>Demo：点击「超分」完成后 · 媒体区左下清晰度切换（当前项高亮）</figcaption>
+    </figure>
+  </div>
+</div>
+  <div>
+    <div class="id">QM-2103</div>
+    <h2>P0-3 视频超分</h2>
+    <h3>功能逻辑</h3>
+    <p>视频可先以较低清晰度生成，再对成片做超分得到更高清晰度版本，不重跑文生/图生视频。多清晰度留在同一节点，媒体区左下角 pills 切换预览。入口有两处：节点「超分」；以及点「下载」时弹出清晰度/超分选择（选更高清则先超分再下，并在该节点写入新清晰度 pills）。</p>
+    <h3>业务规则</h3>
+    <ul>
+      <li>仅AI 生成且有成片的视频节点支持超分与「下载时选超分」；图片/音频无超分；本地拖入视频点下载直接下原文件，不出现超分选项。</li>
+      <li>主入口：有成片视频节点上「超分」——对当前成片发起超分，结果写入同节点 versions，左下出现/更新 pills。</li>
+      <li>下载入口（本期必做）：有成片的 AI 视频点「下载」必须先弹出选择面板，不可直接静默下载当前预览清晰度。面板内列出：
+        <ul>
+          <li>已有清晰度：文案形如「下载 {清晰度}」（如「下载 720P」）；选中确认后立刻下载该文件，不发起超分、不改 pills。</li>
+          <li>可超分到的更高清：文案形如「超分并下载 {清晰度}」（如「超分并下载 1080P」）；选中确认后先走超分任务，成功后再下载目标清晰度文件。不展示点数/不计费。</li>
+        </ul>
+      </li>
+      <li>选超分并下载成功后的节点变化（已定）：超分产物写入同一视频节点的 versions[]；媒体区左下默认增加对应清晰度切换 pills（与点节点「超分」成功后一致）；当前预览清晰度切到刚超分出的目标清晰度；不新建节点、不断线、不丢提示词。</li>
+      <li>结果展示：同节点多版本；左下 pills 切换预览；当前项高亮；切换仅改预览，不触发下载。</li>
+      <li>超分中（节点「超分」或「超分并下载」共用）：OPT-2 循环 loading（已等待 + 通常约 x 分钟；无取消）。下载选择面板在提交超分后关闭；任务进行中节点「下载」「超分」禁用或点击 Toast「超分进行中，请稍候」。</li>
+      <li>失败：保留原清晰度；不写入新 pill；不下载；Toast「超分失败，请重试」；可再从「超分」或「下载」重试。</li>
+      <li>空视频：无「超分」；「下载」禁用。</li>
+      <li>超分不计费（已定）：超分是服务端/客户端的代码规则处理（对已有成片做清晰度提升），不是 AI 重新生成，不消耗点数/额度。面板与节点「超分」均不展示「约 n 点」；与文生/图生视频的积分扣费文案严格区分。不存在「超分点数不足」拦截。</li>
+      <li>已有目标清晰度时：面板只展示「下载 {清晰度}」，不再展示「超分并下载」同档，避免重复超分。</li>
+    </ul>
+    <h3>页面交互</h3>
+    <ul>
+      <li>悬停/选中有成片 AI 视频时显示「超分」「下载」等。</li>
+      <li>点「下载」→ 打开「选择下载清晰度」面板（遮罩；Esc / 点取消 / 点遮罩关闭，关闭后不下载、不超分）。</li>
+      <li>面板默认选中：当前 previewRes 对应的「下载 {清晰度}」项；用户可改选其他已有档或「超分并下载」档。</li>
+      <li>点确认：
+        <ul>
+          <li>选已有档 → 立即开始下载该文件 → 关面板 → Toast「开始下载 {清晰度}」。</li>
+          <li>选超分档 → 关面板 → 节点进入超分中 → 成功：写入 pill、previewRes=目标档、开始下载该档 → Toast「超分完成，开始下载 {清晰度}」；失败见异常。</li>
+        </ul>
+      </li>
+      <li>清晰度 pills 在画面左下；有播放时长时叠在时长上方。</li>
+      <li>节点「超分」与「下载→超分并下载」成功后的 pills 表现一致，不维护两套 UI。</li>
+    </ul>
+    <table>
+      <thead>
+        <tr><th>节点状态</th><th>点「下载」</th><th>选「下载已有」</th><th>选「超分并下载」</th><th>左下 pills</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>空视频 / 无成片</td>
+          <td>按钮禁用，无面板</td>
+          <td>—</td>
+          <td>—</td>
+          <td>无</td>
+        </tr>
+<tr>
+          <td>仅有 720P</td>
+          <td>出面板：下载 720P；超分并下载 1080P（示意档位以产品配置为准）</td>
+          <td>直接下 720P；pills 不变</td>
+          <td>超分 → 成功后 pills 出现 720P + 1080P，预览切 1080P，再下 1080P</td>
+          <td>成功前可仅 720P 或暂无多档；成功后至少两档</td>
+        </tr>
+<tr>
+          <td>已有 720P + 1080P</td>
+          <td>出面板：下载 720P、下载 1080P（无重复超分项）</td>
+          <td>直接下所选档；pills 不变</td>
+          <td>—</td>
+          <td>保持已有 pills</td>
+        </tr>
+<tr>
+          <td>超分进行中</td>
+          <td>不打开新面板；Toast「超分进行中，请稍候」</td>
+          <td>—</td>
+          <td>—</td>
+          <td>保持任务开始前状态</td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>异常</h3>
+    <ul>
+      <li>无成片点超分：不可用或 Toast「无成片，不能超分」。</li>
+      <li>无成片点下载：按钮禁用；若仍触发 → Toast「无成片，无法下载」。</li>
+      <li>下载面板打开后点取消/Esc/遮罩：不下载、不超分、勾选态不适用（面板选项复位）。</li>
+      <li>超分失败：恢复可操作；原清晰度仍可预览/下载；不新增 pill；Toast「超分失败，请重试」。（超分不计费，无点数不足类异常。）</li>
+      <li>超分成功但下载失败：pill 已写入可切换；Toast「下载失败，请重试」；用户可再点下载选已有档重试（不支持则不半执行：不假装已下载）。</li>
+      <li>重复点击超分 / 超分中再点下载：忽略或 Toast「超分进行中，请稍候」，防双任务。</li>
+    </ul>
+    <h3>数据流转</h3>
+    <p>成片 URL →（节点超分 或 下载面板选超分档）→ 超分处理任务（不计费、不预留点数）→ 成功：versions[] 增加目标清晰度、刷新左下 pills、previewRes=目标档 → 若来自「超分并下载」再触发该档文件下载；失败：不改 versions、不下载。</p>
+  </div>
+</section>
+<section class="pair" id="qm-2104">
+  <div class="shots">
+  <div class="shot-group">
+    <div class="shot-label demo">Demo 现状（本期优化 · 以 Demo 为准）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-4-At抽屉菜单.png" alt="Demo：输入 @ 后弹出的参考抽屉菜单" />
+      <figcaption>Demo：输入 @（或点「@ 参考」）后出现的参考抽屉/菜单（按类型分组候选）</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-4-生成框与引用.png" alt="Demo：生成框贴节点下 · @名称芯片 + 上方引用小块" />
+      <figcaption>Demo：选中参考后 · 生成框贴节点下 · 输入框 @名称芯片 + 上方引用小块</figcaption>
+    </figure>
+  </div>
+</div>
+  <div>
+    <div class="id">QM-2104</div>
+    <h2>P0-4 节点 @ 与连线</h2>
+    <h3>功能逻辑</h3>
+    <p>在可生成节点的提示词区通过 @ 或 + 添加参考。选中后：输入框出现高亮「@名称」，上方出现统一引用小块，并通过校验后连线。生成框贴在当前选中节点下方。</p>
+    <h3>业务规则</h3>
+    <p>@ 允许类型矩阵（当前节点类型 → 可引用的参考类型）：</p>
+    <table>
+      <thead>
+        <tr><th>当前节点</th><th>可 @ 的参考类型</th><th>不可 @</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>视频</td><td>主体、图片、视频、音频、文本</td><td>—</td></tr>
+        <tr><td>图片</td><td>主体、图片</td><td>视频、音频、文本</td></tr>
+        <tr><td>音频</td><td>主体、图片、音频</td><td>视频、文本</td></tr>
+        <tr><td>文本</td><td>图片、视频、音频、文本</td><td>主体</td></tr>
+      </tbody>
+    </table>
+    <p>@ 与连线四规则：</p>
+    <ul>
+      <li>规则 1：@ 成功 → 自动连线（from 参考 → to 当前节点）。</li>
+      <li>规则 2：只拉线 → 不自动写入 @ / 小块。</li>
+      <li>规则 3：删 @ / 引用小块 → 连线保留。</li>
+      <li>规则 4：删连线 → 必须同时去掉对应 @ 与小块。</li>
+      <li>本地素材可被 @。</li>
+      <li>首尾帧模式不支持用 @ 填帧槽。</li>
+      <li>本期无 Agent @。</li>
+      <li>无主图主体：仍出现在 @ 候选列表中（可标注「无主图」），保持可点；点击后不引用、不连线，Toast「请先添加主体图片」。禁止静默灰掉不可点（用户不知道原因）。</li>
+      <li>文本节点选主体：主体仍可出现在列表中并保持可点；点击后不引用，Toast「文本节点不能引用主体」。</li>
+      <li>重复引用同一节点：该项可点；点击后不重复添加，Toast「已引用」。</li>
+    </ul>
+    <h3>页面交互</h3>
+    <ul>
+      <li>入口要分开（对齐千幕，勿混）：
+        <ul>
+          <li>输入「@」或点「@ 参考」→ 打开画布节点参考菜单（按类型分组列出可 @ 候选）。</li>
+          <li>点引用区「+」→ 先打开来源菜单（与千幕一致）：「本地添加」「从资产库选择」「从画布选择」；不要一点 + 就直接弹出 @ 候选列表。</li>
+        </ul>
+      </li>
+      <li>来源菜单三项：
+        <ul>
+          <li>本地添加：选本地文件作为参考（规则同拖入类型校验）。</li>
+          <li>从资产库选择：打开资产库选素材作参考。</li>
+          <li>从画布选择：再进入画布节点参考菜单（与点「@ 参考」同一套候选与矩阵）。</li>
+        </ul>
+      </li>
+      <li>从画布选中候选后：插入不可拆字的 mention 芯片「@名称」，上方出现引用小块，并按规则 1 连线。</li>
+      <li>点小块 × 同时移除输入框对应 mention；连线仍在（规则 3）。</li>
+    </ul>
+    <h3>异常</h3>
+    <ul>
+      <li>矩阵外非法类型：不出现在菜单（类型根本不允许，不是「条件暂不满足」）。</li>
+      <li>条件不满足但仍列出的项（无主图主体、文本点主体、已引用等）：可点 → Toast 完整文案 → 零副作用；见规范「可点 + Toast」。</li>
+      <li>候选节点被删：菜单刷新不含该项；已引用悬停提示「节点内容为空」或「节点已不存在」。</li>
+      <li>空内容节点仍可引用，但悬停提示「节点内容为空」。</li>
+    </ul>
+    <h3>数据流转</h3>
+    <p>选择参考 → 写 refs[] + mention → edges 增加 from→to → 生成请求携带参考 ID。</p>
+  </div>
+</section>
+<section class="pair" id="qm-2105">
+  <div class="shots">
+  <div class="shot-group">
+    <div class="shot-label">参考截图（原 · 可能缺本期优化）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P1-1-即梦右键-视频有成片.png" alt="原参考：即梦右键" />
+      <figcaption>原参考：即梦右键</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P1-1-千幕右键-现状.png" alt="原参考：千幕现状" />
+      <figcaption>原参考：千幕现状</figcaption>
+    </figure>
+  </div>
+  <div class="shot-group">
+    <div class="shot-label demo">Demo 现状（本期优化 · 以 Demo 为准）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P1-1-右键菜单.png" alt="Demo：补齐后的右键（无「应用全部历史」）" />
+      <figcaption>Demo：补齐后的右键（无「应用全部历史」）</figcaption>
+    </figure>
+  </div>
+</div>
+  <div>
+    <div class="id">QM-2105</div>
+    <h2>P1-1 节点右键与空白右键</h2>
+    <h3>功能逻辑</h3>
+    <p>补齐节点右键与空白画布右键。复制=剪贴板；复制副本=画布立即多一份。空白「新建节点 ›」子菜单选类型后才落节点。本期不做「应用全部历史」。</p>
+    <h3>业务规则</h3>
+    <ul>
+      <li>通用（多数节点都有）：重命名、复制、复制副本、粘贴、下载、撤销/重做、锁定、定位、删除。无素材时点下载 → Toast「无素材可下载」（或文案可见的「下载（无素材）」）；无历史时撤销/重做同理提示或带原因禁用。</li>
+      <li>三种「复制」别混（必须写清）：
+        <ul>
+          <li>「复制」：把节点数据放进剪贴板；画布上不会立刻多节点；之后在空白处「粘贴」才落一个新节点。</li>
+          <li>「复制副本」：在画布上立刻再放一份同配置节点（坐标错开），不依赖粘贴。</li>
+          <li>「复制为图片」：仅图片节点有；把当前画面当成系统图片拷到剪贴板（可粘到微信/PS 等），不是复制节点，也不会在画布多节点。</li>
+        </ul>
+      </li>
+      <li>「保存到主体库」是什么：在账号主体库里创建（或更新）一条主体资产——把当前可用的角色/物体画面沉淀进去（不是普通素材库）。成功后 Toast「已保存到主体库」。
+        <ul>
+          <li>画布上不会因此自动新建一个主体节点；当前图片/视频/主体节点保持原样。</li>
+          <li>若要在画布上出现主体节点：走左侧「主体」新建，或主体卡「导入主体」从主体库选入（另一步）。</li>
+          <li>对主体节点：把本卡身份写入账号库（本卡仍留在画布）。对图片：用当前图片在库里新建一条主体（主图=该图）。对有成片视频：用封面/当前预览帧（静帧图片）在库里新建一条主体（主图=该静帧，不是整段视频）；库里有、画布不多节点。</li>
+        </ul>
+      </li>
+      <li>「保存到主体库」菜单仅出现在：图片节点；有成片的视频节点；主体节点（有主图才算保存成功，无主图 → 可点，Toast「请先添加主体图片」）。</li>
+      <li>音频节点、文本节点：菜单不出现「保存到主体库」、也不出现「复制为图片」。原因：主体是「可反复 @ 的身份锚点」，本期定义必须有主参考图（音色只是主体上的可选附件）；纯音频/纯文本不能单独构成一条主体，故不提供「存进主体库」。文本可下载导出；音频可下载文件。</li>
+      <li>空视频（无成片）：不出现「保存到主体库」；点下载 → Toast「无成片，无法下载」。</li>
+      <li>空白画布右键：新建节点 ›（文本 / 图 / 视 / 音 / 主体）、粘贴、撤销、重做。</li>
+      <li>本期菜单不出现「应用全部历史」。</li>
+    </ul>
+    <h3>页面交互</h3>
+    <ul>
+      <li>右键打开菜单；点空白关闭。</li>
+      <li>「新建节点 ›」悬停或点击展开子菜单，点类型后 addNode。</li>
+      <li>无素材下载：优先可点 + Toast「无素材可下载」；若用禁用态，文案须可见为「下载（无素材）」，禁止无说明灰掉。</li>
+    </ul>
+    <h3>异常</h3>
+    <ul>
+      <li>无剪贴板时粘贴禁用，文案含「无内容」。</li>
+      <li>锁定节点：仍可右键打开菜单并「解锁」。</li>
+      <li>生成中删除（已定）：菜单「删除」保持可点；点击后不删除，Toast「生成中，暂时无法删除」。生成结束后可正常删除。本期不做「二次确认后仍可删」。</li>
+    </ul>
+    <h3>数据流转</h3>
+    <p>菜单操作直接改节点/剪贴板/画布集合；保存到主体库写入账号主体库。</p>
+  </div>
+</section>
+<section class="pair" id="qm-2106">
+  <div class="shots">
+  <div class="shot-group">
+    <div class="shot-label">参考截图（原 · 可能缺本期优化）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P1-2-引用小块-图与加号.png" alt="原参考：引用小块（图 + 加号）" />
+      <figcaption>原参考：引用小块样式（图缩略 + 加号）</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P1-2-千幕-加号来源菜单.png" alt="千幕现网：点 + 出来源菜单" />
+      <figcaption>千幕现网（准）：点「+」先选「本地添加 / 从资产库选择 / 从画布选择」——Demo 须对齐，勿直接弹 @ 列表</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P1-2-引用小块-文本.png" alt="原参考：文本引用小块" />
+      <figcaption>原参考：文本类型引用小块（P1-2 统一样式）</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P1-2-引用小块-视频.png" alt="原参考：视频引用小块" />
+      <figcaption>原参考：视频引用小块</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P1-2-引用小块-悬停空节点.png" alt="原参考：空节点悬停" />
+      <figcaption>原参考：空节点悬停提示</figcaption>
+    </figure>
+  </div>
+  <div class="shot-group">
+    <div class="shot-label demo">Demo 现状（本期优化 · 以 Demo 为准）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P1-2-引用小块.png" alt="Demo：统一引用小块 + 输入框 @名称" />
+      <figcaption>Demo：统一引用小块 + 输入框 @名称</figcaption>
+    </figure>
+  </div>
+</div>
+  <div>
+    <div class="id">QM-2106</div>
+    <h2>P1-2 引用小块统一</h2>
+    <h3>功能逻辑</h3>
+    <p>生成对话框里所有引用使用同一套小块样式（缩略/类型标/×/+），不再按文本另起一套。</p>
+    <h3>业务规则</h3>
+    <ul>
+      <li>媒体：小块内缩略预览；视频可带时长角标。</li>
+      <li>文本：文本图标小块。</li>
+      <li>悬停：文本出内容预览；空节点「节点内容为空」。</li>
+      <li>与输入框内 @名称 芯片同步增删。</li>
+    </ul>
+    <h3>页面交互</h3>
+    <ul>
+      <li>小块在输入区上方一排；右上 × 移除引用。</li>
+      <li>点「+」：对齐千幕，先出来源菜单「本地添加 / 从资产库选择 / 从画布选择」；选「从画布选择」后再进画布节点参考列表。禁止 + 直接等于打开 @ 列表。</li>
+      <li>输入 @ / 点「@ 参考」：直接打开画布节点参考列表（与来源菜单里的「从画布选择」同套）。</li>
+    </ul>
+    <h3>异常</h3>
+    <ul>
+      <li>被删节点的小块：提示不可用，允许用户 × 移除。</li>
+    </ul>
+    <h3>数据流转</h3>
+    <p>refs UI ←→ prompt mention ←→ edges（删小块不删线）。</p>
+  </div>
+</section>
+<section class="pair" id="qm-2107">
+  <div class="shots">
+  <div class="shot-group">
+    <div class="shot-label">参考截图（原 · 可能缺本期优化）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P1-3-即梦文本节点-空态.png" alt="原参考：文本空态" />
+      <figcaption>原参考：文本空态</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P1-3-即梦文本节点-已生成.png" alt="原参考：已生成" />
+      <figcaption>原参考：已生成</figcaption>
+    </figure>
+  </div>
+  <div class="shot-group">
+    <div class="shot-label demo">Demo 现状（本期优化 · 以 Demo 为准）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P1-3-文本与生成框.png" alt="Demo：正文可点编 + 节点下方生成框" />
+      <figcaption>Demo：正文可点编 + 节点下方生成框</figcaption>
+    </figure>
+  </div>
+</div>
+  <div>
+    <div class="id">QM-2107</div>
+    <h2>P1-3 文本节点大模型</h2>
+    <h3>功能逻辑</h3>
+    <p>文本节点具备正文编辑 + 节点下方生成框。文本生成走与图/视/音同一套大模型配置体系：后台在统一配置里增加「文本」节点类型/能力即可；前端生成框交互形态与其它可生成节点一致（含模型选择）。可 @ 图/视/音/文本，不能 @ 主体。生成结果写入节点正文。</p>
+    <h3>业务规则</h3>
+    <ul>
+      <li>统一大模型配置（已定）：文本不另起一套配置中心。后台沿用现有大模型配置能力，只是多挂文本节点可用的模型列表；文本模型没有视频/图片那类专用参数（比例、时长、清晰度等）。本 PRD 不展开后台字段明细（后台已有实现口径）。</li>
+      <li>前端模型选择（已定）：生成框内提供与其它节点同形态的模型选择（如下拉切换不同文本模型）；切换模型只影响本次文本生成所用模型，不改变节点类型。</li>
+      <li>正文区可直接点击编辑（非仅双击弹窗）。</li>
+      <li>空态占位「点击编辑文本」。</li>
+      <li>AI 生成后脚注「内容由 AI 生成」；仍可手改。</li>
+      <li>.md 拖入节点可再走生成；@ 时类型仍为「文本」。</li>
+      <li>生成框贴在选中文本节点下方；引用区「+」/「@」规则同 P0-4、P1-2（来源菜单 + 画布候选；不能主体）。</li>
+    </ul>
+    <h3>页面交互</h3>
+    <ul>
+      <li>选中文本节点 → 显示生成框（提示词、引用小块、模型选择、发送）。</li>
+      <li>点模型选择 → 列出后台已配置的文本可用模型；当前项高亮/勾选；切换后展示对应计费文案（若有）。</li>
+      <li>发送 → OPT-2 循环 loading；成功写入节点正文并出「内容由 AI 生成」脚注。</li>
+    </ul>
+    <h3>异常</h3>
+    <ul>
+      <li>生成为空：失败态 + 重试；不写空正文覆盖，保留原正文。</li>
+      <li>点数不足：不发送，说明差额。</li>
+      <li>后台未配置任何文本模型：模型选择空态或不可发送，Toast「暂无可用文本模型，请联系管理员配置」。</li>
+    </ul>
+    <h3>数据流转</h3>
+    <p>统一配置中的文本模型 ID + 提示词 + 参考 → 文案任务 → 成功写 body 并标记 aiGenerated。</p>
+  </div>
+</section>
+<section class="pair" id="qm-2108">
+  <div class="shots">
+  <div class="shot-group">
+    <div class="shot-label">参考截图（原 · 可能缺本期优化）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P1-4-即梦主体-已填充.png" alt="原参考：即梦主体" />
+      <figcaption>原参考：即梦主体</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/P1-4-千幕主体-空态.png" alt="原参考：千幕空态" />
+      <figcaption>原参考：千幕空态</figcaption>
+    </figure>
+  </div>
+  <div class="shot-group">
+    <div class="shot-label demo">Demo 现状（本期优化 · 以 Demo 为准）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-P1-4-主体.png" alt="Demo：主体已填充 · 主辅图/音色" />
+      <figcaption>Demo：主体已填充 · 主辅图/音色</figcaption>
+    </figure>
+  </div>
+</div>
+  <div>
+    <div class="id">QM-2108</div>
+    <h2>P1-4 主体节点</h2>
+    <h3>功能逻辑</h3>
+    <h4>主体节点是干什么的（大白话）</h4>
+    <p>用来记住「这个角色/物体长什么样」，好让后面多次生成图、视频、音频时，用 <code>@主体名</code> 把它挂上去，尽量保持同一个人/同一个物。它不是又一张图片结果卡，也不是写文案的文本卡；主体卡自己一般也不再跑一轮「文生图主流程」——主业是被别的生成节点引用。</p>
+    <table>
+      <thead><tr><th></th><th>图片节点</th><th>主体节点</th></tr></thead>
+      <tbody>
+        <tr><td>主要存什么</td><td>一张画面（素材或生成结果）</td><td>一套「身份」：名字 + 可选描述 + 主参考图 + 最多 3 张辅图 + 可选音色</td></tr>
+<tr><td>怎么用</td><td>当结果看、当素材下、也可被 @</td><td>主要给图/视/音生成 @，保证多次生成长得像</td></tr>
+<tr><td>和「库」的关系</td><td>一般不进主体库</td><td>可「保存到主体库」（账号下），别的画布还能「导入主体」再用</td></tr>
+      </tbody>
+    </table>
+    <h3>业务规则</h3>
+    <h4>1. 空卡长什么样</h4>
+    <ul>
+      <li>左侧栏点「主体」→ 画布落下空主体卡。</li>
+      <li>空态固定文案（已定）：「定义一个可反复引用的角色/物体身份；在图片、视频、音频生成里用 @ 调用。」</li>
+      <li>空态四个入口（都要有）：「导入主体」「从画布选择」「从资产库选择」「本地添加」。</li>
+    </ul>
+    <h4>2. 卡上有哪些字段（填满后）</h4>
+    <ul>
+      <li>名称：显示成 <code>@名称</code>，可改名；下游 @ 菜单里用这个名字。</li>
+      <li>描述：可选短说明（给模型看「这是谁」）。</li>
+      <li>主图（已定：只能是图片）：必须有 1 张图片，才算「可用主体」。可替换、可移除。不能把视频文件本身放进主图槽。</li>
+      <li>辅图（已定：只能是图片）：最多 3 张图片，可选。用来补充角度/服装等参考。不能放视频。</li>
+      <li>和「视频保存到主体库」怎么对上：有成片的视频节点右键「保存到主体库」时，系统用该视频的封面图 / 当前预览帧（一张静帧图片）去新建一条主体（主图=这张静帧），不是把整段视频当成主体主图存进去。画布上同样不会自动多出一个主体节点。</li>
+      <li>音色：可选。绑一条音频（本地 / 资产库；智能配音若后台有能力再开）。没有音色不影响「有主图就能被 @」。</li>
+    </ul>
+    <h4>3. 四个入口分别干什么</h4>
+    <ul>
+      <li>导入主体：打开账号主体库，选一条已有主体 → 填进当前这张卡（不是再新建一张空卡）。库是空的就提示没有可用主体。</li>
+      <li>从画布选择：只能点选画布上有画面的图片节点（或其它节点里可选的图片结果），写入主图或辅图；点到视频节点 → Toast「主体主图/辅图仅支持图片，请选择图片或先用视频「保存到主体库」」。</li>
+      <li>从资产库选择：从普通素材资产库选图片，写进主图或辅图；视频素材不可选入主/辅图槽。</li>
+      <li>本地添加：仅允许上传图片；选视频文件 → Toast「仅支持添加图片」。</li>
+    </ul>
+    <h4>4. 「主体库」和画布节点别混</h4>
+    <ul>
+      <li>主体库 = 挂在当前账号下的主体资产列表（跨画布可复用）。不是项目共享库。</li>
+      <li>右键「保存到主体库」= 把当前卡（须已有主图）存进库；Toast「已保存到主体库」；画布不会因此再多出一个主体节点。</li>
+      <li>要用库里的主体：走空卡/卡上的「导入主体」，才会填到画布这张卡上。</li>
+    </ul>
+    <h4>5. 谁可以 @ 这张主体</h4>
+    <ul>
+      <li>可以：图片生成、视频生成、音频生成（见 P0-4 矩阵）。</li>
+      <li>不可以：文本节点生成（见 P1-3）；文本侧点主体 → Toast「文本节点不能引用主体」。</li>
+      <li>还没有主图时：别人 @ 列表里仍可看到并点，但 Toast「请先添加主体图片」，不建立引用、不连线（可点 + Toast，不静默灰掉）。</li>
+    </ul>
+    <h4>6. 下载</h4>
+    <ul>
+      <li>有主图：可下载主图。</li>
+      <li>无主图：下载保持可点，Toast「请先添加主体图片」，不下载。</li>
+    </ul>
+    <h3>页面交互</h3>
+    <ul>
+      <li>点主图槽 / 辅图「+」→ 出来源（与产品一致：本地 / 资产库 / 画布等）→ 写入对应槽。</li>
+      <li>点音色「上传/更换」→ 选音频绑定或更换；可清除。</li>
+      <li>改名称、描述：点字段直接编辑。</li>
+      <li>清除：支持清主图、清辅图；清主图后卡回到「无主图」态（下游 @ 走第 5 条提示）。</li>
+      <li>右键：含「保存到主体库」等（见 P1-1）；无主图保存 → Toast「请先添加主体图片」。</li>
+    </ul>
+    <h3>异常</h3>
+    <ul>
+      <li>主体库为空：导入面板空态「没有可用主体」+ 引导去保存或新建。</li>
+      <li>导入/上传失败：Toast 说明原因；卡上数据不变。</li>
+      <li>辅图已满 3 张再添加：Toast「最多添加 3 张辅图」；不覆盖已有（除非用户先删再加）。</li>
+      <li>无主图被 @ / 下载 / 保存到库：均 Toast「请先添加主体图片」，零副作用。</li>
+    </ul>
+    <h3>数据流转</h3>
+    <p>画布主体节点（名称、描述、主图、辅图、音色）↔ 可选同步到账号主体库（主体 ID）。图/视/音生成请求在用户 @ 后携带该主体 ID（及主图等参考），文本生成请求不带主体。</p>
+  </div>
+</section>
+<section class="pair" id="qm-2109">
+  <div class="shots">
+  <div class="shot-group">
+    <div class="shot-label">参考截图（原 · 可能缺本期优化）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/对比-千幕-选中视频节点.png" alt="原参考：节点示意" />
+      <figcaption>原参考：节点示意</figcaption>
+    </figure>
+  </div>
+  <div class="shot-group">
+    <div class="shot-label demo">Demo 现状（本期优化 · 以 Demo 为准）</div>
+    <figure>
+      <img src="../assets/qianmu-2.1.0/Demo-OPT-2-生成中.png" alt="Demo：循环 loading · 已等待 · 通常约 x 分钟 · 无取消" />
+      <figcaption>Demo：循环 loading · 已等待 · 通常约 x 分钟 · 无取消</figcaption>
+    </figure>
+  </div>
+</div>
+  <div>
+    <div class="id">QM-2109</div>
+    <h2>OPT-2 生成中状态</h2>
+    <h3>功能逻辑</h3>
+    <p>接口无真实进度时，节点使用循环 loading，禁止假百分比进度。展示已等待时长与「通常约 x 分钟」。不允许取消。</p>
+    <h3>业务规则</h3>
+    <ul>
+      <li>主视觉：循环转圈/等效不确定动画；无百分比。</li>
+      <li>文案：排队中（若有）→ 生成中。</li>
+      <li>已等待 mm:ss + 旁注「通常约 x 分钟」（非进度条）。</li>
+      <li>无取消按钮、无取消入口。</li>
+      <li>失败：进入失败态，离开 loading；不单独做「重试」按钮，继续用节点旁原有的生成 / 发送入口。</li>
+      <li>将来有真进度再上真进度环。</li>
+    </ul>
+    <h3>页面交互</h3>
+    <ul>
+      <li>生成/超分开始出现蒙层；结束后消失并展示结果或失败。</li>
+    </ul>
+    <h3>异常</h3>
+    <ul>
+      <li>断网：查询真实状态；不误判已成功。</li>
+      <li>重复提交：生成中禁用再次发送。</li>
+    </ul>
+    <h3>数据流转</h3>
+    <p>任务开始 → generating=true → 轮询/推送完成 → 写回结果或失败。</p>
+  </div>
+</section>
+
+  <h2>验收</h2>
+  <table>
+    <thead><tr><th>功能ID</th><th>验收标准</th></tr></thead>
+    <tbody>
+<tr><td>QM-2101</td><td>拖入图/视/音/md 落正确节点；其它扩展名不落并提示；本地无生成条；本地视频悬停预览播且左下时长；生成视频须点▶；图片无▶。</td></tr>
+<tr><td>QM-2102</td><td>入口可用；仅成功 AI 成品；Tab/搜/排序/预览/全选生效；未选/单选/多选下定位与下载符合状态矩阵；多选点定位仅 Toast「仅支持单个节点定位」且不关弹窗；多选 zip、单选单文件；底栏无删除；空态文案正确。</td></tr>
+<tr><td>QM-2103</td><td>有成片可超分；点下载必出清晰度面板；选已有直接下；选超分并下载成功后同节点增加 pills 再下目标档；空视频无超分/下载禁用；失败保留原清晰度；超分中无取消。</td></tr>
+<tr><td>QM-2104</td><td>矩阵与连线四规则正确；@ 后输入框高亮@名称且上方有小块；生成框贴节点下；文本不可@主体。</td></tr>
+<tr><td>QM-2105</td><td>复制≠复制副本；空白新建须选类型；无「应用全部历史」；无素材下载可点+Toast；生成中点删除不删且 Toast「生成中，暂时无法删除」。</td></tr>
+<tr><td>QM-2106</td><td>引用小块样式统一；空节点悬停「节点内容为空」；× 与 mention 同步。</td></tr>
+<tr><td>QM-2107</td><td>走统一大模型配置（文本无图/视专用参数）；生成框可选模型；正文可点编；可@图视音文本不可@主体；生成写入正文并有「内容由 AI 生成」脚注；生成为空保留原正文。</td></tr>
+<tr><td>QM-2108</td><td>空态文案与四入口正确；1 主图+最多 3 辅图+可选音色；导入主体填当前卡；保存到库不新建画布节点；图视音可@、文本不可；无主图时下载/@/保存均 Toast「请先添加主体图片」。</td></tr>
+<tr><td>QM-2109</td><td>循环 loading+已等待+通常约 x 分钟；无百分比；无取消；失败离开 loading 且无独立重试钮（沿用生成/发送）。</td></tr>
+</tbody>
+  </table>
+
+  <p class="note">编辑源：<code>海外项目/千幕/2.1.0/</code>。截图：<code>../assets/qianmu-2.1.0/</code>。对外同步：<code>qianmu/qianmu-2.1.0-prd-demo.html</code> 与 <code>assets/qianmu-2.1.0/</code>。底稿：<code>qianmu-2.1.0-prd-demo.md</code>。遵守仓库 <code>.cursor/rules/overseas-prd.mdc</code>。</p>
+</div>
+</div>
+
+</div>
+
+<div class="pane" id="view-demo" hidden>
+<div class="app">
+  <header class="top">
+    <h1>千幕 2.1.0 · 交互 Demo</h1>
+    <span class="tag">画布示意 · 非真实生成</span>
+    <div class="spacer"></div>
+    <span class="hint">节点已按需求固定排布，不可拖动 · 右键 / 选中生成 / 右侧场景跳转</span>
+  </header>
+  <div class="main">
+    <aside class="rail" id="rail">
+      <button data-add="text" title="文本">T<br>文本</button>
+      <button data-add="image" title="图片">图</button>
+      <button data-add="video" title="视频">视</button>
+      <button data-add="audio" title="音频">音</button>
+      <button data-add="subject" title="主体">主</button>
+      <div class="sep"></div>
+      <button data-act="genlib" title="当前画布生成素材">生<br>成</button>
+      <button data-act="lib" title="资产库（示意）">库</button>
+      <button data-act="upload" title="上传（示意）">传</button>
+    </aside>
+    <section class="workspace">
+      <div class="canvas" id="canvas">
+        <div class="canvas-inner" id="canvasInner">
+          <div class="drop-hint">松开以导入：图片 / 视频 / 音频 / .md → 对应节点；其它类型不支持</div>
+          <div class="zone" style="left:24px;top:24px;width:1180px;height:300px">
+            <div class="zone-title">P0-1 本地拖入素材（图 / 视频 / 音频 / .md→文本）</div>
+          </div>
+          <div class="zone" style="left:24px;top:360px;width:1180px;height:420px">
+            <div class="zone-title">P1-4 主体 · P0-3 超分 · P0-4 @（生成框贴节点下）· OPT-2</div>
+          </div>
+          <div class="zone" style="left:24px;top:820px;width:780px;height:360px">
+            <div class="zone-title">P1-3 文本大模型 · P1-1/P1-2（选中后生成框与引用小块贴节点下）</div>
+          </div>
+          <svg class="edges" id="edges"></svg>
+          <div class="gen-panel" id="genPanel">
+            <div class="refs" id="refs"></div>
+            <div class="prompt-row">
+              <div id="prompt" class="prompt-ed" contenteditable="true" data-placeholder="描述想生成的内容，输入 @ 添加参考…"></div>
+              <div class="gen-actions">
+                <button class="btn" id="btnAt">@ 参考</button>
+                <button class="btn circle" id="btnGen" title="生成">↑</button>
+              </div>
+            </div>
+            <div class="atmenu" id="atMenu"></div>
+            <div class="atmenu" id="refSourceMenu"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <aside class="side">
+      <h2>需求场景</h2>
+      <p class="muted">点场景会选中对应节点并刷新右侧边界说明。OPT-1 不在本 Demo。</p>
+      <div class="scen" id="scen"></div>
+      <div class="note-box" id="notes"></div>
+    </aside>
+  </div>
+</div>
+
+<div class="modal-mask" id="modalGen">
+  <div class="modal">
+    <div class="mhd">
+      <h3>当前画布生成素材</h3>
+      <button class="btn" data-close="modalGen">关闭</button>
+    </div>
+    <div class="tabs" id="genTabs">
+      <button class="on" data-tab="all">全部</button>
+      <button data-tab="image">图片</button>
+      <button data-tab="video">视频</button>
+      <button data-tab="audio">音频</button>
+    </div>
+    <div style="display:flex;gap:8px;padding:0 16px 10px;flex-wrap:wrap;align-items:center">
+      <input id="genSearch" placeholder="搜索节点名 / 提示词" style="flex:1;min-width:160px;border:1px solid var(--line);background:#12131a;border-radius:8px;padding:7px 10px;outline:none" />
+      <select id="genSort" style="border:1px solid var(--line);background:#12131a;border-radius:8px;padding:7px 10px">
+        <option value="new">时间：新→旧</option>
+        <option value="old">时间：旧→新</option>
+      </select>
+      <button class="btn" id="genSelectAll" type="button">全选当前</button>
+      <button class="btn" id="genClearSel" type="button">取消全选</button>
+    </div>
+    <div class="grid-assets" id="genGrid"></div>
+    <div class="mft">
+      <span class="muted" id="genSelCount">已选择 0 个</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="genLocate" type="button">定位到画布</button>
+        <button class="btn" id="genDl">下载</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="modalDl">
+  <div class="modal" style="width:min(420px,92vw)">
+    <div class="mhd">
+      <h3>选择下载清晰度</h3>
+      <button class="btn" data-close="modalDl">取消</button>
+    </div>
+    <div id="dlOpts" style="padding:8px 16px 16px;display:flex;flex-direction:column;gap:8px"></div>
+    <div class="mft">
+      <span class="muted">选更高清将先超分，成功后写入节点左下切换</span>
+      <button class="btn primary" id="dlConfirm" type="button">确认</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="modalSubLib">
+  <div class="modal" style="width:min(520px,92vw)">
+    <div class="mhd">
+      <h3>主体库（账号）</h3>
+      <button class="btn" data-close="modalSubLib">关闭</button>
+    </div>
+    <div class="grid-assets" id="subLibGrid" style="grid-template-columns:repeat(3,1fr)"></div>
+    <div class="mft">
+      <span class="muted">跟账号走，非项目库</span>
+      <button class="btn primary" id="subLibOk">确认导入</button>
+    </div>
+  </div>
+</div>
+
+<div class="ctx" id="ctx"></div>
+<div class="toast" id="toast"></div>
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="图片放大">
+  <img alt="" />
+</div>
+
+<script>
+(function () {
+  var tabs = document.querySelectorAll(".bar .tab");
+  var prd = document.getElementById("view-prd");
+  var demo = document.getElementById("view-demo");
+  var nav = document.getElementById("prdNav");
+  var navLinks = nav ? nav.querySelectorAll("a[data-nav]") : [];
+  var lastPrdHash = "#prd";
+
+  function isQmHash(h) {
+    return /^#qm-21\d{2}$/.test(h || "");
+  }
+
+  function setNavOn(id) {
+    navLinks.forEach(function (a) {
+      a.classList.toggle("on", a.getAttribute("data-nav") === id);
+    });
+  }
+
+  function scrollPrdTo(id, smooth) {
+    var el = document.getElementById(id);
+    if (!el || !prd) return;
+    var top = el.getBoundingClientRect().top - prd.getBoundingClientRect().top + prd.scrollTop - 12;
+    prd.scrollTo({ top: Math.max(0, top), behavior: smooth ? "smooth" : "auto" });
+    setNavOn(id);
+  }
+
+  function show(pane) {
+    tabs.forEach(function (x) { x.classList.toggle("on", x.getAttribute("data-pane") === pane); });
+    prd.hidden = pane !== "prd";
+    demo.hidden = pane !== "demo";
+    if (pane === "demo") {
+      if (isQmHash(location.hash) || location.hash === "#prd") lastPrdHash = location.hash || "#prd";
+      history.replaceState(null, "", "#demo");
+      requestAnimationFrame(function () {
+        document.dispatchEvent(new CustomEvent("demo-pane-shown"));
+      });
+    } else {
+      var target = isQmHash(location.hash) ? location.hash : (isQmHash(lastPrdHash) ? lastPrdHash : "#prd");
+      history.replaceState(null, "", target);
+      if (isQmHash(target)) {
+        requestAnimationFrame(function () { scrollPrdTo(target.slice(1), false); });
+      }
+    }
+  }
+
+  tabs.forEach(function (t) {
+    t.addEventListener("click", function () { show(t.getAttribute("data-pane")); });
+  });
+
+  if (nav) {
+    nav.addEventListener("click", function (e) {
+      var a = e.target.closest("a[data-nav]");
+      if (!a) return;
+      e.preventDefault();
+      var id = a.getAttribute("data-nav");
+      lastPrdHash = "#" + id;
+      history.replaceState(null, "", lastPrdHash);
+      if (prd.hidden) show("prd");
+      else scrollPrdTo(id, true);
+    });
+  }
+
+  var spyTimer = null;
+  function updateSpy() {
+    if (prd.hidden || !navLinks.length) return;
+    var prdTop = prd.getBoundingClientRect().top;
+    var best = null;
+    var bestDist = Infinity;
+    navLinks.forEach(function (a) {
+      var id = a.getAttribute("data-nav");
+      var el = document.getElementById(id);
+      if (!el) return;
+      var d = Math.abs(el.getBoundingClientRect().top - prdTop - 20);
+      if (el.getBoundingClientRect().top - prdTop <= 80 && d < bestDist) {
+        bestDist = d;
+        best = id;
+      }
+    });
+    if (!best) {
+      var first = document.getElementById(navLinks[0].getAttribute("data-nav"));
+      if (first && first.getBoundingClientRect().top - prdTop > 80) best = null;
+      else best = navLinks[0].getAttribute("data-nav");
+    }
+    if (best) {
+      setNavOn(best);
+      var h = "#" + best;
+      if (location.hash !== h && location.hash !== "#demo") {
+        lastPrdHash = h;
+        history.replaceState(null, "", h);
+      }
+    }
+  }
+  prd.addEventListener("scroll", function () {
+    if (spyTimer) cancelAnimationFrame(spyTimer);
+    spyTimer = requestAnimationFrame(updateSpy);
+  }, { passive: true });
+
+  if (location.hash === "#demo") show("demo");
+  else if (isQmHash(location.hash)) {
+    lastPrdHash = location.hash;
+    show("prd");
+    requestAnimationFrame(function () { scrollPrdTo(location.hash.slice(1), false); });
+  } else {
+    show("prd");
+  }
+
+  var box = document.getElementById("lightbox");
+  var big = box.querySelector("img");
+  function openLb(src, alt) {
+    big.src = src; big.alt = alt || ""; box.classList.add("is-open");
+  }
+  function closeLb() {
+    box.classList.remove("is-open"); big.removeAttribute("src");
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    if (t === box) { closeLb(); return; }
+    if (t.tagName !== "IMG") return;
+    if (!t.closest("#view-prd")) return;
+    if (t.closest(".lightbox")) return;
+    openLb(t.currentSrc || t.src, t.alt);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeLb();
+  });
+})();
+</script>
+<script>
+
+(() => {
+  const AT = {
+    video: ['subject', 'image', 'video', 'audio', 'text'],
+    image: ['subject', 'image'],
+    audio: ['subject', 'image', 'audio'],
+    text: ['image', 'video', 'audio', 'text'],
+    subject: []
+  };
+  const TYPE_LABEL = { subject: '主体', image: '图片', video: '视频', audio: '音频', text: '文本' };
+  const SCENES = [
+    { id: 'p01', label: 'P0-1 拖入素材', focus: 'n_local_img', note: 'p01' },
+    { id: 'p02', label: 'P0-2 批量管理', focus: null, note: 'p02', open: 'genlib' },
+    { id: 'p03', label: 'P0-3 超分', focus: 'n_vid', note: 'p03' },
+    { id: 'p04', label: 'P0-4 @矩阵', focus: 'n_vid', note: 'p04' },
+    { id: 'p11', label: 'P1-1 右键', focus: 'n_ai_img', note: 'p11' },
+    { id: 'p12', label: 'P1-2 引用小块', focus: 'n_vid', note: 'p12' },
+    { id: 'p13', label: 'P1-3 文本大模型', focus: 'n_text', note: 'p13' },
+    { id: 'p14', label: 'P1-4 主体', focus: 'n_sub', note: 'p14' },
+    { id: 'opt2', label: 'OPT-2 生成中', focus: 'n_vid', note: 'opt2' }
+  ];
+
+  /* 位置按需求分区固定，不可拖动 */
+  let nodes = [
+    { id: 'n_local_img', type: 'image', name: '本地风景.jpg', x: 48, y: 72, w: 240, media: true, ai: false, local: true },
+    { id: 'n_local_vid', type: 'video', name: '本地成片.mp4', x: 320, y: 72, w: 240, media: true, ai: false, local: true, duration: '0:08' },
+    { id: 'n_local_aud', type: 'audio', name: 'voice_demo.mp3', x: 592, y: 72, w: 240, media: true, ai: false, duration: '0:12' },
+    { id: 'n_text_md', type: 'text', name: '说明.md', x: 864, y: 72, w: 260, body: '# 角色设定\n从本地 .md 拖入的文本节点。', aiGenerated: false, fromMd: true },
+    { id: 'n_sub', type: 'subject', name: '角色小柯', x: 48, y: 420, w: 280,
+      desc: '橙白柯基，短腿圆耳', main: true, aux: [true, true, false], voice: null },
+    { id: 'n_vid', type: 'video', name: '视频 成片', x: 400, y: 420, w: 280, media: true, ai: true, duration: '0:04',
+      versions: ['720P'], previewRes: '720P', generating: false, createdAt: 3, prompt: '角色小柯跑过草地' },
+    { id: 'n_vid_empty', type: 'video', name: '视频 空', x: 760, y: 420, w: 260, media: false, ai: true, generating: false },
+    { id: 'n_text', type: 'text', name: '文本 1', x: 48, y: 880, w: 280, body: '', aiGenerated: false },
+    { id: 'n_ai_img', type: 'image', name: '图片 生成', x: 400, y: 880, w: 260, media: true, ai: true, createdAt: 1, prompt: '夕阳剪影' }
+  ];
+  let edges = [{ from: 'n_sub', to: 'n_vid' }];
+  let sandboxX = 48;
+  let selectedId = 'n_vid';
+  let refs = [{ id: 'n_sub', type: 'subject', name: '角色小柯' }];
+  let clipboard = null;
+  let genTab = 'all';
+  let genSelected = new Set();
+  let subLibPick = null;
+  let genTimer = null;
+  let waitSec = 0;
+
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const toast = (msg) => {
+    const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2200);
+  };
+  const nodeBy = (id) => nodes.find(n => n.id === id);
+  const selected = () => nodeBy(selectedId);
+
+  function notesFor(key) {
+    const n = selected();
+    const map = {
+      p01: `<h3>P0-1 本地拖入</h3><ul>
+        <li class="ok">支持：图片 → 图片节点；视频 → 视频节点；音频 → 音频节点；<b>.md → 文本节点</b></li>
+        <li class="warn">其它扩展名：不落节点（Demo 会 toast 提示）</li>
+        <li>图/视/音拖入 = <b>纯素材</b>：可预览、可被 @，<b>无</b>底部大模型条</li>
+        <li>音频：文件名 + 波形示意 + 播放/时长；右上「更换」「下载」并排；<b>无修剪</b></li>
+        <li>图片：悬停出下载 / 替换；无播放按钮</li>
+        <li><b>本地视频</b>：悬停即预览播，▶ 消失，左下角时长走动；无生成条</li>
+        <li><b>生成视频</b>：须<b>点击 ▶</b>才播放；悬停只出更换/下载/清晰度等，不自动播</li>
+      </ul>`,
+      p02: `<h3>P0-2 当前画布生成素材</h3><ul>
+        <li>左侧「生成」入口；列表<b>只含本画布 AI 生成</b>，不含本地拖入</li>
+        <li class="ok">Tab / 搜 / 排序 / 预览 / 全选 / 单多选下载 zip / 空态</li>
+        <li class="ok">定位：未选 Toast；单选关弹窗并选中；<b>多选可点但不定位</b>，Toast「仅支持单个节点定位」</li>
+        <li class="warn">本期不支持删除（底栏无删除/批量删除）</li>
+      </ul>`,
+      p03: `<h3>P0-3 超分（仅视频）</h3><ul>
+        <li>主入口：有成片的视频节点上「超分」</li>
+        <li class="ok">点「下载」必出清晰度面板：已有档直接下；「超分并下载」先超分</li>
+        <li class="ok">超分成功后同节点左下<strong>增加</strong>清晰度 pills，再下目标档</li>
+        <li>结果：同一节点多清晰度；在画面<b>左下角</b>切换</li>
+        <li>超分中用 OPT-2 循环 loading；失败保留原清晰度、不新增 pill</li>
+        <li class="warn">空视频：无超分、下载禁用；本地视频下载无超分选项</li>
+      </ul>`,
+      p04: `<h3>P0-4 节点 @ 矩阵</h3><ul>
+        <li>选中可生成节点后，<b>输入框贴在该节点下方</b>（不是页面最底栏）</li>
+        <li><b>视频</b>：主体、图片、视频、音频、<b>文本</b>（便于挂剧本文案）</li>
+        <li><b>图片</b>：主体、图片</li>
+        <li><b>音频</b>：主体、图片、音频</li>
+        <li><b>文本</b>（P1-3）：图片、视频、音频、文本；不能主体</li>
+        <li>点 @ 或 + ：菜单从输入框上方弹出；选中后输入框出现高亮 <b>@名称</b>，上方同时有引用小块</li>
+        <li class="ok">无主图主体 / 文本点主体 / 已引用：列表<strong>可点</strong>，Toast 说明，不静默灰掉</li>
+      </ul>`,
+      p11: `<h3>P1-1 右键</h3><ul>
+        <li><b>复制</b>＝拷到剪贴板（⌘C）；<b>复制副本</b>＝画布上立刻多一份节点（⌘D）</li>
+        <li>空白画布右键：<b>新建节点 ›</b> 再选类型（文本/图/视/音/主体）/ 粘贴 / 撤销 / 重做</li>
+        <li class="ok">菜单按类型差异显隐；<b>本期不做「应用全部历史」</b>（菜单不出现）</li>
+        <li class="warn">生成中点「删除」：不删，Toast「生成中，暂时无法删除」</li>
+        <li>请分别右键：本地图、空视频、AI 图、主体、空白处</li>
+      </ul>`,
+      p12: `<h3>P1-2 引用小块</h3><ul>
+        <li>选中视频/文本等节点 → 看节点下方输入框上方的统一小块</li>
+        <li class="ok">点「+」：先选 本地添加 / 从资产库选择 / 从画布选择（对齐千幕）；勿直接弹 @ 列表</li>
+        <li>右上 × 移除；「@ 参考」或输入 @ → 直接画布候选</li>
+        <li>悬停：文本出内容；空节点「节点内容为空」；视频可带时长角标</li>
+      </ul>`,
+      p13: `<h3>P1-3 文本大模型</h3><ul>
+        <li class="ok">走<strong>统一大模型配置</strong>（后台加文本节点）；前端生成框可选不同文本模型（无图/视参数）</li>
+        <li>选中「文本 1」→ 生成框贴在该节点下方（可引用图/视/音/文本，不能主体）</li>
+        <li>生成后正文写入节点，脚注「内容由 AI 生成」；仍可手改</li>
+        <li>.md 拖入的也是文本节点，@ 时归类为「文本」</li>
+      </ul>`,
+      p14: `<h3>P1-4 主体</h3><ul>
+        <li class="ok">主体 =「长什么样」的身份卡，主要给图/视/音 @；不是图片结果卡</li>
+        <li>空态文案 + 四入口；1 主图 + 最多 3 辅图 + 可选音色</li>
+        <li>「导入主体」填<strong>当前卡</strong>；「保存到库」进账号库、<strong>不多画布节点</strong></li>
+        <li>无主图：下载/@/保存库均可点，Toast「请先添加主体图片」</li>
+      </ul>`,
+      opt2: `<h3>OPT-2 生成中</h3><ul>
+        <li class="ok">点底部「↑ 生成」：节点蒙层 + <b>循环转圈</b> +「生成中」+ 已等待秒数</li>
+        <li class="warn">无百分比、无假进度追到 50%</li>
+        <li>约 2.5s 后 Demo 自动完成（真实产品等接口）</li>
+      </ul>`,
+      default: `<h3>当前：${n ? TYPE_LABEL[n.type] + ' · ' + n.name : '未选中'}</h3><ul>
+        <li>点上方场景或画布节点查看对应需求边界</li>
+        <li>生成型节点选中后，生成框贴在该节点下方；本地素材不出生成条</li>
+      </ul>`
+    };
+    return map[key] || map.default;
+  }
+
+  let noteKey = 'default';
+  function setNotes(key) {
+    noteKey = key || 'default';
+    $('#notes').innerHTML = notesFor(noteKey);
+    $$('#scen button').forEach(b => b.classList.toggle('on', b.dataset.id === key));
+  }
+
+  function canGenerate(n) {
+    if (!n) return false;
+    if (n.type === 'subject') return false;
+    if (n.type === 'text') return true;
+    if ((n.type === 'image' || n.type === 'video' || n.type === 'audio') && n.ai !== false && !isLocalOnly(n)) return true;
+    return false;
+  }
+  function isLocalOnly(n) {
+    return n && (n.local || n.id.startsWith('n_local') || (n.media && n.ai === false && n.type !== 'text'));
+  }
+
+  function renderEdges() {
+    const svg = $('#edges');
+    const parts = edges.map(e => {
+      const a = nodeBy(e.from), b = nodeBy(e.to);
+      if (!a || !b) return '';
+      const aw = a.w || 260, bw = b.w || 260;
+      const x1 = a.x + aw, y1 = a.y + 90, x2 = b.x, y2 = b.y + 90;
+      const c = Math.max(40, (x2 - x1) / 2);
+      return `<path d="M${x1},${y1} C${x1 + c},${y1} ${x2 - c},${y2} ${x2},${y2}" stroke="#5b6cff" stroke-width="2" fill="none" opacity=".75"/>`;
+    });
+    svg.innerHTML = parts.join('');
+  }
+
+  function renderNodes() {
+    const root = $('#canvasInner') || $('#canvas');
+    $$('.node', root).forEach(el => el.remove());
+    nodes.forEach(n => {
+      const el = document.createElement('div');
+      el.className = 'node' + (n.id === selectedId ? ' selected' : '') + (n.locked ? ' locked' : '') + (n.generating ? ' generating' : '');
+      el.style.left = n.x + 'px';
+      el.style.top = n.y + 'px';
+      if (n.w) el.style.width = n.w + 'px';
+      el.dataset.id = n.id;
+      el.innerHTML = nodeHTML(n);
+      root.appendChild(el);
+      bindNode(el, n);
+    });
+    renderEdges();
+    renderGenPanel();
+  }
+
+  function nodeHTML(n) {
+    const typeIco = { text: 'T', image: '图', video: '视', audio: '音', subject: '主' };
+    const hd = `<div class="node-hd"><span class="ico">${typeIco[n.type] || '·'}</span><span>${escapeHtml(n.name)}</span></div>`;
+    const ports = `<button class="port L" tabindex="-1">+</button><button class="port R" tabindex="-1">+</button>`;
+    const load = `<div class="loading-mask"><div class="spin"></div><div>生成中</div><div style="font-size:11px;color:#aaa">已等待 ${waitSec}s · 通常约 2 分钟 · 无取消</div></div>`;
+    let bd = '';
+    if (n.type === 'image' || n.type === 'video') {
+      const has = n.media;
+      const kind = n.type === 'video' ? 'vid' : 'img';
+      const cls = `media ${kind}${!has && n.type === 'video' ? ' empty' : ''}${n.local ? ' local' : ''}`;
+      const play = (n.type === 'video' && has) ? `<button class="play">▶</button>` : (has ? '' : '<span style="color:#777;font-size:13px">待生成</span>');
+      const resPills = (n.type === 'video' && has && n.versions && n.versions.length)
+        ? `<div class="res-pills">${n.versions.map(r => `<button class="${n.previewRes === r ? 'on' : ''}" data-res="${r}">${r}</button>`).join('')}</div>`
+        : '';
+      bd = `<div class="${cls}">
+        ${play}
+        <div class="corner">
+          ${n.type === 'video' && has && n.ai !== false && !n.local ? `<button data-act="upscale">超分</button>` : ''}
+          <button data-act="replace">更换</button>
+          <button data-act="dl" ${has ? '' : 'disabled'}>下载</button>
+        </div>
+        ${n.type === 'video' && has ? `<div class="vid-time" data-dur="${n.duration || '0:04'}">0:00 / ${n.duration || '0:04'}</div><div class="vid-tools">静音 · 放大</div>` : ''}
+        ${resPills}
+        ${n.ai && has ? '<span class="badge" style="bottom:36px">AI 生成</span>' : ''}
+      </div>`;
+    } else if (n.type === 'audio') {
+      bd = `<div class="media aud">
+        <div class="wave"></div>
+        <div class="corner"><button data-act="replace">更换</button><button data-act="dl">下载</button></div>
+        <div class="meta"><span>${n.duration || '0:00'}</span><button class="play" style="width:28px;height:28px">▶</button></div>
+      </div>`;
+    } else if (n.type === 'text') {
+      bd = `<div class="text-body ${n.body ? '' : 'empty'}" data-edit-text contenteditable="true" data-placeholder="点击编辑文本">${escapeHtml(n.body || '')}</div>
+        ${n.aiGenerated ? '<div class="ai-foot">内容由 AI 生成</div>' : ''}
+        ${n.fromMd ? '<div class="ai-foot">来源：.md 拖入</div>' : ''}`;
+    } else if (n.type === 'subject') {
+      if (!n.main) {
+        bd = `<div class="subject-empty">定义一个可反复引用的角色/物体身份；在图片、视频、音频生成里用 @ 调用。</div>
+          <div class="sub-actions">
+            <button class="btn" data-sub="import">导入主体</button>
+            <button class="btn" data-sub="canvas">从画布选择</button>
+            <button class="btn" data-sub="lib">从资产库选择</button>
+            <button class="btn" data-sub="local">本地添加</button>
+          </div>`;
+      } else {
+        bd = `<div class="subject-name">@ ${escapeHtml(n.name)}</div>
+          <div class="subject-desc">${escapeHtml(n.desc || '添加描述...')}</div>
+          <div class="subject-grid">
+            <div class="slot main filled" data-slot="main">主图</div>
+            ${[0,1,2].map(i => `<div class="slot ${n.aux[i] ? 'filled' : 'add'}" data-slot="aux-${i}">${n.aux[i] ? '辅' + (i + 1) : '+'}</div>`).join('')}
+          </div>
+          <div class="voice-row"><span>音色：${n.voice || '未添加'}</span><button data-sub="voice">上传/更换</button></div>`;
+      }
+    }
+    return hd + `<div class="node-bd">${bd}${load}</div>` + ports;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function bindNode(el, n) {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('button') || e.target.closest('.prompt-ed') || e.target.closest('.mention') || e.target.closest('[data-edit-text]')) return;
+      selectNode(n.id);
+    });
+    if (n.type === 'text') {
+      const tb = el.querySelector('[data-edit-text]');
+      if (tb) {
+        tb.addEventListener('mousedown', (e) => e.stopPropagation());
+        tb.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (selectedId !== n.id) {
+            selectedId = n.id;
+            $$('.node').forEach(x => x.classList.toggle('selected', x.dataset.id === n.id));
+            renderGenPanel();
+            setNotes(noteKey === 'default' ? guessNote(n) : noteKey);
+          }
+        });
+        tb.addEventListener('input', () => {
+          n.body = tb.innerText.replace(/\u00a0/g, ' ').replace(/\n$/, '');
+          n.aiGenerated = false;
+          tb.classList.toggle('empty', !n.body.trim());
+        });
+        tb.addEventListener('keydown', (e) => e.stopPropagation());
+      }
+    }
+    if (n.type === 'video' && n.media) {
+      const media = el.querySelector('.media.vid');
+      const timeEl = el.querySelector('.vid-time');
+      const playBtn = media && media.querySelector(':scope > .play');
+      let tick = null, sec = 0;
+      const dur = n.duration || '0:04';
+      const durSec = (() => { const p = dur.split(':').map(Number); return (p[0]||0)*60+(p[1]||0); })() || 4;
+      const fmt = s => `0:${String(Math.min(s, durSec)).padStart(2,'0')}`;
+      const stopPlay = () => {
+        clearInterval(tick);
+        tick = null;
+        sec = 0;
+        media.classList.remove('previewing', 'playing');
+        if (timeEl) timeEl.textContent = `0:00 / ${dur}`;
+      };
+      const startTick = (mode) => {
+        clearInterval(tick);
+        sec = 0;
+        if (timeEl) timeEl.textContent = `${fmt(0)} / ${dur}`;
+        media.classList.add(mode);
+        tick = setInterval(() => {
+          sec = Math.min(sec + 1, durSec);
+          if (timeEl) timeEl.textContent = `${fmt(sec)} / ${dur}`;
+          if (sec >= durSec) {
+            clearInterval(tick);
+            tick = null;
+            if (mode === 'playing') stopPlay();
+          }
+        }, 400);
+      };
+      if (media && timeEl) {
+        const isLocal = !!(n.local || n.ai === false);
+        if (isLocal) {
+          media.addEventListener('mouseenter', () => startTick('previewing'));
+          media.addEventListener('mouseleave', stopPlay);
+        } else if (playBtn) {
+          playBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (media.classList.contains('playing')) stopPlay();
+            else {
+              startTick('playing');
+              toast('生成视频：点击播放（非悬停预览）');
+            }
+          });
+        }
+      }
+    }
+    el.addEventListener('contextmenu', (e) => { e.preventDefault(); selectNode(n.id); openCtx(e.clientX, e.clientY, n); });
+    $$('[data-act]', el).forEach(b => b.onclick = (e) => {
+      e.stopPropagation();
+      const a = b.dataset.act;
+      if (a === 'upscale') startUpscale(n);
+      else if (a === 'dl') openDownloadPicker(n);
+      else if (a === 'replace') toast('Demo：更换素材（本地/资产库）');
+    });
+    $$('[data-res]', el).forEach(b => b.onclick = (e) => {
+      e.stopPropagation(); n.previewRes = b.dataset.res; renderNodes(); toast('预览清晰度 → ' + n.previewRes);
+    });
+    $$('[data-sub]', el).forEach(b => b.onclick = (e) => {
+      e.stopPropagation();
+      const a = b.dataset.sub;
+      if (a === 'import') openSubLib();
+      else if (a === 'voice') { n.voice = n.voice ? null : '音色_demo.wav'; renderNodes(); toast(n.voice ? '已绑定音色（示意）' : '已清除音色'); }
+      else if (a === 'local' || a === 'lib' || a === 'canvas') {
+        n.main = true; n.aux = [false, false, false]; renderNodes(); toast('Demo：已添加主图（' + a + '）');
+      }
+    });
+    $$('[data-slot]', el).forEach(b => b.onclick = (e) => {
+      e.stopPropagation();
+      const s = b.dataset.slot;
+      if (s === 'main') { n.main = !n.main; if (!n.main) n.aux = [false, false, false]; }
+      else {
+        const i = +s.split('-')[1];
+        const count = n.aux.filter(Boolean).length;
+        if (!n.aux[i] && count >= 3) return toast('辅图最多 3 张');
+        n.aux[i] = !n.aux[i];
+      }
+      renderNodes();
+    });
+  }
+
+  function selectNode(id, scroll) {
+    selectedId = id;
+    const n = selected();
+    renderNodes();
+    setNotes(noteKey === 'default' ? guessNote(n) : noteKey);
+    if (scroll !== false && id) {
+      const el = document.querySelector(`[data-id="${id}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }
+  }
+
+  function guessNote(n) {
+    if (!n) return 'default';
+    if (n.type === 'subject') return 'p14';
+    if (n.type === 'text') return 'p13';
+    if (n.type === 'video' && n.media) return 'p03';
+    if (isLocalOnly(n)) return 'p01';
+    return 'default';
+  }
+
+  function renderGenPanel() {
+    const n = selected();
+    const panel = $('#genPanel');
+    const show = n && canGenerate(n);
+    panel.classList.toggle('show', !!show);
+    if (!show) return;
+    const ph = n.type === 'text'
+      ? '描述想写的内容，可 @ 图片、视频、音频、文本作为参考（不能加主体）'
+      : '输入文字或 @ 参考；@ 后会在输入框显示高亮的 @名称';
+    const ped = $('#prompt');
+    ped.dataset.placeholder = ph;
+    if (!ped.dataset.keep) {
+      ped.innerHTML = refs.map(r =>
+        `<span class="mention" contenteditable="false" data-id="${r.id}">@${escapeHtml(r.name)}</span>`
+      ).join('&nbsp;') + (refs.length ? '&nbsp;' : '');
+      ped.dataset.keep = '1';
+    }
+    $('#refs').innerHTML = refs.map(r => {
+      const empty = r.empty;
+      return `<div class="chip" data-ref="${r.id}" title="${empty ? '节点内容为空' : r.name}">
+        ${r.type === 'text' ? 'T' : r.type === 'audio' ? '〰' : '<span class="thumb"></span>'}
+        <button class="x" data-rm="${r.id}">×</button>
+        <span class="lab">${TYPE_LABEL[r.type]}${r.duration ? ' ' + r.duration : ''}</span>
+      </div>`;
+    }).join('') + `<button class="chip add" id="refAdd">+</button>`;
+    $$('[data-rm]', panel).forEach(b => b.onclick = () => {
+      const id = b.dataset.rm;
+      refs = refs.filter(r => r.id !== id);
+      $$('#prompt .mention').forEach(m => { if (m.dataset.id === id) m.remove(); });
+      renderGenPanel();
+      toast('已移除引用；连线保留（P0-4 规则3）');
+      setNotes('p04');
+    });
+    const add = $('#refAdd');
+    if (add) add.onclick = (e) => { e.stopPropagation(); openRefSourceMenu(add); };
+    $$('.chip[data-ref]', panel).forEach(c => {
+      c.onmouseenter = () => {
+        const r = refs.find(x => x.id === c.dataset.ref);
+        if (r?.empty) toast('节点内容为空');
+        else if (r?.type === 'text') toast('悬停预览：' + (nodeBy(r.id)?.body || r.name).slice(0, 40));
+      };
+    });
+    positionGenPanel();
+  }
+
+  /** PRD Tab 下 #view-demo 为 display:none，节点 offsetHeight=0，不能直接用来定位 */
+  function estimateNodeHeight(n) {
+    if (n.type === 'subject') return n.main ? 300 : 240;
+    if (n.type === 'text') return 200;
+    if (n.type === 'audio') return 210;
+    return 210; /* 图/视：hd + media148 + padding */
+  }
+
+  function positionGenPanel() {
+    const panel = $('#genPanel');
+    const n = selected();
+    if (!panel.classList.contains('show') || !n) return;
+    const el = document.querySelector(`[data-id="${n.id}"]`);
+    const measured = el ? el.offsetHeight : 0;
+    const h = measured || estimateNodeHeight(n);
+    panel.style.left = n.x + 'px';
+    panel.style.top = (n.y + h + 14) + 'px';
+  }
+
+  document.addEventListener('demo-pane-shown', () => {
+    requestAnimationFrame(() => positionGenPanel());
+  });
+
+  /** 对齐千幕：点 + 先选来源，不要直接弹 @ 列表 */
+  function openRefSourceMenu(anchorEl) {
+    const n = selected();
+    if (!n) return;
+    $('#atMenu').classList.remove('show');
+    const menu = $('#refSourceMenu');
+    menu.innerHTML = `
+      <button type="button" data-src="local">本地添加</button>
+      <button type="button" data-src="lib">从资产库选择</button>
+      <button type="button" data-src="canvas">从画布选择</button>`;
+    menu.classList.add('show');
+    const r = (anchorEl || $('#refAdd')).getBoundingClientRect();
+    const mh = 140;
+    let top = r.bottom + 6;
+    if (top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 6);
+    menu.style.left = Math.max(12, Math.min(r.left, window.innerWidth - 220)) + 'px';
+    menu.style.top = top + 'px';
+    menu.style.bottom = 'auto';
+    menu.style.width = '200px';
+    $$('[data-src]', menu).forEach(b => b.onclick = () => {
+      const src = b.dataset.src;
+      menu.classList.remove('show');
+      if (src === 'canvas') {
+        openAtMenu();
+        setNotes('p12');
+        return;
+      }
+      if (src === 'local') toast('Demo：本地添加参考（选文件后落入引用区·示意）');
+      else toast('Demo：从资产库选择参考（示意）');
+      setNotes('p12');
+    });
+  }
+
+  function openAtMenu() {
+    const n = selected();
+    if (!n) return;
+    $('#refSourceMenu')?.classList.remove('show');
+    const allow = AT[n.type] || [];
+    const menu = $('#atMenu');
+    const candidates = nodes.filter(x => x.id !== n.id && allow.includes(x.type));
+    menu.innerHTML = `<div class="sec">添加参考（${TYPE_LABEL[n.type]}节点）· 从画布</div>` +
+      allow.map(t => `<div class="sec">${TYPE_LABEL[t]}</div>` +
+        candidates.filter(x => x.type === t).map(x =>
+          `<button data-pick="${x.id}">${escapeHtml(x.name)}${x.type === 'subject' && !x.main ? '（无主图）' : ''}</button>`
+        ).join('') || `<div class="sec">暂无</div>`
+      ).join('');
+    menu.classList.add('show');
+    const anchor = ($('#btnAt') || $('#prompt')).getBoundingClientRect();
+    const h = Math.min(280, window.innerHeight * 0.42);
+    let top = anchor.top - h - 8;
+    if (top < 8) top = Math.min(anchor.bottom + 8, window.innerHeight - h - 8);
+    menu.style.left = Math.max(12, Math.min(anchor.right - 280, window.innerWidth - 292)) + 'px';
+    menu.style.top = top + 'px';
+    menu.style.bottom = 'auto';
+    $$('[data-pick]', menu).forEach(b => b.onclick = () => {
+      const t = nodeBy(b.dataset.pick);
+      if (n.type === 'text' && t.type === 'subject') return toast('文本节点不能引用主体');
+      if (t.type === 'subject' && !t.main) return toast('请先添加主体图片');
+      if (refs.some(r => r.id === t.id)) return toast('已引用');
+      refs.push({
+        id: t.id, type: t.type, name: t.name,
+        empty: (t.type !== 'subject' && t.type !== 'text' && !t.media) || (t.type === 'text' && !t.body),
+        duration: t.duration
+      });
+      if (!edges.some(e => e.from === t.id && e.to === n.id)) edges.push({ from: t.id, to: n.id });
+      menu.classList.remove('show');
+      insertMention(t);
+      renderGenPanel();
+      renderEdges();
+      toast('已 @ ' + t.name + '（输入框高亮 + 上方引用小块）');
+      setNotes('p12');
+    });
+  }
+
+  function insertMention(t) {
+    const ped = $('#prompt');
+    if ([...ped.querySelectorAll('.mention')].some(m => m.dataset.id === t.id)) return;
+    ped.insertAdjacentHTML('beforeend',
+      `<span class="mention" contenteditable="false" data-id="${t.id}">${escapeHtml('@' + t.name)}</span>&nbsp;`);
+    ped.focus();
+    const range = document.createRange();
+    range.selectNodeContents(ped);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    ped.dataset.keep = '1';
+  }
+
+  function openCtx(x, y, n) {
+    const canDl = !!(n.media || (n.type === 'text' && n.body) || (n.type === 'subject' && n.main));
+    const canSaveSub = ((n.type === 'image' || n.type === 'video') && n.media) || (n.type === 'subject' && n.main);
+    const showCopyAsImg = n.type === 'image' && n.media;
+    const showSaveSub = canSaveSub && n.type !== 'audio' && n.type !== 'text';
+    let items = [
+      `<button data-c="rename">重命名</button>`,
+      `<button data-c="copy">复制<span>剪贴板</span></button>`,
+      `<button data-c="dup">复制副本<span>画布多一份</span></button>`,
+      `<button data-c="paste" ${clipboard ? '' : 'disabled'}>粘贴 ${clipboard ? '' : '（无内容）'}</button>`,
+      `<div class="div"></div>`
+    ];
+    if (showCopyAsImg) items.push(`<button data-c="copyimg">复制为图片</button>`);
+    if (showSaveSub) items.push(`<button data-c="save">保存到主体库</button>`);
+    else if (n.type === 'audio' || n.type === 'text') items.push(`<button disabled>保存到主体库（此类无）</button>`);
+    else if (n.type === 'video' && !n.media) items.push(`<button disabled>保存到主体库（无成片）</button>`);
+    // 可点 + Toast：无素材仍可点，点击后再提示（禁用态须带原因时见 PRD）
+    items.push(`<button data-c="dl">下载${canDl ? '' : '（无素材）'}</button>`);
+    items.push(`<div class="div"></div>`);
+    items.push(`<button data-c="undo" disabled>撤销（无历史）</button>`);
+    items.push(`<button data-c="redo" disabled>重做（无历史）</button>`);
+    items.push(`<div class="div"></div>`);
+    items.push(`<button data-c="lock">${n.locked ? '解锁' : '锁定'}</button>`);
+    items.push(`<button data-c="focus">定位</button>`);
+    items.push(`<button data-c="del" style="color:#ffb4bc">删除</button>`);
+    $('#ctx').innerHTML = items.join('');
+    showCtx(x, y);
+    $$('#ctx button').forEach(b => b.onclick = () => {
+      const c = b.dataset.c;
+      if (b.disabled || !c) return;
+      if (c === 'rename') { const v = prompt('重命名', n.name); if (v) { n.name = v; renderNodes(); } }
+      if (c === 'copy') { clipboard = { mode: 'clip', node: JSON.parse(JSON.stringify(n)) }; toast('复制：已进剪贴板，空白处可粘贴'); }
+      if (c === 'dup') {
+        const pos = placeSandbox();
+        const copy = { ...JSON.parse(JSON.stringify(n)), id: 'n_' + Date.now(), ...pos, name: n.name + ' 副本' };
+        nodes.push(copy); selectNode(copy.id); toast('复制副本：画布已多一份');
+      }
+      if (c === 'paste' && clipboard) toast('粘贴（示意）');
+      if (c === 'copyimg') toast('复制为图片（示意）');
+      if (c === 'dl') openDownloadPicker(n);
+      if (c === 'save') toast('已保存到主体库（账号·示意）');
+      if (c === 'lock') { n.locked = !n.locked; renderNodes(); }
+      if (c === 'focus') { selectNode(n.id); toast('已定位'); }
+      if (c === 'del') {
+        if (n.generating) { toast('生成中，暂时无法删除'); }
+        else {
+          nodes = nodes.filter(x => x.id !== n.id);
+          edges = edges.filter(e => e.from !== n.id && e.to !== n.id);
+          selectedId = nodes[0]?.id || null; renderNodes();
+        }
+      }
+      $('#ctx').classList.remove('show');
+      setNotes('p11');
+    });
+  }
+
+  function openCanvasCtx(x, y) {
+    const types = [
+      { t: 'text', ico: 'T', lab: '文本' },
+      { t: 'image', ico: '图', lab: '图片' },
+      { t: 'video', ico: '视', lab: '视频' },
+      { t: 'audio', ico: '音', lab: '音频' },
+      { t: 'subject', ico: '主', lab: '主体' }
+    ];
+    $('#ctx').innerHTML = `
+      <div class="has-sub open" id="ctxNew">
+        <button type="button" data-c="new">新建节点<span>›</span></button>
+        <div class="ctx-sub">
+          ${types.map(x => `<button type="button" data-new="${x.t}"><span class="ico">${x.ico}</span>${x.lab}</button>`).join('')}
+        </div>
+      </div>
+      <div class="div"></div>
+      <button data-c="paste" ${clipboard ? '' : 'disabled'}>粘贴 ${clipboard ? '' : '（无内容）'}<span>⌘V</span></button>
+      <button data-c="redo" disabled>重做<span>⌘⇧Z</span></button>
+      <button data-c="undo" disabled>撤销<span>⌘Z</span></button>`;
+    showCtx(x, y);
+    const wrap = $('#ctxNew');
+    const newBtn = $('[data-c="new"]', wrap);
+    newBtn.onclick = (e) => {
+      e.stopPropagation();
+      wrap.classList.toggle('open');
+    };
+    $$('[data-new]', wrap).forEach(b => b.onclick = (e) => {
+      e.stopPropagation();
+      addNode(b.dataset.new);
+      $('#ctx').classList.remove('show');
+      toast('已新建' + TYPE_LABEL[b.dataset.new] + '节点（试验区）');
+      setNotes('p11');
+    });
+    $$('#ctx > button').forEach(b => b.onclick = () => {
+      const c = b.dataset.c;
+      if (b.disabled) return;
+      if (c === 'paste' && clipboard?.node) {
+        const pos = placeSandbox();
+        const copy = { ...clipboard.node, id: 'n_' + Date.now(), ...pos, name: (clipboard.node.name || '节点') + ' 粘贴' };
+        nodes.push(copy); selectNode(copy.id); toast('已从剪贴板粘贴');
+      }
+      $('#ctx').classList.remove('show');
+      setNotes('p11');
+    });
+  }
+
+  function showCtx(x, y) {
+    const ctx = $('#ctx');
+    ctx.style.left = Math.min(x, innerWidth - 240) + 'px';
+    ctx.style.top = Math.min(y, innerHeight - 360) + 'px';
+    ctx.classList.add('show');
+  }
+
+  let dlPick = { nodeId: null, mode: 'exist', res: '720P' };
+
+  function openDownloadPicker(n) {
+    if (n.generating) return toast('超分进行中，请稍候');
+    if (n.type === 'subject' && !n.main) return toast('请先添加主体图片');
+    if (n.type === 'text' && !n.body) return toast('无素材可下载');
+    if (n.type !== 'video' && n.type !== 'image' && n.type !== 'audio' && n.type !== 'text' && n.type !== 'subject') {
+      return toast('无素材可下载');
+    }
+    if ((n.type === 'image' || n.type === 'audio' || n.type === 'video') && !n.media) {
+      return toast(n.type === 'video' ? '无成片，无法下载' : '无素材可下载');
+    }
+    // 本地视频：直接下原文件，不走超分选择（不半执行）
+    if (n.type === 'video' && (n.local || n.ai === false)) {
+      toast('Demo：下载 ' + n.name + '（本地素材，无超分选项）');
+      return;
+    }
+    if (n.type !== 'video') {
+      toast('Demo：下载 ' + n.name + (n.previewRes ? ' · ' + n.previewRes : ''));
+      return;
+    }
+    const vers = n.versions || [n.previewRes || '720P'];
+    const box = $('#dlOpts');
+    const rows = [];
+    vers.forEach(r => {
+      const on = (n.previewRes || vers[0]) === r;
+      rows.push(`<label style="display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:${on ? 'var(--accent-dim)' : '#12131a'}">
+        <input type="radio" name="dlRes" value="exist:${r}" ${on ? 'checked' : ''} />
+        <span>下载 ${r}<span class="muted" style="margin-left:8px;font-size:12px">已有清晰度</span></span>
+      </label>`);
+    });
+    if (!vers.includes('1080P')) {
+      rows.push(`<label style="display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:#12131a">
+        <input type="radio" name="dlRes" value="upscale:1080P" />
+        <span>超分并下载 1080P<span class="muted" style="margin-left:8px;font-size:12px">不计费 · 成功后写入左下切换</span></span>
+      </label>`);
+    }
+    box.innerHTML = rows.join('');
+    dlPick = { nodeId: n.id, mode: 'exist', res: n.previewRes || vers[0] };
+    $$('input[name="dlRes"]', box).forEach(inp => {
+      inp.onchange = () => {
+        const [mode, res] = inp.value.split(':');
+        dlPick = { nodeId: n.id, mode, res };
+        $$('label', box).forEach(lb => {
+          lb.style.background = lb.contains(inp) && inp.checked ? 'var(--accent-dim)' : '#12131a';
+        });
+      };
+    });
+    $('#modalDl').classList.add('show');
+    setNotes('p03');
+  }
+
+  function startUpscale(n, opts) {
+    opts = opts || {};
+    if (!n.media) return toast('无成片，不能超分');
+    if (n.generating) return toast('超分进行中，请稍候');
+    const target = opts.targetRes || '1080P';
+    n.generating = true; waitSec = 0; renderNodes(); setNotes('opt2');
+    clearInterval(genTimer);
+    genTimer = setInterval(() => { waitSec++; renderNodes(); }, 1000);
+    setTimeout(() => {
+      clearInterval(genTimer);
+      n.generating = false;
+      if (!n.versions) n.versions = [];
+      if (!n.versions.includes(target)) n.versions.push(target);
+      n.previewRes = target;
+      renderNodes();
+      if (opts.downloadAfter) toast(`超分完成，开始下载 ${target}`);
+      else toast('超分完成：左下角可切换 720P / 1080P');
+    }, 2500);
+  }
+
+  function startGenerate() {
+    const n = selected();
+    if (!n || !canGenerate(n)) return;
+    n.generating = true; waitSec = 0; renderNodes(); setNotes('opt2');
+    clearInterval(genTimer);
+    genTimer = setInterval(() => { waitSec++; const mask = document.querySelector('.node.generating .loading-mask div:last-child'); if (mask) mask.textContent = `已等待 ${waitSec}s · 通常约 2 分钟 · 无取消`; }, 1000);
+    setTimeout(() => {
+      clearInterval(genTimer); n.generating = false;
+      if (n.type === 'text') {
+        n.body = (n.body ? n.body + '\n\n' : '') + '（Demo）根据提示词生成的文案示例。';
+        n.aiGenerated = true;
+      } else {
+        n.media = true; n.ai = true;
+      }
+      renderNodes(); toast('生成完成（Demo）');
+    }, 2500);
+  }
+
+  function openGenLib() {
+    genSelected.clear();
+    renderGenGrid();
+    $('#modalGen').classList.add('show');
+    setNotes('p02');
+  }
+
+  let genSort = 'new';
+  let genQuery = '';
+  function genList() {
+    let items = nodes.filter(n => n.ai && n.media && !n.generating && (genTab === 'all' || n.type === genTab));
+    const q = genQuery.trim().toLowerCase();
+    if (q) items = items.filter(n => (n.name || '').toLowerCase().includes(q) || (n.prompt || '').toLowerCase().includes(q));
+    items.sort((a, b) => (genSort === 'new' ? 1 : -1) * ((b.createdAt || 0) - (a.createdAt || 0)));
+    return items;
+  }
+  function renderGenGrid() {
+    const items = genList();
+    const grid = $('#genGrid');
+    if (!items.length) {
+      grid.innerHTML = `<div style="grid-column:1/-1;padding:28px;text-align:center;color:var(--muted)">本画布还没有生成内容。去画布上生成后再来。<br><span style="font-size:11px">本地拖入 · 生成中 · 失败项不会出现在这里</span></div>`;
+    } else {
+      grid.innerHTML = items.map(n => `<div class="asset-card ${genSelected.has(n.id) ? 'sel' : ''}" data-gid="${n.id}" title="单击勾选 · 双击预览">
+        <div class="ck"></div>
+        <div class="ph ${n.type}"></div>
+        <div class="nm">${escapeHtml(n.name)}</div>
+      </div>`).join('');
+    }
+    const nSel = genSelected.size;
+    $('#genSelCount').textContent = `已选择 ${nSel} 个`;
+    $('#genDl').textContent = nSel > 1 ? '批量下载' : '下载';
+    $$('[data-gid]', grid).forEach(c => {
+      c.onclick = () => {
+        const id = c.dataset.gid;
+        if (genSelected.has(id)) genSelected.delete(id); else genSelected.add(id);
+        renderGenGrid();
+      };
+      c.ondblclick = (e) => {
+        e.stopPropagation();
+        const n = nodeBy(c.dataset.gid);
+        toast('预览：' + (n?.name || '') + (n?.prompt ? ' · ' + n.prompt : '') + '（Demo 弹层示意）');
+      };
+    });
+  }
+
+  function openSubLib() {
+    subLibPick = 'lib_demo_1';
+    $('#subLibGrid').innerHTML = `
+      <div class="asset-card sel" data-sid="lib_demo_1"><div class="ph"></div><div class="nm">库·角色A</div></div>
+      <div class="asset-card" data-sid="lib_demo_2"><div class="ph"></div><div class="nm">库·角色B</div></div>`;
+    $$('[data-sid]').forEach(c => c.onclick = () => {
+      subLibPick = c.dataset.sid;
+      $$('[data-sid]').forEach(x => x.classList.toggle('sel', x === c));
+    });
+    $('#modalSubLib').classList.add('show');
+  }
+
+  function placeSandbox() {
+    const x = sandboxX;
+    sandboxX += 280;
+    if (sandboxX > 1000) sandboxX = 48;
+    return { x, y: 1080, w: 240 };
+  }
+
+  function addNode(type) {
+    const id = 'n_' + Date.now();
+    const pos = placeSandbox();
+    const base = { id, type, name: TYPE_LABEL[type] + ' ' + (nodes.filter(n => n.type === type).length + 1), ...pos };
+    if (type === 'image' || type === 'video' || type === 'audio') Object.assign(base, { media: false, ai: true, duration: type === 'video' ? '0:05' : '0:08', versions: type === 'video' ? ['720P'] : undefined, previewRes: type === 'video' ? '720P' : undefined });
+    if (type === 'text') Object.assign(base, { body: '', aiGenerated: false });
+    if (type === 'subject') Object.assign(base, { desc: '', main: false, aux: [false, false, false], voice: null });
+    nodes.push(base);
+    selectNode(id);
+    toast('新建节点放在底部试验区（主区域位置已固定）');
+    if (type === 'subject') setNotes('p14');
+    if (type === 'text') setNotes('p13');
+  }
+
+  function handleFiles(files) {
+    [...files].forEach(f => {
+      const name = f.name || 'file';
+      const ext = name.split('.').pop().toLowerCase();
+      const id = 'n_' + Date.now() + Math.random().toString(16).slice(2, 5);
+      const pos = placeSandbox();
+      if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) {
+        nodes.push({ id, type: 'image', name, ...pos, media: true, ai: false, local: true });
+        toast('已拖入图片素材节点（无生成条）');
+      } else if (['mp4', 'mov', 'webm'].includes(ext)) {
+        nodes.push({ id, type: 'video', name, ...pos, media: true, ai: false, local: true, duration: '0:08' });
+        toast('已拖入视频素材节点（无生成条）');
+      } else if (['mp3', 'wav', 'm4a', 'aac'].includes(ext)) {
+        nodes.push({ id, type: 'audio', name, ...pos, media: true, ai: false, duration: '0:10' });
+        toast('已拖入音频素材节点');
+      } else if (ext === 'md') {
+        nodes.push({ id, type: 'text', name, ...pos, w: 260, body: '（Demo）来自 ' + name + ' 的正文…', aiGenerated: false, fromMd: true });
+        toast('.md → 文本节点');
+        setNotes('p01');
+      } else {
+        toast('不支持的文件类型：' + ext + '（仅图/视/音/md）');
+        return;
+      }
+      selectNode(id); setNotes('p01');
+    });
+    renderNodes();
+  }
+
+  /* bind UI */
+  $$('#rail [data-add]').forEach(b => b.onclick = () => addNode(b.dataset.add));
+  $$('#rail [data-act]').forEach(b => b.onclick = () => {
+    const a = b.dataset.act;
+    if (a === 'genlib') openGenLib();
+    else if (a === 'lib') toast('资产库：示意入口（选素材逻辑用旁注表达）');
+    else if (a === 'upload') toast('上传：与拖入同类；点此可改用拖文件到画布演示');
+  });
+
+  const scen = $('#scen');
+  scen.innerHTML = SCENES.map(s => `<button data-id="${s.id}">${s.label}</button>`).join('');
+  $$('#scen button').forEach(b => b.onclick = () => {
+    const s = SCENES.find(x => x.id === b.dataset.id);
+    if (s.focus) selectNode(s.focus);
+    setNotes(s.note);
+    if (s.open === 'genlib') openGenLib();
+    if (s.id === 'opt2') { selectNode('n_vid'); toast('选中视频后点底部 ↑ 或节点「超分」看循环 loading'); }
+    if (s.id === 'p04') { selectNode('n_vid'); openAtMenu(); }
+    if (s.id === 'p12') {
+      selectNode('n_vid');
+      requestAnimationFrame(() => {
+        const add = $('#refAdd');
+        if (add) openRefSourceMenu(add);
+      });
+    }
+    if (s.id === 'p11') {
+      const n = nodeBy('n_ai_img'); selectNode(n.id);
+      const el = document.querySelector(`[data-id="${n.id}"]`);
+      if (el) { const r = el.getBoundingClientRect(); openCtx(r.right, r.top + 40, n); }
+    }
+  });
+
+  $('#btnAt').onclick = () => openAtMenu();
+  $('#btnGen').onclick = startGenerate;
+  $('#prompt').addEventListener('keydown', (e) => {
+    if (e.key === '@') {
+      e.preventDefault();
+      openAtMenu();
+    }
+  });
+
+  $$('[data-close]').forEach(b => b.onclick = () => $('#' + b.dataset.close).classList.remove('show'));
+  $('#dlConfirm').onclick = () => {
+    const n = nodeBy(dlPick.nodeId);
+    $('#modalDl').classList.remove('show');
+    if (!n) return toast('节点已不存在');
+    if (dlPick.mode === 'upscale') {
+      startUpscale(n, { targetRes: dlPick.res, downloadAfter: true });
+    } else {
+      toast(`开始下载 ${dlPick.res}`);
+    }
+  };
+  $$('#genTabs button').forEach(b => b.onclick = () => {
+    genTab = b.dataset.tab; $$('#genTabs button').forEach(x => x.classList.toggle('on', x === b)); renderGenGrid();
+  });
+    $('#genDl').onclick = () => {
+    const n = genSelected.size;
+    if (!n) return toast('请先选择要下载的项');
+    toast(n > 1 ? `Demo：打包 zip 下载 ${n} 项` : 'Demo：下载单个文件（与节点下载同一文件）');
+  };
+  const genSearch = $('#genSearch');
+  if (genSearch) genSearch.oninput = () => { genQuery = genSearch.value; renderGenGrid(); };
+  const genSortEl = $('#genSort');
+  if (genSortEl) genSortEl.onchange = () => { genSort = genSortEl.value; renderGenGrid(); };
+  const genSelAll = $('#genSelectAll');
+  if (genSelAll) genSelAll.onclick = () => { genList().forEach(n => genSelected.add(n.id)); renderGenGrid(); };
+  const genClear = $('#genClearSel');
+  if (genClear) genClear.onclick = () => { genSelected.clear(); renderGenGrid(); };
+  const genLoc = $('#genLocate');
+  if (genLoc) genLoc.onclick = () => {
+    if (!genSelected.size) return toast('请先选择一项以定位');
+    // 不支持则不半执行：多选不定位第一项充数
+    if (genSelected.size > 1) return toast('仅支持单个节点定位');
+    const id = [...genSelected][0];
+    const target = nodeBy(id);
+    if (!target) return toast('节点已不存在');
+    $('#modalGen').classList.remove('show');
+    selectNode(target.id);
+    toast('已定位到画布节点');
+  };
+  $('#subLibOk').onclick = () => {
+    const n = selected();
+    if (n?.type === 'subject') { n.main = true; n.name = '库·导入角色'; renderNodes(); }
+    $('#modalSubLib').classList.remove('show'); toast('已从主体库导入（账号）');
+  };
+
+  const canvas = $('#canvas');
+  canvas.addEventListener('dragover', e => { e.preventDefault(); canvas.classList.add('dragover'); });
+  canvas.addEventListener('dragleave', () => canvas.classList.remove('dragover'));
+  canvas.addEventListener('drop', e => {
+    e.preventDefault(); canvas.classList.remove('dragover');
+    if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
+  });
+  canvas.addEventListener('contextmenu', e => {
+    if (e.target.closest('.node') || e.target.closest('.gen-panel')) return;
+    e.preventDefault();
+    openCanvasCtx(e.clientX, e.clientY);
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#ctx')) $('#ctx').classList.remove('show');
+    if (!e.target.closest('#atMenu') && !e.target.closest('#btnAt') && !e.target.closest('#refAdd') && !e.target.closest('#refSourceMenu')) {
+      $('#atMenu').classList.remove('show');
+      $('#refSourceMenu')?.classList.remove('show');
+    }
+  });
+
+  /* init */
+  $('#scen').dispatchEvent(new Event('ready'));
+  setNotes('default');
+  renderNodes();
+  selectNode('n_vid', false);
+  setNotes('default');
+  requestAnimationFrame(() => positionGenPanel());
+})();
+
+</script>
+</body>
+</html>
