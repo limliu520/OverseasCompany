@@ -385,7 +385,7 @@
     <div class="pair">
       <figure>
         <img src="prd-screens/demo-template.png" alt="文案生成提示词管理，模板提示词打开" />
-        <figcaption>只开模板提示词。状态句为「当前：只用模板提示词」。</figcaption>
+          <figcaption>只开模板提示词。状态句为「当前：只用模板提示词」。结构模板及以下按现有交互展示，不做修改。</figcaption>
       </figure>
       <div>
         <div class="id">FZ-COPY-01</div>
@@ -393,6 +393,7 @@
         <h3>两个 Tab</h3>
         <p>点击「模板提示词」或「自定义提示词」标题切换，下面只显示当前这一套。各有开关。保存和取消只在这一页，保存的是提示词配置。</p>
         <p>模板提示词就是现在的结构模板：启用哪些结构、适用题材和素材条件、题材类型及候选结构、正文篇幅、最多 10 条「按要求改写」预设。结构包括事件推进体 T01 到疑问导向体 T10，以及不套模板的「自然结构」。</p>
+        <p>这些配置按现有交互逻辑展示，不做任何修改。</p>
         <p>自定义提示词是一个文本框，运营粘贴完整提示词。</p>
         <h3>开关与状态句</h3>
         <ul>
@@ -606,42 +607,7 @@
 
       <div id="template-block">
         <div class="card">
-          <h2>结构模板</h2>
-          <p class="hint">AI 从已启用、且素材条件满足的模板里挑一套。都不适合时用「自然结构」。至少启用一套。改内置模板只影响本项目，可恢复默认。</p>
-          <table>
-            <thead>
-              <tr><th>启用</th><th>模板</th><th>适用 / 条件</th><th>来源</th><th></th></tr>
-            </thead>
-            <tbody id="tpl-body"></tbody>
-          </table>
-          <div class="row-actions">
-            <button class="btn" type="button" id="add-tpl">+ 新增模板</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>题材类型</h2>
-          <p class="hint">每个题材可勾选多套结构作为候选。AI 先判断题材，再在候选里挑；候选都不适合时，再用项目里其他已启用结构。不配则用系统默认分类。下方用短码选择，避免每条题材重复一长列复选框。</p>
-          <div class="chips" id="legend"></div>
-          <div id="topics"></div>
-          <button class="btn" type="button" id="add-topic">+ 添加题材类型</button>
-        </div>
-
-        <div class="card">
-          <h2>正文篇幅（汉字数）</h2>
-          <p class="hint">AI 在最低建议和最高建议之间定字数。事实不够可以低于最低建议，但不低于绝对最低。三项都空 = 系统默认（约 350～900 字，最少 250 字）。</p>
-          <div class="grid3">
-            <div><div class="field">最低建议</div><input type="number" value="350" /></div>
-            <div><div class="field">最高建议</div><input type="number" value="900" /></div>
-            <div><div class="field">绝对最低</div><input type="number" value="250" /></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>「按要求改写」预设</h2>
-          <p class="hint">表达偏好，最多 10 条。生成主稿时按素材选用适用条目，把全文交给模型。人物称谓、不编造、连续动作合并由系统执行，不用写进预设。事实边界和图片、视频位置不会变。</p>
-          <div id="presets"></div>
-          <button class="btn" type="button" id="add-preset">+ 添加预设</button>
+          <p class="hint" style="margin:0">按现有交互逻辑展示，不做任何修改。</p>
         </div>
       </div>
 
@@ -682,38 +648,6 @@
   </main>
 </div>
 
-<div class="mask" id="mask">
-  <div class="drawer">
-    <button class="back" type="button" id="close-drawer">← 返回列表</button>
-    <h2 id="drawer-title">编辑模板</h2>
-    <p class="hint">改内置模板只影响这个项目。一条一两句话就够，不要写成范文，也不要规定「第一段必须写什么」。</p>
-    <div class="field">模板名称 *</div>
-    <input type="text" id="f-name" />
-    <div class="field" style="margin-top:12px">适用档位 *</div>
-    <div class="checks" id="f-level"></div>
-    <div class="field">适用题材</div>
-    <input type="text" id="f-topic" placeholder="多个题材用顿号分隔" />
-    <div class="field" style="margin-top:12px">素材条件</div>
-    <div class="checks" id="f-cond"></div>
-    <p class="hint">素材不满足勾选的条件时，这套模板不会被选中。</p>
-    <div class="field">写作重点 *</div>
-    <textarea id="f-focus"></textarea>
-    <div class="field">组织方式 *</div>
-    <textarea id="f-org"></textarea>
-    <div class="field">H2 规则</div>
-    <textarea id="f-h2"></textarea>
-    <div class="field">结尾</div>
-    <textarea id="f-end"></textarea>
-    <div class="field">禁止</div>
-    <textarea id="f-ban"></textarea>
-    <div class="field">模板允许的结构</div>
-    <textarea id="f-struct"></textarea>
-    <div class="row-actions">
-      <button class="btn" type="button" id="drawer-cancel">取消</button>
-      <button class="btn primary" type="button" id="drawer-save">保存这套模板</button>
-    </div>
-  </div>
-</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -753,7 +687,9 @@ const toast = (msg) => {
 };
 
 function renderTpl() {
-  document.getElementById("tpl-body").innerHTML = TPL.map((t, i) => `
+  const body = document.getElementById("tpl-body");
+  if (!body) return;
+  body.innerHTML = TPL.map((t, i) => `
     <tr>
       <td><input type="checkbox" data-tpl="${i}" ${t.on ? "checked" : ""} /></td>
       <td>${t.name} <span class="tag">${t.id}</span></td>
@@ -769,7 +705,9 @@ function renderTpl() {
 }
 
 function renderTopics() {
-  document.getElementById("topics").innerHTML = topics.map((topic, i) => `
+  const box = document.getElementById("topics");
+  if (!box) return;
+  box.innerHTML = topics.map((topic, i) => `
     <div class="topic">
       <div class="topic-top">
         <input type="text" data-tname="${i}" value="${topic.name}" placeholder="题材名称（如：网红私拍）" />
@@ -783,7 +721,9 @@ function renderTopics() {
 }
 
 function renderPresets() {
-  document.getElementById("presets").innerHTML = presets.map((p, i) => `
+  const box = document.getElementById("presets");
+  if (!box) return;
+  box.innerHTML = presets.map((p, i) => `
     <div class="preset">
       <input type="text" data-preset="${i}" value="${p}" placeholder="一条改写要求" />
       <button class="btn danger" type="button" data-pdel="${i}">删除</button>
@@ -854,79 +794,6 @@ document.querySelectorAll("#view-demo [data-tab]").forEach(tab => {
     document.getElementById("pane-link").hidden = tab.dataset.tab !== "link";
   };
 });
-
-function openDrawer(index) {
-  const t = index == null ? { name:"", fit:"", cond:"" } : TPL[index];
-  document.getElementById("drawer-title").textContent = index == null ? "新增模板" : "改写模板 · " + t.id;
-  document.getElementById("f-name").value = t.name || "";
-  document.getElementById("f-topic").value = "";
-  document.getElementById("f-level").innerHTML = LEVELS.map(lv =>
-    `<label class="check"><input type="checkbox" ${t.fit && t.fit.includes(lv) ? "checked" : ""}/>${lv}</label>`).join("");
-  document.getElementById("f-cond").innerHTML = CONDS.map(c =>
-    `<label class="check"><input type="checkbox" ${t.cond && t.cond.includes(c.replace("≥"," ≥ ").trim()) ? "checked" : ""}/>${c}</label>`).join("");
-  ["f-focus","f-org","f-h2","f-end","f-ban","f-struct"].forEach(id => {
-    document.getElementById(id).value = "";
-  });
-  document.getElementById("mask").classList.add("show");
-  document.getElementById("mask").dataset.index = index == null ? "" : String(index);
-}
-document.getElementById("close-drawer").onclick = () => document.getElementById("mask").classList.remove("show");
-document.getElementById("drawer-cancel").onclick = () => document.getElementById("mask").classList.remove("show");
-document.getElementById("drawer-save").onclick = () => {
-  const name = document.getElementById("f-name").value.trim();
-  if (!name) return toast("请填写模板名称");
-  const index = document.getElementById("mask").dataset.index;
-  if (index === "") TPL.push({ id:"T" + String(TPL.length + 1).padStart(2,"0"), name, on:true, fit:"自定义", cond:"", src:"本项目" });
-  else TPL[Number(index)].name = name;
-  document.getElementById("mask").classList.remove("show");
-  renderTpl(); renderTopics();
-  toast("这套模板已写回列表（原型，未提交）");
-};
-document.getElementById("add-tpl").onclick = () => openDrawer(null);
-
-document.getElementById("tpl-body").onclick = (e) => {
-  const edit = e.target.closest("[data-edit]");
-  const reset = e.target.closest("[data-reset]");
-  const box = e.target.closest("[data-tpl]");
-  if (edit) openDrawer(Number(edit.dataset.edit));
-  if (reset) toast("已恢复这套内置模板的系统默认（原型）");
-  if (box && box.type === "checkbox") TPL[Number(box.dataset.tpl)].on = box.checked;
-};
-
-document.getElementById("topics").onclick = (e) => {
-  const del = e.target.closest("[data-tdel]");
-  const pick = e.target.closest("[data-pick]");
-  if (del) { topics.splice(Number(del.dataset.tdel), 1); renderTopics(); }
-  if (pick) {
-    const [i, id] = pick.dataset.pick.split(":");
-    const topic = topics[Number(i)];
-    topic.picks = topic.picks.includes(id) ? topic.picks.filter(x => x !== id) : topic.picks.concat(id);
-    renderTopics();
-  }
-};
-document.getElementById("topics").oninput = (e) => {
-  if (e.target.dataset.tname != null) topics[e.target.dataset.tname].name = e.target.value;
-  if (e.target.dataset.tstyle != null) topics[e.target.dataset.tstyle].style = e.target.value;
-};
-document.getElementById("add-topic").onclick = () => {
-  topics.push({ name:"", style:"", picks:[] });
-  renderTopics();
-};
-
-document.getElementById("presets").onclick = (e) => {
-  const del = e.target.closest("[data-pdel]");
-  if (!del) return;
-  presets.splice(Number(del.dataset.pdel), 1);
-  renderPresets();
-};
-document.getElementById("presets").oninput = (e) => {
-  if (e.target.dataset.preset != null) presets[e.target.dataset.preset] = e.target.value;
-};
-document.getElementById("add-preset").onclick = () => {
-  if (presets.length >= 10) return toast("最多 10 条预设");
-  presets.push("");
-  renderPresets();
-};
 
 document.getElementById("add-link").onclick = () => {
   const kw = document.getElementById("kw").value.trim();
