@@ -579,7 +579,6 @@ button { cursor: pointer; border: 0; background: none; }
 </nav>
 <div class="wrap">
   <h1>千幕 2.1.0 · 需求 PRD</h1>
-  <p class="rev">待确认标注：红色是本次新增；删除线是拟删、尚未真正删掉。确认后恢复成正式正文。</p>
   <p class="meta" style="margin-top:4px">每个需求块左侧同时展示：参考截图（原）与 Demo 现状（本期）。交互以 Demo 为准；原图可能缺少本期优化（例如图片悬停的「下载」）。</p>
   <div class="meta">版本 2.1.0 · 2026-10-19 · 适用端：千幕 Web 画布。正式需求以本 HTML 为准。截图可点击放大。Demo 见顶部 Tab。</div>
 
@@ -1506,7 +1505,7 @@ button { cursor: pointer; border: 0; background: none; }
 
   function setNavOn(id) {
     navLinks.forEach(function (a) {
-      a.classList.toggle("on", a.getAttribute("data-nav") === id);
+      a.classList.toggle("on", !!id && a.getAttribute("data-nav") === id);
     });
   }
 
@@ -1572,8 +1571,9 @@ button { cursor: pointer; border: 0; background: none; }
     });
     if (!best) {
       var first = document.getElementById(navLinks[0].getAttribute("data-nav"));
-      if (first && first.getBoundingClientRect().top - prdTop > 80) best = null;
-      else best = navLinks[0].getAttribute("data-nav");
+      if (!(first && first.getBoundingClientRect().top - prdTop > 80)) {
+        best = navLinks[0].getAttribute("data-nav");
+      }
     }
     if (best) {
       setNavOn(best);
@@ -1582,6 +1582,12 @@ button { cursor: pointer; border: 0; background: none; }
         lastPrdHash = h;
         history.replaceState(null, "", h);
       }
+    } else {
+      setNavOn(null);
+      if (location.hash !== "#prd" && location.hash !== "#demo") {
+        lastPrdHash = "#prd";
+        history.replaceState(null, "", "#prd");
+      }
     }
   }
   prd.addEventListener("scroll", function () {
@@ -1589,13 +1595,14 @@ button { cursor: pointer; border: 0; background: none; }
     spyTimer = requestAnimationFrame(updateSpy);
   }, { passive: true });
 
-  if (location.hash === "#demo") show("demo");
-  else if (isQmHash(location.hash)) {
-    lastPrdHash = location.hash;
-    show("prd");
-    requestAnimationFrame(function () { scrollPrdTo(location.hash.slice(1), false); });
+  if (location.hash === "#demo") {
+    show("demo");
   } else {
+    // 整页刷新始终停在 PRD 文首，不按 #qm-* 跳到需求块
+    lastPrdHash = "#prd";
+    history.replaceState(null, "", "#prd");
     show("prd");
+    prd.scrollTop = 0;
   }
 
   var box = document.getElementById("lightbox");
