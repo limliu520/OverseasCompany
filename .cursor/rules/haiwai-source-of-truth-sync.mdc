@@ -22,6 +22,7 @@ alwaysApply: true
 | `海外项目/方舟/重构资料/方舟-As-Is产品功能脑图.html` | `fangzhou/方舟-As-Is产品功能脑图.html` |
 | `海外项目/方舟/重构资料/方舟-运营视角点选路径.md` | `fangzhou/方舟-运营视角点选路径.md` |
 | `海外项目/方舟/重构资料/方舟-To-Be四模块架构说明.html` | `fangzhou/方舟-To-Be四模块架构说明.html` |
+| `海外项目/方舟/重构资料/md-view.html` | `fangzhou/md-view.html` |
 
 - 以后若在 `海外项目/` 新增对外材料并在主目录放了对应副本，按同一规则维护：先改源，再覆盖同步。
 - `fangzhou/index.html` 等**仅存在于主目录、海外项目无对应源**的入口页，可直接改主目录。
