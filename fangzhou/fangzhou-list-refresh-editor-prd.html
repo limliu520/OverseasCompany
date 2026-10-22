@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>方舟 · 列表刷新与正文编辑优化 PRD</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto Sans SC", sans-serif; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 24px 64px; }
+  h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
+  h2 { font-size: 18px; margin: 28px 0 10px; }
+  h3 { font-size: 14px; margin: 16px 0 6px; color: #8d2f86; }
+  h4 { font-size: 13px; margin: 12px 0 6px; color: #1c1c1f; font-weight: 600; }
+  .meta { color: #5e5e66; font-size: 13px; margin-bottom: 8px; }
+  p { margin: 0 0 8px; }
+  ul, ol { margin: 0 0 8px; padding-left: 18px; }
+  li { margin: 0 0 4px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin: 8px 0 16px; }
+  th, td { border: 1px solid #e4e2de; padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #f3f0f2; }
+  figure { margin: 0 0 16px; }
+  img { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid #e4e2de; cursor: zoom-in; }
+  figcaption { color: #5e5e66; font-size: 12px; margin-top: 6px; }
+  .pair {
+    display: grid; grid-template-columns: minmax(280px, 42%) 1fr; gap: 20px;
+    background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+    padding: 16px; margin: 16px 0;
+  }
+  .id { font-size: 12px; color: #8d2f86; }
+  .toc {
+    background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+    padding: 14px 18px; margin: 16px 0 8px;
+  }
+  .toc ol { margin: 0; padding-left: 20px; }
+  .toc a { color: #1c1c1f; text-decoration: none; }
+  .toc a:hover { color: #8d2f86; }
+  .scope {
+    background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+    padding: 12px 16px; margin: 8px 0 16px; font-size: 13px; color: #5e5e66;
+  }
+  .lightbox {
+    position: fixed; inset: 0; z-index: 1000; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(0, 0, 0, 0.82); cursor: zoom-out;
+  }
+  .lightbox.is-open { display: flex; }
+  .lightbox img {
+    max-width: min(96vw, 1400px); max-height: 92vh; width: auto; height: auto;
+    border-radius: 8px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); cursor: default;
+  }
+  @media (max-width: 800px) { .pair { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>方舟 · 列表刷新与正文编辑优化 PRD</h1>
+  <div class="meta">版本 v1.0 · 2026-10-22 · 方舟后台 · 素材管理 / 文章管理 / 文章二次编辑 · 截图可点击放大</div>
+
+  <h2>文档索引</h2>
+  <nav class="toc" aria-label="文档索引">
+    <ol>
+      <li><a href="#bg">需求背景</a></li>
+      <li><a href="#matrix">需求功能矩阵</a></li>
+      <li><a href="#fz-list-01">FZ-LIST-01 列表状态自动更新与手动刷新</a></li>
+      <li><a href="#fz-img-01">FZ-IMG-01 正文图片描述自动带入文件名</a></li>
+      <li><a href="#fz-body-01">FZ-BODY-01 正文添加一行后焦点停留</a></li>
+      <li><a href="#fz-img-02">FZ-IMG-02 正文图片显示宽度统一</a></li>
+      <li><a href="#accept">验收表</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="bg">需求背景</h2>
+  <p>运营在「素材管理」「文章管理」列表上盯处理进度时，状态不会自己变，只能整页刷新；一刷新顶部筛选项就丢，频道等条件要重选。本期要让列表状态能自动跟上处理结果，并提供只刷列表、不动筛选项的手动刷新。浏览器整页刷新（F5）或重新打开页面后，不要求记住筛选项。</p>
+  <p>文章二次编辑里，本地上传的正文图片不会自动带图片描述，运营要一张张填。本期上传时用实际文件名（去掉扩展名）自动写入描述，之后仍可手改。不做「按新标题一键批量改编号」。</p>
+  <p>另有两处按缺陷修：在底部点「在这里加一行」后视口或光标有时跳回顶部；正文里部分图片（含从视频截出的图）显示宽度不一致，排版不齐。</p>
+
+  <div class="scope">
+    <p>做：素材管理、文章管理两张列表的自动状态更新与手动刷新；二次编辑本地上传图片描述自动带入；加行焦点；正文图片统一显示宽度。</p>
+    <p>不做：筛选项本地持久化（F5 / 重开页面后记忆）；「一键按新标题改成 新标题01、02…」；改自动生成流水线以外的业务规则。</p>
+  </div>
+
+  <h2 id="matrix">需求功能矩阵</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>功能ID</th>
+        <th>模块</th>
+        <th>名称</th>
+        <th>描述</th>
+        <th>备注</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>FZ-LIST-01</td>
+        <td>素材管理、文章管理</td>
+        <td>列表状态自动更新与手动刷新</td>
+        <td>列表中处理态可自动变为最新状态；新增「刷新」只重拉列表数据，保留顶部全部筛选项与当前页码（若有）。</td>
+        <td>自动刷新实现方式由研发评估（轮询 / 推送等）；产品只约束效果。</td>
+      </tr>
+      <tr>
+        <td>FZ-IMG-01</td>
+        <td>编辑 → 正文图片</td>
+        <td>图片描述自动带入文件名</td>
+        <td>本地上传插入正文图片时，描述默认取该文件名去掉扩展名；运营可在「图片描述」弹窗中手改并保存。</td>
+        <td>本期不做批量按标题重编号。</td>
+      </tr>
+      <tr>
+        <td>FZ-BODY-01</td>
+        <td>编辑 → 正文</td>
+        <td>添加一行后焦点停留</td>
+        <td>点击「在这里加一行」后，视口与光标停在新增行，可直接继续输入。</td>
+        <td>缺陷修复。</td>
+      </tr>
+      <tr>
+        <td>FZ-IMG-02</td>
+        <td>编辑 → 正文图片</td>
+        <td>正文图片显示宽度统一</td>
+        <td>正文区图片按统一显示宽度展示，高度按原图比例计算，不拉伸变形。</td>
+        <td>缺陷修复；含自动生成 / 视频截图插入的图。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pair" id="fz-list-01">
+    <div>
+      <figure>
+        <img src="prd-screens/material-list-filters.png" alt="素材管理列表与顶部筛选" />
+        <figcaption>素材管理。顶部含搜索与多类筛选（含频道等）。「刷新」放在筛选行右侧、列表上方操作区。</figcaption>
+      </figure>
+      <figure>
+        <img src="prd-screens/article-list-filters.png" alt="文章管理列表与顶部筛选" />
+        <figcaption>文章管理。顶部含项目、状态、文章 ID、标题、账号名称等筛选。「刷新」位置与素材管理一致：筛选行右侧、列表上方。</figcaption>
+      </figure>
+    </div>
+    <div>
+      <div class="id">FZ-LIST-01</div>
+      <h2>列表状态自动更新与手动刷新</h2>
+      <p>适用范围：方舟后台「素材管理」列表、「文章管理」列表。两页规则相同，仅筛选项字段随现网页面不同。</p>
+
+      <h3>功能逻辑</h3>
+      <p>列表行上的「状态」会随后台处理进度变化。运营停留在当前列表页时，无需整页刷新，也应看到状态从处理中变为已完成或失败等最新结果。</p>
+      <p>另提供页内「刷新」：只请求并重绘当前列表数据（含状态列），不触发整页重载，不清空、不重置顶部任何筛选项，也不因刷新本身跳回第一页以外的无意义页码变更（见业务规则）。</p>
+
+      <h3>业务规则</h3>
+      <h4>1. 自动更新</h4>
+      <ul>
+        <li>当列表中存在仍处于处理中（或等价进行中）的记录时，系统须持续获取最新状态，并更新对应行的状态展示。</li>
+        <li>当列表中已无进行中记录时，可停止或降低自动更新频率；具体策略研发评估，须保证有进行中任务时状态最终能反映到界面。</li>
+        <li>自动更新只改列表数据与状态展示，不得重置筛选项、搜索关键字、已选项目 / 频道 / 状态等条件。</li>
+        <li>自动更新不得把用户滚到列表顶部以外的阅读位置强制拽回顶部；若整表替换导致滚动位置轻微偏移，可接受，但禁止整页跳转到页面顶端。</li>
+        <li>实现方式（轮询间隔、WebSocket、任务完成回调等）由研发选型；产品验收只看：进行中任务结束后，停留在该页的运营能在合理时间内看到最新状态，且筛选未被清掉。</li>
+      </ul>
+      <h4>2. 手动刷新</h4>
+      <ul>
+        <li>按钮文案：「刷新」。</li>
+        <li>点击后按当前顶部全部筛选项与搜索条件重新拉取列表。</li>
+        <li>刷新后筛选项、输入框内容、下拉选中值全部保持点击前的样子。</li>
+        <li>若页面有分页：手动刷新后停留在当前页码；若当前页因数据变化无数据，回退到有数据的最近一页（通常为上一页或第一页），筛选项仍保留。</li>
+        <li>不要求浏览器 F5、关闭标签再打开、或从其他菜单重新进入时记住筛选项。</li>
+      </ul>
+
+      <h3>页面交互</h3>
+      <ul>
+        <li>「刷新」位于筛选区域右侧、表格上方，两页位置风格一致，与现网主色按钮体系对齐（次要操作即可，不必做成主色「搜索」同级强调，除非现网规范要求统一）。</li>
+        <li>点击「刷新」：按钮可短暂进入 loading（文案仍为「刷新」或转圈），请求进行中再次点击不重复叠加请求；结束后恢复可点。</li>
+        <li>刷新成功：列表内容与状态更新；无 Toast，或仅在失败时 Toast（见异常）。</li>
+        <li>自动更新：无额外打扰型弹窗；状态徽章文案与颜色跟现网状态枚举一致。</li>
+        <li>「搜索」「清空筛选」现网逻辑不变。「清空筛选」仍清空全部条件并重查；与「刷新」区分开。</li>
+      </ul>
+
+      <h3>异常</h3>
+      <ul>
+        <li>手动刷新接口失败：列表保持刷新前数据与筛选项不变；Toast「刷新失败，请稍后重试」；按钮恢复可点。</li>
+        <li>自动更新单次失败：不打断操作、不清空筛选；可静默重试；连续失败时不必弹窗轰炸，允许下次成功时再更新。</li>
+        <li>断网：手动刷新走失败 Toast；自动更新暂停或失败静默，恢复网络后继续。</li>
+        <li>当前页无数据且非筛选过严导致的空：展示现网空态；筛选项仍保留，便于运营改条件再搜或再刷新。</li>
+      </ul>
+
+      <h3>数据流转</h3>
+      <p>手动刷新与自动更新均携带当前页的筛选条件与分页参数请求列表接口，用返回数据替换表格行。状态字段以服务端最新值为准。不写回本地持久化筛选配置。</p>
+    </div>
+  </div>
+
+  <div class="pair" id="fz-img-01">
+    <figure>
+      <img src="prd-screens/image-desc-modal.png" alt="正文图片描述弹窗" />
+      <figcaption>二次编辑正文中的「图片描述」弹窗。本地上传后描述应已预填文件名（去扩展名）；运营可改后点「保存」。</figcaption>
+    </figure>
+    <div>
+      <div class="id">FZ-IMG-01</div>
+      <h2>正文图片描述自动带入文件名</h2>
+      <p>适用范围：文章二次编辑 → 正文中插入 / 上传本地图片。</p>
+
+      <h3>功能逻辑</h3>
+      <p>运营从本地选择图片插入正文时，系统读取该文件的原始文件名，去掉扩展名后写入该图的「图片描述」默认值。之后运营仍可通过现网「图片描述」弹窗修改并保存。</p>
+      <p>本期不提供「按文章标题一键批量改成 新标题01、02…」入口或默认行为。</p>
+
+      <h3>业务规则</h3>
+      <ul>
+        <li>仅本地上传插入正文的图片适用自动带入。从素材库选择、系统自动生成插入、视频截帧插入等：若来源本身已有描述或文件名，按现有逻辑；若当前为空，应用同一规则——有可用原始文件名则去扩展名写入，没有则保持空，不强行编造。</li>
+        <li>扩展名处理：去掉最后一个「.」及之后部分。例：「文章标题01.jpg」→「文章标题01」；「foo.bar.png」→「foo.bar」。</li>
+        <li>无扩展名的文件名原样作为描述。</li>
+        <li>多张一次上传：每张各自用自己的文件名生成描述，互不影响。</li>
+        <li>自动写入只发生在插入当时。插入后运营手改过的描述，不会被后续其它操作自动覆盖（无批量重编号功能）。</li>
+        <li>「取消」关闭图片描述弹窗：不保存本次弹窗内的编辑；已在插入时写入的默认描述仍保留在图片上，除非运营此前已改过并以保存为准（与现网弹窗保存语义一致）。</li>
+      </ul>
+
+      <h3>页面交互</h3>
+      <ul>
+        <li>本地上传成功并插入正文后，打开或查看该图「图片描述」时，输入框已带默认文案（去扩展名后的文件名）。</li>
+        <li>运营可编辑后点「保存」写入；点「取消」或遮罩关闭按现网关闭逻辑，不提交弹窗内未保存修改。</li>
+        <li>无新增工具栏按钮、无一键批量改描述按钮。</li>
+      </ul>
+
+      <h3>异常</h3>
+      <ul>
+        <li>无法读取文件名（极端环境）：描述留空；不阻断上传与插入。Toast 非必须；若现网上传失败已有提示则沿用。</li>
+        <li>文件名仅为扩展名（如「.jpg」）或去扩展名后为空：描述留空，允许运营手填。</li>
+        <li>上传失败：不插入图片，不写入描述。</li>
+      </ul>
+
+      <h3>数据流转</h3>
+      <p>上传成功后，前端（或后端回传的元数据）取原始文件名 → 去扩展名 → 写入该正文图片节点的描述字段 → 随文章草稿 / 发布一并保存。后续手改走现网图片描述保存接口。</p>
+    </div>
+  </div>
+
+  <div class="pair" id="fz-body-01">
+    <div>
+      <p style="margin:0;padding:24px;background:#f3f0f2;border-radius:8px;color:#5e5e66;font-size:13px;">本项为编辑器焦点缺陷，无单独现网截图。验收以二次编辑正文操作复现为准。</p>
+    </div>
+    <div>
+      <div class="id">FZ-BODY-01</div>
+      <h2>正文添加一行后焦点停留</h2>
+      <p>适用范围：文章二次编辑 → 正文块编辑。</p>
+
+      <h3>功能逻辑</h3>
+      <p>运营在某一位置（含文末）点击「在这里加一行」后，系统在该位置插入新的空文本行，视口保持在新行附近，光标落在新行内，可直接键盘输入。不得把滚动位置或焦点无故送回正文顶部。</p>
+
+      <h3>业务规则</h3>
+      <ul>
+        <li>任意正文位置的「在这里加一行」（含底部）行为一致：插入成功后焦点 = 新行。</li>
+        <li>新行为空文本行，可立即输入；输入行为与现网普通正文行一致。</li>
+        <li>若插入时触发自动滚动，只允许滚到能看见新行的最小范围，禁止滚到文档顶部。</li>
+      </ul>
+
+      <h3>页面交互</h3>
+      <ul>
+        <li>点击「在这里加一行」→ 新行出现 → 光标在新行闪烁 → 键盘输入字符出现在新行。</li>
+        <li>不新增确认框；无成功 Toast。</li>
+      </ul>
+
+      <h3>异常</h3>
+      <ul>
+        <li>插入失败（接口或编辑器内部错误）：不插入行；焦点留在原位置；Toast「添加失败，请重试」。</li>
+        <li>正文过长导致布局重算：仍须保证焦点在新行；若偶发丢失焦点，视为未达标。</li>
+      </ul>
+
+      <h3>数据流转</h3>
+      <p>仅编辑器本地文档模型增加一行；随文章保存草稿 / 发布写入服务端。本项不新增接口字段。</p>
+    </div>
+  </div>
+
+  <div class="pair" id="fz-img-02">
+    <div>
+      <p style="margin:0;padding:24px;background:#f3f0f2;border-radius:8px;color:#5e5e66;font-size:13px;">本项为正文图片展示缺陷。自动生成或视频截帧插入的图在编辑器中宽度应一致；高度随比例变化。</p>
+    </div>
+    <div>
+      <div class="id">FZ-IMG-02</div>
+      <h2>正文图片显示宽度统一</h2>
+      <p>适用范围：文章二次编辑 → 正文内图片展示（含自动生成插入、视频截帧、本地上传等进入正文的图）。</p>
+
+      <h3>功能逻辑</h3>
+      <p>正文区域内的图片在编辑态与预览态使用同一套显示宽度规则：宽度统一为正文内容区可用宽度（或现网已定的正文图片最大宽度），高度按原图宽高比计算。禁止把不同来源的图显示成忽大忽小，禁止为凑宽度而拉伸变形。</p>
+
+      <h3>业务规则</h3>
+      <ul>
+        <li>统一的是「显示宽度」，不是强制改原图文件像素。原图分辨率可变，展示时等比适配到统一宽度。</li>
+        <li>原图比统一宽度更窄时：居中或按现网对齐方式展示，可保持原宽不强制放大变形；若现网已有「小图也拉满内容宽」的规范则沿用，但须全程一致，且仍保持比例（object-fit 类等比，禁止只改宽不改高）。</li>
+        <li>原图比统一宽度更宽时：限制为统一宽度，高度按比例缩小。</li>
+        <li>同一篇文章内，所有正文图片的显示宽度规则相同，不因来源（生成 / 截帧 / 上传）而不同。</li>
+      </ul>
+
+      <h3>页面交互</h3>
+      <ul>
+        <li>插入或打开已有文章后，正文图片视觉宽度对齐一致。</li>
+        <li>不新增运营可配置的「每图单独宽度」控件（除非现网已有；本期不扩展）。</li>
+      </ul>
+
+      <h3>异常</h3>
+      <ul>
+        <li>图片加载失败：走现网破图 / 重试展示；不影响其它图的宽度规则。</li>
+        <li>缺失宽高元数据：加载完成后按实际渲染尺寸再套统一宽度规则，避免先大后小的明显跳动；若不可避免的一次重排，最终态必须宽度统一。</li>
+      </ul>
+
+      <h3>数据流转</h3>
+      <p>展示层 CSS / 编辑器图片节点样式统一即可；不强制重编码原图。保存文章时仍存原图地址与原有字段，不因显示宽度改写资源文件。</p>
+    </div>
+  </div>
+
+  <h2 id="accept">验收表</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>功能ID</th>
+        <th>验收标准</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>FZ-LIST-01</td>
+        <td>
+          <ul>
+            <li>素材管理、文章管理均有「刷新」；点击后列表更新，顶部全部筛选项与搜索框内容不变。</li>
+            <li>列表中有处理中任务时，不整页刷新也能看到状态变为最终态；自动更新过程中筛选项不被清空。</li>
+            <li>F5 或重新进入页面不要求恢复上次筛选项。</li>
+            <li>刷新失败时筛选项与旧列表数据保留，并提示「刷新失败，请稍后重试」。</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>FZ-IMG-01</td>
+        <td>
+          <ul>
+            <li>本地上传「文章标题01.jpg」插入正文后，图片描述默认为「文章标题01」。</li>
+            <li>可在「图片描述」弹窗中修改并保存。</li>
+            <li>页面无「按新标题一键批量改描述」按钮或等价入口。</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>FZ-BODY-01</td>
+        <td>
+          <ul>
+            <li>在正文底部（及其它位置）点「在这里加一行」后，光标在新行，可直接输入。</li>
+            <li>视口不跳回正文顶部。</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>FZ-IMG-02</td>
+        <td>
+          <ul>
+            <li>同一正文内多张图（含生成图、视频截帧）显示宽度一致。</li>
+            <li>高度随原图比例变化，无横向或纵向拉伸变形。</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="图片放大">
+  <img alt="" />
+</div>
+<script>
+(function () {
+  var box = document.getElementById("lightbox");
+  var big = box.querySelector("img");
+  document.querySelector(".wrap").addEventListener("click", function (e) {
+    var img = e.target.closest("img");
+    if (!img || img.closest(".lightbox")) return;
+    big.src = img.src;
+    big.alt = img.alt || "";
+    box.classList.add("is-open");
+  });
+  function close() { box.classList.remove("is-open"); big.removeAttribute("src"); }
+  box.addEventListener("click", close);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && box.classList.contains("is-open")) close();
+  });
+})();
+</script>
+</body>
+</html>
