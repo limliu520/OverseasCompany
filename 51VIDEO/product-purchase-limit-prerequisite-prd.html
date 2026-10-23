@@ -53,14 +53,6 @@ body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto
 #view-prd .toc ol { margin: 0; padding-left: 20px; }
 #view-prd .toc a { color: #1c1c1f; text-decoration: none; }
 #view-prd .toc a:hover { color: #8d2f86; }
-#view-prd .scope {
-  background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
-  padding: 12px 16px; margin: 8px 0 16px; font-size: 13px; color: #5e5e66;
-}
-#view-prd .note {
-  background: #fff; border: 1px dashed #d0cdc6; border-radius: 8px;
-  padding: 12px 14px; margin: 0 0 16px; font-size: 13px; color: #5e5e66;
-}
 @media (max-width: 800px) { #view-prd .pair { grid-template-columns: 1fr; } }
 
 .lightbox {
@@ -324,15 +316,6 @@ body.capture-mode .list-card { max-width: none; border: 0; border-radius: 0; }
   <h2 id="bg">版本目的 / 需求背景</h2>
   <p>运营侧计划在双十一投放「特惠包阶梯复购」与「金币充值加赠」。加赠可走现有「赠送多少币」配置；复购依赖「买过 A 才看到 B」与「每人限购 N 次」，当前产品管理不具备这两项能力，也无法按时间窗自动控制商品对 APP 的可见性（仅有手动「产品状态」与「折扣过期时间」，折扣过期只影响折扣价，不控制商品上下架）。</p>
   <p>本期把限购数、前置条件、有效时间做成可复用的商品级长期能力，APP 金币充值页继续由后端返回可购列表驱动展示，前端页面不改版、不加复购弹窗、不做邀请裂变。</p>
-
-  <div class="scope">
-    <p>做：产品添加 / 修改弹窗新增限购数、前置条件（行为类型 + 指定商品）、有效时间；产品列表补充限购、前置、有效时间、当前状态列；金币充值等商品列表接口与下单接口按用户态与时间窗过滤 / 校验。</p>
-    <p>不做：APP 前端改版；复购弹窗；邀请好友 / 裂变；新增第二种以上前置行为类型（枚举预留，本期只上线「购买过」）；改「可行类型」「折扣过期时间」既有语义；权益管理 / 支付网关权限管理弹窗改造。</p>
-  </div>
-
-  <div class="note">
-    <p>现网核对结论：添加 / 修改弹窗有「产品状态」与「折扣过期时间」，没有商品级「有效开始 / 结束时间」。因此有效时间作为本期新增能力。界面示意见顶部 Tab「Demo · 添加弹窗」「Demo · 产品列表」；PRD 配图为 Demo 截图（红色高亮为新增字段）。</p>
-  </div>
 
   <h2 id="matrix">需求功能矩阵</h2>
   <table>
