@@ -24,7 +24,6 @@ body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto
 .pane { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; overflow: auto; }
 .pane[hidden] { display: none !important; }
 
-/* —— PRD —— */
 #view-prd { background: #f6f5f3; }
 #view-prd .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 24px 48px; }
 #view-prd h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
@@ -37,13 +36,10 @@ body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto
 #view-prd table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin: 8px 0 16px; }
 #view-prd th, #view-prd td { border: 1px solid #e4e2de; padding: 8px 10px; text-align: left; vertical-align: top; }
 #view-prd th { background: #f3f0f2; }
-#view-prd .scope {
-  background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
-  padding: 12px 16px; margin: 8px 0 16px; font-size: 13px; color: #5e5e66;
-}
 #view-prd figure { margin: 0 0 16px; }
 #view-prd img { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid #e4e2de; cursor: zoom-in; }
 #view-prd figcaption { color: #5e5e66; font-size: 12px; margin-top: 6px; }
+#view-prd code { font-size: 12px; background: #f3f0f2; padding: 1px 6px; border-radius: 4px; }
 .lightbox {
   position: fixed; inset: 0; z-index: 1000; display: none;
   align-items: center; justify-content: center; padding: 24px;
@@ -55,12 +51,9 @@ body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto
   border-radius: 8px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); cursor: default;
 }
 
-/* —— Demo 后台 —— */
 #view-demo { background: #f0f2f5; }
 .demo-app { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 52px); }
-.demo-side {
-  background: #1f2937; color: #e5e7eb; padding: 16px 12px;
-}
+.demo-side { background: #1f2937; color: #e5e7eb; padding: 16px 12px; }
 .demo-side .logo { font-weight: 700; font-size: 14px; padding: 4px 8px 16px; }
 .demo-side .logo small { display: block; color: #9ca3af; font-weight: 400; font-size: 11px; margin-top: 2px; }
 .demo-side .group-title {
@@ -86,7 +79,7 @@ body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto
 }
 .toolbar input { min-width: 140px; }
 .toolbar input.st-search { min-width: 120px; }
-.toolbar select#st-code { min-width: 320px; max-width: 420px; }
+.toolbar select#st-code { min-width: 300px; max-width: 420px; }
 .btn {
   height: 34px; border-radius: 6px; padding: 0 14px; font: inherit; font-size: 13px;
   cursor: pointer; border: 1px solid #d1d5db; background: #fff; color: #374151;
@@ -94,7 +87,6 @@ body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto
 .btn.primary { background: #14b8a6; border-color: #14b8a6; color: #fff; }
 .btn.link { border: 0; background: transparent; color: #0d9488; padding: 0 6px; height: auto; }
 .btn.link.danger { color: #b45309; }
-.btn.link:disabled { color: #9ca3af; cursor: default; }
 .panel {
   background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
   padding: 14px 16px; margin-bottom: 14px;
@@ -104,18 +96,26 @@ table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
 table.data th, table.data td {
   border-bottom: 1px solid #f3f4f6; padding: 10px 8px; text-align: left; vertical-align: middle;
 }
-table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
+table.data th { color: #6b7280; font-weight: 600; background: #fafafa; white-space: nowrap; }
 .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: #ecfdf5; color: #047857; }
 .tag.off { background: #f3f4f6; color: #6b7280; }
-.kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 14px; }
-.kpi {
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 18px;
+.prod-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.prod-tab {
+  border: 1px solid #d1d5db; background: #fff; color: #4b5563;
+  border-radius: 8px; padding: 8px 16px; font: inherit; font-size: 13px; cursor: pointer;
 }
-.kpi .label { color: #6b7280; font-size: 13px; }
-.kpi .value { font-size: 28px; font-weight: 700; margin-top: 6px; letter-spacing: -0.02em; }
+.prod-tab.on { background: #14b8a6; border-color: #14b8a6; color: #fff; }
+.kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 14px; }
+.kpis.app { grid-template-columns: repeat(5, 1fr); }
+.kpis[hidden] { display: none !important; }
+.kpi {
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 16px;
+}
+.kpi .label { color: #6b7280; font-size: 12px; }
+.kpi .value { font-size: 24px; font-weight: 700; margin-top: 6px; letter-spacing: -0.02em; }
 .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
 .chart-box h3 { margin: 0 0 10px; font-size: 14px; }
-.chart-svg { width: 100%; height: 200px; background: #fafafa; border-radius: 6px; }
+.chart-svg { width: 100%; height: 180px; background: #fafafa; border-radius: 6px; }
 .modal-mask {
   position: fixed; inset: 0; z-index: 50; background: rgba(15, 23, 42, .45);
   display: flex; align-items: center; justify-content: center; padding: 20px;
@@ -140,8 +140,9 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
   font-size: 13px; z-index: 60; opacity: 0; pointer-events: none; transition: opacity .2s;
 }
 .toast.show { opacity: 1; }
+.scroll-x { overflow-x: auto; }
 @media (max-width: 1100px) {
-  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .kpis, .kpis.app { grid-template-columns: repeat(2, 1fr); }
   .charts { grid-template-columns: 1fr; }
   .demo-app { grid-template-columns: 1fr; }
   .demo-side { display: none; }
@@ -158,129 +159,131 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
   </div>
 </div>
 
-<!-- ===================== PRD ===================== -->
 <div class="pane" id="view-prd">
   <div class="wrap">
-    <h1>51吃瓜品宣网 / 吃瓜网 · 渠道推广链接配置与数据统计</h1>
-    <div class="meta">版本 v1.1 · 2026-10-23 · 一套后台管两站 · 截图均来自本页 Demo（可点击放大）</div>
+    <h1>51吃瓜品宣网 / 51吃瓜 APP · 渠道推广链接配置与数据统计</h1>
+    <div class="meta">版本 v2.1 · 2026-10-23 · 一套后台管品宣网 + APP · 截图均来自本页 Demo（可点击放大）</div>
 
     <h2>一、需求目的</h2>
-    <p>为不同推广平台、账号配置独立链接，分别统计访问与转化，评估各账号引流效果。</p>
+    <p>为不同推广平台、账号配置独立推广链接：品宣网侧重访问到跳转 51吃瓜网的转化；51吃瓜 APP 侧重下载、打开到注册、付费，方便运营评估各渠道引流质量。</p>
 
     <h2>二、范围</h2>
     <table>
-      <thead>
-        <tr><th>模块</th><th>内容</th></tr>
-      </thead>
+      <thead><tr><th>模块</th><th>内容</th></tr></thead>
       <tbody>
         <tr><td>菜单</td><td>新开「渠道管理」→ 渠道配置、渠道统计</td></tr>
-        <tr><td>渠道配置</td><td>新建链接、启停、复制、有限编辑（仅名称/备注）</td></tr>
-        <tr><td>渠道统计 · 筛选</td><td>日期、网站；渠道名/代理名搜索辅助；按推广码圈定数据</td></tr>
-        <tr><td>渠道统计 · 指标</td><td>PV、UV、下载点击、注册、充值</td></tr>
-        <tr><td>渠道统计 · 展示</td><td>汇总卡片 + 图表 + 明细表 + 导出明细</td></tr>
-        <tr><td>归因规则</td><td>一律跟推广码；渠道名/代理名可改，只影响展示</td></tr>
+        <tr><td>覆盖产品</td><td>品宣网、51吃瓜 APP（同一套配置；统计按产品分 Tab）</td></tr>
+        <tr><td>渠道配置</td><td>新建、启停、复制、有限编辑（仅名称/备注）；落地页固定，不配目标页</td></tr>
+        <tr><td>渠道统计 · 品宣网</td><td>PV、UV、下载点击、51吃瓜网转化数；汇总 + 图表 + 明细 + 导出（无注册/充值）</td></tr>
+        <tr><td>渠道统计 · 51吃瓜 APP</td><td>PV/UV、下载点击人数、首次打开、注册及转化率、首充及金额、付费及金额；汇总 + 明细 + 导出</td></tr>
+        <tr><td>筛选</td><td>日期；渠道名/代理名搜索；推广码（展示带名称）</td></tr>
+        <tr><td>归因</td><td>一律跟推广码；名称可改只影响展示</td></tr>
       </tbody>
     </table>
 
     <h2>三、菜单</h2>
-    <p>新开一级菜单 <strong>渠道管理</strong>，二级：</p>
     <ul>
-      <li><strong>渠道配置</strong>：生成与管理推广链接</li>
-      <li><strong>渠道统计</strong>：查看各维度数据</li>
+      <li><strong>渠道配置</strong>：一套列表管理两产品的推广链接</li>
+      <li><strong>渠道统计</strong>：内部分 Tab「品宣网」「51吃瓜 APP」，指标分表展示</li>
     </ul>
-    <p>一套后台同时管理 <strong>品宣网</strong>、<strong>吃瓜网</strong> 两个站点的链接与数据。</p>
 
     <h2>四、渠道配置</h2>
     <h3>4.1 页面示意（Demo）</h3>
     <figure>
       <img src="prd-screens-channel/demo-config.png" alt="渠道配置列表" />
-      <figcaption>图 1 · 渠道配置：筛选、新建、列表、复制链接、启停、编辑</figcaption>
+      <figcaption>图 1 · 渠道配置</figcaption>
     </figure>
 
-    <h3>4.2 新建推广链接</h3>
+    <h3>4.2 字段</h3>
     <table>
       <thead><tr><th>字段</th><th>说明</th><th>创建后可否编辑</th></tr></thead>
       <tbody>
-        <tr><td>所属网站</td><td>品宣网 / 吃瓜网</td><td>不可改</td></tr>
-        <tr><td>渠道名称</td><td>手填；若已有历史名称可联想带出（非强制主数据）</td><td>可改（展示名）</td></tr>
-        <tr><td>代理名称</td><td>手填；若已有历史名称可联想带出</td><td>可改（展示名）</td></tr>
-        <tr><td>推广码</td><td>系统生成，写入链接；统计与归因的唯一稳定键</td><td>不可改</td></tr>
-        <tr><td>推广地址</td><td>默认落地页 + 渠道参数，系统生成</td><td>不可改</td></tr>
-        <tr><td>备注</td><td>可选说明</td><td>可改</td></tr>
-        <tr><td>状态</td><td>启用 / 停用</td><td>通过启停操作变更</td></tr>
+        <tr><td>所属产品</td><td>品宣网 / 51吃瓜 APP</td><td>不可改</td></tr>
+        <tr><td>渠道名称</td><td>推广平台，手填；可从历史名称联想带出</td><td>可改（展示名）</td></tr>
+        <tr><td>代理名称</td><td>账号，手填；可从历史名称联想带出</td><td>可改（展示名）</td></tr>
+        <tr><td>推广码</td><td>系统生成；归因唯一键</td><td>不可改</td></tr>
+        <tr><td>推广地址</td><td>对应产品固定落地页 + 渠道参数，系统生成</td><td>不可改（本期不支持改跳转目标）</td></tr>
+        <tr><td>备注</td><td>可选</td><td>可改</td></tr>
+        <tr><td>状态</td><td>启用 / 停用</td><td>启停操作</td></tr>
       </tbody>
     </table>
-    <p>编辑原则：<strong>凡影响后续数据统计归因的字段不可编辑</strong>（网站、推广码、推广地址）；仅可改渠道名、代理名、备注等展示信息。改名后历史数据仍跟推广码，列表与统计展示用当前名称。</p>
-    <p>不提供删除。停用后链接可保留历史数据，新访问是否计入由研发按「停用后不再统计 / 仍统计但标记停用」约定实现，产品默认：<strong>停用后新访问不再计入该渠道有效推广</strong>。</p>
+    <p>两产品落地页均固定，后台不配置目标页/下载地址。不提供删除。默认：停用后新访问不再计入有效推广。</p>
 
-    <h3>4.3 列表操作</h3>
-    <ul>
-      <li>复制推广地址</li>
-      <li>编辑（仅名称/备注）</li>
-      <li>启用 / 停用</li>
-      <li>无删除</li>
-    </ul>
-
-    <h3>4.4 新建弹窗示意</h3>
+    <h3>4.3 新建弹窗示意</h3>
     <figure>
       <img src="prd-screens-channel/demo-config-create.png" alt="新建渠道弹窗" />
-      <figcaption>图 2 · 新建推广链接（渠道/代理手填，可从已有名称带出）</figcaption>
+      <figcaption>图 2 · 新建推广链接</figcaption>
     </figure>
 
     <h2>五、渠道统计</h2>
     <h3>5.1 页面示意（Demo）</h3>
     <figure>
-      <img src="prd-screens-channel/demo-stats.png" alt="渠道统计总览" />
-      <figcaption>图 3 · 渠道统计：名称搜索 + 推广码（带名称）筛选、汇总、图表、明细、导出</figcaption>
+      <img src="prd-screens-channel/demo-stats-web.png" alt="品宣网统计" />
+      <figcaption>图 3 · 渠道统计 · 品宣网</figcaption>
+    </figure>
+    <figure>
+      <img src="prd-screens-channel/demo-stats-app.png" alt="APP 统计" />
+      <figcaption>图 4 · 渠道统计 · 51吃瓜 APP</figcaption>
     </figure>
 
-    <h3>5.2 筛选</h3>
+    <h3>5.2 筛选（两 Tab 共用）</h3>
     <ul>
-      <li><strong>日期范围</strong>、<strong>所属网站</strong>（全部 / 品宣网 / 吃瓜网）</li>
-      <li><strong>渠道名 / 代理名</strong>：搜索（可输入；有历史值可联想），用于缩小范围、方便查找</li>
-      <li><strong>推广码</strong>：主筛选，用于圈定统计数据。选项展示须带可读信息，格式示例：<code>n7hdmuw6｜品宣网｜Twitter｜Twitter01</code>（推广码 + 网站 + 渠道名 + 代理名），禁止只展示一串码</li>
+      <li>日期范围</li>
+      <li>渠道名 / 代理名：搜索（可联想）</li>
+      <li>推广码：主筛选；选项须带可读信息，如 <code>n7hdmuw6｜品宣网｜Twitter｜Twitter01</code></li>
     </ul>
-    <p>渠道名、代理名是手填展示字段，不做固定枚举下拉维表。统计底层按推广码归因与汇总；名称搜索命中后，对应到相关推广码再出数。</p>
+    <p>产品维度用统计页顶部 Tab 切换，不再与「全部产品」混在一张指标表里。</p>
 
-    <h3>5.3 指标口径</h3>
+    <h3>5.3 指标口径说明</h3>
+    <p>推广链接即固定落地页链接，<strong>链接点击与落地页访问视为同一口径</strong>，统一用 <strong>PV（访问次数）/ UV（访问人数）</strong>，不再单列「链接点击次数/人数」。</p>
+
+    <h4 style="font-size:13px;margin:12px 0 6px">品宣网</h4>
     <table>
       <thead><tr><th>指标</th><th>说明</th></tr></thead>
       <tbody>
-        <tr><td>PV</td><td>页面访问次数</td></tr>
-        <tr><td>UV</td><td>访问人数</td></tr>
-        <tr><td>下载点击</td><td>下载按钮点击次数</td></tr>
-        <tr><td>注册</td><td>经该渠道到达后完成的注册数</td></tr>
-        <tr><td>充值</td><td>经该渠道到达后完成的充值次数/人数（明细与汇总展示以研发字段为准，Demo 展示「充值人数」）</td></tr>
+        <tr><td>PV / UV</td><td>落地页访问次数 / 人数</td></tr>
+        <tr><td>下载点击</td><td>下载/跳转相关按钮点击次数（访问→点击）</td></tr>
+        <tr><td>51吃瓜网转化数</td><td>经该渠道从品宣网成功进入 51吃瓜网的转化量</td></tr>
       </tbody>
     </table>
-    <p>跨站要求：用户从品宣网跳转到吃瓜网或下载页时，需保留渠道来源，使后续注册、充值可归因到原推广链接。</p>
+    <p>品宣网不统计注册、充值。转化对比看「访问 → 下载点击 / 进入 51吃瓜网」。</p>
+
+    <h4 style="font-size:13px;margin:12px 0 6px">51吃瓜 APP</h4>
+    <table>
+      <thead><tr><th>指标</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>PV / UV</td><td>落地页访问次数 / 人数（= 打开推广链接）</td></tr>
+        <tr><td>下载点击人数</td><td>落地页下载按钮点击人数</td></tr>
+        <tr><td>首次打开人数</td><td>安装后首次打开 APP 人数</td></tr>
+        <tr><td>新增注册 / 注册转化率</td><td>注册人数；转化率 = 注册 / UV</td></tr>
+        <tr><td>首充人数 / 首充率 / 首充金额</td><td>首充相关</td></tr>
+        <tr><td>付费人数 / 付费金额</td><td>渠道用户付费汇总</td></tr>
+      </tbody>
+    </table>
+    <p>APP 路径需尽可能保留渠道来源：打开推广链接 → 落地 → 下载 → 打开 APP → 注册 / 付费，均归因到推广码。</p>
 
     <h3>5.4 展示与导出</h3>
     <ul>
-      <li>顶部汇总卡片</li>
-      <li>趋势图（静态示意即可）</li>
-      <li>渠道明细表：每一行须同时展示 <strong>推广码 + 网站 + 渠道名 + 代理名</strong> 及指标，避免只看码看不懂</li>
-      <li><strong>导出明细</strong>：导出当前筛选条件下的明细数据（含上述可读字段）</li>
+      <li>汇总卡片 + 简单图表（示意）+ 明细表</li>
+      <li>明细含：推广码 + 产品 + 渠道名 + 代理名 + 对应指标</li>
+      <li>导出当前 Tab、当前筛选下的明细</li>
     </ul>
 
     <h2>六、验收标准</h2>
     <table>
       <thead><tr><th>项</th><th>标准</th></tr></thead>
       <tbody>
-        <tr><td>菜单</td><td>渠道管理 → 渠道配置 / 渠道统计 可用，一套后台覆盖两站</td></tr>
-        <tr><td>建链</td><td>可为两站分别生成带推广码的默认落地链接，可复制</td></tr>
-        <tr><td>编辑约束</td><td>推广码、网站、推广地址不可改；名称/备注可改</td></tr>
-        <tr><td>无删除</td><td>列表无删除入口</td></tr>
-        <tr><td>统计筛选</td><td>支持日期/网站；渠道名/代理名可搜索；可用推广码筛选；推广码选项带网站+渠道名+代理名</td></tr>
-        <tr><td>归因</td><td>访问与转化跟推广码；改名不影响历史归属</td></tr>
-        <tr><td>跨站归因</td><td>品宣网跳转吃瓜网/下载页后，渠道来源可延续</td></tr>
-        <tr><td>明细/导出</td><td>明细与导出均含推广码及对应名称；可导出当前筛选明细</td></tr>
+        <tr><td>配置</td><td>可为品宣网、51吃瓜 APP 分别建链；落地固定；可复制；名称/备注可改；码与地址不可改；无删除</td></tr>
+        <tr><td>统计分表</td><td>品宣网 / APP 两个 Tab，指标各自独立</td></tr>
+        <tr><td>口径</td><td>不重复统计「链接点击」与 PV/UV</td></tr>
+        <tr><td>筛选</td><td>日期、名称搜索、推广码（带名称展示）</td></tr>
+        <tr><td>归因</td><td>跟推广码；APP 下载打开后注册付费可关联</td></tr>
+        <tr><td>导出</td><td>可导出当前明细</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- ===================== DEMO ===================== -->
 <div class="pane" id="view-demo" hidden>
   <div class="demo-app">
     <aside class="demo-side">
@@ -291,15 +294,14 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
     </aside>
 
     <main class="demo-main">
-      <!-- 配置 -->
       <section id="page-config">
         <h1>渠道配置</h1>
         <div class="toolbar">
           <input type="search" placeholder="渠道 / 代理 / 推广码" id="cfg-kw" />
           <select id="cfg-site">
-            <option value="">全部网站</option>
+            <option value="">全部产品</option>
             <option>品宣网</option>
-            <option>吃瓜网</option>
+            <option>51吃瓜APP</option>
           </select>
           <select id="cfg-status">
             <option value="">全部状态</option>
@@ -313,7 +315,7 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
           <table class="data" id="cfg-table">
             <thead>
               <tr>
-                <th>编号</th><th>所属网站</th><th>渠道名称</th><th>代理名称</th>
+                <th>编号</th><th>所属产品</th><th>渠道名称</th><th>代理名称</th>
                 <th>推广码</th><th>推广地址</th><th>状态</th><th>创建时间</th><th>操作</th>
               </tr>
             </thead>
@@ -322,20 +324,16 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
         </div>
       </section>
 
-      <!-- 统计 -->
       <section id="page-stats" hidden>
         <h1>渠道统计</h1>
+        <div class="prod-tabs">
+          <button type="button" class="prod-tab on" data-prod="品宣网">品宣网</button>
+          <button type="button" class="prod-tab" data-prod="51吃瓜APP">51吃瓜 APP</button>
+        </div>
         <div class="toolbar">
-          <select id="st-site">
-            <option value="">全部网站</option>
-            <option>品宣网</option>
-            <option>吃瓜网</option>
-          </select>
           <input type="search" class="st-search" id="st-channel" list="dl-channel" placeholder="搜索渠道名" />
           <input type="search" class="st-search" id="st-agent" list="dl-agent" placeholder="搜索代理名" />
-          <select id="st-code">
-            <option value="">全部推广码</option>
-          </select>
+          <select id="st-code"><option value="">全部推广码</option></select>
           <input type="date" id="st-from" value="2026-10-17" />
           <span style="color:#9ca3af">至</span>
           <input type="date" id="st-to" value="2026-10-23" />
@@ -345,79 +343,80 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
         <datalist id="dl-channel"></datalist>
         <datalist id="dl-agent"></datalist>
 
-        <div class="kpis">
-          <div class="kpi"><div class="label">PV</div><div class="value" id="k-pv">3329</div></div>
-          <div class="kpi"><div class="label">UV</div><div class="value" id="k-uv">226</div></div>
-          <div class="kpi"><div class="label">下载点击</div><div class="value" id="k-dl">418</div></div>
-          <div class="kpi"><div class="label">注册</div><div class="value" id="k-reg">6</div></div>
-          <div class="kpi"><div class="label">充值人数</div><div class="value" id="k-pay">2</div></div>
+        <div id="kpis-web" class="kpis" style="grid-template-columns:repeat(4,1fr)">
+          <div class="kpi"><div class="label">PV</div><div class="value" id="kw-pv">0</div></div>
+          <div class="kpi"><div class="label">UV</div><div class="value" id="kw-uv">0</div></div>
+          <div class="kpi"><div class="label">下载点击</div><div class="value" id="kw-jump">0</div></div>
+          <div class="kpi"><div class="label">51吃瓜网转化数</div><div class="value" id="kw-conv">0</div></div>
+        </div>
+        <div id="kpis-app" class="kpis app" hidden>
+          <div class="kpi"><div class="label">PV</div><div class="value" id="ka-pv">0</div></div>
+          <div class="kpi"><div class="label">UV</div><div class="value" id="ka-uv">0</div></div>
+          <div class="kpi"><div class="label">下载点击人数</div><div class="value" id="ka-dl">0</div></div>
+          <div class="kpi"><div class="label">首次打开</div><div class="value" id="ka-open">0</div></div>
+          <div class="kpi"><div class="label">注册 / 转化率</div><div class="value" id="ka-reg">0</div></div>
+          <div class="kpi"><div class="label">首充人数</div><div class="value" id="ka-fpay">0</div></div>
+          <div class="kpi"><div class="label">首充金额</div><div class="value" id="ka-famt">0</div></div>
+          <div class="kpi"><div class="label">付费人数</div><div class="value" id="ka-pay">0</div></div>
+          <div class="kpi"><div class="label">付费金额</div><div class="value" id="ka-amt">0</div></div>
+          <div class="kpi"><div class="label">首充率</div><div class="value" id="ka-frate">0%</div></div>
         </div>
 
         <div class="charts">
           <div class="panel chart-box">
-            <h3>访问趋势（PV / UV）</h3>
-            <svg class="chart-svg" viewBox="0 0 400 200" aria-hidden="true">
+            <h3 id="chart-title-1">访问趋势（PV / UV）</h3>
+            <svg class="chart-svg" viewBox="0 0 400 180" aria-hidden="true">
               <polyline fill="none" stroke="#14b8a6" stroke-width="2"
-                points="20,150 70,140 120,120 170,130 220,90 270,70 320,40 370,55" />
+                points="20,140 70,130 120,110 170,120 220,80 270,60 320,35 370,50" />
               <polyline fill="none" stroke="#64748b" stroke-width="2"
-                points="20,170 70,165 120,160 170,155 220,145 270,130 320,110 370,120" />
-              <text x="20" y="16" fill="#94a3b8" font-size="11">绿：PV　灰：UV（示意）</text>
+                points="20,155 70,150 120,145 170,140 220,130 270,115 320,95 370,105" />
             </svg>
           </div>
           <div class="panel chart-box">
-            <h3>转化对比（下载 / 注册 / 充值）</h3>
-            <svg class="chart-svg" viewBox="0 0 400 200" aria-hidden="true">
-              <rect x="40" y="60" width="28" height="110" fill="#14b8a6" />
-              <rect x="78" y="140" width="28" height="30" fill="#0f766e" />
-              <rect x="116" y="155" width="28" height="15" fill="#99f6e4" />
-              <rect x="180" y="40" width="28" height="130" fill="#14b8a6" />
-              <rect x="218" y="130" width="28" height="40" fill="#0f766e" />
-              <rect x="256" y="150" width="28" height="20" fill="#99f6e4" />
-              <rect x="320" y="80" width="28" height="90" fill="#14b8a6" />
-              <rect x="358" y="145" width="28" height="25" fill="#0f766e" />
-              <text x="20" y="16" fill="#94a3b8" font-size="11">青：下载　深绿：注册　浅：充值（示意）</text>
+            <h3 id="chart-title-2">转化对比（示意）</h3>
+            <svg class="chart-svg" viewBox="0 0 400 180" aria-hidden="true">
+              <rect x="50" y="50" width="30" height="100" fill="#14b8a6" />
+              <rect x="90" y="110" width="30" height="40" fill="#0f766e" />
+              <rect x="130" y="130" width="30" height="20" fill="#99f6e4" />
+              <rect x="210" y="30" width="30" height="120" fill="#14b8a6" />
+              <rect x="250" y="100" width="30" height="50" fill="#0f766e" />
+              <rect x="290" y="120" width="30" height="30" fill="#99f6e4" />
             </svg>
           </div>
         </div>
 
         <div class="panel">
           <div class="row-between">
-            <strong style="font-size:14px">渠道明细</strong>
+            <strong style="font-size:14px" id="detail-title">渠道明细 · 品宣网</strong>
             <span style="font-size:12px;color:#9ca3af">最近汇总：2026-10-23 12:00</span>
           </div>
-          <table class="data">
-            <thead>
-              <tr>
-                <th>推广码</th><th>网站</th><th>渠道名</th><th>代理名</th>
-                <th>PV</th><th>UV</th><th>下载点击</th><th>注册</th><th>充值人数</th>
-              </tr>
-            </thead>
-            <tbody id="st-tbody"></tbody>
-          </table>
+          <div class="scroll-x">
+            <table class="data">
+              <thead id="st-thead"></thead>
+              <tbody id="st-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </section>
     </main>
   </div>
 </div>
 
-<!-- 新建 / 编辑弹窗 -->
 <div class="modal-mask" id="modal" hidden>
   <div class="modal">
     <h3 id="modal-title">新建渠道</h3>
     <div class="form-row" id="row-site">
-      <label>所属网站</label>
-      <select id="f-site"><option>品宣网</option><option>吃瓜网</option></select>
-      <div class="form-hint">创建后不可修改</div>
+      <label>所属产品</label>
+      <select id="f-site"><option>品宣网</option><option>51吃瓜APP</option></select>
+      <div class="form-hint">创建后不可修改；落地页固定，系统生成推广地址</div>
     </div>
     <div class="form-row">
       <label>渠道名称</label>
       <input id="f-channel" list="dl-channel" placeholder="手填，可从已有名称中选" />
-      <div class="form-hint">可输入新名称，或从历史渠道名中带出</div>
     </div>
     <div class="form-row">
       <label>代理名称</label>
       <input id="f-agent" list="dl-agent" placeholder="手填，可从已有名称中选" />
-      <div class="form-hint">可输入新名称，或从历史代理名中带出</div>
     </div>
     <div class="form-row">
       <label>备注</label>
@@ -442,7 +441,6 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
     Object.keys(panes).forEach((k) => { panes[k].hidden = k !== t.dataset.view; });
   }));
 
-  // lightbox
   const lb = document.getElementById('lightbox');
   document.querySelectorAll('#view-prd img').forEach((img) => {
     img.addEventListener('click', () => {
@@ -452,7 +450,6 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
   });
   lb.addEventListener('click', () => lb.classList.remove('is-open'));
 
-  // demo nav
   const pageConfig = document.getElementById('page-config');
   const pageStats = document.getElementById('page-stats');
   document.querySelectorAll('.demo-side .sub').forEach((btn) => {
@@ -464,6 +461,16 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
     });
   });
 
+  let statsProd = '品宣网';
+  document.querySelectorAll('.prod-tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.prod-tab').forEach((x) => x.classList.toggle('on', x === btn));
+      statsProd = btn.dataset.prod;
+      refreshCodeOptions();
+      renderStats();
+    });
+  });
+
   function toast(msg) {
     const el = document.getElementById('toast');
     el.textContent = msg;
@@ -471,12 +478,10 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
     setTimeout(() => el.classList.remove('show'), 1600);
   }
 
-  function code() {
-    return Math.random().toString(36).slice(2, 10);
-  }
+  function code() { return Math.random().toString(36).slice(2, 10); }
 
   function buildUrl(site, c) {
-    const host = site === '吃瓜网' ? 'https://51cgo5.com' : 'https://guanfang51.com';
+    const host = site === '51吃瓜APP' ? 'https://51cg.app/landing' : 'https://guanfang51.com';
     return host + '/?ch=' + c;
   }
 
@@ -484,27 +489,39 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
     return r.code + '｜' + r.site + '｜' + r.channel + '｜' + r.agent;
   }
 
+  let rows = [
+    { id: 1, site: '品宣网', channel: 'Twitter', agent: 'Twitter01', code: 'n7hdmuw6', note: '主号', status: '启用', created: '2026-10-18 10:12:03' },
+    { id: 2, site: '51吃瓜APP', channel: 'Telegram', agent: 'TG官方01', code: 'a2k9plqx', note: '', status: '启用', created: '2026-10-19 14:22:11' },
+    { id: 3, site: '品宣网', channel: 'X', agent: 'X投放02', code: 'm3vq8sze', note: '投放测试', status: '停用', created: '2026-10-20 09:01:45' },
+    { id: 4, site: '51吃瓜APP', channel: 'Twitter', agent: 'APP投放01', code: 'p8w2kd1a', note: 'APP主投', status: '启用', created: '2026-10-21 11:08:00' }
+  ];
+  let editId = null;
+
+  const statsByCode = {
+    n7hdmuw6: { pv: 2104, uv: 148, jump: 520, conv: 186 },
+    m3vq8sze: { pv: 239, uv: 16, jump: 40, conv: 12 },
+    a2k9plqx: { pv: 1860, uv: 920, dl: 410, open: 280, reg: 96, fpay: 18, famt: 1260, pay: 42, amt: 5680 },
+    p8w2kd1a: { pv: 980, uv: 510, dl: 220, open: 150, reg: 48, fpay: 9, famt: 540, pay: 20, amt: 2100 }
+  };
+
   function refreshNameLists() {
-    const ch = [...new Set(rows.map((r) => r.channel))];
-    const ag = [...new Set(rows.map((r) => r.agent))];
-    document.getElementById('dl-channel').innerHTML = ch.map((v) => '<option value="' + v + '"></option>').join('');
-    document.getElementById('dl-agent').innerHTML = ag.map((v) => '<option value="' + v + '"></option>').join('');
+    const list = rows.filter((r) => r.site === statsProd);
+    const src = list.length ? list : rows;
+    document.getElementById('dl-channel').innerHTML = [...new Set(src.map((r) => r.channel))]
+      .map((v) => '<option value="' + v + '"></option>').join('');
+    document.getElementById('dl-agent').innerHTML = [...new Set(src.map((r) => r.agent))]
+      .map((v) => '<option value="' + v + '"></option>').join('');
   }
 
   function refreshCodeOptions() {
     const sel = document.getElementById('st-code');
     const cur = sel.value;
+    const list = rows.filter((r) => r.site === statsProd);
     sel.innerHTML = '<option value="">全部推广码</option>' +
-      rows.map((r) => '<option value="' + r.code + '">' + codeLabel(r) + '</option>').join('');
-    if ([...sel.options].some((o) => o.value === cur)) sel.value = cur;
+      list.map((r) => '<option value="' + r.code + '">' + codeLabel(r) + '</option>').join('');
+    if (![...sel.options].some((o) => o.value === cur)) sel.value = '';
+    refreshNameLists();
   }
-
-  let rows = [
-    { id: 1, site: '品宣网', channel: 'Twitter', agent: 'Twitter01', code: 'n7hdmuw6', note: '主号', status: '启用', created: '2026-10-18 10:12:03' },
-    { id: 2, site: '吃瓜网', channel: 'Telegram', agent: 'TG官方01', code: 'a2k9plqx', note: '', status: '启用', created: '2026-10-19 14:22:11' },
-    { id: 3, site: '品宣网', channel: 'X', agent: 'X投放02', code: 'm3vq8sze', note: '投放测试', status: '停用', created: '2026-10-20 09:01:45' }
-  ];
-  let editId = null;
 
   function renderCfg() {
     const kw = (document.getElementById('cfg-kw').value || '').trim();
@@ -521,18 +538,14 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
       const url = buildUrl(r.site, r.code);
       const tr = document.createElement('tr');
       tr.innerHTML =
-        '<td>' + r.id + '</td>' +
-        '<td>' + r.site + '</td>' +
-        '<td>' + r.channel + '</td>' +
-        '<td>' + r.agent + '</td>' +
+        '<td>' + r.id + '</td><td>' + r.site + '</td><td>' + r.channel + '</td><td>' + r.agent + '</td>' +
         '<td>' + r.code + '</td>' +
         '<td><span style="word-break:break-all">' + url + '</span> <button type="button" class="btn link" data-copy="' + url + '">复制</button></td>' +
         '<td><span class="tag' + (r.status === '停用' ? ' off' : '') + '">' + r.status + '</span></td>' +
-        '<td>' + r.created + '</td>' +
-        '<td>' +
-          '<button type="button" class="btn link" data-edit="' + r.id + '">编辑</button>' +
-          '<button type="button" class="btn link' + (r.status === '启用' ? ' danger' : '') + '" data-toggle="' + r.id + '">' + (r.status === '启用' ? '停用' : '启用') + '</button>' +
-        '</td>';
+        '<td>' + r.created + '</td><td>' +
+        '<button type="button" class="btn link" data-edit="' + r.id + '">编辑</button>' +
+        '<button type="button" class="btn link' + (r.status === '启用' ? ' danger' : '') + '" data-toggle="' + r.id + '">' +
+        (r.status === '启用' ? '停用' : '启用') + '</button></td>';
       tb.appendChild(tr);
     });
   }
@@ -540,10 +553,7 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
   document.getElementById('btn-search-cfg').addEventListener('click', renderCfg);
   document.querySelector('#cfg-table').addEventListener('click', (e) => {
     const t = e.target;
-    if (t.dataset.copy) {
-      navigator.clipboard?.writeText(t.dataset.copy);
-      toast('已复制推广地址');
-    }
+    if (t.dataset.copy) { navigator.clipboard?.writeText(t.dataset.copy); toast('已复制推广地址'); }
     if (t.dataset.toggle) {
       const row = rows.find((x) => String(x.id) === t.dataset.toggle);
       if (row) { row.status = row.status === '启用' ? '停用' : '启用'; renderCfg(); }
@@ -584,63 +594,88 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
       const c = code();
       const site = document.getElementById('f-site').value;
       rows.unshift({
-        id: rows.length ? Math.max(...rows.map((x) => x.id)) + 1 : 1,
-        site, channel, agent, code: c, note, status: '启用',
-        created: '2026-10-23 17:20:00'
+        id: Math.max(...rows.map((x) => x.id)) + 1,
+        site, channel, agent, code: c, note, status: '启用', created: '2026-10-23 21:40:00'
       });
       toast('已创建推广链接');
     }
     modal.hidden = true;
     renderCfg();
-    refreshNameLists();
     refreshCodeOptions();
     renderStats();
   });
 
-  // stats：指标挂在推广码上；名称来自配置当前值
-  const statsByCode = {
-    n7hdmuw6: { pv: 2104, uv: 148, dl: 265, reg: 4, pay: 1 },
-    a2k9plqx: { pv: 986, uv: 62, dl: 128, reg: 2, pay: 1 },
-    m3vq8sze: { pv: 239, uv: 16, dl: 25, reg: 0, pay: 0 }
-  };
+  function pct(a, b) { return b ? ((a / b) * 100).toFixed(1) + '%' : '0%'; }
 
   function renderStats() {
-    const site = document.getElementById('st-site').value;
+    const isApp = statsProd === '51吃瓜APP';
+    document.getElementById('kpis-web').hidden = isApp;
+    document.getElementById('kpis-app').hidden = !isApp;
+    document.getElementById('detail-title').textContent = '渠道明细 · ' + (isApp ? '51吃瓜 APP' : '品宣网');
+    document.getElementById('chart-title-2').textContent = isApp
+      ? '转化对比（下载 / 打开 / 注册）'
+      : '转化对比（访问 → 下载点击 → 51吃瓜网）';
+
     const ch = (document.getElementById('st-channel').value || '').trim();
     const ag = (document.getElementById('st-agent').value || '').trim();
     const code = document.getElementById('st-code').value;
 
-    // 名称搜索 → 命中推广码集合；再与推广码筛选项取交
-    let list = rows.map((r) => {
-      const m = statsByCode[r.code] || { pv: 0, uv: 0, dl: 0, reg: 0, pay: 0 };
-      return Object.assign({}, r, m);
+    const list = rows.filter((r) => r.site === statsProd).map((r) => {
+      const m = statsByCode[r.code] || {};
+      return Object.assign({
+        pv: 0, uv: 0, jump: 0, conv: 0, dl: 0, reg: 0, pay: 0, open: 0, fpay: 0, famt: 0, amt: 0
+      }, r, m);
     }).filter((r) => {
-      if (site && r.site !== site) return false;
       if (ch && !r.channel.includes(ch)) return false;
       if (ag && !r.agent.includes(ag)) return false;
       if (code && r.code !== code) return false;
       return true;
     });
 
-    const sum = list.reduce((a, r) => ({
-      pv: a.pv + r.pv, uv: a.uv + r.uv, dl: a.dl + r.dl, reg: a.reg + r.reg, pay: a.pay + r.pay
-    }), { pv: 0, uv: 0, dl: 0, reg: 0, pay: 0 });
-    document.getElementById('k-pv').textContent = sum.pv;
-    document.getElementById('k-uv').textContent = sum.uv;
-    document.getElementById('k-dl').textContent = sum.dl;
-    document.getElementById('k-reg').textContent = sum.reg;
-    document.getElementById('k-pay').textContent = sum.pay;
-    const tb = document.getElementById('st-tbody');
-    tb.innerHTML = list.map((r) =>
-      '<tr><td title="' + codeLabel(r) + '">' + r.code + '</td><td>' + r.site +
-      '</td><td>' + r.channel + '</td><td>' + r.agent + '</td><td>' +
-      r.pv + '</td><td>' + r.uv + '</td><td>' + r.dl + '</td><td>' + r.reg + '</td><td>' + r.pay + '</td></tr>'
-    ).join('') || '<tr><td colspan="9" style="color:#9ca3af">无数据</td></tr>';
-  }
-  document.getElementById('btn-search-st').addEventListener('click', renderStats);
-  document.getElementById('btn-export').addEventListener('click', () => toast('已导出当前筛选明细（含推广码与名称，Demo 示意）'));
+    const thead = document.getElementById('st-thead');
+    const tbody = document.getElementById('st-tbody');
 
-  refreshNameLists();
+    if (!isApp) {
+      const sum = list.reduce((a, r) => ({
+        pv: a.pv + r.pv, uv: a.uv + r.uv, jump: a.jump + r.jump, conv: a.conv + r.conv
+      }), { pv: 0, uv: 0, jump: 0, conv: 0 });
+      document.getElementById('kw-pv').textContent = sum.pv;
+      document.getElementById('kw-uv').textContent = sum.uv;
+      document.getElementById('kw-jump').textContent = sum.jump;
+      document.getElementById('kw-conv').textContent = sum.conv;
+      thead.innerHTML = '<tr><th>推广码</th><th>产品</th><th>渠道名</th><th>代理名</th><th>PV</th><th>UV</th><th>下载点击</th><th>51吃瓜网转化数</th></tr>';
+      tbody.innerHTML = list.map((r) =>
+        '<tr><td>' + r.code + '</td><td>' + r.site + '</td><td>' + r.channel + '</td><td>' + r.agent +
+        '</td><td>' + r.pv + '</td><td>' + r.uv + '</td><td>' + r.jump + '</td><td>' + r.conv + '</td></tr>'
+      ).join('') || '<tr><td colspan="8" style="color:#9ca3af">无数据</td></tr>';
+    } else {
+      const sum = list.reduce((a, r) => ({
+        pv: a.pv + r.pv, uv: a.uv + r.uv, dl: a.dl + r.dl, open: a.open + r.open,
+        reg: a.reg + r.reg, fpay: a.fpay + r.fpay, famt: a.famt + r.famt, pay: a.pay + r.pay, amt: a.amt + r.amt
+      }), { pv: 0, uv: 0, dl: 0, open: 0, reg: 0, fpay: 0, famt: 0, pay: 0, amt: 0 });
+      document.getElementById('ka-pv').textContent = sum.pv;
+      document.getElementById('ka-uv').textContent = sum.uv;
+      document.getElementById('ka-dl').textContent = sum.dl;
+      document.getElementById('ka-open').textContent = sum.open;
+      document.getElementById('ka-reg').textContent = sum.reg + ' / ' + pct(sum.reg, sum.uv);
+      document.getElementById('ka-fpay').textContent = sum.fpay;
+      document.getElementById('ka-famt').textContent = sum.famt;
+      document.getElementById('ka-pay').textContent = sum.pay;
+      document.getElementById('ka-amt').textContent = sum.amt;
+      document.getElementById('ka-frate').textContent = pct(sum.fpay, sum.reg);
+      thead.innerHTML = '<tr><th>推广码</th><th>产品</th><th>渠道名</th><th>代理名</th><th>PV</th><th>UV</th><th>下载点击人数</th><th>首次打开</th><th>注册</th><th>注册转化率</th><th>首充人数</th><th>首充率</th><th>首充金额</th><th>付费人数</th><th>付费金额</th></tr>';
+      tbody.innerHTML = list.map((r) =>
+        '<tr><td>' + r.code + '</td><td>' + r.site + '</td><td>' + r.channel + '</td><td>' + r.agent +
+        '</td><td>' + r.pv + '</td><td>' + r.uv + '</td><td>' + r.dl + '</td><td>' + r.open +
+        '</td><td>' + r.reg + '</td><td>' + pct(r.reg, r.uv) + '</td><td>' + r.fpay +
+        '</td><td>' + pct(r.fpay, r.reg) + '</td><td>' + r.famt + '</td><td>' + r.pay + '</td><td>' + r.amt + '</td></tr>'
+      ).join('') || '<tr><td colspan="15" style="color:#9ca3af">无数据</td></tr>';
+    }
+  }
+
+  document.getElementById('btn-search-st').addEventListener('click', renderStats);
+  document.getElementById('btn-export').addEventListener('click', () => toast('已导出「' + statsProd + '」当前明细（Demo 示意）'));
+
   refreshCodeOptions();
   renderCfg();
   renderStats();
