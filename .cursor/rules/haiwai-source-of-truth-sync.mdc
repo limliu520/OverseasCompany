@@ -40,3 +40,10 @@ alwaysApply: true
 | --- | --- |
 | `海外项目/千幕/2.1.0/qianmu-2.1.0-prd-demo.html` | `qianmu/qianmu-2.1.0-prd-demo.html`（同步时把 `prd-screens/` 路径改为 `../assets/qianmu-2.1.0/`） |
 | `海外项目/千幕/2.1.0/prd-screens/*` | `assets/qianmu-2.1.0/*` |
+
+## 51VIDEO
+
+| 编辑源（只改这里） | 同步目标 |
+| --- | --- |
+| `海外项目/51视频/product-purchase-limit-prerequisite-prd.html` | `51VIDEO/product-purchase-limit-prerequisite-prd.html` |
+| `海外项目/51视频/prd-screens/*` | `51VIDEO/prd-screens/`（同名文件覆盖） |

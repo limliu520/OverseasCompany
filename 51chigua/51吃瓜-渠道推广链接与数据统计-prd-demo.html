@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>51吃瓜 · 渠道推广链接与数据统计 PRD</title>
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto Sans SC", sans-serif; }
+
+.bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 40; height: 52px;
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 20px; background: #fff; border-bottom: 1px solid #e4e2de;
+}
+.bar .brand { font-size: 13px; font-weight: 650; color: #1c1c1f; }
+.bar .tabs { display: flex; gap: 6px; }
+.bar .tab {
+  border: 1px solid transparent; background: transparent; color: #5e5e66;
+  border-radius: 8px; padding: 6px 14px; font: inherit; cursor: pointer;
+}
+.bar .tab.on { color: #1c1c1f; background: #f6f5f3; border-color: #e4e2de; }
+.pane { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; overflow: auto; }
+.pane[hidden] { display: none !important; }
+
+/* —— PRD —— */
+#view-prd { background: #f6f5f3; }
+#view-prd .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 24px 48px; }
+#view-prd h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
+#view-prd h2 { font-size: 18px; margin: 28px 0 10px; }
+#view-prd h3 { font-size: 14px; margin: 16px 0 6px; color: #0f766e; }
+#view-prd .meta { color: #5e5e66; font-size: 13px; margin-bottom: 12px; }
+#view-prd p { margin: 0 0 8px; }
+#view-prd ul { margin: 0 0 8px; padding-left: 18px; }
+#view-prd li { margin: 0 0 4px; }
+#view-prd table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin: 8px 0 16px; }
+#view-prd th, #view-prd td { border: 1px solid #e4e2de; padding: 8px 10px; text-align: left; vertical-align: top; }
+#view-prd th { background: #f3f0f2; }
+#view-prd .scope {
+  background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+  padding: 12px 16px; margin: 8px 0 16px; font-size: 13px; color: #5e5e66;
+}
+#view-prd figure { margin: 0 0 16px; }
+#view-prd img { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid #e4e2de; cursor: zoom-in; }
+#view-prd figcaption { color: #5e5e66; font-size: 12px; margin-top: 6px; }
+.lightbox {
+  position: fixed; inset: 0; z-index: 1000; display: none;
+  align-items: center; justify-content: center; padding: 24px;
+  background: rgba(0, 0, 0, 0.82); cursor: zoom-out;
+}
+.lightbox.is-open { display: flex; }
+.lightbox img {
+  max-width: min(96vw, 1400px); max-height: 92vh; width: auto; height: auto;
+  border-radius: 8px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); cursor: default;
+}
+
+/* —— Demo 后台 —— */
+#view-demo { background: #f0f2f5; }
+.demo-app { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 52px); }
+.demo-side {
+  background: #1f2937; color: #e5e7eb; padding: 16px 12px;
+}
+.demo-side .logo { font-weight: 700; font-size: 14px; padding: 4px 8px 16px; }
+.demo-side .logo small { display: block; color: #9ca3af; font-weight: 400; font-size: 11px; margin-top: 2px; }
+.demo-side .group-title {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 10px; color: #f3f4f6; font-size: 13px; font-weight: 600;
+}
+.demo-side .sub {
+  display: block; width: 100%; text-align: left; border: 0; cursor: pointer;
+  background: transparent; color: #9ca3af; font: inherit; font-size: 13px;
+  padding: 9px 10px 9px 28px; border-radius: 6px; margin: 2px 0;
+}
+.demo-side .sub.on { background: #374151; color: #fff; }
+.demo-main { padding: 20px 24px 40px; overflow: auto; }
+.demo-main h1 { font-size: 20px; margin: 0 0 16px; }
+.toolbar {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  background: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 14px;
+  border: 1px solid #e5e7eb;
+}
+.toolbar input, .toolbar select {
+  height: 34px; border: 1px solid #d1d5db; border-radius: 6px;
+  padding: 0 10px; font: inherit; font-size: 13px; background: #fff; color: #111;
+}
+.toolbar input { min-width: 140px; }
+.toolbar input.st-search { min-width: 120px; }
+.toolbar select#st-code { min-width: 320px; max-width: 420px; }
+.btn {
+  height: 34px; border-radius: 6px; padding: 0 14px; font: inherit; font-size: 13px;
+  cursor: pointer; border: 1px solid #d1d5db; background: #fff; color: #374151;
+}
+.btn.primary { background: #14b8a6; border-color: #14b8a6; color: #fff; }
+.btn.link { border: 0; background: transparent; color: #0d9488; padding: 0 6px; height: auto; }
+.btn.link.danger { color: #b45309; }
+.btn.link:disabled { color: #9ca3af; cursor: default; }
+.panel {
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+  padding: 14px 16px; margin-bottom: 14px;
+}
+.panel .row-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.data th, table.data td {
+  border-bottom: 1px solid #f3f4f6; padding: 10px 8px; text-align: left; vertical-align: middle;
+}
+table.data th { color: #6b7280; font-weight: 600; background: #fafafa; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: #ecfdf5; color: #047857; }
+.tag.off { background: #f3f4f6; color: #6b7280; }
+.kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 14px; }
+.kpi {
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 18px;
+}
+.kpi .label { color: #6b7280; font-size: 13px; }
+.kpi .value { font-size: 28px; font-weight: 700; margin-top: 6px; letter-spacing: -0.02em; }
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.chart-box h3 { margin: 0 0 10px; font-size: 14px; }
+.chart-svg { width: 100%; height: 200px; background: #fafafa; border-radius: 6px; }
+.modal-mask {
+  position: fixed; inset: 0; z-index: 50; background: rgba(15, 23, 42, .45);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-mask[hidden] { display: none; }
+.modal {
+  width: min(480px, 100%); background: #fff; border-radius: 10px; padding: 18px 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.2);
+}
+.modal h3 { margin: 0 0 14px; font-size: 16px; }
+.form-row { margin-bottom: 12px; }
+.form-row label { display: block; font-size: 13px; color: #4b5563; margin-bottom: 4px; }
+.form-row input, .form-row select, .form-row textarea {
+  width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 10px; font: inherit; font-size: 13px;
+}
+.form-row textarea { min-height: 64px; resize: vertical; }
+.form-hint { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+.modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: #111827; color: #fff; padding: 10px 16px; border-radius: 8px;
+  font-size: 13px; z-index: 60; opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.toast.show { opacity: 1; }
+@media (max-width: 1100px) {
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .charts { grid-template-columns: 1fr; }
+  .demo-app { grid-template-columns: 1fr; }
+  .demo-side { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="brand">51吃瓜 · 渠道推广</div>
+  <div class="tabs">
+    <button type="button" class="tab on" data-view="prd">PRD</button>
+    <button type="button" class="tab" data-view="demo">Demo</button>
+  </div>
+</div>
+
+<!-- ===================== PRD ===================== -->
+<div class="pane" id="view-prd">
+  <div class="wrap">
+    <h1>51吃瓜品宣网 / 吃瓜网 · 渠道推广链接配置与数据统计</h1>
+    <div class="meta">版本 v1.1 · 2026-10-23 · 一套后台管两站 · 截图均来自本页 Demo（可点击放大）</div>
+
+    <h2>一、需求目的</h2>
+    <p>为不同推广平台、账号配置独立链接，分别统计访问与转化，评估各账号引流效果。</p>
+
+    <h2>二、范围</h2>
+    <div class="scope">
+      <p><strong>做：</strong>新开菜单「渠道管理」；渠道配置（新建链接、启停、复制、有限编辑）；渠道统计（按日期/网站筛选；渠道名/代理名搜索辅助；按推广码圈定数据；PV、UV、下载点击、注册、充值；汇总 + 图表 + 明细 + 导出明细）。数据归因一律跟推广码；渠道名/代理名可改，只影响展示。</p>
+      <p><strong>不做：</strong>删除链接；复杂落地页配置（两站均用默认落地）；把渠道/代理做成独立主数据强管控；复杂自定义埋点事件设计。</p>
+    </div>
+
+    <h2>三、菜单</h2>
+    <p>新开一级菜单 <strong>渠道管理</strong>，二级：</p>
+    <ul>
+      <li><strong>渠道配置</strong>：生成与管理推广链接</li>
+      <li><strong>渠道统计</strong>：查看各维度数据</li>
+    </ul>
+    <p>一套后台同时管理 <strong>品宣网</strong>、<strong>吃瓜网</strong> 两个站点的链接与数据。</p>
+
+    <h2>四、渠道配置</h2>
+    <h3>4.1 页面示意（Demo）</h3>
+    <figure>
+      <img src="prd-screens-channel/demo-config.png" alt="渠道配置列表" />
+      <figcaption>图 1 · 渠道配置：筛选、新建、列表、复制链接、启停、编辑</figcaption>
+    </figure>
+
+    <h3>4.2 新建推广链接</h3>
+    <table>
+      <thead><tr><th>字段</th><th>说明</th><th>创建后可否编辑</th></tr></thead>
+      <tbody>
+        <tr><td>所属网站</td><td>品宣网 / 吃瓜网</td><td>不可改</td></tr>
+        <tr><td>渠道名称</td><td>手填；若已有历史名称可联想带出（非强制主数据）</td><td>可改（展示名）</td></tr>
+        <tr><td>代理名称</td><td>手填；若已有历史名称可联想带出</td><td>可改（展示名）</td></tr>
+        <tr><td>推广码</td><td>系统生成，写入链接；统计与归因的唯一稳定键</td><td>不可改</td></tr>
+        <tr><td>推广地址</td><td>默认落地页 + 渠道参数，系统生成</td><td>不可改</td></tr>
+        <tr><td>备注</td><td>可选说明</td><td>可改</td></tr>
+        <tr><td>状态</td><td>启用 / 停用</td><td>通过启停操作变更</td></tr>
+      </tbody>
+    </table>
+    <p>编辑原则：<strong>凡影响后续数据统计归因的字段不可编辑</strong>（网站、推广码、推广地址）；仅可改渠道名、代理名、备注等展示信息。改名后历史数据仍跟推广码，列表与统计展示用当前名称。</p>
+    <p>不提供删除。停用后链接可保留历史数据，新访问是否计入由研发按「停用后不再统计 / 仍统计但标记停用」约定实现，产品默认：<strong>停用后新访问不再计入该渠道有效推广</strong>。</p>
+
+    <h3>4.3 列表操作</h3>
+    <ul>
+      <li>复制推广地址</li>
+      <li>编辑（仅名称/备注）</li>
+      <li>启用 / 停用</li>
+      <li>无删除</li>
+    </ul>
+
+    <h3>4.4 新建弹窗示意</h3>
+    <figure>
+      <img src="prd-screens-channel/demo-config-create.png" alt="新建渠道弹窗" />
+      <figcaption>图 2 · 新建推广链接（渠道/代理手填，可从已有名称带出）</figcaption>
+    </figure>
+
+    <h2>五、渠道统计</h2>
+    <h3>5.1 页面示意（Demo）</h3>
+    <figure>
+      <img src="prd-screens-channel/demo-stats.png" alt="渠道统计总览" />
+      <figcaption>图 3 · 渠道统计：名称搜索 + 推广码（带名称）筛选、汇总、图表、明细、导出</figcaption>
+    </figure>
+
+    <h3>5.2 筛选</h3>
+    <ul>
+      <li><strong>日期范围</strong>、<strong>所属网站</strong>（全部 / 品宣网 / 吃瓜网）</li>
+      <li><strong>渠道名 / 代理名</strong>：搜索（可输入；有历史值可联想），用于缩小范围、方便查找</li>
+      <li><strong>推广码</strong>：主筛选，用于圈定统计数据。选项展示须带可读信息，格式示例：<code>n7hdmuw6｜品宣网｜Twitter｜Twitter01</code>（推广码 + 网站 + 渠道名 + 代理名），禁止只展示一串码</li>
+    </ul>
+    <p>渠道名、代理名是手填展示字段，不做固定枚举下拉维表。统计底层按推广码归因与汇总；名称搜索命中后，对应到相关推广码再出数。</p>
+
+    <h3>5.3 指标口径</h3>
+    <table>
+      <thead><tr><th>指标</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>PV</td><td>页面访问次数</td></tr>
+        <tr><td>UV</td><td>访问人数</td></tr>
+        <tr><td>下载点击</td><td>下载按钮点击次数</td></tr>
+        <tr><td>注册</td><td>经该渠道到达后完成的注册数</td></tr>
+        <tr><td>充值</td><td>经该渠道到达后完成的充值次数/人数（明细与汇总展示以研发字段为准，Demo 展示「充值人数」）</td></tr>
+      </tbody>
+    </table>
+    <p>跨站要求：用户从品宣网跳转到吃瓜网或下载页时，需保留渠道来源，使后续注册、充值可归因到原推广链接。</p>
+
+    <h3>5.4 展示与导出</h3>
+    <ul>
+      <li>顶部汇总卡片</li>
+      <li>趋势图（静态示意即可）</li>
+      <li>渠道明细表：每一行须同时展示 <strong>推广码 + 网站 + 渠道名 + 代理名</strong> 及指标，避免只看码看不懂</li>
+      <li><strong>导出明细</strong>：导出当前筛选条件下的明细数据（含上述可读字段）</li>
+    </ul>
+
+    <h2>六、验收标准</h2>
+    <table>
+      <thead><tr><th>项</th><th>标准</th></tr></thead>
+      <tbody>
+        <tr><td>菜单</td><td>渠道管理 → 渠道配置 / 渠道统计 可用，一套后台覆盖两站</td></tr>
+        <tr><td>建链</td><td>可为两站分别生成带推广码的默认落地链接，可复制</td></tr>
+        <tr><td>编辑约束</td><td>推广码、网站、推广地址不可改；名称/备注可改</td></tr>
+        <tr><td>无删除</td><td>列表无删除入口</td></tr>
+        <tr><td>统计筛选</td><td>支持日期/网站；渠道名/代理名可搜索；可用推广码筛选；推广码选项带网站+渠道名+代理名</td></tr>
+        <tr><td>归因</td><td>访问与转化跟推广码；改名不影响历史归属</td></tr>
+        <tr><td>跨站归因</td><td>品宣网跳转吃瓜网/下载页后，渠道来源可延续</td></tr>
+        <tr><td>明细/导出</td><td>明细与导出均含推广码及对应名称；可导出当前筛选明细</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== DEMO ===================== -->
+<div class="pane" id="view-demo" hidden>
+  <div class="demo-app">
+    <aside class="demo-side">
+      <div class="logo">51吃瓜 管理后台<small>渠道管理 Demo</small></div>
+      <div class="group-title">渠道管理 <span>▾</span></div>
+      <button type="button" class="sub on" data-page="config">渠道配置</button>
+      <button type="button" class="sub" data-page="stats">渠道统计</button>
+    </aside>
+
+    <main class="demo-main">
+      <!-- 配置 -->
+      <section id="page-config">
+        <h1>渠道配置</h1>
+        <div class="toolbar">
+          <input type="search" placeholder="渠道 / 代理 / 推广码" id="cfg-kw" />
+          <select id="cfg-site">
+            <option value="">全部网站</option>
+            <option>品宣网</option>
+            <option>吃瓜网</option>
+          </select>
+          <select id="cfg-status">
+            <option value="">全部状态</option>
+            <option>启用</option>
+            <option>停用</option>
+          </select>
+          <button type="button" class="btn primary" id="btn-search-cfg">查询</button>
+          <button type="button" class="btn primary" id="btn-create">新建渠道</button>
+        </div>
+        <div class="panel">
+          <table class="data" id="cfg-table">
+            <thead>
+              <tr>
+                <th>编号</th><th>所属网站</th><th>渠道名称</th><th>代理名称</th>
+                <th>推广码</th><th>推广地址</th><th>状态</th><th>创建时间</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 统计 -->
+      <section id="page-stats" hidden>
+        <h1>渠道统计</h1>
+        <div class="toolbar">
+          <select id="st-site">
+            <option value="">全部网站</option>
+            <option>品宣网</option>
+            <option>吃瓜网</option>
+          </select>
+          <input type="search" class="st-search" id="st-channel" list="dl-channel" placeholder="搜索渠道名" />
+          <input type="search" class="st-search" id="st-agent" list="dl-agent" placeholder="搜索代理名" />
+          <select id="st-code">
+            <option value="">全部推广码</option>
+          </select>
+          <input type="date" id="st-from" value="2026-10-17" />
+          <span style="color:#9ca3af">至</span>
+          <input type="date" id="st-to" value="2026-10-23" />
+          <button type="button" class="btn primary" id="btn-search-st">查询</button>
+          <button type="button" class="btn" id="btn-export">导出明细</button>
+        </div>
+        <datalist id="dl-channel"></datalist>
+        <datalist id="dl-agent"></datalist>
+
+        <div class="kpis">
+          <div class="kpi"><div class="label">PV</div><div class="value" id="k-pv">3329</div></div>
+          <div class="kpi"><div class="label">UV</div><div class="value" id="k-uv">226</div></div>
+          <div class="kpi"><div class="label">下载点击</div><div class="value" id="k-dl">418</div></div>
+          <div class="kpi"><div class="label">注册</div><div class="value" id="k-reg">6</div></div>
+          <div class="kpi"><div class="label">充值人数</div><div class="value" id="k-pay">2</div></div>
+        </div>
+
+        <div class="charts">
+          <div class="panel chart-box">
+            <h3>访问趋势（PV / UV）</h3>
+            <svg class="chart-svg" viewBox="0 0 400 200" aria-hidden="true">
+              <polyline fill="none" stroke="#14b8a6" stroke-width="2"
+                points="20,150 70,140 120,120 170,130 220,90 270,70 320,40 370,55" />
+              <polyline fill="none" stroke="#64748b" stroke-width="2"
+                points="20,170 70,165 120,160 170,155 220,145 270,130 320,110 370,120" />
+              <text x="20" y="16" fill="#94a3b8" font-size="11">绿：PV　灰：UV（示意）</text>
+            </svg>
+          </div>
+          <div class="panel chart-box">
+            <h3>转化对比（下载 / 注册 / 充值）</h3>
+            <svg class="chart-svg" viewBox="0 0 400 200" aria-hidden="true">
+              <rect x="40" y="60" width="28" height="110" fill="#14b8a6" />
+              <rect x="78" y="140" width="28" height="30" fill="#0f766e" />
+              <rect x="116" y="155" width="28" height="15" fill="#99f6e4" />
+              <rect x="180" y="40" width="28" height="130" fill="#14b8a6" />
+              <rect x="218" y="130" width="28" height="40" fill="#0f766e" />
+              <rect x="256" y="150" width="28" height="20" fill="#99f6e4" />
+              <rect x="320" y="80" width="28" height="90" fill="#14b8a6" />
+              <rect x="358" y="145" width="28" height="25" fill="#0f766e" />
+              <text x="20" y="16" fill="#94a3b8" font-size="11">青：下载　深绿：注册　浅：充值（示意）</text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="row-between">
+            <strong style="font-size:14px">渠道明细</strong>
+            <span style="font-size:12px;color:#9ca3af">最近汇总：2026-10-23 12:00</span>
+          </div>
+          <table class="data">
+            <thead>
+              <tr>
+                <th>推广码</th><th>网站</th><th>渠道名</th><th>代理名</th>
+                <th>PV</th><th>UV</th><th>下载点击</th><th>注册</th><th>充值人数</th>
+              </tr>
+            </thead>
+            <tbody id="st-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- 新建 / 编辑弹窗 -->
+<div class="modal-mask" id="modal" hidden>
+  <div class="modal">
+    <h3 id="modal-title">新建渠道</h3>
+    <div class="form-row" id="row-site">
+      <label>所属网站</label>
+      <select id="f-site"><option>品宣网</option><option>吃瓜网</option></select>
+      <div class="form-hint">创建后不可修改</div>
+    </div>
+    <div class="form-row">
+      <label>渠道名称</label>
+      <input id="f-channel" list="dl-channel" placeholder="手填，可从已有名称中选" />
+      <div class="form-hint">可输入新名称，或从历史渠道名中带出</div>
+    </div>
+    <div class="form-row">
+      <label>代理名称</label>
+      <input id="f-agent" list="dl-agent" placeholder="手填，可从已有名称中选" />
+      <div class="form-hint">可输入新名称，或从历史代理名中带出</div>
+    </div>
+    <div class="form-row">
+      <label>备注</label>
+      <textarea id="f-note" placeholder="可选"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn" id="modal-cancel">取消</button>
+      <button type="button" class="btn primary" id="modal-ok">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="lightbox" id="lightbox" aria-hidden="true"><img alt="预览" /></div>
+
+<script>
+(function () {
+  const tabs = document.querySelectorAll('.bar .tab');
+  const panes = { prd: document.getElementById('view-prd'), demo: document.getElementById('view-demo') };
+  tabs.forEach((t) => t.addEventListener('click', () => {
+    tabs.forEach((x) => x.classList.toggle('on', x === t));
+    Object.keys(panes).forEach((k) => { panes[k].hidden = k !== t.dataset.view; });
+  }));
+
+  // lightbox
+  const lb = document.getElementById('lightbox');
+  document.querySelectorAll('#view-prd img').forEach((img) => {
+    img.addEventListener('click', () => {
+      lb.querySelector('img').src = img.src;
+      lb.classList.add('is-open');
+    });
+  });
+  lb.addEventListener('click', () => lb.classList.remove('is-open'));
+
+  // demo nav
+  const pageConfig = document.getElementById('page-config');
+  const pageStats = document.getElementById('page-stats');
+  document.querySelectorAll('.demo-side .sub').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.demo-side .sub').forEach((x) => x.classList.toggle('on', x === btn));
+      const isCfg = btn.dataset.page === 'config';
+      pageConfig.hidden = !isCfg;
+      pageStats.hidden = isCfg;
+    });
+  });
+
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 1600);
+  }
+
+  function code() {
+    return Math.random().toString(36).slice(2, 10);
+  }
+
+  function buildUrl(site, c) {
+    const host = site === '吃瓜网' ? 'https://51cgo5.com' : 'https://guanfang51.com';
+    return host + '/?ch=' + c;
+  }
+
+  function codeLabel(r) {
+    return r.code + '｜' + r.site + '｜' + r.channel + '｜' + r.agent;
+  }
+
+  function refreshNameLists() {
+    const ch = [...new Set(rows.map((r) => r.channel))];
+    const ag = [...new Set(rows.map((r) => r.agent))];
+    document.getElementById('dl-channel').innerHTML = ch.map((v) => '<option value="' + v + '"></option>').join('');
+    document.getElementById('dl-agent').innerHTML = ag.map((v) => '<option value="' + v + '"></option>').join('');
+  }
+
+  function refreshCodeOptions() {
+    const sel = document.getElementById('st-code');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">全部推广码</option>' +
+      rows.map((r) => '<option value="' + r.code + '">' + codeLabel(r) + '</option>').join('');
+    if ([...sel.options].some((o) => o.value === cur)) sel.value = cur;
+  }
+
+  let rows = [
+    { id: 1, site: '品宣网', channel: 'Twitter', agent: 'Twitter01', code: 'n7hdmuw6', note: '主号', status: '启用', created: '2026-10-18 10:12:03' },
+    { id: 2, site: '吃瓜网', channel: 'Telegram', agent: 'TG官方01', code: 'a2k9plqx', note: '', status: '启用', created: '2026-10-19 14:22:11' },
+    { id: 3, site: '品宣网', channel: 'X', agent: 'X投放02', code: 'm3vq8sze', note: '投放测试', status: '停用', created: '2026-10-20 09:01:45' }
+  ];
+  let editId = null;
+
+  function renderCfg() {
+    const kw = (document.getElementById('cfg-kw').value || '').trim();
+    const site = document.getElementById('cfg-site').value;
+    const status = document.getElementById('cfg-status').value;
+    const tb = document.querySelector('#cfg-table tbody');
+    tb.innerHTML = '';
+    rows.filter((r) => {
+      if (site && r.site !== site) return false;
+      if (status && r.status !== status) return false;
+      if (kw && !(r.channel + r.agent + r.code).includes(kw)) return false;
+      return true;
+    }).forEach((r) => {
+      const url = buildUrl(r.site, r.code);
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + r.id + '</td>' +
+        '<td>' + r.site + '</td>' +
+        '<td>' + r.channel + '</td>' +
+        '<td>' + r.agent + '</td>' +
+        '<td>' + r.code + '</td>' +
+        '<td><span style="word-break:break-all">' + url + '</span> <button type="button" class="btn link" data-copy="' + url + '">复制</button></td>' +
+        '<td><span class="tag' + (r.status === '停用' ? ' off' : '') + '">' + r.status + '</span></td>' +
+        '<td>' + r.created + '</td>' +
+        '<td>' +
+          '<button type="button" class="btn link" data-edit="' + r.id + '">编辑</button>' +
+          '<button type="button" class="btn link' + (r.status === '启用' ? ' danger' : '') + '" data-toggle="' + r.id + '">' + (r.status === '启用' ? '停用' : '启用') + '</button>' +
+        '</td>';
+      tb.appendChild(tr);
+    });
+  }
+
+  document.getElementById('btn-search-cfg').addEventListener('click', renderCfg);
+  document.querySelector('#cfg-table').addEventListener('click', (e) => {
+    const t = e.target;
+    if (t.dataset.copy) {
+      navigator.clipboard?.writeText(t.dataset.copy);
+      toast('已复制推广地址');
+    }
+    if (t.dataset.toggle) {
+      const row = rows.find((x) => String(x.id) === t.dataset.toggle);
+      if (row) { row.status = row.status === '启用' ? '停用' : '启用'; renderCfg(); }
+    }
+    if (t.dataset.edit) openModal(Number(t.dataset.edit));
+  });
+
+  const modal = document.getElementById('modal');
+  function openModal(id) {
+    editId = id || null;
+    document.getElementById('modal-title').textContent = id ? '编辑渠道' : '新建渠道';
+    document.getElementById('row-site').style.display = id ? 'none' : 'block';
+    if (id) {
+      const r = rows.find((x) => x.id === id);
+      document.getElementById('f-channel').value = r.channel;
+      document.getElementById('f-agent').value = r.agent;
+      document.getElementById('f-note').value = r.note || '';
+    } else {
+      document.getElementById('f-site').value = '品宣网';
+      document.getElementById('f-channel').value = '';
+      document.getElementById('f-agent').value = '';
+      document.getElementById('f-note').value = '';
+    }
+    modal.hidden = false;
+  }
+  document.getElementById('btn-create').addEventListener('click', () => openModal(null));
+  document.getElementById('modal-cancel').addEventListener('click', () => { modal.hidden = true; });
+  document.getElementById('modal-ok').addEventListener('click', () => {
+    const channel = document.getElementById('f-channel').value.trim();
+    const agent = document.getElementById('f-agent').value.trim();
+    const note = document.getElementById('f-note').value.trim();
+    if (!channel || !agent) { toast('请填写渠道名称和代理名称'); return; }
+    if (editId) {
+      const r = rows.find((x) => x.id === editId);
+      r.channel = channel; r.agent = agent; r.note = note;
+      toast('已保存（仅更新名称/备注）');
+    } else {
+      const c = code();
+      const site = document.getElementById('f-site').value;
+      rows.unshift({
+        id: rows.length ? Math.max(...rows.map((x) => x.id)) + 1 : 1,
+        site, channel, agent, code: c, note, status: '启用',
+        created: '2026-10-23 17:20:00'
+      });
+      toast('已创建推广链接');
+    }
+    modal.hidden = true;
+    renderCfg();
+    refreshNameLists();
+    refreshCodeOptions();
+    renderStats();
+  });
+
+  // stats：指标挂在推广码上；名称来自配置当前值
+  const statsByCode = {
+    n7hdmuw6: { pv: 2104, uv: 148, dl: 265, reg: 4, pay: 1 },
+    a2k9plqx: { pv: 986, uv: 62, dl: 128, reg: 2, pay: 1 },
+    m3vq8sze: { pv: 239, uv: 16, dl: 25, reg: 0, pay: 0 }
+  };
+
+  function renderStats() {
+    const site = document.getElementById('st-site').value;
+    const ch = (document.getElementById('st-channel').value || '').trim();
+    const ag = (document.getElementById('st-agent').value || '').trim();
+    const code = document.getElementById('st-code').value;
+
+    // 名称搜索 → 命中推广码集合；再与推广码筛选项取交
+    let list = rows.map((r) => {
+      const m = statsByCode[r.code] || { pv: 0, uv: 0, dl: 0, reg: 0, pay: 0 };
+      return Object.assign({}, r, m);
+    }).filter((r) => {
+      if (site && r.site !== site) return false;
+      if (ch && !r.channel.includes(ch)) return false;
+      if (ag && !r.agent.includes(ag)) return false;
+      if (code && r.code !== code) return false;
+      return true;
+    });
+
+    const sum = list.reduce((a, r) => ({
+      pv: a.pv + r.pv, uv: a.uv + r.uv, dl: a.dl + r.dl, reg: a.reg + r.reg, pay: a.pay + r.pay
+    }), { pv: 0, uv: 0, dl: 0, reg: 0, pay: 0 });
+    document.getElementById('k-pv').textContent = sum.pv;
+    document.getElementById('k-uv').textContent = sum.uv;
+    document.getElementById('k-dl').textContent = sum.dl;
+    document.getElementById('k-reg').textContent = sum.reg;
+    document.getElementById('k-pay').textContent = sum.pay;
+    const tb = document.getElementById('st-tbody');
+    tb.innerHTML = list.map((r) =>
+      '<tr><td title="' + codeLabel(r) + '">' + r.code + '</td><td>' + r.site +
+      '</td><td>' + r.channel + '</td><td>' + r.agent + '</td><td>' +
+      r.pv + '</td><td>' + r.uv + '</td><td>' + r.dl + '</td><td>' + r.reg + '</td><td>' + r.pay + '</td></tr>'
+    ).join('') || '<tr><td colspan="9" style="color:#9ca3af">无数据</td></tr>';
+  }
+  document.getElementById('btn-search-st').addEventListener('click', renderStats);
+  document.getElementById('btn-export').addEventListener('click', () => toast('已导出当前筛选明细（含推广码与名称，Demo 示意）'));
+
+  refreshNameLists();
+  refreshCodeOptions();
+  renderCfg();
+  renderStats();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>51视频 · 商品限购 / 前置条件 / 有效时间 PRD</title>
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto Sans SC", sans-serif; }
+
+.bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 40; height: 52px;
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 20px; background: #fff; border-bottom: 1px solid #e4e2de;
+}
+.bar .brand { font-size: 13px; font-weight: 650; color: #1c1c1f; white-space: nowrap; }
+.bar .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.bar .tab {
+  border: 1px solid transparent; background: transparent; color: #5e5e66;
+  border-radius: 8px; padding: 6px 14px; font: inherit; cursor: pointer;
+}
+.bar .tab.on { color: #1c1c1f; background: #f6f5f3; border-color: #e4e2de; }
+.pane { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; overflow: auto; }
+.pane[hidden] { display: none !important; }
+
+#view-prd { background: #f6f5f3; }
+#view-prd .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 24px 64px; }
+#view-prd h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
+#view-prd h2 { font-size: 18px; margin: 28px 0 10px; }
+#view-prd h3 { font-size: 14px; margin: 16px 0 6px; color: #8d2f86; }
+#view-prd h4 { font-size: 13px; margin: 12px 0 6px; color: #1c1c1f; font-weight: 600; }
+#view-prd .meta { color: #5e5e66; font-size: 13px; margin-bottom: 8px; }
+#view-prd p { margin: 0 0 8px; }
+#view-prd ul, #view-prd ol { margin: 0 0 8px; padding-left: 18px; }
+#view-prd li { margin: 0 0 4px; }
+#view-prd table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin: 8px 0 16px; }
+#view-prd th, #view-prd td { border: 1px solid #e4e2de; padding: 8px 10px; text-align: left; vertical-align: top; }
+#view-prd th { background: #f3f0f2; }
+#view-prd figure { margin: 0 0 16px; }
+#view-prd .prd-shot { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid #e4e2de; cursor: zoom-in; }
+#view-prd figcaption { color: #5e5e66; font-size: 12px; margin-top: 6px; }
+#view-prd .pair {
+  display: grid; grid-template-columns: minmax(280px, 42%) 1fr; gap: 20px;
+  background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+  padding: 16px; margin: 16px 0;
+}
+#view-prd .id { font-size: 12px; color: #8d2f86; }
+#view-prd .toc {
+  background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+  padding: 14px 18px; margin: 16px 0 8px;
+}
+#view-prd .toc ol { margin: 0; padding-left: 20px; }
+#view-prd .toc a { color: #1c1c1f; text-decoration: none; }
+#view-prd .toc a:hover { color: #8d2f86; }
+#view-prd .scope {
+  background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+  padding: 12px 16px; margin: 8px 0 16px; font-size: 13px; color: #5e5e66;
+}
+#view-prd .note {
+  background: #fff; border: 1px dashed #d0cdc6; border-radius: 8px;
+  padding: 12px 14px; margin: 0 0 16px; font-size: 13px; color: #5e5e66;
+}
+@media (max-width: 800px) { #view-prd .pair { grid-template-columns: 1fr; } }
+
+.lightbox {
+  position: fixed; inset: 0; z-index: 1000; display: none;
+  align-items: center; justify-content: center; padding: 24px;
+  background: rgba(0, 0, 0, 0.82); cursor: zoom-out;
+}
+.lightbox.is-open { display: flex; }
+.lightbox img {
+  max-width: min(96vw, 1400px); max-height: 92vh; width: auto; height: auto;
+  border-radius: 8px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); cursor: default;
+}
+
+/* —— Demo 公共 —— */
+.demo-shell { min-height: 100%; background: #eef1f5; padding: 20px 24px 40px; }
+.demo-hint {
+  max-width: 1100px; margin: 0 auto 14px; font-size: 13px; color: #5e5e66;
+  background: #fff; border: 1px solid #e4e2de; border-radius: 10px; padding: 10px 14px;
+}
+.demo-hint b { color: #c0392b; font-weight: 600; }
+.demo-hint code { font-size: 12px; background: #f6f5f3; padding: 1px 6px; border-radius: 4px; }
+
+/* —— 添加弹窗 Demo（仿后台 Element 风格） —— */
+.admin-frame {
+  max-width: 1100px; margin: 0 auto; background: #fff;
+  border: 1px solid #dcdfe6; border-radius: 4px; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.admin-top {
+  height: 48px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; border-bottom: 1px solid #ebeef5; background: #fff;
+}
+.admin-top .crumbs { font-size: 13px; color: #909399; }
+.admin-top .crumbs strong { color: #303133; font-weight: 600; }
+.admin-body { display: flex; min-height: 640px; }
+.admin-side {
+  width: 200px; background: #304156; color: #bfcbd9; padding: 12px 0; flex-shrink: 0;
+}
+.admin-side .mi { padding: 10px 20px; font-size: 13px; }
+.admin-side .mi.on { background: #1f2d3d; color: #409eff; }
+.admin-main { flex: 1; background: #f0f2f5; padding: 16px; position: relative; min-width: 0; }
+.fake-list-card {
+  background: #fff; border-radius: 4px; padding: 14px; opacity: .55; pointer-events: none;
+  user-select: none;
+}
+.fake-list-card .row { display: flex; gap: 8px; margin-bottom: 10px; }
+.fake-list-card .box {
+  height: 32px; background: #f5f7fa; border: 1px solid #dcdfe6; border-radius: 4px; flex: 1;
+}
+.fake-list-card .btn-g {
+  height: 32px; padding: 0 14px; background: #13c2c2; color: #fff; border-radius: 4px;
+  display: inline-flex; align-items: center; font-size: 13px;
+}
+
+.modal-mask {
+  position: absolute; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: flex-start; justify-content: center; padding: 28px 16px; overflow: auto;
+}
+.modal {
+  width: min(720px, 100%); background: #fff; border-radius: 4px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.18); display: flex; flex-direction: column; max-height: calc(100% - 8px);
+}
+.modal-hd {
+  padding: 14px 18px; border-bottom: 1px solid #ebeef5; font-size: 16px; font-weight: 600; color: #303133;
+}
+.modal-bd { padding: 18px 18px 8px; overflow: auto; }
+.modal-ft {
+  padding: 12px 18px; border-top: 1px solid #ebeef5; display: flex; justify-content: flex-end; gap: 10px;
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+.form-row { display: flex; flex-direction: column; gap: 6px; }
+.form-row.full { grid-column: 1 / -1; }
+.form-row label {
+  font-size: 13px; color: #606266; display: flex; align-items: center; gap: 6px;
+}
+.form-row .ctl {
+  height: 36px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 0 12px;
+  font: inherit; font-size: 13px; color: #606266; background: #fff; width: 100%;
+}
+.form-row textarea.ctl { height: 88px; padding: 8px 12px; resize: none; }
+.form-row .ctl.ro, .form-row select.ctl.ro {
+  background: #f5f7fa; color: #909399; pointer-events: none; cursor: default;
+}
+.upload-ro {
+  display: flex; align-items: center; gap: 10px; pointer-events: none; opacity: .85;
+}
+.upload-ro .up {
+  height: 32px; padding: 0 14px; background: #13c2c2; color: #fff; border-radius: 4px;
+  font-size: 13px; display: inline-flex; align-items: center;
+}
+.upload-ro .thumb {
+  width: 40px; height: 40px; border-radius: 4px; background: #eef1f5; border: 1px solid #dcdfe6;
+}
+.hint-ro { font-size: 12px; color: #c0c4cc; }
+
+/* 新增字段高亮 */
+.form-row.is-new {
+  background: #fff5f5; border: 1px solid #f5c2c0; border-radius: 6px; padding: 10px 12px;
+}
+.form-row.is-new label { color: #c0392b; font-weight: 600; }
+.form-row.is-new label .tag {
+  font-size: 11px; font-weight: 600; color: #fff; background: #e74c3c;
+  border-radius: 3px; padding: 1px 6px;
+}
+.form-row.is-new .ctl {
+  border-color: #f1a9a5; background: #fff; color: #303133; pointer-events: auto; cursor: text;
+}
+.form-row.is-new select.ctl { cursor: pointer; }
+.form-row.is-new .sub { font-size: 12px; color: #a94442; margin: 0; }
+.form-row.is-new.pre-group { display: flex; flex-direction: column; gap: 12px; }
+.form-row.is-new.pre-group > label.group-title { margin: 0; }
+.pre-step { display: flex; flex-direction: column; gap: 6px; }
+.pre-step .step-lab {
+  font-size: 12px; color: #c0392b; font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+}
+.pre-step .step-lab .n {
+  width: 18px; height: 18px; border-radius: 50%; background: #e74c3c; color: #fff;
+  font-size: 11px; display: inline-flex; align-items: center; justify-content: center;
+}
+.pre-step[hidden] { display: none !important; }
+.pre-step .empty-hint {
+  font-size: 12px; color: #a94442; background: #fff; border: 1px dashed #f5c2c0;
+  border-radius: 4px; padding: 8px 10px;
+}
+
+.picker { position: relative; }
+.picker-btn {
+  height: 36px; width: 100%; border: 1px solid #f1a9a5; border-radius: 4px;
+  background: #fff; padding: 0 12px; text-align: left; font: inherit; font-size: 13px;
+  color: #303133; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+}
+.picker-btn:disabled { background: #f5f7fa; color: #c0c4cc; cursor: not-allowed; border-color: #e4e7ed; }
+.picker-btn .ph { color: #c0c4cc; }
+.picker-panel {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5;
+  background: #fff; border: 1px solid #e4e7ed; border-radius: 4px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.12); display: none;
+}
+.picker-panel.open { display: block; }
+.picker-panel input {
+  width: 100%; height: 34px; border: 0; border-bottom: 1px solid #ebeef5;
+  padding: 0 12px; font: inherit; font-size: 13px; outline: none;
+}
+.picker-panel ul { list-style: none; margin: 0; padding: 4px 0; max-height: 180px; overflow: auto; }
+.picker-panel li {
+  padding: 8px 12px; font-size: 13px; cursor: pointer; color: #303133;
+}
+.picker-panel li:hover { background: #f5f7fa; }
+.picker-panel li .meta { color: #909399; font-size: 12px; }
+
+.btn { height: 36px; padding: 0 18px; border-radius: 4px; font: inherit; font-size: 13px; cursor: pointer; border: 1px solid transparent; }
+.btn-primary { background: #409eff; color: #fff; }
+.btn-default { background: #fff; color: #606266; border-color: #dcdfe6; }
+.toast {
+  position: fixed; top: 72px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,.78); color: #fff; padding: 10px 16px; border-radius: 6px;
+  font-size: 13px; z-index: 60; display: none;
+}
+.toast.show { display: block; }
+
+/* —— 列表 Demo —— */
+.list-card {
+  max-width: 1280px; margin: 0 auto; background: #fff; border-radius: 4px;
+  border: 1px solid #dcdfe6; overflow: hidden;
+}
+.list-toolbar {
+  padding: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  border-bottom: 1px solid #ebeef5; pointer-events: none; user-select: none; opacity: .9;
+}
+.list-toolbar .inp {
+  height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 0 10px;
+  font-size: 13px; color: #909399; background: #f5f7fa; min-width: 120px;
+}
+.list-toolbar .btn-search {
+  height: 32px; padding: 0 14px; background: #13c2c2; color: #fff; border-radius: 4px; font-size: 13px;
+}
+.list-toolbar .btn-add {
+  height: 32px; padding: 0 14px; background: #67c23a; color: #fff; border-radius: 4px; font-size: 13px; margin-left: auto;
+}
+.list-scroll { overflow: auto; }
+.list-table {
+  width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1280px;
+}
+.list-table th, .list-table td {
+  border-bottom: 1px solid #ebeef5; padding: 10px 8px; text-align: left; vertical-align: top; color: #606266;
+}
+.list-table th { background: #fafafa; color: #909399; font-weight: 600; white-space: nowrap; }
+.list-table th.col-new, .list-table td.col-new {
+  background: #fff5f5; color: #c0392b; border-bottom-color: #f5c2c0;
+}
+.list-table th.col-new { box-shadow: inset 0 -2px 0 #e74c3c; }
+.list-table .ops { white-space: nowrap; }
+.list-table .ops span {
+  display: inline-block; margin: 0 2px 2px 0; padding: 2px 8px; border-radius: 3px;
+  font-size: 12px; background: #ecf5ff; color: #409eff; pointer-events: none;
+}
+.list-table .ops .del { background: #fdf6ec; color: #e6a23c; }
+.badge-new {
+  display: inline-block; font-size: 10px; background: #e74c3c; color: #fff;
+  border-radius: 2px; padding: 0 4px; margin-left: 4px; vertical-align: middle;
+}
+.legend {
+  max-width: 1280px; margin: 12px auto 0; font-size: 12px; color: #5e5e66;
+}
+.legend i {
+  display: inline-block; width: 12px; height: 12px; background: #fff5f5;
+  border: 1px solid #f5c2c0; vertical-align: -2px; margin-right: 4px;
+}
+
+body.capture-mode .bar,
+body.capture-mode .demo-hint,
+body.capture-mode .legend { display: none !important; }
+body.capture-mode .pane { top: 0; }
+body.capture-mode .demo-shell { padding: 0; background: #f0f2f5; }
+body.capture-mode .admin-frame { max-width: none; border: 0; border-radius: 0; box-shadow: none; }
+body.capture-mode .admin-side,
+body.capture-mode .admin-top { display: none; }
+body.capture-mode .admin-body { min-height: auto; }
+body.capture-mode .admin-main { padding: 24px; }
+body.capture-mode .fake-list-card { display: none; }
+body.capture-mode .modal-mask {
+  position: static; background: transparent; padding: 0; display: block;
+}
+body.capture-mode .modal { box-shadow: 0 4px 20px rgba(0,0,0,.12); margin: 0 auto; }
+body.capture-mode .list-card { max-width: none; border: 0; border-radius: 0; }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand">51视频 · 商品能力</div>
+  <div class="tabs">
+    <button type="button" class="tab on" data-pane="prd">PRD</button>
+    <button type="button" class="tab" data-pane="demo-form">Demo · 添加弹窗</button>
+    <button type="button" class="tab" data-pane="demo-list">Demo · 产品列表</button>
+  </div>
+</header>
+
+<!-- ===================== PRD ===================== -->
+<section class="pane" id="view-prd">
+<div class="wrap">
+  <h1>51视频 · 商品限购 / 前置条件 / 有效时间 PRD</h1>
+  <div class="meta">版本 v1.0 · 2026-10-23 · 51视频 APP / 财务后台「产品管理」· 配图来自本页 Demo 截图 · 截图可点击放大</div>
+
+  <h2>文档索引</h2>
+  <nav class="toc" aria-label="文档索引">
+    <ol>
+      <li><a href="#bg">版本目的 / 需求背景</a></li>
+      <li><a href="#matrix">需求功能矩阵</a></li>
+      <li><a href="#v51-prod-01">V51-PROD-01 商品限购数</a></li>
+      <li><a href="#v51-prod-02">V51-PROD-02 商品前置条件</a></li>
+      <li><a href="#v51-prod-03">V51-PROD-03 商品有效时间与当前状态</a></li>
+      <li><a href="#v51-prod-04">V51-PROD-04 产品管理列表字段</a></li>
+      <li><a href="#v51-api-01">V51-API-01 APP 可购商品过滤与下单校验</a></li>
+      <li><a href="#combo">前置条件 × 限购 组合场景</a></li>
+      <li><a href="#act-1111">附录：双十一活动配置说明</a></li>
+      <li><a href="#accept">验收表</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="bg">版本目的 / 需求背景</h2>
+  <p>运营侧计划在双十一投放「特惠包阶梯复购」与「金币充值加赠」。加赠可走现有「赠送多少币」配置；复购依赖「买过 A 才看到 B」与「每人限购 N 次」，当前产品管理不具备这两项能力，也无法按时间窗自动控制商品对 APP 的可见性（仅有手动「产品状态」与「折扣过期时间」，折扣过期只影响折扣价，不控制商品上下架）。</p>
+  <p>本期把限购数、前置条件、有效时间做成可复用的商品级长期能力，APP 金币充值页继续由后端返回可购列表驱动展示，前端页面不改版、不加复购弹窗、不做邀请裂变。</p>
+
+  <div class="scope">
+    <p>做：产品添加 / 修改弹窗新增限购数、前置条件（行为类型 + 指定商品）、有效时间；产品列表补充限购、前置、有效时间、当前状态列；金币充值等商品列表接口与下单接口按用户态与时间窗过滤 / 校验。</p>
+    <p>不做：APP 前端改版；复购弹窗；邀请好友 / 裂变；新增第二种以上前置行为类型（枚举预留，本期只上线「购买过」）；改「可行类型」「折扣过期时间」既有语义；权益管理 / 支付网关权限管理弹窗改造。</p>
+  </div>
+
+  <div class="note">
+    <p>现网核对结论：添加 / 修改弹窗有「产品状态」与「折扣过期时间」，没有商品级「有效开始 / 结束时间」。因此有效时间作为本期新增能力。界面示意见顶部 Tab「Demo · 添加弹窗」「Demo · 产品列表」；PRD 配图为 Demo 截图（红色高亮为新增字段）。</p>
+  </div>
+
+  <h2 id="matrix">需求功能矩阵</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>功能ID</th>
+        <th>模块</th>
+        <th>名称</th>
+        <th>描述</th>
+        <th>备注</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>V51-PROD-01</td>
+        <td>财务管理 → 产品管理 → 添加 / 修改</td>
+        <td>商品限购数</td>
+        <td>配置该商品单用户可成功购买的次数上限；空 / 0 表示不限购。</td>
+        <td>长期能力</td>
+      </tr>
+      <tr>
+        <td>V51-PROD-02</td>
+        <td>同上</td>
+        <td>商品前置条件</td>
+        <td>配置「行为类型 + 指定商品」；本期行为仅「购买过」。满足后该商品才对用户可见可买。</td>
+        <td>仅支持绑一个前置商品</td>
+      </tr>
+      <tr>
+        <td>V51-PROD-03</td>
+        <td>同上</td>
+        <td>有效时间与当前状态</td>
+        <td>配置有效开始 / 结束时间；结合产品状态计算对 APP 的实际可售状态，并在后台展示当前状态。</td>
+        <td>现网无定时上下架，本期新增</td>
+      </tr>
+      <tr>
+        <td>V51-PROD-04</td>
+        <td>产品管理列表</td>
+        <td>列表展示新字段</td>
+        <td>列表增加限购数、前置条件、有效时间、当前状态列。</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>V51-API-01</td>
+        <td>APP 商品列表 / 下单</td>
+        <td>可购过滤与服务端校验</td>
+        <td>列表只返回当前用户可见可购商品；下单再次校验限购、前置、有效时间与上架态。</td>
+        <td>前端不改；须防绕过</td>
+      </tr>
+      <tr>
+        <td>—</td>
+        <td>运营配置</td>
+        <td>双十一活动配置</td>
+        <td>用上述能力配置特惠包阶梯与加赠档位；不加新开发项。</td>
+        <td>见附录；不进研发验收矩阵</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pair" id="v51-prod-01">
+    <div>
+      <figure>
+        <img class="prd-shot" src="prd-screens/demo-add-form.png" alt="Demo：添加商品弹窗（新增字段标红）" />
+        <figcaption>Demo · 添加弹窗截图。红色区域为新增：限购数、前置条件（行为→对象成组）、有效时间。原有字段仅展示。</figcaption>
+      </figure>
+    </div>
+    <div>
+      <div class="id">V51-PROD-01</div>
+      <h2>商品限购数</h2>
+      <p>适用范围：财务管理 → 产品管理 → 「添加」「修改」信息弹窗。</p>
+
+      <h3>功能逻辑</h3>
+      <p>为每个商品增加「限购数」配置。表示单个用户对该商品允许累计「支付成功」的次数上限。达到上限后，该商品对该用户不再出现在可购列表中，下单接口也拒绝再次购买。</p>
+      <p>未配置限购（空或 0）时，不限制购买次数。限购与前置条件、有效时间独立计算，最终是否可购取交集（见 V51-API-01 与组合场景）。</p>
+
+      <h3>业务规则</h3>
+      <ul>
+        <li>字段名：「限购数」。</li>
+        <li>类型：非负整数；输入框允许清空。</li>
+        <li>默认：空。空或 0 均表示「不限购」。</li>
+        <li>填写 ≥ 1 时生效：用户对该商品「支付成功」订单数 ≥ 限购数后，视为已达上限。</li>
+        <li>计数口径：仅统计支付成功订单。未支付、取消、失败不计。</li>
+        <li>退款：不回退限购次数。即成功支付后发生退款，仍计入已购次数，不恢复可购名额。</li>
+        <li>历史订单：能力上线后，按该用户对该商品历史支付成功次数累计；不因配置晚于首单而忽略已有成功单。</li>
+      </ul>
+
+      <h3>页面交互</h3>
+      <ul>
+        <li>位置：添加 / 修改弹窗内，与前置条件、有效时间集中在「产品状态」附近的新增配置区（见 Demo）。</li>
+        <li>控件：数字输入；旁注文案「0 或不填表示不限购」。</li>
+        <li>点「确定」：与其它字段一并提交保存；成功关闭弹窗并刷新列表（与现网一致）。</li>
+        <li>点「取消」或关弹窗：不保存本次编辑（与现网一致）。</li>
+      </ul>
+
+      <h3>异常</h3>
+      <ul>
+        <li>输入非整数、负数、小数：不提交；Toast「限购数须为大于等于 0 的整数」；弹窗不关，已填内容保留。</li>
+        <li>保存接口失败：Toast「保存失败，请稍后重试」；弹窗不关。</li>
+      </ul>
+
+      <h3>数据流转</h3>
+      <p>运营在弹窗填写限购数 → 保存写入商品配置 → 列表展示该值 → APP 列表 / 下单接口读取配置，并结合该用户支付成功次数判断是否仍可购。</p>
+    </div>
+  </div>
+
+  <div class="pair" id="v51-prod-02">
+    <div>
+      <figure>
+        <img class="prd-shot" src="prd-screens/demo-add-form-prerequisite.png" alt="Demo：前置行为与前置商品已选择" />
+        <figcaption>Demo · 前置条件成组。第 1 步选「购买过」后出现第 2 步「前置商品」；行为不是「购买过」时不展示商品选择。</figcaption>
+      </figure>
+    </div>
+    <div>
+      <div class="id">V51-PROD-02</div>
+      <h2>商品前置条件</h2>
+      <p>适用范围：同上添加 / 修改弹窗。用于配置「满足某条件后才展示并可购买本商品」，支撑特惠包复购链路。</p>
+
+      <h3>功能逻辑</h3>
+      <p>前置条件拆成两个字段：行为类型、关联商品。本期行为类型只上线「购买过」。当行为与商品均配置时，仅当该用户对关联商品存在至少一笔支付成功订单，本商品才对该用户可见可购。</p>
+      <p>前置条件默认为空：不启用前置，商品是否可购只受上架态、有效时间、限购、可行类型等其它规则约束。</p>
+
+      <h3>业务规则</h3>
+      <h4>1. 字段与默认（成组、先后关系）</h4>
+      <ul>
+        <li>后台将「前置条件」作为一组配置：先选「前置行为」，再出现该行为对应的第 2 步对象控件。</li>
+        <li>「前置行为」：枚举；默认空（不启用）。本期可选值仅：「购买过」。枚举可扩展。</li>
+        <li>当行为 =「购买过」：第 2 步展示「前置商品」，必填，单选一个商品。</li>
+        <li>当行为为空：不展示第 2 步，无前置条件。</li>
+        <li>当行为为其它未来类型：第 2 步不是「前置商品」，而是该行为对应的对象控件（本期不上线其它行为）。</li>
+        <li>行为为「购买过」但未选商品：校验失败，不允许保存。</li>
+      </ul>
+      <h4>2. 「购买过」判定</h4>
+      <ul>
+        <li>用户对「前置商品」存在 ≥ 1 笔支付成功订单，即满足。</li>
+        <li>不要求前置商品仍在有效期内或仍上架；历史成功单即可。</li>
+        <li>不考虑后续退款：一旦曾支付成功，永久视为已购买过该前置商品（用于前置判定）。</li>
+        <li>未支付、取消、失败订单不满足「购买过」。</li>
+      </ul>
+      <h4>3. 商品选择器</h4>
+      <ul>
+        <li>必须展示商品 ID，并同时展示名称；建议附带类型、推广价或价格，便于运营辨认。</li>
+        <li>仅允许选择一个前置商品。</li>
+        <li>不可选择当前正在编辑的商品自身。</li>
+        <li>可选范围：产品管理中已有商品（含下架商品，便于配历史依赖）；若关联商品后来被删除，见异常。</li>
+        <li>支持按名称或 ID 搜索后选择。</li>
+      </ul>
+
+      <h3>页面交互</h3>
+      <ul>
+        <li>位置：限购数下方，整组「前置条件」红区展示（见 Demo）。</li>
+        <li>第 1 步选「不启用」：第 2 步隐藏，仅提示无需配置对象。</li>
+        <li>第 1 步选「购买过」：立刻展示第 2 步「前置商品」选择器，可搜索并单选。</li>
+        <li>从「购买过」改回「不启用」：清空已选前置商品，并隐藏第 2 步。</li>
+        <li>已选前置商品：展示为「ID · 名称 · 价格」；可重选。</li>
+        <li>保存、取消行为与现网弹窗一致。</li>
+      </ul>
+
+      <h3>异常</h3>
+      <ul>
+        <li>行为已选但未选商品：Toast「请选择前置商品」；不关闭弹窗。</li>
+        <li>选择自身：选择器内不可选；若异常提交，Toast「前置商品不能是当前商品」。</li>
+        <li>关联商品已被删除：后台打开修改时展示「商品已删除（原 ID：x）」；保存前须重选或清空前置；APP 侧对该商品按「前置不满足」处理，直至运营修正配置。</li>
+        <li>保存失败：Toast「保存失败，请稍后重试」。</li>
+      </ul>
+
+      <h3>数据流转</h3>
+      <p>弹窗写入前置行为枚举值 + 前置商品 ID → 持久化到商品配置 → 列表展示可读摘要 → APP 列表 / 下单按用户订单记录判定是否满足「购买过」。</p>
+    </div>
+  </div>
+
+  <div class="pair" id="v51-prod-03">
+    <div>
+      <figure>
+        <img class="prd-shot" src="prd-screens/demo-add-form.png" alt="Demo：有效时间字段" />
+        <figcaption>同一添加弹窗 Demo 中，「有效开始 / 结束时间」与限购、前置同为红色新增区；与「折扣过期时间」相互独立。</figcaption>
+      </figure>
+    </div>
+    <div>
+      <div class="id">V51-PROD-03</div>
+      <h2>商品有效时间与当前状态</h2>
+      <p>适用范围：添加 / 修改弹窗 + 列表「当前状态」展示。解决双十一特惠包仅当天可售等需求；作为长期定时能力保留。</p>
+
+      <h3>功能逻辑</h3>
+      <p>为商品增加有效时间窗（开始、结束）。APP 是否可售，在「产品状态为上架」的前提下，还须落在有效时间窗内（若配置了时间）。后台列表用「当前状态」把「手动产品状态 + 时间窗」汇总成运营可读结果。</p>
+      <p>「折扣过期时间」继续只服务折扣 / 推广价逻辑，不承担商品上下架。产品状态为下架 / 未上架时，无论是否在时间窗内，APP 均不可售。</p>
+
+      <h3>业务规则</h3>
+      <h4>1. 字段</h4>
+      <ul>
+        <li>「有效开始时间」：日期时间，可空。</li>
+        <li>「有效结束时间」：日期时间，可空。</li>
+        <li>都为空：不限制时间窗；可售只看产品状态等其它条件。</li>
+        <li>仅开始：当前时间 ≥ 开始，才进入时间窗。</li>
+        <li>仅结束：当前时间 ≤ 结束，才在时间窗内。</li>
+        <li>开始与结束都填：开始 ≤ 当前 ≤ 结束为窗内；若开始 &gt; 结束，保存时校验失败。</li>
+        <li>时区：与现网后台 / 服务器统一时区；PRD 验收按服务器时间。</li>
+      </ul>
+      <h4>2. 当前状态</h4>
+      <ul>
+        <li>产品状态为「未上架」或「下架」：当前状态与产品状态文案一致。</li>
+        <li>产品状态为「上架」且未配置有效时间：当前状态「上架」。</li>
+        <li>产品状态为「上架」且未到开始时间：当前状态「未开始」。</li>
+        <li>产品状态为「上架」且在时间窗内：当前状态「售卖中」。</li>
+        <li>产品状态为「上架」且已过结束时间：当前状态「已结束」。</li>
+        <li>「未开始」「已结束」时 APP 不可见不可购，即使产品状态仍为上架。</li>
+      </ul>
+      <h4>3. 与产品状态的关系</h4>
+      <ul>
+        <li>到点 / 过期：不自动改写「产品状态」字段；仅「当前状态」与 APP 可售结果变化。</li>
+        <li>运营可随时手动下架，立即对 APP 不可售。</li>
+      </ul>
+
+      <h3>页面交互</h3>
+      <ul>
+        <li>弹窗新增两个日期时间控件；可清空。</li>
+        <li>列表「当前状态」随列表刷新按服务器当前时间计算；不要求秒级倒计时。</li>
+      </ul>
+
+      <h3>异常</h3>
+      <ul>
+        <li>开始晚于结束：Toast「有效开始时间不能晚于结束时间」；不保存。</li>
+        <li>时间格式非法：Toast「请填写正确的有效时间」；不保存。</li>
+        <li>保存失败：Toast「保存失败，请稍后重试」。</li>
+      </ul>
+
+      <h3>数据流转</h3>
+      <p>弹窗保存有效开始 / 结束 → 写入商品配置 → 列表计算当前状态 → APP 列表 / 下单在上架前提下再判断时间窗。</p>
+    </div>
+  </div>
+
+  <div class="pair" id="v51-prod-04">
+    <div>
+      <figure>
+        <img class="prd-shot" src="prd-screens/demo-product-list.png" alt="Demo：产品管理列表（新增列标红）" />
+        <figcaption>Demo · 产品列表截图。保留现网字段，红色列为新增：限购数、前置条件、有效时间、当前状态。</figcaption>
+      </figure>
+    </div>
+    <div>
+      <div class="id">V51-PROD-04</div>
+      <h2>产品管理列表字段</h2>
+      <p>适用范围：财务管理 → 产品管理列表。</p>
+
+      <h3>功能逻辑</h3>
+      <p>运营在列表即可看到限购、前置、有效时间与汇总后的当前状态，减少每次点开修改才能确认活动商品是否配错、是否已过期。</p>
+
+      <h3>业务规则</h3>
+      <ul>
+        <li>「限购数」列：不限购展示「不限」；有限购展示数字 N。</li>
+        <li>「前置条件」列：无前置展示「—」；有则展示「购买过 · {商品ID} · {商品名称}」。</li>
+        <li>「有效时间」列：都未配置展示「不限」；否则展示「开始 ~ 结束」，缺一侧用「—」占位。</li>
+        <li>「当前状态」列：未上架 / 下架 / 上架 / 未开始 / 售卖中 / 已结束。</li>
+        <li>原有列（ID、名称、价格、权益、排序、卡型、更新时间、操作等）保留。</li>
+        <li>筛选：本期不强制新增「按当前状态筛选」；非验收必选项。</li>
+      </ul>
+
+      <h3>页面交互</h3>
+      <ul>
+        <li>搜索、添加、修改、删除、权益管理、支付网关权限管理：现网不变。</li>
+        <li>保存商品后回到列表，新列立即反映最新配置与当前状态。</li>
+      </ul>
+
+      <h3>异常</h3>
+      <ul>
+        <li>列表接口失败：现网错误提示；不得只缺新列却静默成功。</li>
+        <li>前置商品名称拉取失败：前置条件列降级为「购买过 · {ID}」。</li>
+      </ul>
+
+      <h3>数据流转</h3>
+      <p>列表接口在原有商品字段上增加限购、前置行为、前置商品 ID（及名称）、有效开始 / 结束；当前状态与 APP 可售判断规则一致。</p>
+    </div>
+  </div>
+
+  <div class="pair" id="v51-api-01">
+    <div>
+      <figure>
+        <img class="prd-shot" src="prd-screens/app-coin-recharge.jpg" alt="APP 金币充值页" />
+        <figcaption>APP「金币充值」页（现网截图保留）。卡片数据由后端列表接口返回；本期前端不改。</figcaption>
+      </figure>
+    </div>
+    <div>
+      <div class="id">V51-API-01</div>
+      <h2>APP 可购商品过滤与下单校验</h2>
+      <p>适用范围：向 APP 返回可购商品的接口（至少覆盖金币充值页所用列表），以及创建 / 支付该商品的下单接口。前端无改动。</p>
+
+      <h3>功能逻辑</h3>
+      <p>列表接口只返回「当前用户此刻可展示且可购买」的商品。用户买完限购商品或满足前置后，再次进入或刷新列表时，应看到集合变化（例如 A 消失、B 出现）。</p>
+      <p>下单接口必须再次校验，防止抓包或并发绕过列表过滤。</p>
+
+      <h3>业务规则</h3>
+      <h4>1. 列表返回条件（须同时满足）</h4>
+      <ul>
+        <li>产品状态为上架（或现网等价可售状态）。</li>
+        <li>落在有效时间窗内（未配置时间窗则跳过本条）。</li>
+        <li>若配置了前置条件：用户已满足该前置（本期即已购买过指定商品）。</li>
+        <li>若配置了限购数 N≥1：用户对该商品支付成功次数 &lt; N。</li>
+        <li>现网其它过滤（如「可行类型」）继续生效，与本期能力取交集。</li>
+        <li>排序：仍按商品「排序」字段及现网规则。</li>
+      </ul>
+      <h4>2. 下单校验</h4>
+      <ul>
+        <li>创建订单前按与列表相同的规则校验；任一不满足则拒绝创建。</li>
+        <li>达限购：文案「该商品已达购买上限」。</li>
+        <li>前置不满足：文案「暂不可购买该商品」。</li>
+        <li>未上架或不在有效期：文案「商品已下架或未在售卖时间」。</li>
+        <li>前端不改：错误走现网通用失败展示；message 由接口返回。</li>
+      </ul>
+      <h4>3. 并发</h4>
+      <ul>
+        <li>同一用户并发导致突破限购：超限请求必须失败，不得两笔都成功。</li>
+      </ul>
+
+      <h3>页面交互</h3>
+      <ul>
+        <li>APP 充值页无新控件、无新弹窗。</li>
+        <li>用户可见变化仅来自列表数据变化。</li>
+      </ul>
+
+      <h3>异常</h3>
+      <ul>
+        <li>列表接口失败：现网错误 / 空态；不得降级为返回未过滤全量商品。</li>
+        <li>下单校验失败：不创建成功单；展示接口错误文案。</li>
+        <li>支付中商品变为不可购：支付结果以现网订单状态机为准；本 PRD 不另开退款规则。列表侧结束后不再露出新单入口。</li>
+      </ul>
+
+      <h3>数据流转</h3>
+      <p>APP 打开金币充值 → 请求商品列表 → 服务端按状态 / 时间 / 前置 / 限购 / 可行类型过滤 → 返回。下单 → 再次校验 → 现网支付与发货。</p>
+    </div>
+  </div>
+
+  <h2 id="combo">前置条件 × 限购 组合场景</h2>
+  <p>以下两种组合须在评审与测试中覆盖。商品 A 为首购特惠，商品 B 配置前置「购买过 A」。</p>
+  <table>
+    <thead>
+      <tr>
+        <th>场景</th>
+        <th>A 限购</th>
+        <th>B 配置</th>
+        <th>用户未买 A</th>
+        <th>用户已买 A（成功 1 次）</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>阶梯替换（双十一主路径）</td>
+        <td>限购 1</td>
+        <td>前置购买过 A；限购 1</td>
+        <td>列表仅 A</td>
+        <td>A 因限购消失；B 出现。再买 B 后 B 也消失</td>
+      </tr>
+      <tr>
+        <td>同时展示</td>
+        <td>不限购</td>
+        <td>前置购买过 A；B 可限购或不限</td>
+        <td>列表仅 A</td>
+        <td>A 仍在；B 同时出现</td>
+      </tr>
+    </tbody>
+  </table>
+  <ul>
+    <li>列表过滤与下单校验必须对当前商品完整生效或完整拒绝，禁止半执行。</li>
+    <li>B 未满足前置时：列表不返回 B，表现为「没有这张卡」，不是灰态可点。</li>
+  </ul>
+
+  <h2 id="act-1111">附录：双十一活动配置说明</h2>
+  <p>本附录给运营配置，不新增研发功能。</p>
+  <h3>活动范围（已定）</h3>
+  <ul>
+    <li>做：双十一特惠包阶梯（11.11 / 22.22）、常规充值档加赠约 11%。</li>
+    <li>不做：邀请好友 / 裂变、复购弹窗、APP 前端改版。</li>
+  </ul>
+  <h3>第一级：特惠包（建议配置）</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>商品</th>
+        <th>推广价</th>
+        <th>币</th>
+        <th>限购</th>
+        <th>前置</th>
+        <th>有效时间</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>双11首购特惠</td>
+        <td>1111 分（¥11.11）</td>
+        <td>500</td>
+        <td>1</td>
+        <td>无</td>
+        <td>双11当天 00:00:00 ~ 23:59:59</td>
+      </tr>
+      <tr>
+        <td>双11复购特惠</td>
+        <td>2222 分（¥22.22）</td>
+        <td>500</td>
+        <td>1</td>
+        <td>购买过 · 首购特惠商品</td>
+        <td>同当天</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>第二级：常规充值加赠（建议配置）</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>档位推广价</th>
+        <th>多少币</th>
+        <th>赠送多少币</th>
+        <th>到账合计</th>
+        <th>有效时间</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>¥100</td>
+        <td>1000</td>
+        <td>110</td>
+        <td>1110</td>
+        <td>11月10日 ~ 11月12日</td>
+      </tr>
+      <tr>
+        <td>¥200</td>
+        <td>2000</td>
+        <td>220</td>
+        <td>2220</td>
+        <td>同上</td>
+      </tr>
+      <tr>
+        <td>¥300</td>
+        <td>3000</td>
+        <td>330</td>
+        <td>3330</td>
+        <td>同上</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="accept">验收表</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>功能ID</th>
+        <th>验收标准</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>V51-PROD-01</td>
+        <td>
+          <ul>
+            <li>添加 / 修改弹窗有「限购数」；空或 0 为不限购。</li>
+            <li>限购 1 的商品，支付成功 1 次后列表不再返回；再次下单提示「该商品已达购买上限」。</li>
+            <li>退款后限购次数不回退。</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>V51-PROD-02</td>
+        <td>
+          <ul>
+            <li>弹窗「前置条件」成组：先行为后对象；行为为「购买过」才出现「前置商品」；默认不启用。</li>
+            <li>未买 A 时列表无 B；买过 A 后列表出现 B。</li>
+            <li>不能选自身；「购买过」时必须选商品才能保存。</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>V51-PROD-03</td>
+        <td>
+          <ul>
+            <li>可配有效开始 / 结束；与折扣过期时间独立。</li>
+            <li>未开始 / 售卖中 / 已结束 与 APP 可见性一致。</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>V51-PROD-04</td>
+        <td>
+          <ul>
+            <li>列表可见限购数、前置条件、有效时间、当前状态四列。</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>V51-API-01</td>
+        <td>
+          <ul>
+            <li>前端无改版可完成「买 A 后 A 消失、B 出现」。</li>
+            <li>A 不限购 + B 前置 A 时，买 A 后 A、B 同时出现。</li>
+            <li>绕过列表直接下单会被服务端拒绝。</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</section>
+
+<!-- ===================== Demo 添加弹窗 ===================== -->
+<section class="pane" id="view-demo-form" hidden>
+  <div class="demo-shell">
+    <div class="demo-hint">
+      红色标注为<strong>本期新增</strong>，可输入 / 下拉。灰色原有字段仅展示、不可点。
+      可点 Tab「Demo · 添加弹窗」完整体验；本区用于评审演示。
+    </div>
+    <div class="admin-frame" id="capture-form-root">
+      <div class="admin-top">
+        <div class="crumbs">财务管理 / <strong>产品管理</strong></div>
+        <div style="font-size:12px;color:#909399;">Demo</div>
+      </div>
+      <div class="admin-body">
+        <aside class="admin-side">
+          <div class="mi">订单列表</div>
+          <div class="mi on">产品管理</div>
+          <div class="mi">金币日志</div>
+          <div class="mi">特权管理</div>
+        </aside>
+        <div class="admin-main">
+          <div class="fake-list-card" aria-hidden="true">
+            <div class="row">
+              <div class="box"></div><div class="box"></div><div class="box"></div>
+              <div class="btn-g">搜索</div>
+            </div>
+            <div class="btn-g" style="width:64px;">添加</div>
+          </div>
+          <div class="modal-mask">
+            <div class="modal" role="dialog" aria-label="添加商品">
+              <div class="modal-hd">信息</div>
+              <div class="modal-bd">
+                <div class="form-grid">
+                  <div class="form-row full">
+                    <label>产品名称</label>
+                    <input class="ctl ro" value="双11复购特惠" readonly tabindex="-1" />
+                  </div>
+                  <div class="form-row full">
+                    <label>红标赠送提示</label>
+                    <input class="ctl ro" value="1折体验" readonly tabindex="-1" />
+                  </div>
+                  <div class="form-row full">
+                    <label>图片1</label>
+                    <div class="upload-ro"><span class="up">上传</span><span class="thumb"></span><span class="hint-ro">仅展示</span></div>
+                  </div>
+                  <div class="form-row full">
+                    <label>图片2</label>
+                    <div class="upload-ro"><span class="up">上传</span><span class="thumb"></span><span class="hint-ro">仅展示</span></div>
+                  </div>
+                  <div class="form-row">
+                    <label>价格:单位分</label>
+                    <input class="ctl ro" value="10000" readonly tabindex="-1" />
+                  </div>
+                  <div class="form-row">
+                    <label>推广价格:单位分</label>
+                    <input class="ctl ro" value="2222" readonly tabindex="-1" />
+                  </div>
+                  <div class="form-row">
+                    <label>类型</label>
+                    <select class="ctl ro" tabindex="-1"><option>金币</option></select>
+                  </div>
+                  <div class="form-row">
+                    <label>VIP多少天</label>
+                    <input class="ctl ro" value="0" readonly tabindex="-1" />
+                  </div>
+                  <div class="form-row">
+                    <label>多少币</label>
+                    <input class="ctl ro" value="500" readonly tabindex="-1" />
+                  </div>
+                  <div class="form-row">
+                    <label>赠送多少币</label>
+                    <input class="ctl ro" value="0" readonly tabindex="-1" />
+                  </div>
+                  <div class="form-row">
+                    <label>可行类型</label>
+                    <select class="ctl ro" tabindex="-1"><option>所有</option></select>
+                  </div>
+                  <div class="form-row">
+                    <label>产品状态</label>
+                    <select class="ctl ro" tabindex="-1"><option>上架</option></select>
+                  </div>
+                  <div class="form-row">
+                    <label>金币视频免费天数</label>
+                    <input class="ctl ro" value="0" readonly tabindex="-1" />
+                  </div>
+                  <div class="form-row">
+                    <label>vip等级</label>
+                    <select class="ctl ro" tabindex="-1"><option>普通</option></select>
+                  </div>
+                  <div class="form-row">
+                    <label>折扣</label>
+                    <input class="ctl ro" value="" readonly tabindex="-1" placeholder="—" />
+                  </div>
+                  <div class="form-row">
+                    <label>折扣过期时间</label>
+                    <input class="ctl ro" value="" readonly tabindex="-1" placeholder="—" />
+                  </div>
+                  <div class="form-row">
+                    <label>更多</label>
+                    <select class="ctl ro" tabindex="-1"><option>单项卡</option></select>
+                  </div>
+                  <div class="form-row">
+                    <label>排序</label>
+                    <input class="ctl ro" value="10" readonly tabindex="-1" />
+                  </div>
+
+                  <div class="form-row is-new">
+                    <label>限购数 <span class="tag">新增</span></label>
+                    <input class="ctl" id="demo-limit" type="number" min="0" step="1" placeholder="0 或不填表示不限购" value="1" />
+                    <p class="sub">空或 0 = 不限购；≥1 按支付成功次数计数</p>
+                  </div>
+                  <div class="form-row is-new full pre-group">
+                    <label class="group-title">前置条件 <span class="tag">新增</span></label>
+                    <p class="sub">先选行为，再配该行为对应的对象；对象类型随行为变化</p>
+                    <div class="pre-step">
+                      <div class="step-lab"><span class="n">1</span>前置行为</div>
+                      <select class="ctl" id="demo-pre-action">
+                        <option value="">不启用</option>
+                        <option value="purchased" selected>购买过</option>
+                      </select>
+                      <p class="sub">本期仅「购买过」；后续若加其它行为，第 2 步控件会换成对应对象（不一定是商品）</p>
+                    </div>
+                    <div class="pre-step" id="demo-pre-target-purchased">
+                      <div class="step-lab"><span class="n">2</span>前置商品</div>
+                      <div class="picker" id="demo-pre-picker">
+                        <button type="button" class="picker-btn" id="demo-pre-btn">
+                          <span id="demo-pre-label">101 · 双11首购特惠 · ¥11.11</span>
+                          <span>▾</span>
+                        </button>
+                        <div class="picker-panel" id="demo-pre-panel">
+                          <input type="search" id="demo-pre-search" placeholder="搜索 ID / 名称" autocomplete="off" />
+                          <ul id="demo-pre-list"></ul>
+                        </div>
+                      </div>
+                      <p class="sub">仅当行为为「购买过」时出现；单选，展示 ID · 名称 · 价格</p>
+                    </div>
+                    <div class="pre-step" id="demo-pre-target-empty" hidden>
+                      <div class="empty-hint">未启用前置行为时，无需配置第 2 步对象</div>
+                    </div>
+                  </div>
+                  <div class="form-row is-new">
+                    <label>有效开始时间 <span class="tag">新增</span></label>
+                    <input class="ctl" id="demo-start" type="datetime-local" value="2026-11-11T00:00" />
+                  </div>
+                  <div class="form-row is-new">
+                    <label>有效结束时间 <span class="tag">新增</span></label>
+                    <input class="ctl" id="demo-end" type="datetime-local" value="2026-11-11T23:59" />
+                  </div>
+
+                  <div class="form-row full">
+                    <label>产品描述</label>
+                    <textarea class="ctl ro" readonly tabindex="-1">双11复购特惠：购买过首购特惠后可见</textarea>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-ft">
+                <button type="button" class="btn btn-primary" id="demo-ok">确定</button>
+                <button type="button" class="btn btn-default" id="demo-cancel">取消</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Demo 列表 ===================== -->
+<section class="pane" id="view-demo-list" hidden>
+  <div class="demo-shell">
+    <div class="demo-hint">
+      表头 / 单元格<strong>浅红底 + 红字</strong>为新增列。顶部筛选与操作按钮仅展示、不可点。
+    </div>
+    <div class="list-card" id="capture-list-root">
+      <div class="list-toolbar">
+        <input class="inp" value="产品名称" readonly />
+        <input class="inp" value="产品状态" readonly />
+        <input class="inp" value="类型" readonly />
+        <input class="inp" value="vip等级" readonly />
+        <span class="btn-search">搜索</span>
+        <span class="btn-add">添加</span>
+      </div>
+      <div class="list-scroll">
+        <table class="list-table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" disabled /></th>
+              <th>ID</th>
+              <th>产品名称</th>
+              <th>价格</th>
+              <th>权益</th>
+              <th class="col-new">限购数 <span class="badge-new">新</span></th>
+              <th class="col-new">前置条件 <span class="badge-new">新</span></th>
+              <th class="col-new">有效时间 <span class="badge-new">新</span></th>
+              <th class="col-new">当前状态 <span class="badge-new">新</span></th>
+              <th>排序</th>
+              <th>卡型</th>
+              <th>更新时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" disabled /></td>
+              <td>101</td>
+              <td>双11首购特惠</td>
+              <td>价格: 100.00<br />推广价: 11.11</td>
+              <td>币: 500<br />赠送币: 0</td>
+              <td class="col-new">1</td>
+              <td class="col-new">—</td>
+              <td class="col-new">2026-11-11 00:00:00<br />~ 2026-11-11 23:59:59</td>
+              <td class="col-new">未开始</td>
+              <td>10</td>
+              <td>单项卡</td>
+              <td>创建: 2026-10-23<br />更新: 2026-10-23</td>
+              <td class="ops"><span>权益管理</span><span>支付网关</span><span>修改</span><span class="del">删除</span></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" disabled /></td>
+              <td>102</td>
+              <td>双11复购特惠</td>
+              <td>价格: 100.00<br />推广价: 22.22</td>
+              <td>币: 500<br />赠送币: 0</td>
+              <td class="col-new">1</td>
+              <td class="col-new">购买过 · 101 · 双11首购特惠</td>
+              <td class="col-new">2026-11-11 00:00:00<br />~ 2026-11-11 23:59:59</td>
+              <td class="col-new">未开始</td>
+              <td>11</td>
+              <td>单项卡</td>
+              <td>创建: 2026-10-23<br />更新: 2026-10-23</td>
+              <td class="ops"><span>权益管理</span><span>支付网关</span><span>修改</span><span class="del">删除</span></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" disabled /></td>
+              <td>20</td>
+              <td>1000金币</td>
+              <td>价格: 200.00<br />推广价: 100.00</td>
+              <td>币: 1000<br />赠送币: 110</td>
+              <td class="col-new">不限</td>
+              <td class="col-new">—</td>
+              <td class="col-new">2026-11-10 00:00:00<br />~ 2026-11-12 23:59:59</td>
+              <td class="col-new">未开始</td>
+              <td>1</td>
+              <td>单项卡</td>
+              <td>创建: 2026-03-10<br />更新: 2026-10-23</td>
+              <td class="ops"><span>权益管理</span><span>支付网关</span><span>修改</span><span class="del">删除</span></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" disabled /></td>
+              <td>21</td>
+              <td>2000金币</td>
+              <td>价格: 400.00<br />推广价: 200.00</td>
+              <td>币: 2000<br />赠送币: 220</td>
+              <td class="col-new">不限</td>
+              <td class="col-new">—</td>
+              <td class="col-new">2026-11-10 00:00:00<br />~ 2026-11-12 23:59:59</td>
+              <td class="col-new">未开始</td>
+              <td>2</td>
+              <td>单项卡</td>
+              <td>创建: 2026-03-10<br />更新: 2026-10-23</td>
+              <td class="ops"><span>权益管理</span><span>支付网关</span><span>修改</span><span class="del">删除</span></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" disabled /></td>
+              <td>15</td>
+              <td>700金币</td>
+              <td>价格: 1000.00<br />推广价: 500.00</td>
+              <td>币: 700<br />赠送币: 0</td>
+              <td class="col-new">不限</td>
+              <td class="col-new">—</td>
+              <td class="col-new">不限</td>
+              <td class="col-new">下架</td>
+              <td>100</td>
+              <td>单项卡</td>
+              <td>创建: 2026-03-10<br />更新: 2026-03-15</td>
+              <td class="ops"><span>权益管理</span><span>支付网关</span><span>修改</span><span class="del">删除</span></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" disabled /></td>
+              <td>28</td>
+              <td>体验卡赠送</td>
+              <td>价格: 0.00<br />推广价: 0.00</td>
+              <td>vip天数: 1<br />币: 0</td>
+              <td class="col-new">不限</td>
+              <td class="col-new">—</td>
+              <td class="col-new">不限</td>
+              <td class="col-new">上架</td>
+              <td>0</td>
+              <td>全能卡</td>
+              <td>创建: 2026-09-11<br />更新: 2026-09-11</td>
+              <td class="ops"><span>权益管理</span><span>支付网关</span><span>修改</span><span class="del">删除</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="legend"><i></i> 红色列为新增字段（限购数 / 前置条件 / 有效时间 / 当前状态）</p>
+  </div>
+</section>
+
+<div class="toast" id="demo-toast" role="status"></div>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="图片放大">
+  <img alt="" />
+</div>
+
+<script>
+(function () {
+  var tabs = document.querySelectorAll(".bar .tab");
+  var panes = {
+    prd: document.getElementById("view-prd"),
+    "demo-form": document.getElementById("view-demo-form"),
+    "demo-list": document.getElementById("view-demo-list")
+  };
+
+  function showPane(name) {
+    Object.keys(panes).forEach(function (k) {
+      panes[k].hidden = k !== name;
+    });
+    tabs.forEach(function (t) {
+      t.classList.toggle("on", t.getAttribute("data-pane") === name);
+    });
+  }
+
+  tabs.forEach(function (t) {
+    t.addEventListener("click", function () {
+      showPane(t.getAttribute("data-pane"));
+    });
+  });
+
+  /* —— 前置商品选择 —— */
+  var products = [
+    { id: 101, name: "双11首购特惠", price: "¥11.11", type: "金币" },
+    { id: 20, name: "1000金币", price: "¥100", type: "金币" },
+    { id: 21, name: "2000金币", price: "¥200", type: "金币" },
+    { id: 15, name: "700金币", price: "¥500", type: "金币" },
+    { id: 28, name: "体验卡赠送", price: "¥0", type: "vip" }
+  ];
+  var selectedPre = products[0];
+  var actionEl = document.getElementById("demo-pre-action");
+  var btn = document.getElementById("demo-pre-btn");
+  var panel = document.getElementById("demo-pre-panel");
+  var listEl = document.getElementById("demo-pre-list");
+  var searchEl = document.getElementById("demo-pre-search");
+  var labelEl = document.getElementById("demo-pre-label");
+  var targetPurchased = document.getElementById("demo-pre-target-purchased");
+  var targetEmpty = document.getElementById("demo-pre-target-empty");
+
+  function syncPreEnabled() {
+    var act = actionEl.value;
+    var isPurchased = act === "purchased";
+    targetPurchased.hidden = !isPurchased;
+    targetEmpty.hidden = act !== "";
+    if (!isPurchased) {
+      panel.classList.remove("open");
+      selectedPre = null;
+      labelEl.innerHTML = '<span class="ph">请选择前置商品</span>';
+      return;
+    }
+    if (!selectedPre) {
+      labelEl.innerHTML = '<span class="ph">请选择前置商品</span>';
+    } else {
+      labelEl.textContent = selectedPre.id + " · " + selectedPre.name + " · " + selectedPre.price;
+    }
+  }
+
+  function renderList(q) {
+    var key = (q || "").trim().toLowerCase();
+    listEl.innerHTML = "";
+    products.filter(function (p) {
+      if (!key) return true;
+      return String(p.id).indexOf(key) >= 0 || p.name.toLowerCase().indexOf(key) >= 0;
+    }).forEach(function (p) {
+      var li = document.createElement("li");
+      li.innerHTML = "<div>" + p.id + " · " + p.name + "</div><div class=\"meta\">" + p.type + " · " + p.price + "</div>";
+      li.addEventListener("click", function () {
+        selectedPre = p;
+        labelEl.textContent = p.id + " · " + p.name + " · " + p.price;
+        panel.classList.remove("open");
+      });
+      listEl.appendChild(li);
+    });
+  }
+
+  actionEl.addEventListener("change", function () {
+    if (actionEl.value === "purchased" && !selectedPre) selectedPre = products[0];
+    syncPreEnabled();
+  });
+  btn.addEventListener("click", function () {
+    if (targetPurchased.hidden) return;
+    panel.classList.toggle("open");
+    if (panel.classList.contains("open")) {
+      searchEl.value = "";
+      renderList("");
+      searchEl.focus();
+    }
+  });
+  searchEl.addEventListener("input", function () { renderList(searchEl.value); });
+  document.addEventListener("click", function (e) {
+    if (!document.getElementById("demo-pre-picker").contains(e.target)) {
+      panel.classList.remove("open");
+    }
+  });
+  syncPreEnabled();
+
+  function toast(msg) {
+    var el = document.getElementById("demo-toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { el.classList.remove("show"); }, 2200);
+  }
+
+  document.getElementById("demo-ok").addEventListener("click", function () {
+    var limit = document.getElementById("demo-limit").value;
+    if (limit !== "" && (!/^\d+$/.test(limit) || Number(limit) < 0)) {
+      toast("限购数须为大于等于 0 的整数");
+      return;
+    }
+    var act = actionEl.value;
+    if (act === "purchased" && !selectedPre) {
+      toast("请选择前置商品");
+      return;
+    }
+    var s = document.getElementById("demo-start").value;
+    var e = document.getElementById("demo-end").value;
+    if (s && e && s > e) {
+      toast("有效开始时间不能晚于结束时间");
+      return;
+    }
+    toast("Demo：校验通过（不真正保存）");
+  });
+  document.getElementById("demo-cancel").addEventListener("click", function () {
+    toast("Demo：已取消");
+  });
+
+  /* lightbox：仅 PRD 配图 */
+  var box = document.getElementById("lightbox");
+  var big = box.querySelector("img");
+  document.getElementById("view-prd").addEventListener("click", function (e) {
+    var img = e.target.closest("img.prd-shot");
+    if (!img) return;
+    big.src = img.src;
+    big.alt = img.alt || "";
+    box.classList.add("is-open");
+  });
+  function closeLb() { box.classList.remove("is-open"); big.removeAttribute("src"); }
+  box.addEventListener("click", closeLb);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && box.classList.contains("is-open")) closeLb();
+  });
+
+  /* 截图模式：?capture=form|list|form-pre */
+  var params = new URLSearchParams(location.search);
+  var cap = params.get("capture");
+  if (cap === "form" || cap === "form-pre" || cap === "list") {
+    document.body.classList.add("capture-mode");
+    if (cap === "list") showPane("demo-list");
+    else {
+      showPane("demo-form");
+      if (cap === "form-pre") {
+        actionEl.value = "purchased";
+        selectedPre = products[0];
+        syncPreEnabled();
+        panel.classList.add("open");
+        renderList("");
+        document.getElementById("demo-limit").value = "1";
+      }
+    }
+  }
+})();
+</script>
+</body>
+</html>
