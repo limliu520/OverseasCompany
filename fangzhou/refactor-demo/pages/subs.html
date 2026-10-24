@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>子账号与授权 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <div class="topbar">
+        <h1>子账号与授权</h1>
+        <div class="topbar-actions">
+          <button type="button" class="btn btn-primary" id="btn-new-sub">+ 创建子账号</button>
+          <div id="top-user"></div>
+        </div>
+      </div>
+      <div class="content">
+        <p class="muted" style="margin:0 0 14px">
+          子号默认全无权限；创建时必选功能 + 项目。可选岗位带出功能合集，仍可改勾选。本 Demo 不做子号登录后界面。
+        </p>
+        <div class="card" id="sub-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="sub-modal" hidden>
+    <div class="modal" style="width:min(640px,100%);max-height:90vh;overflow:auto">
+      <h2>创建子账号</h2>
+      <div class="field"><label>登录名 *</label><input id="sub-user" placeholder="例如：ops_xiaowang" /></div>
+      <div class="field"><label>显示名</label><input id="sub-name" placeholder="花名" /></div>
+      <div class="field"><label>初始密码 *</label><input id="sub-pass" type="password" value="Changeme1" /></div>
+      <div class="field">
+        <label>权限方式</label>
+        <select id="sub-mode">
+          <option value="custom">自定义勾选功能</option>
+          <option value="role">选择岗位（可再改勾选）</option>
+        </select>
+      </div>
+      <div class="field" id="role-pick-wrap" hidden>
+        <label>岗位</label>
+        <select id="sub-role"></select>
+      </div>
+      <div class="field">
+        <label>功能权限 *（至少一项）</label>
+        <div class="check-grid" id="sub-feats"></div>
+      </div>
+      <div class="field">
+        <label>可见项目 *（至少一项）</label>
+        <div id="sub-projects"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="sub-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="sub-save">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script src="../js/shell.js"></script>
+  <script>
+    FZShell.boot({ active: "subs" });
+
+    function renderList() {
+      var s = FZStore.read();
+      var box = document.getElementById("sub-list");
+      if (!s.subs.length) {
+        box.innerHTML =
+          '<div class="card-pad muted">还没有子账号。<a href="./roles.html">先建岗位</a> 也可以直接自定义权限创建。</div>';
+        return;
+      }
+      box.innerHTML = s.subs
+        .map(function (u) {
+          var featCount = (u.features || []).length;
+          var projCount = (u.projects || []).length;
+          return (
+            '<div class="list-row">' +
+            '<div class="grow"><div style="font-weight:600">' +
+            u.displayName +
+            " <span class=\"muted\">@" +
+            u.username +
+            "</span></div>" +
+            '<div class="muted" style="font-size:12px;margin-top:4px">功能 ' +
+            featCount +
+            " · 项目 " +
+            projCount +
+            (u.roleName ? " · 岗位：" + u.roleName : "") +
+            "</div></div>" +
+            '<button type="button" class="btn" data-reset="' +
+            u.id +
+            '">重置密码</button>' +
+            '<button type="button" class="btn btn-ghost" data-disable="' +
+            u.id +
+            '">' +
+            (u.disabled ? "启用" : "停用") +
+            "</button>" +
+            "</div>"
+          );
+        })
+        .join("");
+      box.querySelectorAll("[data-reset]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          FZShell.toast("已重置子账号密码（演示）");
+        });
+      });
+      box.querySelectorAll("[data-disable]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var st = FZStore.read();
+          st.subs = st.subs.map(function (u) {
+            if (u.id === btn.getAttribute("data-disable")) {
+              u.disabled = !u.disabled;
+              FZShell.toast(u.disabled ? "已停用，演示为立即失效" : "已启用");
+            }
+            return u;
+          });
+          FZStore.write(st);
+          renderList();
+        });
+      });
+    }
+
+    function fillFeatureChecks(selected) {
+      selected = selected || [];
+      document.getElementById("sub-feats").innerHTML = FZStore.FEATURES.map(function (f) {
+        return (
+          '<label class="check-item"><input type="checkbox" value="' +
+          f.id +
+          '"' +
+          (selected.indexOf(f.id) !== -1 ? " checked" : "") +
+          " /> " +
+          f.name +
+          "</label>"
+        );
+      }).join("");
+    }
+
+    function openModal() {
+      var s = FZStore.read();
+      document.getElementById("sub-user").value = "";
+      document.getElementById("sub-name").value = "";
+      document.getElementById("sub-mode").value = "custom";
+      document.getElementById("role-pick-wrap").hidden = true;
+      fillFeatureChecks([]);
+      var roleSel = document.getElementById("sub-role");
+      roleSel.innerHTML =
+        '<option value="">— 选择岗位 —</option>' +
+        s.roles
+          .map(function (r) {
+            return '<option value="' + r.id + '">' + r.name + "</option>";
+          })
+          .join("");
+      var projBox = document.getElementById("sub-projects");
+      if (!s.projects.length) {
+        projBox.innerHTML =
+          '<p class="muted">还没有项目，请先<a href="./project-setup.html?new=1">创建项目</a></p>';
+      } else {
+        projBox.innerHTML = s.projects
+          .map(function (p) {
+            return (
+              '<label class="check-item"><input type="checkbox" value="' +
+              p.id +
+              '" /> ' +
+              p.name +
+              "</label>"
+            );
+          })
+          .join("");
+      }
+      document.getElementById("sub-modal").hidden = false;
+    }
+
+    document.getElementById("btn-new-sub").addEventListener("click", openModal);
+    document.getElementById("sub-cancel").addEventListener("click", function () {
+      document.getElementById("sub-modal").hidden = true;
+    });
+    document.getElementById("sub-mode").addEventListener("change", function () {
+      var roleMode = this.value === "role";
+      document.getElementById("role-pick-wrap").hidden = !roleMode;
+    });
+    document.getElementById("sub-role").addEventListener("change", function () {
+      var s = FZStore.read();
+      var role = s.roles.find(function (r) {
+        return r.id === this.value;
+      }.bind(this));
+      fillFeatureChecks(role ? role.features : []);
+    });
+
+    document.getElementById("sub-save").addEventListener("click", function () {
+      var username = document.getElementById("sub-user").value.trim();
+      var displayName = document.getElementById("sub-name").value.trim() || username;
+      var pass = document.getElementById("sub-pass").value;
+      if (!username || !pass) {
+        FZShell.toast("请填写登录名和密码");
+        return;
+      }
+      var features = [];
+      document.querySelectorAll("#sub-feats input:checked").forEach(function (el) {
+        features.push(el.value);
+      });
+      var projects = [];
+      document.querySelectorAll("#sub-projects input:checked").forEach(function (el) {
+        projects.push(el.value);
+      });
+      if (!features.length) {
+        FZShell.toast("请至少勾选一个功能");
+        return;
+      }
+      if (!projects.length) {
+        FZShell.toast("请至少勾选一个项目");
+        return;
+      }
+      var st = FZStore.read();
+      var roleId = document.getElementById("sub-role").value;
+      var role = st.roles.find(function (r) {
+        return r.id === roleId;
+      });
+      st.subs.push({
+        id: FZStore.uid("sub"),
+        username: username,
+        displayName: displayName,
+        features: features,
+        projects: projects,
+        roleName: role ? role.name : "",
+        disabled: false
+      });
+      FZStore.write(st);
+      document.getElementById("sub-modal").hidden = true;
+      renderList();
+      FZShell.toast("子账号已创建，权限立即生效（演示）");
+    });
+
+    renderList();
+  </script>
+</body>
+</html>

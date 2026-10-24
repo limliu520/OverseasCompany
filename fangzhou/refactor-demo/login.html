@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>登录 · 方舟</title>
+  <link rel="stylesheet" href="./css/app.css" />
+</head>
+<body>
+  <div class="login-page">
+    <aside class="login-visual">
+      <div>
+        <div style="opacity:.7;font-size:13px;margin-bottom:24px">FANGZHOU · REFACTOR DEMO</div>
+        <h2>更轻的业务端，从入驻开始重建</h2>
+        <p>主账号登录后完成谷歌验证、项目配置与子账号授权。本页为静态演示，无需后端。</p>
+      </div>
+      <div style="opacity:.55;font-size:12px">视觉参考 Mixpanel 轻量结构 · 阶段① 账号权限与项目入驻</div>
+    </aside>
+    <main class="login-panel">
+      <div class="login-box">
+        <h1>登录方舟</h1>
+        <p class="muted" style="margin:0 0 20px">演示主账号任意账号密码均可进入</p>
+        <form id="login-form">
+          <div class="field">
+            <label>账号</label>
+            <input name="username" value="demo_owner" autocomplete="username" required />
+          </div>
+          <div class="field">
+            <label>密码</label>
+            <input name="password" type="password" value="demo1234" autocomplete="current-password" required />
+          </div>
+          <button class="btn btn-primary" type="submit" style="width:100%;padding:12px;margin-top:8px">登录</button>
+        </form>
+        <p class="hint" style="margin-top:16px">主账号由 Admin 开户（本 Demo 不包含 Admin）。侧栏底部 ↺ 可重置演示数据。</p>
+      </div>
+    </main>
+  </div>
+  <script src="./js/store.js"></script>
+  <script>
+    document.getElementById("login-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var fd = new FormData(e.target);
+      var s = FZStore.read();
+      s.loggedIn = true;
+      s.username = String(fd.get("username") || "demo_owner");
+      s.displayName = "主账号演示";
+      FZStore.write(s);
+      if (!s.totpBound) location.href = "./totp.html";
+      else location.href = "./pages/home.html";
+    });
+  </script>
+</body>
+</html>

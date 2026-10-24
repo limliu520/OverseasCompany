@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>项目配置 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <div class="topbar">
+        <h1 id="page-title">项目配置</h1>
+        <div class="topbar-actions">
+          <a class="btn btn-ghost" href="./projects.html">返回列表</a>
+          <div id="top-user"></div>
+        </div>
+      </div>
+      <div class="content" id="root">
+        <p class="muted">加载中…</p>
+      </div>
+    </div>
+  </div>
+  <script src="../js/store.js"></script>
+  <script src="../js/shell.js"></script>
+  <script>
+    FZShell.boot({ active: "projects" });
+    var id = new URLSearchParams(location.search).get("id");
+    var tab = new URLSearchParams(location.search).get("tab") || "basic";
+
+    function render() {
+      var st = FZStore.read();
+      var p = FZStore.findProject(st, id);
+      if (!p) {
+        location.href = "./projects.html";
+        return;
+      }
+      var status = FZStore.projectStatusLabel(p);
+      document.getElementById("page-title").textContent = p.name || "项目配置";
+
+      var cta = "";
+      if (p.status === "pending_activate") {
+        cta =
+          '<a class="btn btn-primary" href="./project-connect.html?id=' +
+          encodeURIComponent(p.id) +
+          '">去激活（对接页）</a>';
+      } else if (p.status === "need_post_config") {
+        cta =
+          '<a class="btn btn-primary" href="./project-after.html?id=' +
+          encodeURIComponent(p.id) +
+          '">继续激活后配置</a>';
+      }
+
+      var tabs =
+        '<div class="tabs" style="display:flex;gap:4px;margin-bottom:14px">' +
+        '<button type="button" class="btn' +
+        (tab === "basic" ? " btn-primary" : "") +
+        '" data-tab="basic">基本信息</button>' +
+        '<button type="button" class="btn' +
+        (tab === "connect" ? " btn-primary" : "") +
+        '" data-tab="connect">技术对接</button>' +
+        '<button type="button" class="btn' +
+        (tab === "flow" ? " btn-primary" : "") +
+        '" data-tab="flow">自动流与通知</button>' +
+        "</div>";
+
+      var body = "";
+      if (tab === "basic") {
+        body =
+          '<div class="card card-pad">' +
+          '<div class="field"><label>项目名称 *</label><input id="f-name" value="' +
+          (p.name || "") +
+          '" /></div>' +
+          '<div class="field"><label>站点类型</label><select id="f-type">' +
+          '<option value="chigua"' +
+          (p.siteType === "chigua" ? " selected" : "") +
+          ">内容站</option>" +
+          '<option value="video"' +
+          (p.siteType === "video" ? " selected" : "") +
+          ">视频站</option></select></div>" +
+          '<div class="field"><label>跑马灯文案（可选）</label><input id="f-marquee" value="' +
+          (p.marquee || "") +
+          '" placeholder="线网有此字段：现仅存库与卡片展示，无业务消费" />' +
+          '<p class="hint">线网项目弹窗里就有「跑马灯文字」。目前只存库、列表卡片摘要展示，没有自动发布/对接逻辑读它；若业务用不上可空着。</p></div>' +
+          '<div class="field"><label>Userbot</label><input value="' +
+          (p.userbotName || "未绑定") +
+          '" disabled /></div>' +
+          '<button type="button" class="btn btn-primary" id="btn-save-basic">保存基本信息</button></div>';
+      } else if (tab === "connect") {
+        var creds = p.creds || {};
+        body =
+          '<div class="card card-pad" style="margin-bottom:14px">' +
+          "<strong>内容通道凭证</strong>" +
+          '<p class="muted" style="margin:8px 0 0;font-size:13px">创建项目时已签发。业务方用此凭证调方舟开放接口。</p>' +
+          '<div class="grid-3" style="margin-top:14px">' +
+          '<div><div class="muted" style="font-size:12px">App ID</div><div style="font-weight:600;margin-top:4px;word-break:break-all">' +
+          (creds.appId || "—") +
+          "</div></div>" +
+          '<div><div class="muted" style="font-size:12px">App Secret</div><div style="font-weight:600;margin-top:4px;word-break:break-all">' +
+          (creds.appSecret || "—") +
+          '</div></div>' +
+          '<div><div class="muted" style="font-size:12px">通道状态</div><div style="font-weight:600;margin-top:4px">' +
+          (p.contentActivated ? "已测通激活" : "待测试激活") +
+          "</div></div></div></div>" +
+          '<div class="card card-pad" style="margin-bottom:14px">' +
+          "<strong>对接文档（占位）</strong>" +
+          '<div class="code-block" style="margin-top:12px"><pre style="margin:0;white-space:pre-wrap">' +
+          "# 业务方 → 方舟\nAuthorization: Bearer " +
+          (creds.appSecret || "…") +
+          "\nPOST /v1/projects/" +
+          (creds.appId || "…") +
+          "/content\n\n# 完整字段表 / SDK → 开发交付后替换\n" +
+          "</pre></div>" +
+          '<div class="placeholder-doc" style="margin-top:12px">正式环境提供可复制规范与示例工程。</div></div>' +
+          (p.status === "pending_activate"
+            ? '<a class="btn btn-primary" href="./project-connect.html?id=' +
+              encodeURIComponent(p.id) +
+              '">打开对接激活页（测试激活）</a>'
+            : "");
+      } else {
+        body =
+          '<div class="card card-pad">' +
+          '<p class="muted" style="margin:0 0 14px;font-size:13px">自动流会真实写业务方内容通道，建议通道测通后再开。Webhook 是方舟<strong>主动通知</strong>业务方的接收地址，与「业务方调方舟」的凭证不同。</p>' +
+          '<label class="check-item"><input type="checkbox" id="f-auto"' +
+          (p.autoflow ? " checked" : "") +
+          (p.contentActivated ? "" : " disabled") +
+          " /> 开启自动流（采集完成 → 自动转编辑 / 可自动发布）</label>" +
+          (!p.contentActivated
+            ? '<p class="hint">内容通道未激活时不可开自动流。</p>'
+            : "") +
+          '<label class="check-item"><input type="checkbox" id="f-collect"' +
+          (p.hasCollectSource ? " checked" : "") +
+          " /> 演示：已有采集源绑定本项目</label>" +
+          '<p class="hint">真环境在「采集」里把频道/网站源绑到本项目；这里仅模拟有无绑定，用于演示「开了自动流但缺素材」待办。</p>' +
+          '<div class="field" style="margin-top:14px"><label>业务方接收 Webhook URL（可选）</label>' +
+          '<input id="f-hook" placeholder="https://partner.example.com/hooks/fangzhou" value="' +
+          (p.webhookUrl || "") +
+          '" />' +
+          '<p class="hint">方舟 → 业务方：文章状态、发布结果、审核结果等事件推送。不是业务方调我们时带的地址；也可在「技术对接」页维护，激活后配置里出现是为了提醒「通知能力」。线网尚无此字段，属 To-Be 新能力。</p></div>' +
+          '<button type="button" class="btn btn-primary" id="btn-save-flow" style="margin-top:8px">保存</button></div>';
+      }
+
+      document.getElementById("root").innerHTML =
+        '<div class="card card-pad" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">' +
+        "<div><div style=\"font-size:15px;font-weight:600\">" +
+        p.name +
+        '</div><div class="muted" style="font-size:12px;margin-top:4px">创建后任意状态均可编辑基本信息与查看对接材料</div></div>' +
+        '<div style="display:flex;align-items:center;gap:8px"><span class="tag ' +
+        status.cls +
+        '">' +
+        status.text +
+        "</span>" +
+        cta +
+        "</div></div>" +
+        tabs +
+        body;
+
+      document.querySelectorAll("[data-tab]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          tab = btn.getAttribute("data-tab");
+          history.replaceState(
+            null,
+            "",
+            "./project-edit.html?id=" +
+              encodeURIComponent(id) +
+              "&tab=" +
+              tab
+          );
+          render();
+        });
+      });
+
+      var sb = document.getElementById("btn-save-basic");
+      if (sb) {
+        sb.addEventListener("click", function () {
+          var s2 = FZStore.read();
+          var proj = FZStore.findProject(s2, id);
+          var name = ((document.getElementById("f-name") || {}).value || "").trim();
+          if (!name) {
+            FZShell.toast("请填写项目名称");
+            return;
+          }
+          proj.name = name;
+          proj.siteType = (document.getElementById("f-type") || {}).value || "chigua";
+          proj.marquee = (document.getElementById("f-marquee") || {}).value || "";
+          FZStore.upsertProject(s2, proj);
+          FZStore.write(s2);
+          FZShell.toast("基本信息已保存");
+          render();
+        });
+      }
+      var sf = document.getElementById("btn-save-flow");
+      if (sf) {
+        sf.addEventListener("click", function () {
+          var s2 = FZStore.read();
+          var proj = FZStore.findProject(s2, id);
+          if (!proj.contentActivated && (document.getElementById("f-auto") || {}).checked) {
+            FZShell.toast("请先完成内容通道测试激活");
+            return;
+          }
+          proj.autoflow = !!(document.getElementById("f-auto") || {}).checked;
+          proj.hasCollectSource = !!(document.getElementById("f-collect") || {}).checked;
+          proj.webhookUrl = (document.getElementById("f-hook") || {}).value || "";
+          proj.webhook = !!proj.webhookUrl;
+          if (proj.status === "need_post_config" || proj.status === "need_collect" || proj.status === "ready") {
+            if (proj.autoflow && !proj.hasCollectSource) proj.status = "need_collect";
+            else if (proj.contentActivated) proj.status = "ready";
+          }
+          FZStore.upsertProject(s2, proj);
+          FZStore.write(s2);
+          FZShell.toast("已保存");
+          render();
+        });
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>工作台 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <div class="topbar">
+        <h1 id="greet">你好</h1>
+        <div class="topbar-actions" id="top-user"></div>
+      </div>
+      <div class="content">
+        <h2 style="font-size:14px;margin:0 0 12px;color:var(--muted)">今日待办</h2>
+        <div class="todo-list" id="todo-list" style="margin-bottom:22px"></div>
+
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:14px">
+          <div class="card card-pad">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <strong>最近项目</strong>
+              <a class="btn btn-ghost" href="./projects.html">全部</a>
+            </div>
+            <div id="recent-projects"></div>
+          </div>
+          <div class="card card-pad">
+            <strong style="display:block;margin-bottom:8px">业务待办（占位）</strong>
+            <p class="muted" style="margin:0 0 8px;font-size:13px">素材审核、待编辑文章等接入后出现在此。</p>
+            <div class="empty-dash" style="min-height:88px">采集 / 编辑 · 设计中</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="zero-modal" hidden>
+    <div class="modal">
+      <h2>欢迎使用方舟</h2>
+      <p>当前还没有项目。可以现在创建，也可以稍后在「项目管理 → 新建项目」里再加。</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="btn-later">稍后</button>
+        <button type="button" class="btn btn-primary" id="btn-go-setup">去添加项目</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script src="../js/shell.js"></script>
+  <script>
+    FZShell.boot({ active: "home" });
+    var s = FZStore.read();
+    var hour = new Date().getHours();
+    var hello = hour < 12 ? "早上好" : hour < 18 ? "下午好" : "晚上好";
+    document.getElementById("greet").textContent = hello + " 👋";
+
+    var zero = !s.projects.length;
+    if (zero && !s.zeroPromptDismissed) {
+      document.getElementById("zero-modal").hidden = false;
+    }
+
+    document.getElementById("btn-go-setup").addEventListener("click", function () {
+      location.href = "./project-setup.html?new=1";
+    });
+    function dismissZero() {
+      var st = FZStore.read();
+      st.zeroPromptDismissed = true;
+      FZStore.write(st);
+      document.getElementById("zero-modal").hidden = true;
+    }
+    document.getElementById("btn-later").addEventListener("click", function () {
+      dismissZero();
+      FZShell.toast("已稍后。可从「项目管理 → 新建项目」添加");
+      renderTodos();
+    });
+    document.getElementById("zero-modal").addEventListener("click", function (e) {
+      if (e.target === e.currentTarget) {
+        dismissZero();
+        FZShell.toast("已稍后。可从「项目管理 → 新建项目」添加");
+        renderTodos();
+      }
+    });
+
+    function renderTodos() {
+      s = FZStore.read();
+      var items = [];
+      if (!s.projects.length) {
+        items.push({
+          cls: "todo-dot",
+          title: "创建第一个项目",
+          desc: "填写基础配置并创建后，将进入对接激活页。",
+          action: '<a class="btn btn-primary" href="./project-setup.html?new=1">去创建</a>'
+        });
+      }
+      s.projects.forEach(function (p) {
+        if (p.status === "pending_activate") {
+          items.push({
+            cls: "todo-dot warn",
+            title: "激活项目 · " + p.name,
+            desc: "查看 Token / 对接方案，业务方接入后点击测试激活。",
+            action:
+              '<a class="btn btn-primary" href="./project-connect.html?id=' +
+              encodeURIComponent(p.id) +
+              '">去激活</a>'
+          });
+        } else if (p.status === "need_post_config") {
+          items.push({
+            cls: "todo-dot warn",
+            title: "完成激活后配置 · " + p.name,
+            desc: "配置自动流等依赖对接的项，确认后创建才算完成。",
+            action:
+              '<a class="btn" href="./project-after.html?id=' +
+              encodeURIComponent(p.id) +
+              '">继续</a>'
+          });
+        }
+      });
+      (s.extChannels || []).forEach(function (e) {
+        if (e.status === "pending_activate") {
+          items.push({
+            cls: "todo-dot muted",
+            title: "外站通道待激活 · " + e.name,
+            desc: "可已挂在项目上；对接文档已生成，稍后完成通道激活即可。",
+            action:
+              '<button type="button" class="btn" data-ext-act="' +
+              e.id +
+              '">模拟激活</button>'
+          });
+        }
+      });
+      if (!items.length) {
+        items.push({
+          cls: "todo-dot muted",
+          title: "暂无入驻类待办",
+          desc: "日常采编待办将出现在这里。",
+          action: ""
+        });
+      }
+      document.getElementById("todo-list").innerHTML = items
+        .map(function (it) {
+          return (
+            '<div class="todo-item"><span class="' +
+            it.cls +
+            '"></span><div class="todo-body"><p class="todo-title">' +
+            it.title +
+            '</p><p class="todo-desc">' +
+            it.desc +
+            "</p></div>" +
+            it.action +
+            "</div>"
+          );
+        })
+        .join("");
+      document.querySelectorAll("[data-ext-act]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var s2 = FZStore.read();
+          s2.extChannels = s2.extChannels.map(function (e) {
+            if (e.id === btn.getAttribute("data-ext-act")) e.status = "active";
+            return e;
+          });
+          FZStore.write(s2);
+          FZShell.toast("外站通道已激活（演示）");
+          renderTodos();
+        });
+      });
+    }
+
+    renderTodos();
+
+    var box = document.getElementById("recent-projects");
+    if (!s.projects.length) {
+      box.innerHTML =
+        '<p class="muted" style="margin:0;font-size:13px">暂无项目。</p>';
+    } else {
+      box.innerHTML = s.projects
+        .slice(0, 4)
+        .map(function (p) {
+          var st = FZStore.projectStatusLabel(p);
+          return (
+            '<div class="list-row" style="padding:10px 0">' +
+            '<div class="grow"><a href="./project-edit.html?id=' +
+            encodeURIComponent(p.id) +
+            '" style="color:inherit;text-decoration:none">' +
+            p.name +
+            '</a></div><span class="tag ' +
+            st.cls +
+            '">' +
+            st.text +
+            "</span></div>"
+          );
+        })
+        .join("");
+    }
+  </script>
+</body>
+</html>

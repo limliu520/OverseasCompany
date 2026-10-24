@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>开发对接与激活 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <div class="topbar">
+        <h1>开发对接与激活</h1>
+        <div class="topbar-actions">
+          <button type="button" class="btn btn-ghost" id="btn-close">关闭</button>
+          <div id="top-user"></div>
+        </div>
+      </div>
+      <div class="content" id="root">
+        <p class="muted">加载中…</p>
+      </div>
+    </div>
+  </div>
+  <script src="../js/store.js"></script>
+  <script src="../js/shell.js"></script>
+  <script>
+    FZShell.boot({ active: "projects" });
+    var id = new URLSearchParams(location.search).get("id");
+    var st = FZStore.read();
+    var p = FZStore.findProject(st, id);
+    if (!p) {
+      location.href = "./projects.html";
+    }
+
+    function render() {
+      st = FZStore.read();
+      p = FZStore.findProject(st, id);
+      var status = FZStore.projectStatusLabel(p);
+      var exts = (p.attachedExtIds || [])
+        .map(function (eid) {
+          return st.extChannels.find(function (e) {
+            return e.id === eid;
+          });
+        })
+        .filter(Boolean);
+
+      var extBlock =
+        exts.length === 0
+          ? '<p class="muted" style="font-size:13px">本项目未挂外站通道。</p>'
+          : exts
+              .map(function (e) {
+                var es = FZStore.extStatusLabel(e);
+                return (
+                  '<div class="list-row">' +
+                  '<div class="grow"><strong>' +
+                  e.name +
+                  "</strong>" +
+                  (e.status !== "active"
+                    ? '<div class="muted" style="font-size:12px;margin-top:4px">对接文档已生成；可稍后在待办中激活，不挡本项目后续。</div>'
+                    : "") +
+                  '</div><span class="tag ' +
+                  es.cls +
+                  '">' +
+                  es.text +
+                  "</span></div>"
+                );
+              })
+              .join("");
+
+      document.getElementById("root").innerHTML =
+        '<div class="card card-pad" style="margin-bottom:14px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">' +
+        "<div><div style=\"font-size:18px;font-weight:700\">" +
+        p.name +
+        '</div><div class="muted" style="font-size:13px;margin-top:4px">创建后已生成内容通道凭证。请业务方按下方方案接入，完成后点击测试激活。</div></div>' +
+        '<span class="tag ' +
+        status.cls +
+        '">' +
+        status.text +
+        "</span></div></div>" +
+        '<div class="grid-3" style="margin-bottom:14px">' +
+        '<div class="card card-pad"><div class="muted" style="font-size:12px">App ID</div><div style="font-weight:600;margin-top:6px;word-break:break-all">' +
+        p.creds.appId +
+        "</div></div>" +
+        '<div class="card card-pad"><div class="muted" style="font-size:12px">App Secret</div><div style="font-weight:600;margin-top:6px;word-break:break-all">' +
+        p.creds.appSecret +
+        '</div><button type="button" class="btn" style="margin-top:8px" id="btn-copy-secret">复制</button></div>' +
+        '<div class="card card-pad"><div class="muted" style="font-size:12px">项目状态</div><div style="font-weight:600;margin-top:6px">' +
+        (p.contentActivated ? "内容通道已激活" : "待业务方接入后测试") +
+        "</div></div></div>" +
+        '<div class="card card-pad" style="margin-bottom:14px">' +
+        "<strong>接入方案（占位 · 内容由开发提供）</strong>" +
+        '<div class="code-block" style="margin-top:12px"><pre style="margin:0;white-space:pre-wrap">' +
+        "# 业务方调用方舟开放接口（演示规则）\n" +
+        "Authorization: Bearer " +
+        p.creds.appSecret +
+        "\n" +
+        "POST /v1/projects/" +
+        p.creds.appId +
+        "/content\n\n" +
+        "# Webhook 接收（方舟 → 业务方）在激活后配置中填写\n" +
+        "# 完整字段表 / SDK 下载链接 → 开发交付后替换本区\n" +
+        "</pre></div>" +
+        '<div class="placeholder-doc" style="margin-top:12px"><strong>对接文档链接（占位）</strong>正式环境将提供可复制的规范与示例工程。</div>' +
+        "</div>" +
+        '<div class="card" style="margin-bottom:14px"><div class="card-pad"><strong>已挂外站通道</strong></div>' +
+        extBlock +
+        "</div>" +
+        '<div style="display:flex;justify-content:flex-end;gap:8px">' +
+        '<button type="button" class="btn btn-ghost" id="btn-close-2">稍后激活</button>' +
+        '<button type="button" class="btn btn-primary" id="btn-test"' +
+        (p.contentActivated ? " disabled" : "") +
+        ">" +
+        (p.contentActivated ? "已激活" : "测试激活（模拟连通成功）") +
+        "</button></div>";
+
+      document.getElementById("btn-copy-secret").addEventListener("click", function () {
+        FZShell.toast("已复制 App Secret（演示）");
+      });
+      document.getElementById("btn-close-2").addEventListener("click", closePage);
+      var testBtn = document.getElementById("btn-test");
+      if (testBtn && !p.contentActivated) {
+        testBtn.addEventListener("click", function () {
+          var s2 = FZStore.read();
+          var proj = FZStore.findProject(s2, id);
+          proj.contentActivated = true;
+          proj.status = "need_post_config";
+          FZStore.upsertProject(s2, proj);
+          FZStore.write(s2);
+          FZShell.toast("测试通过，内容通道已激活");
+          location.href = "./project-after.html?id=" + encodeURIComponent(id);
+        });
+      }
+    }
+
+    function closePage() {
+      FZShell.toast("可在待办或项目管理中继续激活");
+      location.href = "./projects.html";
+    }
+    document.getElementById("btn-close").addEventListener("click", closePage);
+
+    /* 已测通：对接页仍可查看凭证/文档；若还在「待完成激活后配置」则引导去下一步 */
+    if (p.contentActivated && p.status === "need_post_config") {
+      location.replace("./project-after.html?id=" + encodeURIComponent(id));
+    } else {
+      render();
+    }
+  </script>
+</body>
+</html>

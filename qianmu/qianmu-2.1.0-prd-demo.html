@@ -274,7 +274,7 @@ button { cursor: pointer; border: 0; background: none; }
   border-radius: 6px; background: rgba(0,0,0,.55); color: #d8d8ff; backdrop-filter: blur(4px);
 }
 .badge.res { left: auto; right: 8px; }
-/* 清晰度切换改到媒体区左下角 .res-pills */
+/* 清晰度只读标签在媒体区左下角 .res-tag */
 .text-body {
   min-height: 110px; font-size: 13px; line-height: 1.55; color: #d8d8de;
   white-space: pre-wrap; border-radius: 12px; background: #242426;
@@ -325,15 +325,13 @@ button { cursor: pointer; border: 0; background: none; }
   animation: spin 0.9s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.res-pills {
-  position: absolute; left: 8px; bottom: 8px; display: flex; gap: 4px; z-index: 2;
-}
-.res-pills button {
+.res-tag {
+  position: absolute; left: 8px; bottom: 8px; z-index: 2;
   font-size: 10px; padding: 3px 7px; border-radius: 6px;
   border: 1px solid rgba(255,255,255,.2); background: rgba(0,0,0,.55); color: #ddd;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px); pointer-events: none;
 }
-.res-pills button.on { border-color: #b8a8ff; color: #fff; background: rgba(60,48,100,.85); }
+.media.vid:has(.vid-time) .res-tag { left: 8px; right: auto; bottom: 36px; }
 .badge.res { display: none; }
 .gen-panel {
   position: absolute; z-index: 8; width: 440px;
@@ -367,7 +365,7 @@ button { cursor: pointer; border: 0; background: none; }
   background: rgba(40,16,16,.72); border-radius: 8px; padding: 8px 6px;
 }
 .node.generating .corner,
-.node.generating .res-pills,
+.node.generating .res-tag,
 .node.generating .play,
 .node.generating .vid-tools { pointer-events: none; }
 .gen-panel.locked .prompt-ed,
@@ -423,8 +421,6 @@ button { cursor: pointer; border: 0; background: none; }
 .node:hover .media.vid.local:not(.empty) .vid-tools,
 .media.vid.playing .vid-tools,
 .node:hover .media.vid:not(.local):not(.empty) .vid-tools { display: flex; }
-/* 清晰度仍在左下；有时长时叠在时长上方 */
-.media.vid:has(.vid-time) .res-pills { left: 8px; right: auto; bottom: 36px; }
 .gen-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
 .btn {
   border-radius: 10px; padding: 8px 14px; border: 1px solid var(--line);
@@ -593,7 +589,7 @@ button { cursor: pointer; border: 0; background: none; }
     <tbody>
       <tr><td>QM-2101</td><td>素材</td><td>本地拖入成节点</td><td>图/视/音/md 落节点；本地无生成条；本地视频悬停播、生成视频点播。<span class="rev">多文件只导入第一个；系统剪贴板的图/视/音/md/纯文本与拖入同一套规则；自动命名为「类型名 + 序号」（视频 1、视频 2；画布为自定义画布 1、自定义画布 2）。</span></td></tr>
       <tr><td>QM-2102</td><td>资产管理</td><td>当前画布生成素材</td><td>Tab/搜/排序/预览/全选/下载 zip；定位仅单选，多选 Toast「仅支持单个节点定位」；只列成功；本期无删除。<span class="rev">侧栏入口悬停文案「成片」；每页 20 条、上一页/下一页；一次最多下载 20 个，并有「下载中」状态。</span></td></tr>
-      <tr><td>QM-2103</td><td>视频</td><td>超分</td><td>仅 AI 成片视频；节点超分 + 下载必选清晰度；超分成功写入同节点 pills；生成中走循环 loading。<span class="rev">超分消耗统一货币（本版不写具体单价）。</span></td></tr>
+      <tr><td>QM-2103</td><td>视频</td><td>超分</td><td><del>仅 AI 成片；节点超分 + 下载必选清晰度；超分成功写入同节点 pills。</del><span class="rev">仅 AI 成片可点「超分」；选后台档位后新建占位节点，成功为纯素材（悬停播、仅下载、可被 @、进成片库、不可再超分/不可更换/无生成条）。原节点只留生成时清晰度标签，不在同节点多档切换。下载只下当前成片，不走超分。超分消耗统一货币（本版不写具体单价）。</span></td></tr>
       <tr><td>QM-2104</td><td>引用</td><td>节点 @</td><td>矩阵含视频@文本；输入框@名称+小块；连线四规则；不含 Agent @</td></tr>
       <tr><td>QM-2105</td><td>效率</td><td>右键菜单</td><td>复制/副本/空白新建子菜单等；菜单不含「应用全部历史」</td></tr>
       <tr><td>QM-2106</td><td>引用</td><td>引用小块统一</td><td>生成框上统一小块，与输入框 mention 同步增删。<span class="rev">视频小块悬停出预览并自动播放；生成中与空内容文案分开。</span></td></tr>
@@ -664,7 +660,8 @@ button { cursor: pointer; border: 0; background: none; }
       <li>其它扩展名：不落节点；Toast「不支持的文件类型：{ext}（仅图/视/音/md）」。</li>
       <li>本地图/视/音：无底部提示词与生成按钮；AI 生成类节点才有生成条。</li>
       <li>本地视频：悬停即预览播，▶ 隐藏，左下显示当前/总时长，右下静音·放大，右上更换+下载。</li>
-      <li>AI 生成视频：须点击 ▶ 才播放；悬停只出控件与清晰度，不自动播。</li>
+      <li>AI 生成视频：须点击 ▶ 才播放；悬停出控件；<del>悬停只出控件与清晰度切换 pills</del><span class="rev">左下展示当前清晰度标签（只读，非多档切换）</span>；不自动播。</li>
+      <li class="rev">超分得到的纯素材视频：行为对齐本地视频（悬停即预览播、右上仅下载、无生成条）；左下为目标清晰度标签；详见 P0-3。</li>
       <li>图片：无播放按钮；悬停右上「下载」「替换素材」。</li>
       <li>音频：无修剪；右上更换+下载并排；左下时长，右下播放。</li>
       <li>.md 拖入：正文进文本节点；脚注「来源：.md 拖入」；@ 时类型仍为「文本」。</li>
@@ -713,7 +710,7 @@ button { cursor: pointer; border: 0; background: none; }
     <p>弹窗内勾选存在四种相关态：列表空、未选（N=0）、单选（N=1）、多选（N≥2）；底栏按钮文案与点击结果按态区分，见下方状态矩阵。</p>
     <h3>业务规则</h3>
     <ul>
-      <li>范围：仅当前画布、ai 生成且已有成品；本地拖入永不进列表；生成中/失败不进列表。</li>
+      <li>范围：仅当前画布、已成功产出的成品：含 AI 生成的图/视/音<span class="rev">，以及超分成功得到的纯素材视频节点</span>；本地拖入永不进列表；生成中/失败<span class="rev">（含超分失败占位）</span>不进列表。</li>
       <li>Tab：全部 / 图片 / 视频 / 音频；切换 Tab 后重新计算「当前筛选结果」，已勾选但不在新结果里的项自动取消勾选。</li>
       <li>搜索：匹配节点名或提示词摘要（不区分大小写）；清空搜索即恢复当前 Tab 下全量。</li>
       <li>排序：生成时间新→旧 / 旧→新；仅改展示顺序，不改变勾选集合。</li>
@@ -801,102 +798,120 @@ button { cursor: pointer; border: 0; background: none; }
   <div class="shot-group">
     <div class="shot-label demo">Demo 现状（本期优化 · 以 Demo 为准）</div>
     <figure>
-      <img src="../assets/qianmu-2.1.0/Demo-P0-3-超分视频.png" alt="Demo：有成片视频 · 超分入口" />
-      <figcaption>Demo：有成片视频节点 ·「超分」入口（左下可先只有当前清晰度）</figcaption>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-3-超分视频.png" alt="Demo：AI 成片视频 · 超分入口与 720P 标签" />
+      <figcaption>Demo：AI 成片节点 ·「超分 / 更换 / 下载」；左下只读清晰度标签「720P」（非多档切换）。</figcaption>
     </figure>
     <figure>
-      <img src="../assets/qianmu-2.1.0/Demo-P0-3-超分后清晰度切换.png" alt="Demo：超分完成后左下 720P / 1080P 切换" />
-      <figcaption>Demo：点击「超分」完成后 · 媒体区左下清晰度切换（当前项高亮）</figcaption>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-3-超分选项.png" alt="Demo：选择超分清晰度面板" />
+      <figcaption>Demo：点「超分」弹出选项面板 · 清晰度 + 统一货币；确认后新建节点。下载不再出此面板。</figcaption>
     </figure>
     <figure>
-      <img src="../assets/qianmu-2.1.0/Demo-P0-3-下载清晰度.png" alt="Demo：下载清晰度面板 · 超分消耗统一货币" />
-      <figcaption>Demo：点「下载」后的清晰度面板 · 超分档显示消耗统一货币</figcaption>
+      <img src="../assets/qianmu-2.1.0/Demo-P0-3-超分新节点.png" alt="Demo：超分成功后的纯素材节点" />
+      <figcaption>Demo：超分成功 · 新节点「原名 + 清晰度」；仅「下载」、1080P 标签；无更换 / 无再超分 / 无生成条。</figcaption>
     </figure>
   </div>
 </div>
   <div>
     <div class="id">QM-2103</div>
     <h2>P0-3 视频超分</h2>
+    <p class="rev">中途改需求标注：红色=相对改前新增/替换后的已定口径；删除线=改前旧交互，已废止。货币消耗规则本身未改，仍见下文。</p>
     <h3>功能逻辑</h3>
-    <p>视频可先以较低清晰度生成，再对成片做超分得到更高清晰度版本，不重跑文生/图生视频。多清晰度留在同一节点，媒体区左下角 pills 切换预览。入口有两处：节点「超分」；以及点「下载」时弹出清晰度/超分选择（选更高清则先超分再下，并在该节点写入新清晰度 pills）。</p>
+    <p><del>视频可先以较低清晰度生成，再对成片做超分得到更高清晰度版本，不重跑文生/图生视频。多清晰度留在同一节点，媒体区左下角 pills 切换预览。入口有两处：节点「超分」；以及点「下载」时弹出清晰度/超分选择（选更高清则先超分再下，并在该节点写入新清晰度 pills）。</del></p>
+    <p class="rev">对已有 AI 成片做清晰度提升，不重跑文生/图生视频。用户在原视频节点点「超分」，从后台配置的档位中选一项（展示清晰度与统一货币消耗）；确认后立刻在画布新建一个「超分中」占位节点，任务跑在占位节点上。成功后该占位变为纯素材视频节点（行为对齐本地拖入成片：悬停预览播、仅下载、可被 @、无生成条），计入本画布「成片」列表。原节点成片、提示词、引用与连线一律不变；原节点与超分结果之间不自动连线。</p>
     <h3>业务规则</h3>
     <ul>
-      <li>仅AI 生成且有成片的视频节点支持超分与「下载时选超分」；图片/音频无超分；本地拖入视频点下载直接下原文件，不出现超分选项。</li>
-      <li>主入口：有成片视频节点上「超分」——对当前成片发起超分，结果写入同节点 versions，左下出现/更新 pills。</li>
-      <li>下载入口（本期必做）：有成片的 AI 视频点「下载」必须先弹出选择面板，不可直接静默下载当前预览清晰度。面板内列出：
+      <li>谁可以超分：仅「AI 生成且已有成片」的视频节点。图片/音频无超分。<span class="rev">本地拖入视频、超分产物（纯素材视频）均不可再超分；入口不出现「超分」，若仍触发 → Toast「该节点不支持超分」。</span></li>
+      <li><del>主入口：有成片视频节点上「超分」——对当前成片发起超分，结果写入同节点 versions，左下出现/更新 pills。</del><span class="rev">唯一入口：节点上的「超分」。点「下载」只下载该节点当前成片文件，不再弹出清晰度/超分面板，也不顺带发起超分。</span></li>
+      <li><del>下载入口（改前必做）：有成片的 AI 视频点「下载」必须先弹出选择面板；可选「下载已有清晰度」或「超分并下载 {清晰度}」；超分并下载成功后写入同节点 pills 再下目标档。</del></li>
+      <li><del>结果展示：同节点多版本；左下 pills 切换预览；当前项高亮；切换仅改预览，不触发下载。已有目标清晰度时面板不再展示同档「超分并下载」。</del></li>
+      <li class="rev">清晰度标签（非切换）：视频成片在画面左下展示当前清晰度文案（如「720P」「1080P」），只读、不可点切换。AI 生成节点的标签来自生成前用户已选、并随成片记录的清晰度；超分产物的标签为目标档清晰度。同一节点不维护多清晰度版本列表，也不出现多档 pills 切换。</li>
+      <li class="rev">超分选项面板：列出后台配置的可超分档位；每一项展示目标清晰度 + 统一货币消耗（文案形态与现网扣费一致，如「约 n 货币」；本版不写死单价）。用户选一项后确认才发起。货币不足：不关面板、不建占位、不扣费，Toast「货币不足，无法超分」。</li>
+      <li class="rev">每次确认都新建：同一原节点可多次超分（含同一目标档），每次都新建一个占位/结果节点，不合并、不覆盖已有超分结果。</li>
+      <li class="rev">占位节点（确认后立刻落下）：
         <ul>
-          <li>已有清晰度：文案形如「下载 {清晰度}」（如「下载 720P」）；选中确认后立刻下载该文件，不发起超分、不改 pills。</li>
-          <li>可超分到的更高清：文案形如「超分并下载 {清晰度}」（如「超分并下载 1080P」）；选中确认后先走超分任务，成功后再下载目标清晰度文件。<del>不展示点数/不计费。</del><span class="rev">展示与其它生成相同的统一货币消耗（文案形态与现网扣费一致，如「约 n 货币」）；本版不写死单价数字。</span></li>
+          <li>落在原节点附近空位（优先右侧，被挡则改到下方或更远处，不盖住已有节点）；不自动连线；不带原节点的提示词、引用、生成配置。</li>
+          <li>名称：原节点名称 + 空格 + 目标清晰度（如原名「视频 成片」、目标 1080P → 「视频 成片 1080P」）。</li>
+          <li>状态：生成中（蒙层 + 循环 loading + 已等待 +「通常约 x 分钟」；无取消）。文案可用「超分中」与普通生成区分，规则同 OPT-2。</li>
+          <li>超分进行中时，原节点仍可预览、下载、改提示词；占位节点操作区不可点。</li>
         </ul>
       </li>
-      <li>选超分并下载成功后的节点变化（已定）：超分产物写入同一视频节点的 versions[]；媒体区左下默认增加对应清晰度切换 pills（与点节点「超分」成功后一致）；当前预览清晰度切到刚超分出的目标清晰度；不新建节点、不断线、不丢提示词。</li>
-      <li>结果展示：同节点多版本；左下 pills 切换预览；当前项高亮；切换仅改预览，不触发下载。</li>
-      <li>超分中（节点「超分」或「超分并下载」共用）：OPT-2 循环 loading（已等待 + 通常约 x 分钟；无取消）。下载选择面板在提交超分后关闭；任务进行中节点「下载」「超分」禁用或点击 Toast「超分进行中，请稍候」。</li>
-      <li>失败：保留原清晰度；不写入新 pill；不下载；Toast「超分失败，请重试」；可再从「超分」或「下载」重试。</li>
-      <li>空视频：无「超分」；「下载」禁用。</li>
-      <li><del>超分不计费（已定）：超分是服务端/客户端的代码规则处理（对已有成片做清晰度提升），不是 AI 重新生成，不消耗点数/额度。面板与节点「超分」均不展示「约 n 点」；与文生/图生视频的积分扣费文案严格区分。不存在「超分点数不足」拦截。</del><span class="rev">超分有成本，扣的是现在全站同一套货币，不是单独一种点数。本版只要求界面让用户看到「这次超分会消耗统一货币」；具体单价、档位、扣费公式不写在本 PRD，后台配置规则另开文档统一。货币不足时不发起超分，Toast「货币不足，无法超分」，成片与清晰度保持原样。</span></li>
-      <li>已有目标清晰度时：面板只展示「下载 {清晰度}」，不再展示「超分并下载」同档，避免重复超分。</li>
+      <li class="rev">成功后的超分节点（纯素材）：
+        <ul>
+          <li>有成片；左下清晰度标签为目标档；悬停即预览播（同本地视频），不要求点 ▶。</li>
+          <li>右上仅「下载」；无「更换」、无「超分」、无底部大模型生成条；不可二次生成编辑。</li>
+          <li>可被其它节点 @ / 引用；计入本画布「成片」列表（打开成片弹窗可见）。</li>
+          <li>点下载：直接下该成片，无面板。</li>
+        </ul>
+      </li>
+      <li><del>失败：保留原清晰度；不写入新 pill；不下载；Toast「超分失败，请重试」；可再从「超分」或「下载」重试。</del><span class="rev">失败：占位节点离开 loading，画面显示「生成失败」；不写入成片、不进成片列表；原节点完全不变。Toast「超分失败，请重试」。用户可删除失败占位，或再从原节点点「超分」发起新的一次（再新建占位）。本期不做占位上的独立「重试」按钮。</span></li>
+      <li>空视频 / 无成片：无「超分」；「下载」禁用或 Toast「无成片，无法下载」。</li>
+      <li>超分有成本：扣全站统一货币；具体单价、档位、扣费公式由后台配置，不在本版写死。货币不足时不发起超分，Toast「货币不足，无法超分」。</li>
     </ul>
     <h3>页面交互</h3>
     <ul>
-      <li>悬停/选中有成片 AI 视频时显示「超分」「下载」等。</li>
-      <li>点「下载」→ 打开「选择下载清晰度」面板（遮罩；Esc / 点取消 / 点遮罩关闭，关闭后不下载、不超分）。</li>
-      <li>面板默认选中：当前 previewRes 对应的「下载 {清晰度}」项；用户可改选其他已有档或「超分并下载」档。</li>
-      <li>点确认：
-        <ul>
-          <li>选已有档 → 立即开始下载该文件 → 关面板 → Toast「开始下载 {清晰度}」。</li>
-          <li>选超分档 → 关面板 → 节点进入超分中 → 成功：写入 pill、previewRes=目标档、开始下载该档 → Toast「超分完成，开始下载 {清晰度}」；失败见异常。</li>
-        </ul>
-      </li>
-      <li>清晰度 pills 在画面左下；有播放时长时叠在时长上方。</li>
-      <li>节点「超分」与「下载→超分并下载」成功后的 pills 表现一致，不维护两套 UI。</li>
+      <li>悬停/选中有成片且可超分的 AI 视频时，右上出现「超分」「下载」等（可超分节点仍可有「更换」，规则同现网生成视频）。</li>
+      <li><del>点「下载」→ 打开「选择下载清晰度」面板；可选已有档或「超分并下载」。</del><span class="rev">点「超分」→ 打开「选择超分清晰度」面板（遮罩；Esc / 取消 / 点遮罩关闭则不超分、不建节点）。</span></li>
+      <li class="rev">面板默认选中第一项可超分档（或后台默认档）；展示每项清晰度与货币消耗。</li>
+      <li><del>选超分并下载 → 关面板 → 原节点进入超分中 → 成功写入 pill 并下载。</del><span class="rev">点确认：先校验货币 → 关面板 → 立刻新建占位节点并进入超分中 → 成功则占位变为纯素材成片并 Toast「超分完成」；失败见异常。</span></li>
+      <li class="rev">点「下载」（任意有成片的视频，含 AI / 本地 / 超分产物）：直接开始下载当前成片 → Toast「开始下载」或「开始下载 {清晰度}」；无选择面板。</li>
     </ul>
-    <table>
+    <p class="rev">状态矩阵（改后）：</p>
+    <table class="rev">
       <thead>
-        <tr><th>节点状态</th><th>点「下载」</th><th>选「下载已有」</th><th>选「超分并下载」</th><th>左下 pills</th></tr>
+        <tr><th>节点类型</th><th>「超分」</th><th>「下载」</th><th>左下标签</th><th>成片列表</th></tr>
       </thead>
       <tbody>
         <tr>
-          <td>空视频 / 无成片</td>
-          <td>按钮禁用，无面板</td>
-          <td>—</td>
-          <td>—</td>
+          <td>空 / 无成片的 AI 视频</td>
+          <td>无入口或 Toast「无成片，不能超分」</td>
+          <td>禁用 / Toast「无成片，无法下载」</td>
           <td>无</td>
+          <td>不进</td>
         </tr>
-<tr>
-          <td>仅有 720P</td>
-          <td>出面板：下载 720P；超分并下载 1080P（示意档位以产品配置为准）</td>
-          <td>直接下 720P；pills 不变</td>
-          <td>超分 → 成功后 pills 出现 720P + 1080P，预览切 1080P，再下 1080P</td>
-          <td>成功前可仅 720P 或暂无多档；成功后至少两档</td>
+        <tr>
+          <td>AI 生成且有成片</td>
+          <td>出选项面板 → 确认后新建占位</td>
+          <td>直接下当前成片</td>
+          <td>生成时记录的清晰度（只读）</td>
+          <td>进</td>
         </tr>
-<tr>
-          <td>已有 720P + 1080P</td>
-          <td>出面板：下载 720P、下载 1080P（无重复超分项）</td>
-          <td>直接下所选档；pills 不变</td>
-          <td>—</td>
-          <td>保持已有 pills</td>
+        <tr>
+          <td>超分占位（进行中）</td>
+          <td>无</td>
+          <td>不可点</td>
+          <td>可先显示目标档，或等成功后再标</td>
+          <td>不进</td>
         </tr>
-<tr>
-          <td>超分进行中</td>
-          <td>不打开新面板；Toast「超分进行中，请稍候」</td>
-          <td>—</td>
-          <td>—</td>
-          <td>保持任务开始前状态</td>
+        <tr>
+          <td>超分成功纯素材</td>
+          <td>无（不可再超分）</td>
+          <td>直接下；无更换</td>
+          <td>目标清晰度（只读）</td>
+          <td>进</td>
+        </tr>
+        <tr>
+          <td>本地拖入视频</td>
+          <td>无</td>
+          <td>直接下原文件</td>
+          <td>无（本地无生成清晰度记录则可不展示）</td>
+          <td>不进</td>
         </tr>
       </tbody>
     </table>
     <h3>异常</h3>
     <ul>
-      <li>无成片点超分：不可用或 Toast「无成片，不能超分」。</li>
-      <li>无成片点下载：按钮禁用；若仍触发 → Toast「无成片，无法下载」。</li>
-      <li>下载面板打开后点取消/Esc/遮罩：不下载、不超分、勾选态不适用（面板选项复位）。</li>
-      <li>超分失败：恢复可操作；原清晰度仍可预览/下载；不新增 pill；Toast「超分失败，请重试」。<del>（超分不计费，无点数不足类异常。）</del><span class="rev">货币不足见上条，与任务失败分开：不足则未开始；失败则已开始后未得到新清晰度。</span></li>
-      <li>超分成功但下载失败：pill 已写入可切换；Toast「下载失败，请重试」；用户可再点下载选已有档重试（不支持则不半执行：不假装已下载）。</li>
-      <li>重复点击超分 / 超分中再点下载：忽略或 Toast「超分进行中，请稍候」，防双任务。</li>
+      <li>无成片点超分：Toast「无成片，不能超分」；<span class="rev">不建节点。</span></li>
+      <li class="rev">不可超分的节点（本地 / 超分产物）点超分：Toast「该节点不支持超分」。</li>
+      <li><del>下载面板打开后点取消/Esc/遮罩：不下载、不超分。</del><span class="rev">超分面板取消 / Esc / 遮罩：不建节点、不扣费。</span></li>
+      <li>货币不足：Toast「货币不足，无法超分」；<span class="rev">面板可保持打开；不建占位。</span></li>
+      <li><del>超分失败：恢复可操作；原清晰度仍可预览/下载；不新增 pill。</del><span class="rev">超分失败：占位显示「生成失败」；Toast「超分失败，请重试」；原节点不变；不成片、不进列表。</span></li>
+      <li><del>超分成功但下载失败：pill 已写入可切换；再点下载选已有档重试。</del></li>
+      <li>无成片点下载：Toast「无成片，无法下载」。</li>
+      <li>下载失败：Toast「下载失败，请重试」；节点成片保留。</li>
     </ul>
     <h3>数据流转</h3>
-    <p>成片 URL →（节点超分 或 下载面板选超分档）→ 超分处理任务<del>（不计费、不预留点数）</del><span class="rev">（先校验统一货币，足够则按统一货币扣费规则预留/扣减，具体数额由后台配置，不在本版写死）</span>→ 成功：versions[] 增加目标清晰度、刷新左下 pills、previewRes=目标档 → 若来自「超分并下载」再触发该档文件下载；失败：不改 versions、不下载。</p>
+    <p><del>成片 URL →（节点超分 或 下载面板选超分档）→ 超分任务 → 成功：versions[] 增加目标清晰度、刷新左下 pills、previewRes=目标档 → 若来自「超分并下载」再触发下载；失败：不改 versions、不下载。</del></p>
+    <p class="rev">原节点成片 URL + 所选目标清晰度 → 校验统一货币 → 画布新建占位节点（名称=原名+清晰度，无提示词/无引用/无连线）→ 超分任务跑在占位上 → 成功：占位写入成片与清晰度标签、标记为超分纯素材、进入成片索引；失败：占位失败态，不改原节点。</p>
   </div>
 </section>
 <section class="pair" id="qm-2104">
@@ -1300,8 +1315,8 @@ button { cursor: pointer; border: 0; background: none; }
     <h4 class="rev">基础状态</h4>
     <ul class="rev">
       <li>待生成：还没有成片。节点是空画面，可写提示词并发送。没有「提示词已修改」条，也不能超分。</li>
-      <li>生成中：蒙层 + 循环 loading + 已等待 +「通常约 x 分钟」。不能取消。引用到这个节点的小块悬停为「当前内容生成中」。这个节点的操作区在生成结束前不可点：不能播放、不能切换清晰度、不能下载、不能超分，生成框也不能输入或改引用。点这些位置没有效果，不另开一套提示。</li>
-      <li>生成成功：展示成片，可播放、下载、超分。提示词与成片一致时不出现修改提醒。</li>
+      <li>生成中：蒙层 + 循环 loading + 已等待 +「通常约 x 分钟」。不能取消。引用到这个节点的小块悬停为「当前内容生成中」。这个节点的操作区在生成结束前不可点：不能播放、<del>不能切换清晰度、</del>不能下载、不能超分，生成框也不能输入或改引用。点这些位置没有效果，不另开一套提示。<span class="rev">超分占位节点同样走本条 loading，文案可为「超分中」。</span></li>
+      <li>生成成功：展示成片<span class="rev">与清晰度标签</span>，可播放、下载；若为可超分的 AI 成片则还可超分（超分规则见 P0-3）。提示词与成片一致时不出现修改提醒。</li>
       <li>生成失败：离开 loading。失败出现在这个节点的画面区，文案「生成失败」，不在画布别处、也不单独做重试按钮。再用原来的生成 / 发送发一次。分两种，画面区都写「生成失败」：
         <ul>
           <li>第一次、节点还是空的：画面仍空，空画面上显示「生成失败」。没有成片，也没有「提示词已修改」。</li>
@@ -1317,7 +1332,7 @@ button { cursor: pointer; border: 0; background: none; }
     <ul class="rev">
       <li>生成中：必须有 loading，无百分比、无取消。</li>
       <li>已生成但提示词已改：必须有「提示词已修改，请重新生成」，成片保持旧结果。</li>
-      <li>待生成、生成成功且提示词未改：按节点上原有播放 / 下载 / 超分即可，不另加状态条。</li>
+      <li>待生成、生成成功且提示词未改：按节点上原有播放 / 下载 / 超分（若有）即可，不另加状态条。</li>
     </ul>
   </div>
 </section>
@@ -1328,13 +1343,13 @@ button { cursor: pointer; border: 0; background: none; }
     <tbody>
 <tr><td>QM-2101</td><td>拖入图/视/音/md 落正确节点；其它扩展名不落并提示；本地无生成条；本地视频悬停预览播且左下时长；生成视频须点▶；图片无▶。<span class="rev">多文件只导入第一个；剪贴板图/视/音/md/纯文本与拖入一致；新建节点名为「视频 1」这种序号；新建画布名为「自定义画布 1」起递增。</span></td></tr>
 <tr><td>QM-2102</td><td>入口可用；仅成功 AI 成品；Tab/搜/排序/预览/全选生效；未选/单选/多选下定位与下载符合状态矩阵；多选点定位仅 Toast「仅支持单个节点定位」且不关弹窗；多选 zip、单选单文件；底栏无删除；空态文案正确。<span class="rev">悬停入口为「成片」；每页 20 条且显示第几页/共几页；超过 20 个不下载；下载中有进度文案。</span></td></tr>
-<tr><td>QM-2103</td><td>有成片可超分；点下载必出清晰度面板；选已有直接下；选超分并下载成功后同节点增加 pills 再下目标档；空视频无超分/下载禁用；失败保留原清晰度；超分中无取消。<span class="rev">超分展示消耗统一货币；货币不足不开始；具体单价不在本版。</span></td></tr>
+<tr><td>QM-2103</td><td><del>有成片可超分；点下载必出清晰度面板；选超分并下载成功后同节点增加 pills 再下目标档。</del><span class="rev">仅 AI 成片可超分；点超分出选项（清晰度+货币）→ 确认后新建占位节点；成功为纯素材（悬停播、仅下载、无更换/无再超分/无生成条、进成片库、可被 @）；原节点不变且仅单档清晰度标签；下载不走超分；本地与超分产物不可再超分；失败占位显示生成失败、原节点不动；超分中无取消。超分展示消耗统一货币；货币不足不建占位；具体单价不在本版。</span></td></tr>
 <tr><td>QM-2104</td><td>矩阵与连线四规则正确；@ 后输入框高亮@名称且上方有小块；生成框贴节点下；文本不可@主体。</td></tr>
 <tr><td>QM-2105</td><td>复制≠复制副本；空白新建须选类型；无「应用全部历史」；无素材下载可点+Toast；生成中点删除不删且 Toast「生成中，暂时无法删除」。</td></tr>
 <tr><td>QM-2106</td><td>引用小块样式统一；空节点悬停「节点内容为空」；× 与 mention 同步。<span class="rev">视频悬停自动播放预览；生成中悬停「当前内容生成中」。</span></td></tr>
 <tr><td>QM-2107</td><td>走统一大模型配置（文本无图/视专用参数）；生成框可选模型；正文可点编；可@图视音文本不可@主体；生成写入正文并有「内容由 AI 生成」脚注；生成为空保留原正文。</td></tr>
 <tr><td>QM-2108</td><td>空态文案与四入口正确；1 主图+最多 3 辅图+可选音色；导入主体填当前卡；保存到库不新建画布节点；图视音可@、文本不可；无主图时下载/@/保存均 Toast「请先添加主体图片」。<span class="rev">音色仅系统列表，无本地上传。</span></td></tr>
-<tr><td>QM-2109</td><td>循环 loading+已等待+通常约 x 分钟；无百分比；无取消；失败离开 loading 且无独立重试钮（沿用生成/发送）。<span class="rev">视频节点含待生成 / 生成中 / 成功 / 失败；生成中操作区不可点、不可切换、不可编辑；失败写在节点画面上，空节点与已有成片两种都显示「生成失败」，已有成片失败可与「提示词已改」同时在。</span></td></tr>
+<tr><td>QM-2109</td><td>循环 loading+已等待+通常约 x 分钟；无百分比；无取消；失败离开 loading 且无独立重试钮（沿用生成/发送）。<span class="rev">视频节点含待生成 / 生成中 / 成功 / 失败；生成中操作区不可点、不可编辑；失败写在节点画面上，空节点与已有成片两种都显示「生成失败」，已有成片失败可与「提示词已改」同时在；</span><span class="rev">超分占位共用本套 loading。</span></td></tr>
 </tbody>
   </table>
 
@@ -1353,6 +1368,9 @@ button { cursor: pointer; border: 0; background: none; }
     <h3>Q3 · 视频节点引用了文本节点，生成期间改文本，会不会盖掉这次生成？</h3>
     <p>已定：不会。视频点发送时锁定当次任务的提示词与引用内容快照；生成期间改文本节点正文，不影响进行中的任务，也不会改写或覆盖这次回来的成片。成片仍是发送那一刻的版本。</p>
     <p>改过的文本只作用于下一次再生成。生成中视频节点自身仍不可改提示词、不可改引用（见 OPT-2）；被引用的文本节点可以照常编辑，只是不进当次任务。</p>
+
+    <h3 class="rev">Q4 · 超分是写回原节点，还是新建节点？下载还走超分吗？</h3>
+    <p class="rev">已定：只在原节点点「超分」→ 选后台配置档位（清晰度 + 统一货币）→ 立刻新建「超分中」占位节点；成功后变为纯素材视频（悬停播、仅下载、可被 @、进成片库；无更换、无再超分、无生成条；命名=原名+清晰度；不自动连线、不带提示词/引用）。原节点只保留生成时那一档清晰度标签，不做同节点多档切换。下载只下当前成片，不再出超分面板。每次超分都新建；仅 AI 成片可超分，超分产物与本地素材不可再超分。详见 P0-3。</p>
   </section>
 </div>
 </div>
@@ -1457,16 +1475,16 @@ button { cursor: pointer; border: 0; background: none; }
   </div>
 </div>
 
-<div class="modal-mask" id="modalDl">
+<div class="modal-mask" id="modalUpscale">
   <div class="modal" style="width:min(420px,92vw)">
     <div class="mhd">
-      <h3>选择下载清晰度</h3>
-      <button class="btn" data-close="modalDl">取消</button>
+      <h3>选择超分清晰度</h3>
+      <button class="btn" data-close="modalUpscale">取消</button>
     </div>
-    <div id="dlOpts" style="padding:8px 16px 16px;display:flex;flex-direction:column;gap:8px"></div>
+    <div id="upscaleOpts" style="padding:8px 16px 16px;display:flex;flex-direction:column;gap:8px"></div>
     <div class="mft">
-      <span class="muted">选更高清将先超分，成功后写入节点左下切换</span>
-      <button class="btn primary" id="dlConfirm" type="button">确认</button>
+      <span class="muted">确认后新建超分节点 · 消耗统一货币</span>
+      <button class="btn primary" id="upscaleConfirm" type="button">确认</button>
     </div>
   </div>
 </div>
@@ -1675,7 +1693,7 @@ button { cursor: pointer; border: 0; background: none; }
     { id: 'n_sub', type: 'subject', name: '角色小柯', x: 48, y: 420, w: 280,
       desc: '橙白柯基，短腿圆耳', main: true, aux: [true, true, false], voice: null },
     { id: 'n_vid', type: 'video', name: '视频 成片', x: 400, y: 420, w: 280, media: true, ai: true, duration: '0:04',
-      versions: ['720P'], previewRes: '720P', generating: false, createdAt: 3, prompt: '角色小柯跑过草地' },
+      previewRes: '720P', generating: false, createdAt: 3, prompt: '角色小柯跑过草地' },
     { id: 'n_vid_empty', type: 'video', name: '视频 空', x: 760, y: 420, w: 260, media: false, ai: true, generating: false },
     { id: 'n_text', type: 'text', name: '文本 1', x: 48, y: 880, w: 280, body: '', aiGenerated: false },
     { id: 'n_ai_img', type: 'image', name: '图片 生成', x: 400, y: 880, w: 260, media: true, ai: true, createdAt: 1, prompt: '夕阳剪影' }
@@ -1716,10 +1734,11 @@ button { cursor: pointer; border: 0; background: none; }
         <li>音频：文件名 + 波形示意 + 播放/时长；右上「更换」「下载」并排；<b>无修剪</b></li>
         <li>图片：悬停出下载 / 替换；无播放按钮</li>
         <li><b>本地视频</b>：悬停即预览播，▶ 消失，左下角时长走动；无生成条</li>
-        <li><b>生成视频</b>：须<b>点击 ▶</b>才播放；悬停只出更换/下载/清晰度等，不自动播</li>
+        <li><b>生成视频</b>：须<b>点击 ▶</b>才播放；悬停出更换/下载/超分等；左下清晰度标签只读</li>
+        <li><b>超分纯素材</b>：同本地悬停播；仅下载；左下目标清晰度标签</li>
       </ul>`,
       p02: `<h3>P0-2 当前画布生成素材</h3><ul>
-        <li>左侧「生成」入口；<span class="rev">悬停两个字「成片」</span>；列表<b>只含本画布 AI 生成</b>，不含本地拖入</li>
+        <li>左侧「生成」入口；<span class="rev">悬停两个字「成片」</span>；列表含 AI 生成成品 + <b>超分成功纯素材</b>，不含本地拖入</li>
         <li class="rev">每页 20 条，上一页 / 下一页，显示第几页 / 共几页</li>
         <li class="rev">一次最多下载 20 个；下载时底栏「下载中 i/n」</li>
         <li class="ok">Tab / 搜 / 排序 / 预览 / 全选 / 单多选下载 zip / 空态</li>
@@ -1727,13 +1746,13 @@ button { cursor: pointer; border: 0; background: none; }
         <li class="warn">本期不支持删除（底栏无删除/批量删除）</li>
       </ul>`,
       p03: `<h3>P0-3 超分（仅视频）</h3><ul>
-        <li>主入口：有成片的视频节点上「超分」</li>
-        <li class="ok">点「下载」必出清晰度面板：已有档直接下；「超分并下载」先超分</li>
-        <li class="ok">超分成功后同节点左下<strong>增加</strong>清晰度 pills，再下目标档</li>
-        <li>结果：同一节点多清晰度；在画面<b>左下角</b>切换</li>
-        <li>超分中用 OPT-2 循环 loading；失败保留原清晰度、不新增 pill</li>
-        <li class="rev"><del>超分不计费</del> 改为消耗统一货币（示意「约 2 货币」）；单价另文档</li>
-        <li class="warn">空视频：无超分、下载禁用；本地视频下载无超分选项</li>
+        <li class="ok">仅 AI 成片可「超分」→ 选档位（清晰度+货币）→ <b>新建</b>超分中占位节点</li>
+        <li class="ok">成功后为纯素材：悬停播、仅下载、进成片库、可 @；无更换/无再超分/无生成条</li>
+        <li>命名 = 原名 + 清晰度；不自动连线；不带提示词/引用</li>
+        <li>原节点只留生成时清晰度标签（只读），不做多档切换</li>
+        <li class="ok">「下载」只下当前成片，不再出超分面板</li>
+        <li class="rev">消耗统一货币（示意「约 2 货币」）；单价另文档</li>
+        <li class="warn">本地 / 超分产物不可再超分；空视频无超分</li>
       </ul>`,
       p04: `<h3>P0-4 节点 @ 矩阵</h3><ul>
         <li>选中可生成节点后，<b>输入框贴在该节点下方</b>（不是页面最底栏）</li>
@@ -1776,7 +1795,7 @@ button { cursor: pointer; border: 0; background: none; }
         <li class="warn">无百分比、无假进度追到 50%</li>
         <li>约 2.5s 后 Demo 自动完成（真实产品等接口）</li>
         <li class="rev">改生成框文字后，有成片的视频节点出现「提示词已修改，请重新生成」；再生成成功后消失</li>
-        <li class="rev">生成中：播放、清晰度、下载、超分、生成框都不可点、不可改</li>
+        <li class="rev">生成中：播放、下载、超分、生成框都不可点、不可改；超分占位显示「超分中」</li>
         <li class="rev">生成失败写在节点画面上「生成失败」。空节点失败仍是空画面；已有成片失败保留成片，并可同时有「提示词已修改」</li>
       </ul>`,
       default: `<h3>当前：${n ? TYPE_LABEL[n.type] + ' · ' + n.name : '未选中'}</h3><ul>
@@ -1797,12 +1816,19 @@ button { cursor: pointer; border: 0; background: none; }
   function canGenerate(n) {
     if (!n) return false;
     if (n.type === 'subject') return false;
+    if (n.fromUpscale) return false;
     if (n.type === 'text') return true;
     if ((n.type === 'image' || n.type === 'video' || n.type === 'audio') && n.ai !== false && !isLocalOnly(n)) return true;
     return false;
   }
   function isLocalOnly(n) {
     return n && (n.local || n.id.startsWith('n_local') || (n.media && n.ai === false && n.type !== 'text'));
+  }
+  function canUpscale(n) {
+    return !!(n && n.type === 'video' && n.media && n.ai !== false && !n.local && !n.fromUpscale && !n.generating);
+  }
+  function isHoverPlayVideo(n) {
+    return !!(n && (n.local || n.ai === false || n.fromUpscale));
   }
 
   function renderEdges() {
@@ -1840,28 +1866,34 @@ button { cursor: pointer; border: 0; background: none; }
     const typeIco = { text: 'T', image: '图', video: '视', audio: '音', subject: '主' };
     const hd = `<div class="node-hd"><span class="ico">${typeIco[n.type] || '·'}</span><span>${escapeHtml(n.name)}</span></div>`;
     const ports = `<button class="port L" tabindex="-1">+</button><button class="port R" tabindex="-1">+</button>`;
-    const load = `<div class="loading-mask"><div class="spin"></div><div>生成中</div><div style="font-size:11px;color:#aaa">已等待 ${waitSec}s · 通常约 2 分钟 · 无取消</div></div>`;
+    const loadLabel = n.fromUpscale ? '超分中' : '生成中';
+    const loadWait = n._upscaleWait != null ? n._upscaleWait : waitSec;
+    const load = `<div class="loading-mask"><div class="spin"></div><div>${loadLabel}</div><div style="font-size:11px;color:#aaa">已等待 ${loadWait}s · 通常约 2 分钟 · 无取消</div></div>`;
     let bd = '';
     if (n.type === 'image' || n.type === 'video') {
       const has = n.media;
       const kind = n.type === 'video' ? 'vid' : 'img';
-      const cls = `media ${kind}${!has && n.type === 'video' ? ' empty' : ''}${n.local ? ' local' : ''}`;
+      const hoverCls = (n.local || n.fromUpscale) ? ' local' : '';
+      const cls = `media ${kind}${!has && n.type === 'video' ? ' empty' : ''}${hoverCls}`;
       const play = (n.type === 'video' && has) ? `<button class="play">▶</button>` : (has ? '' : '<span style="color:#777;font-size:13px">待生成</span>');
-      const resPills = (n.type === 'video' && has && n.versions && n.versions.length)
-        ? `<div class="res-pills">${n.versions.map(r => `<button class="${n.previewRes === r ? 'on' : ''}" data-res="${r}">${r}</button>`).join('')}</div>`
+      const resTag = (n.type === 'video' && (has || n.generating) && n.previewRes)
+        ? `<div class="res-tag">${escapeHtml(n.previewRes)}</div>`
         : '';
       const fail = n.genFailed ? `<div class="fail-mark">生成失败</div>` : '';
+      const showReplace = !n.fromUpscale;
+      const showUpscale = canUpscale(n);
       bd = `<div class="${cls}">
         ${fail}
         ${play}
         <div class="corner">
-          ${n.type === 'video' && has && n.ai !== false && !n.local ? `<button data-act="upscale">超分</button>` : ''}
-          <button data-act="replace">更换</button>
+          ${showUpscale ? `<button data-act="upscale">超分</button>` : ''}
+          ${showReplace ? `<button data-act="replace">更换</button>` : ''}
           <button data-act="dl" ${has ? '' : 'disabled'}>下载</button>
         </div>
         ${n.type === 'video' && has ? `<div class="vid-time" data-dur="${n.duration || '0:04'}">0:00 / ${n.duration || '0:04'}</div><div class="vid-tools">静音 · 放大</div>` : ''}
-        ${resPills}
-        ${n.ai && has ? '<span class="badge" style="bottom:36px">AI 生成</span>' : ''}
+        ${resTag}
+        ${n.ai && has && !n.fromUpscale ? '<span class="badge" style="bottom:36px">AI 生成</span>' : ''}
+        ${n.fromUpscale && has ? '<span class="badge" style="bottom:36px">超分</span>' : ''}
       </div>`;
     } else if (n.type === 'audio') {
       bd = `<div class="media aud">
@@ -1958,8 +1990,7 @@ button { cursor: pointer; border: 0; background: none; }
         }, 400);
       };
       if (media && timeEl) {
-        const isLocal = !!(n.local || n.ai === false);
-        if (isLocal) {
+        if (isHoverPlayVideo(n)) {
           media.addEventListener('mouseenter', () => startTick('previewing'));
           media.addEventListener('mouseleave', stopPlay);
         } else if (playBtn) {
@@ -1978,12 +2009,14 @@ button { cursor: pointer; border: 0; background: none; }
     $$('[data-act]', el).forEach(b => b.onclick = (e) => {
       e.stopPropagation();
       const a = b.dataset.act;
-      if (a === 'upscale') startUpscale(n);
-      else if (a === 'dl') openDownloadPicker(n);
-      else if (a === 'replace') toast('Demo：更换素材（本地/资产库）');
-    });
-    $$('[data-res]', el).forEach(b => b.onclick = (e) => {
-      e.stopPropagation(); n.previewRes = b.dataset.res; renderNodes(); toast('预览清晰度 → ' + n.previewRes);
+      if (a === 'upscale') {
+        if (!canUpscale(n)) return toast(n.fromUpscale || n.local ? '该节点不支持超分' : '无成片，不能超分');
+        openUpscalePicker(n);
+      } else if (a === 'dl') openDownload(n);
+      else if (a === 'replace') {
+        if (n.fromUpscale) return toast('超分素材不支持更换');
+        toast('Demo：更换素材（本地/资产库）');
+      }
     });
     $$('[data-sub]', el).forEach(b => b.onclick = (e) => {
       e.stopPropagation();
@@ -2279,7 +2312,7 @@ button { cursor: pointer; border: 0; background: none; }
       }
       if (c === 'paste' && clipboard) toast('粘贴（示意）');
       if (c === 'copyimg') toast('复制为图片（示意）');
-      if (c === 'dl') openDownloadPicker(n);
+      if (c === 'dl') openDownload(n);
       if (c === 'save') toast('已保存到主体库（账号·示意）');
       if (c === 'lock') { n.locked = !n.locked; renderNodes(); }
       if (c === 'focus') { selectNode(n.id); toast('已定位'); }
@@ -2349,10 +2382,10 @@ button { cursor: pointer; border: 0; background: none; }
     ctx.classList.add('show');
   }
 
-  let dlPick = { nodeId: null, mode: 'exist', res: '720P' };
+  let upscalePick = { nodeId: null, res: '1080P', cost: 2 };
 
-  function openDownloadPicker(n) {
-    if (n.generating) return toast('超分进行中，请稍候');
+  function openDownload(n) {
+    if (n.generating) return toast(n.fromUpscale ? '超分进行中，请稍候' : '生成中，请稍候');
     if (n.type === 'subject' && !n.main) return toast('请先添加主体图片');
     if (n.type === 'text' && !n.body) return toast('无素材可下载');
     if (n.type !== 'video' && n.type !== 'image' && n.type !== 'audio' && n.type !== 'text' && n.type !== 'subject') {
@@ -2361,63 +2394,108 @@ button { cursor: pointer; border: 0; background: none; }
     if ((n.type === 'image' || n.type === 'audio' || n.type === 'video') && !n.media) {
       return toast(n.type === 'video' ? '无成片，无法下载' : '无素材可下载');
     }
-    // 本地视频：直接下原文件，不走超分选择（不半执行）
-    if (n.type === 'video' && (n.local || n.ai === false)) {
-      toast('Demo：下载 ' + n.name + '（本地素材，无超分选项）');
-      return;
-    }
-    if (n.type !== 'video') {
-      toast('Demo：下载 ' + n.name + (n.previewRes ? ' · ' + n.previewRes : ''));
-      return;
-    }
-    const vers = n.versions || [n.previewRes || '720P'];
-    const box = $('#dlOpts');
-    const rows = [];
-    vers.forEach(r => {
-      const on = (n.previewRes || vers[0]) === r;
-      rows.push(`<label style="display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:${on ? 'var(--accent-dim)' : '#12131a'}">
-        <input type="radio" name="dlRes" value="exist:${r}" ${on ? 'checked' : ''} />
-        <span>下载 ${r}<span class="muted" style="margin-left:8px;font-size:12px">已有清晰度</span></span>
-      </label>`);
-    });
-    if (!vers.includes('1080P')) {
-      rows.push(`<label style="display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:#12131a">
-        <input type="radio" name="dlRes" value="upscale:1080P" />
-        <span>超分并下载 1080P<span class="muted" style="margin-left:8px;font-size:12px"><del>不计费</del> <span class="rev">消耗统一货币 · 约 2 货币（示意）</span> · 成功后写入左下切换</span></span>
-      </label>`);
-    }
-    box.innerHTML = rows.join('');
-    dlPick = { nodeId: n.id, mode: 'exist', res: n.previewRes || vers[0] };
-    $$('input[name="dlRes"]', box).forEach(inp => {
+    const res = n.previewRes ? ' · ' + n.previewRes : '';
+    toast('开始下载 ' + n.name + res);
+  }
+
+  function openUpscalePicker(n) {
+    if (!canUpscale(n)) return toast(n.media ? '该节点不支持超分' : '无成片，不能超分');
+    const box = $('#upscaleOpts');
+    const opts = [
+      { res: '1080P', cost: 2 },
+      { res: '2K', cost: 4 }
+    ];
+    box.innerHTML = opts.map((o, i) => `<label style="display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:${i === 0 ? 'var(--accent-dim)' : '#12131a'}">
+        <input type="radio" name="upRes" value="${o.res}" data-cost="${o.cost}" ${i === 0 ? 'checked' : ''} />
+        <span>超分至 ${o.res}<span class="muted" style="margin-left:8px;font-size:12px">消耗统一货币 · 约 ${o.cost} 货币（示意）</span></span>
+      </label>`).join('');
+    upscalePick = { nodeId: n.id, res: opts[0].res, cost: opts[0].cost };
+    $$('input[name="upRes"]', box).forEach(inp => {
       inp.onchange = () => {
-        const [mode, res] = inp.value.split(':');
-        dlPick = { nodeId: n.id, mode, res };
+        upscalePick = { nodeId: n.id, res: inp.value, cost: +inp.dataset.cost };
         $$('label', box).forEach(lb => {
           lb.style.background = lb.contains(inp) && inp.checked ? 'var(--accent-dim)' : '#12131a';
         });
       };
     });
-    $('#modalDl').classList.add('show');
+    $('#modalUpscale').classList.add('show');
     setNotes('p03');
   }
 
-  function startUpscale(n, opts) {
-    opts = opts || {};
-    if (!n.media) return toast('无成片，不能超分');
-    if (n.generating) return toast('超分进行中，请稍候');
-    const target = opts.targetRes || '1080P';
-    n.generating = true; waitSec = 0; renderNodes(); setNotes('opt2');
-    clearInterval(genTimer);
-    genTimer = setInterval(() => { waitSec++; renderNodes(); }, 1000);
-    setTimeout(() => {
-      clearInterval(genTimer);
-      n.generating = false;
-      if (!n.versions) n.versions = [];
-      if (!n.versions.includes(target)) n.versions.push(target);
-      n.previewRes = target;
+  function nodeBox(n) {
+    return { x: n.x, y: n.y, w: n.w || 260, h: 220 };
+  }
+  function boxesOverlap(a, b, pad) {
+    pad = pad == null ? 24 : pad;
+    return !(a.x + a.w + pad <= b.x || b.x + b.w + pad <= a.x || a.y + a.h + pad <= b.y || b.y + b.h + pad <= a.y);
+  }
+  function findFreeSpotNear(src, w, h) {
+    const others = nodes.map(nodeBox);
+    const candidates = [
+      { x: src.x + (src.w || 280) + 48, y: src.y },
+      { x: src.x + (src.w || 280) + 48, y: src.y + 240 },
+      { x: src.x, y: src.y + 260 },
+      { x: src.x - w - 48, y: src.y },
+      { x: 1040, y: src.y },
+      { x: 1040, y: src.y + 240 },
+      { x: 48, y: 1080 },
+      { x: 320, y: 1080 },
+      { x: 600, y: 1080 }
+    ];
+    for (let i = 0; i < candidates.length; i++) {
+      const c = candidates[i];
+      const box = { x: Math.max(24, c.x), y: Math.max(24, c.y), w: w, h: h };
+      if (!others.some(o => boxesOverlap(box, o))) return { x: box.x, y: box.y };
+    }
+    return { x: Math.max(24, src.x + (src.w || 280) + 48), y: Math.max(24, src.y + 280) };
+  }
+
+  function startUpscaleFromPick() {
+    const src = nodeBy(upscalePick.nodeId);
+    $('#modalUpscale').classList.remove('show');
+    if (!src) return toast('节点已不存在');
+    if (!canUpscale(src)) return toast(src.media ? '该节点不支持超分' : '无成片，不能超分');
+    const target = upscalePick.res || '1080P';
+    const id = 'n_up_' + Date.now();
+    const spot = findFreeSpotNear(src, 260, 220);
+    const placeholder = {
+      id,
+      type: 'video',
+      name: src.name + ' ' + target,
+      x: spot.x,
+      y: spot.y,
+      w: 260,
+      media: false,
+      ai: true,
+      fromUpscale: true,
+      previewRes: target,
+      duration: src.duration || '0:04',
+      generating: true,
+      genFailed: false,
+      createdAt: Date.now(),
+      _upscaleWait: 0,
+      upscaleFrom: src.id
+    };
+    nodes.push(placeholder);
+    selectNode(id);
+    renderNodes();
+    setNotes('p03');
+    toast('已新建超分节点（已扣统一货币 · 示意）');
+    const tick = setInterval(() => {
+      const cur = nodeBy(id);
+      if (!cur) { clearInterval(tick); return; }
+      cur._upscaleWait = (cur._upscaleWait || 0) + 1;
       renderNodes();
-      if (opts.downloadAfter) toast(`超分完成，开始下载 ${target}`);
-      else toast('超分完成：左下角可切换 720P / 1080P（已扣统一货币 · 示意）');
+    }, 1000);
+    setTimeout(() => {
+      clearInterval(tick);
+      const cur = nodeBy(id);
+      if (!cur) return;
+      cur.generating = false;
+      cur.media = true;
+      cur._upscaleWait = 0;
+      renderNodes();
+      toast('超分完成 · ' + cur.name);
     }, 2500);
   }
 
@@ -2477,7 +2555,7 @@ button { cursor: pointer; border: 0; background: none; }
     const { pageItems, pages } = genPageItems();
     const grid = $('#genGrid');
     if (!pageItems.length) {
-      grid.innerHTML = `<div style="grid-column:1/-1;padding:28px;text-align:center;color:var(--muted)">本画布还没有生成内容。去画布上生成后再来。<br><span style="font-size:11px">本地拖入 · 生成中 · 失败项不会出现在这里</span></div>`;
+      grid.innerHTML = `<div style="grid-column:1/-1;padding:28px;text-align:center;color:var(--muted)">本画布还没有生成内容。去画布上生成后再来。<br><span style="font-size:11px">本地拖入 · 生成中 · 失败项不会出现；超分成功成片会出现</span></div>`;
     } else {
       grid.innerHTML = pageItems.map(n => `<div class="asset-card ${genSelected.has(n.id) ? 'sel' : ''}" data-gid="${n.id}" title="单击勾选 · 双击预览">
         <div class="ck"></div>
@@ -2527,7 +2605,7 @@ button { cursor: pointer; border: 0; background: none; }
     const id = 'n_' + Date.now();
     const pos = placeSandbox();
     const base = { id, type, name: TYPE_LABEL[type] + ' ' + (nodes.filter(n => n.type === type).length + 1), ...pos };
-    if (type === 'image' || type === 'video' || type === 'audio') Object.assign(base, { media: false, ai: true, duration: type === 'video' ? '0:05' : '0:08', versions: type === 'video' ? ['720P'] : undefined, previewRes: type === 'video' ? '720P' : undefined });
+    if (type === 'image' || type === 'video' || type === 'audio') Object.assign(base, { media: false, ai: true, duration: type === 'video' ? '0:05' : '0:08', previewRes: type === 'video' ? '720P' : undefined });
     if (type === 'text') Object.assign(base, { body: '', aiGenerated: false });
     if (type === 'subject') Object.assign(base, { desc: '', main: false, aux: [false, false, false], voice: null });
     nodes.push(base);
@@ -2637,16 +2715,8 @@ button { cursor: pointer; border: 0; background: none; }
   };
 
   $$('[data-close]').forEach(b => b.onclick = () => $('#' + b.dataset.close).classList.remove('show'));
-  $('#dlConfirm').onclick = () => {
-    const n = nodeBy(dlPick.nodeId);
-    $('#modalDl').classList.remove('show');
-    if (!n) return toast('节点已不存在');
-    if (dlPick.mode === 'upscale') {
-      startUpscale(n, { targetRes: dlPick.res, downloadAfter: true });
-    } else {
-      toast(`开始下载 ${dlPick.res}`);
-    }
-  };
+  const upscaleConfirmBtn = $('#upscaleConfirm');
+  if (upscaleConfirmBtn) upscaleConfirmBtn.onclick = () => startUpscaleFromPick();
   $$('#genTabs button').forEach(b => b.onclick = () => {
     genTab = b.dataset.tab; genPage = 1; $$('#genTabs button').forEach(x => x.classList.toggle('on', x === b)); renderGenGrid();
   });

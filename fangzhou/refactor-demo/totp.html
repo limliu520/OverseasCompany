@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>绑定谷歌验证 · 方舟</title>
+  <link rel="stylesheet" href="./css/app.css" />
+</head>
+<body>
+  <div class="login-page">
+    <aside class="login-visual">
+      <div>
+        <div style="opacity:.7;font-size:13px;margin-bottom:24px">SECURITY</div>
+        <h2>首次登录绑定谷歌身份验证</h2>
+        <p>所有账号第一次登录都需要完成绑定，之后每次登录按验证器动态码进入（本 Demo 简化为确认绑定）。</p>
+      </div>
+      <div style="opacity:.55;font-size:12px">主账号 / 子账号规则相同</div>
+    </aside>
+    <main class="login-panel">
+      <div class="login-box">
+        <h1>绑定验证器</h1>
+        <p class="muted" style="margin:0 0 8px">使用 Google Authenticator 等 App 扫描下方二维码</p>
+        <div class="qr-box" aria-hidden="true"></div>
+        <div class="field">
+          <label>输入验证器中的 6 位验证码</label>
+          <input id="code" inputmode="numeric" maxlength="6" placeholder="000000" />
+        </div>
+        <button class="btn btn-primary" type="button" id="btn-bind" style="width:100%;padding:12px">完成绑定并进入</button>
+        <p class="hint">演示：任意 6 位数字或直接点按钮即可</p>
+      </div>
+    </main>
+  </div>
+  <script src="./js/store.js"></script>
+  <script>
+    var s = FZStore.read();
+    if (!s.loggedIn) location.href = "./login.html";
+    if (s.totpBound) location.href = "./pages/home.html";
+    document.getElementById("btn-bind").addEventListener("click", function () {
+      var st = FZStore.read();
+      st.totpBound = true;
+      FZStore.write(st);
+      location.href = "./pages/home.html";
+    });
+  </script>
+</body>
+</html>

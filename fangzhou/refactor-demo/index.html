@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>方舟重构 Demo</title>
+  <script src="./js/store.js"></script>
+  <script>
+    (function () {
+      var s = FZStore.read();
+      if (!s.loggedIn) location.replace("./login.html");
+      else if (!s.totpBound) location.replace("./totp.html");
+      else location.replace("./pages/home.html");
+    })();
+  </script>
+</head>
+<body>
+  <p style="font:14px sans-serif;padding:24px;color:#666">正在进入 Demo…</p>
+</body>
+</html>

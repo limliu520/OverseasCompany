@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>激活后配置 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <div class="topbar">
+        <h1>激活后配置</h1>
+        <div class="topbar-actions" id="top-user"></div>
+      </div>
+      <div class="content">
+        <p class="muted" style="margin:0 0 16px">
+          内容通道已测通。以下为<strong>依赖对接完成后</strong>才能配置的项。全部确认后，本次项目创建才算真正完成。
+        </p>
+        <div class="card card-pad" id="panel"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/store.js"></script>
+  <script src="../js/shell.js"></script>
+  <script>
+    FZShell.boot({ active: "projects" });
+    var id = new URLSearchParams(location.search).get("id");
+    var st = FZStore.read();
+    var p = FZStore.findProject(st, id);
+    if (!p || !p.contentActivated) {
+      location.href = "./project-connect.html?id=" + encodeURIComponent(id || "");
+    }
+
+    document.getElementById("panel").innerHTML =
+      "<h2 style=\"margin:0 0 8px;font-size:18px\">" +
+      p.name +
+      "</h2>" +
+      '<p class="muted" style="margin:0 0 16px">内容通道已测通。下面是会真实写对方站 / 通知对方的配置；也可稍后在「项目管理 → 编辑」里改。</p>' +
+      '<label class="check-item"><input type="checkbox" id="f-auto"' +
+      (p.autoflow ? " checked" : "") +
+      " /> 开启自动流</label>" +
+      '<p class="hint" style="margin:0 0 10px">线网叫「采集自动流」：专属站上采集加工完成后，自动转编辑并可自动发布到内容通道。关着则要人去点转编辑/发布。</p>' +
+      '<label class="check-item"><input type="checkbox" id="f-collect"' +
+      (p.hasCollectSource ? " checked" : "") +
+      " /> 演示：已有采集源绑定本项目</label>" +
+      '<p class="hint" style="margin:0 0 10px">真环境在采集里把 TG 频道/网站源绑到本项目；素材才有归属。这里只是 Demo 勾选，用来演示「开了自动流但还没绑源」的待办。</p>' +
+      '<div class="field" style="margin-top:14px"><label>业务方接收 Webhook URL（可选）</label>' +
+      '<input id="f-hook" placeholder="https://partner.example.com/hooks/fangzhou" value="' +
+      (p.webhookUrl || "") +
+      '" />' +
+      '<p class="hint">这是「方舟 → 业务方」的通知地址（文章状态、发布结果等），不是业务方调我们时用的。凭证/调我们的文档在上一步；接收 URL 填在项目侧、测通后也能改。线网尚无此字段，属 To-Be。</p></div>' +
+      '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">' +
+      '<a class="btn btn-ghost" href="./project-edit.html?id=' +
+      encodeURIComponent(id) +
+      '">去项目编辑</a>' +
+      '<a class="btn btn-ghost" href="./projects.html">稍后完成</a>' +
+      '<button type="button" class="btn btn-primary" id="btn-done">确认，完成创建</button></div>';
+
+    document.getElementById("btn-done").addEventListener("click", function () {
+      var s2 = FZStore.read();
+      var proj = FZStore.findProject(s2, id);
+      proj.autoflow = !!(document.getElementById("f-auto") || {}).checked;
+      proj.hasCollectSource = !!(document.getElementById("f-collect") || {}).checked;
+      proj.webhookUrl = (document.getElementById("f-hook") || {}).value || "";
+      proj.webhook = !!proj.webhookUrl;
+      if (proj.autoflow && !proj.hasCollectSource) proj.status = "need_collect";
+      else proj.status = "ready";
+      FZStore.upsertProject(s2, proj);
+      FZStore.write(s2);
+      FZShell.toast(
+        proj.status === "ready" ? "项目创建已完成" : "已保存；自动流已开但仍缺采集源"
+      );
+      location.href = "./projects.html";
+    });
+  </script>
+</body>
+</html>

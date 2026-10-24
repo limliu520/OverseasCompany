@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>项目管理 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <div class="topbar">
+        <h1>项目管理</h1>
+        <div class="topbar-actions">
+          <a class="btn btn-primary" href="./project-setup.html?new=1">新建项目</a>
+          <div id="top-user"></div>
+        </div>
+      </div>
+      <div class="content">
+        <p class="muted" style="margin:0 0 14px">
+          创建后即可「编辑」：改基本信息、看技术对接材料。待激活 / 待完成配置另有快捷入口；外站（待激活）可挂在项目上。
+        </p>
+        <div class="card" id="project-list"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/store.js"></script>
+  <script src="../js/shell.js"></script>
+  <script>
+    FZShell.boot({ active: "projects" });
+    var s = FZStore.read();
+    var list = document.getElementById("project-list");
+    if (!s.projects.length) {
+      list.innerHTML =
+        '<div class="card-pad muted">还没有项目。<a href="./project-setup.html?new=1">创建第一个项目</a></div>';
+    } else {
+      list.innerHTML = s.projects
+        .map(function (p) {
+          var st = FZStore.projectStatusLabel(p);
+          var extBits = (p.attachedExtIds || [])
+            .map(function (eid) {
+              var e = s.extChannels.find(function (x) {
+                return x.id === eid;
+              });
+              if (!e) return "";
+              return e.name + (e.status === "active" ? "" : "（待激活）");
+            })
+            .filter(Boolean)
+            .join("、");
+          var actions =
+            '<a class="btn" href="./project-edit.html?id=' +
+            encodeURIComponent(p.id) +
+            '">编辑</a>';
+          if (p.status === "pending_activate") {
+            actions +=
+              '<a class="btn btn-primary" href="./project-connect.html?id=' +
+              encodeURIComponent(p.id) +
+              '">去激活</a>';
+          } else if (p.status === "need_post_config") {
+            actions +=
+              '<a class="btn btn-primary" href="./project-after.html?id=' +
+              encodeURIComponent(p.id) +
+              '">继续配置</a>';
+          }
+          return (
+            '<div class="list-row">' +
+            '<div class="grow">' +
+            '<a href="./project-edit.html?id=' +
+            encodeURIComponent(p.id) +
+            '" style="font-weight:600;color:inherit;text-decoration:none">' +
+            p.name +
+            "</a>" +
+            '<div class="muted" style="font-size:12px;margin-top:4px">' +
+            (p.contentActivated ? "内容通道已激活" : "内容通道待激活") +
+            (extBits ? " · 外站：" + extBits : "") +
+            "</div></div>" +
+            '<span class="tag ' +
+            st.cls +
+            '">' +
+            st.text +
+            "</span>" +
+            '<div style="display:flex;gap:6px">' +
+            actions +
+            "</div></div>"
+          );
+        })
+        .join("");
+    }
+  </script>
+</body>
+</html>
