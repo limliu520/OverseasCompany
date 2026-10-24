@@ -90,7 +90,7 @@
         items.push({
           cls: "todo-dot",
           title: "创建第一个项目",
-          desc: "填写基础配置并创建后，将进入对接激活页。",
+          desc: "配齐信息后创建，再交给开发接入；接通后配置自动生效。",
           action: '<a class="btn btn-primary" href="./project-setup.html?new=1">去创建</a>'
         });
       }
@@ -98,22 +98,22 @@
         if (p.status === "pending_activate") {
           items.push({
             cls: "todo-dot warn",
-            title: "激活项目 · " + p.name,
-            desc: "查看 Token / 对接方案，业务方接入后点击测试激活。",
+            title: "内容通道待接通 · " + p.name,
+            desc: "配置已配齐。查看对接材料；正式环境可由系统自动变已接通。Demo 可点「模拟接通」。",
             action:
               '<a class="btn btn-primary" href="./project-connect.html?id=' +
               encodeURIComponent(p.id) +
-              '">去激活</a>'
+              '">查看对接</a>'
           });
-        } else if (p.status === "need_post_config") {
+        } else if (p.status === "need_collect") {
           items.push({
-            cls: "todo-dot warn",
-            title: "完成激活后配置 · " + p.name,
-            desc: "配置自动流等依赖对接的项，确认后创建才算完成。",
+            cls: "todo-dot muted",
+            title: "自动流缺采集源 · " + p.name,
+            desc: "通道已通且意向开了自动流，但演示上尚未绑采集源。",
             action:
-              '<a class="btn" href="./project-after.html?id=' +
+              '<a class="btn" href="./project-edit.html?id=' +
               encodeURIComponent(p.id) +
-              '">继续</a>'
+              '&tab=flow">去查看</a>'
           });
         }
       });

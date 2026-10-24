@@ -13,7 +13,8 @@
 
   var BASE = basePath();
 
-  function toast(msg) {
+  /** type: '' | 'ok' | 'err' */
+  function toast(msg, type) {
     var wrap = document.querySelector(".toast-wrap");
     if (!wrap) {
       wrap = document.createElement("div");
@@ -21,7 +22,7 @@
       document.body.appendChild(wrap);
     }
     var el = document.createElement("div");
-    el.className = "toast";
+    el.className = "toast" + (type === "ok" ? " ok" : type === "err" ? " err" : "");
     el.textContent = msg;
     wrap.appendChild(el);
     requestAnimationFrame(function () {
@@ -32,7 +33,7 @@
       setTimeout(function () {
         el.remove();
       }, 220);
-    }, 2200);
+    }, type === "ok" ? 2800 : 2200);
   }
 
   function requireAuth() {
@@ -55,7 +56,12 @@
     location.href = BASE + "login.html";
   }
 
-  /** 一级菜单均带二级；未做项 stub 点击提示设计中 */
+  /**
+   * 信息架构约定（框架层）：
+   * - 侧栏只放「列表 / 工作区」入口，不放「新建 xxx」等页内动作
+   * - 岗位归属「子账号与授权」页内 Tab，不单独占二级菜单
+   * - 未做模块用 stub，点击 Toast「设计中」
+   */
   var NAV = [
     {
       id: "home",
@@ -68,8 +74,7 @@
       label: "项目管理",
       ico: "▣",
       children: [
-        { id: "projects", label: "项目列表", href: "pages/projects.html" },
-        { id: "project_new", label: "新建项目", href: "pages/project-setup.html?new=1" }
+        { id: "projects", label: "项目列表", href: "pages/projects.html" }
       ]
     },
     {
@@ -111,12 +116,13 @@
       ico: "⚙",
       children: [
         { id: "subs", label: "子账号与授权", href: "pages/subs.html" },
-        { id: "roles", label: "岗位管理", href: "pages/roles.html" },
         { id: "userbot", label: "Userbot", stub: "Userbot" },
         { id: "ext", label: "外站通道", stub: "外站通道" }
       ]
     }
   ];
+
+  var NAV_SCROLL_KEY = "fz_refactor_nav_scroll";
 
   function renderSidebar(activeId) {
     var mount = document.getElementById("sidebar");
@@ -184,6 +190,23 @@
     html += "</div></div>";
 
     mount.innerHTML = html;
+
+    var navSec = mount.querySelector(".nav-section");
+    if (navSec) {
+      try {
+        var saved = sessionStorage.getItem(NAV_SCROLL_KEY);
+        if (saved != null) navSec.scrollTop = Number(saved) || 0;
+      } catch (e) {}
+      var activeEl = mount.querySelector(".nav-item.active");
+      if (activeEl && typeof activeEl.scrollIntoView === "function") {
+        activeEl.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
+      navSec.addEventListener("scroll", function () {
+        try {
+          sessionStorage.setItem(NAV_SCROLL_KEY, String(navSec.scrollTop));
+        } catch (e2) {}
+      });
+    }
 
     mount.querySelectorAll("[data-stub]").forEach(function (el) {
       el.addEventListener("click", function () {

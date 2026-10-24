@@ -9,8 +9,9 @@
     displayName: "主账号演示",
     firstProjectDone: false,
     zeroPromptDismissed: false,
-    /** 账号层外站通道资产（可待激活仍可挂项目） */
+    /** 账号层资产：外站通道、Userbot（可挂到项目） */
     extChannels: [],
+    userbots: [],
     projects: [],
     roles: [],
     subs: []
@@ -20,7 +21,9 @@
     try {
       var raw = localStorage.getItem(KEY);
       if (!raw) return JSON.parse(JSON.stringify(DEFAULT));
-      return Object.assign(JSON.parse(JSON.stringify(DEFAULT)), JSON.parse(raw));
+      var state = Object.assign(JSON.parse(JSON.stringify(DEFAULT)), JSON.parse(raw));
+      normalizeProjects(state);
+      return state;
     } catch (e) {
       return JSON.parse(JSON.stringify(DEFAULT));
     }
@@ -44,18 +47,34 @@
   }
 
   /**
+   * 主路径两步：配齐 → 对接接通。
    * status:
-   * - pending_activate  已创建，待内容通道测试激活
-   * - need_post_config  已激活，待配自动流等
-   * - ready             创建流程真正完成
-   * - need_collect      演示：激活后开了自动流但缺采集（可选）
+   * - pending_activate  已创建，内容通道待接通（运营可不回来；状态可自动变）
+   * - ready             已接通，创建流程完成（前置配置在接通后自动生效）
+   * - need_collect      已接通且开了自动流，但演示上仍缺采集源绑定
+   * 旧态 need_post_config 读入时归一（见 normalizeProjects）
    */
+  function deriveStatus(p) {
+    if (!p.contentActivated) return "pending_activate";
+    if (p.autoflow && !p.hasCollectSource) return "need_collect";
+    return "ready";
+  }
+
+  function normalizeProjects(state) {
+    (state.projects || []).forEach(function (p) {
+      if (p.status === "need_post_config") {
+        p.status = deriveStatus(p);
+      }
+      if (!p.boundChannels) p.boundChannels = [];
+    });
+  }
+
   function projectStatusLabel(p) {
-    if (p.status === "pending_activate") return { text: "待激活", cls: "tag-warn" };
-    if (p.status === "need_post_config") return { text: "待完成激活后配置", cls: "tag-warn" };
-    if (p.status === "ready") return { text: "已完成", cls: "tag-ok" };
-    if (p.status === "need_collect") return { text: "缺采集源", cls: "tag-muted" };
-    return { text: p.status || "未知", cls: "tag-muted" };
+    var s = p.status === "need_post_config" ? deriveStatus(p) : p.status;
+    if (s === "pending_activate") return { text: "待接通", cls: "tag-warn" };
+    if (s === "ready") return { text: "已完成", cls: "tag-ok" };
+    if (s === "need_collect") return { text: "缺采集源", cls: "tag-muted" };
+    return { text: s || "未知", cls: "tag-muted" };
   }
 
   function extStatusLabel(ext) {
@@ -63,8 +82,49 @@
     return { text: "待激活", cls: "tag-warn" };
   }
 
-  /** 首建后补两个对照态项目 */
-  function seedAfterFirstCreate(first) {
+  /** 本项目已绑定的 TG 频道（演示用列表） */
+  function projectChannels(project) {
+    return (project && project.boundChannels) || [];
+  }
+
+  function projectHasChannels(project) {
+    return projectChannels(project).length > 0;
+  }
+
+  /**
+   * 有频道时禁止换绑/取消关联采集号。
+   * 返回 null 表示允许；否则返回阻断文案。
+   */
+  function userbotChangeBlockReason(project, nextId) {
+    var cur = project.userbotId || "";
+    var next = nextId || "";
+    if (cur === next) return null;
+    if (!projectHasChannels(project)) return null;
+    return (
+      "本项目已绑定 " +
+      projectChannels(project).length +
+      " 个频道。请先解绑全部频道后，再更换或取消采集号。"
+    );
+  }
+
+  /** 内容通道接通：状态完成，前置意向（自动流等）开始生效 */
+  function markContentConnected(project) {
+    project.contentActivated = true;
+    project.status = deriveStatus(project);
+    return project;
+  }
+
+  /** 首建后补对照态项目；写入 state.userbots 种子采集号 */
+  function seedAfterFirstCreate(state, first) {
+    var seedBotId = uid("bot");
+    if (!state.userbots) state.userbots = [];
+    if (
+      !state.userbots.some(function (b) {
+        return b.id === seedBotId;
+      })
+    ) {
+      state.userbots.push({ id: seedBotId, name: "演示采集号" });
+    }
     var ready = {
       id: uid("p"),
       name: "演示项目 · 已完成",
@@ -73,25 +133,33 @@
       creds: issueProjectCreds("seed_ready"),
       contentActivated: true,
       attachedExtIds: [],
-      autoflow: false,
+      autoflow: true,
       hasCollectSource: true,
       watermarkDone: true,
       templateDone: true,
-      userbotName: "演示 Bot"
+      webhookUrl: "https://partner.example.com/hooks/fangzhou",
+      userbotId: seedBotId,
+      userbotName: "演示采集号",
+      boundChannels: [
+        { id: uid("ch"), title: "@demo_channel_a", note: "演示：有频道时不可换绑采集号" },
+        { id: uid("ch"), title: "@demo_channel_b", note: "" }
+      ]
     };
     var pending = {
       id: uid("p"),
-      name: "演示项目 · 待激活",
+      name: "演示项目 · 待接通",
       status: "pending_activate",
       siteType: "chigua",
       creds: issueProjectCreds("seed_pending"),
       contentActivated: false,
       attachedExtIds: [],
-      autoflow: false,
+      autoflow: true,
       hasCollectSource: false,
       watermarkDone: true,
       templateDone: false,
-      userbotName: ""
+      webhookUrl: "",
+      userbotName: "",
+      boundChannels: []
     };
     var out = [first];
     if (first.status !== "ready") out.push(ready);
@@ -99,17 +167,20 @@
     while (out.length < 3) {
       out.push({
         id: uid("p"),
-        name: "演示项目 · 待完成激活后配置",
-        status: "need_post_config",
+        name: "演示项目 · 缺采集源",
+        status: "need_collect",
         siteType: "video",
-        creds: issueProjectCreds("seed_post"),
+        creds: issueProjectCreds("seed_collect"),
         contentActivated: true,
         attachedExtIds: [],
-        autoflow: false,
+        autoflow: true,
         hasCollectSource: false,
         watermarkDone: true,
         templateDone: true,
-        userbotName: "演示 Bot"
+        webhookUrl: "",
+        userbotId: seedBotId,
+        userbotName: "演示采集号",
+        boundChannels: []
       });
     }
     return out.slice(0, 3);
@@ -155,6 +226,11 @@
     seedAfterFirstCreate: seedAfterFirstCreate,
     projectStatusLabel: projectStatusLabel,
     extStatusLabel: extStatusLabel,
+    projectChannels: projectChannels,
+    projectHasChannels: projectHasChannels,
+    userbotChangeBlockReason: userbotChangeBlockReason,
+    deriveStatus: deriveStatus,
+    markContentConnected: markContentConnected,
     findProject: findProject,
     upsertProject: upsertProject,
     reset: function () {

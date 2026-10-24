@@ -16,7 +16,7 @@
       </div>
       <div class="content">
         <p class="muted" style="margin:0 0 16px">
-          先填写<strong>不依赖对接测通</strong>的信息并创建。创建后进入对接页生成凭证；测通激活后，再配置自动流等依赖对接的项。
+          两步主路径：① 配齐运营侧信息（含自动流意向等）→ 创建；② 开发接入，通道接通后前置配置自动生效。运营不必再回来配一轮。
         </p>
         <div class="wizard-layout">
           <nav class="steps" id="steps"></nav>
@@ -24,7 +24,8 @@
             <div id="panel"></div>
             <div class="wizard-foot">
               <button type="button" class="btn btn-ghost" id="btn-prev">上一步</button>
-              <div style="display:flex;gap:8px">
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+                <span class="btn-foot-hint" id="foot-hint"></span>
                 <button type="button" class="btn" id="btn-skip">跳过</button>
                 <button type="button" class="btn btn-primary" id="btn-next">下一步</button>
               </div>
@@ -33,7 +34,7 @@
           <aside class="card card-pad ready-card">
             <h3>本阶段说明</h3>
             <p class="hint" style="margin:0">
-              可选功能开通不在新建流程。外站可「待激活」仍挂到本项目，列表会标（待激活）。水印/模板字段二期补全，本期保留配置位。
+              运营向配置一次配齐；自动流等接通前不生效。外站可「待激活」仍挂本项目。可选功能开通不在新建流程。
             </p>
             <div id="summary" style="margin-top:12px;font-size:12.5px;line-height:1.6"></div>
           </aside>
@@ -53,19 +54,33 @@
     </div>
   </div>
 
+  <div class="modal-mask" id="success-modal" hidden>
+    <div class="modal success-modal" style="width:min(520px,100%)">
+      <div class="success-ico" aria-hidden="true">✓</div>
+      <h2 id="success-title">创建成功</h2>
+      <p id="success-lead"></p>
+      <div class="block-list" id="success-blocks"></div>
+      <div class="modal-actions" style="margin-top:18px">
+        <button type="button" class="btn btn-ghost" id="success-later">稍后对接</button>
+        <button type="button" class="btn btn-primary" id="success-go">去开发对接激活</button>
+      </div>
+    </div>
+  </div>
+
   <script src="../js/store.js"></script>
   <script src="../js/shell.js"></script>
   <script>
-    FZShell.boot({ active: "project_new" });
+    FZShell.boot({ active: "projects" });
     if (new URLSearchParams(location.search).get("new") !== "1") {
       /* 允许无 new 参数也当新建 */
     }
 
     var STEPS = [
       { id: "basic", title: "基本信息", required: true },
-      { id: "userbot", title: "Userbot" },
+      { id: "userbot", title: "采集号" },
       { id: "ext", title: "外站通道" },
-      { id: "media", title: "水印 / 封面 / 模板" }
+      { id: "media", title: "水印 / 封面 / 模板" },
+      { id: "flow", title: "自动流与通知" }
     ];
 
     var draft = {
@@ -77,7 +92,10 @@
       attachedExtIds: [],
       watermarkDone: false,
       templateDone: false,
-      coverNote: ""
+      coverNote: "",
+      autoflow: false,
+      hasCollectSource: false,
+      webhookUrl: ""
     };
 
     var stepIndex = 0;
@@ -123,14 +141,18 @@
       document.getElementById("summary").innerHTML =
         "<div>名称：" +
         (draft.name || "未填") +
-        "</div><div>Userbot：" +
-        (draft.userbotName || "未选") +
+        "</div><div>采集号：" +
+        (draft.userbotName || "未选/可跳过") +
         "</div><div>外站：" +
         (extNames.join("、") || "未挂") +
         "</div><div>水印位：" +
         (draft.watermarkDone ? "已留位确认" : "未确认") +
         "</div><div>模板位：" +
         (draft.templateDone ? "已留位确认" : "未确认") +
+        "</div><div>自动流：" +
+        (draft.autoflow ? "意向开启（接通后生效）" : "关") +
+        "</div><div>Webhook：" +
+        (draft.webhookUrl ? "已填" : "未填") +
         "</div>";
     }
 
@@ -157,17 +179,16 @@
 
     function panelUserbot() {
       var st = FZStore.read();
-      var bots = (st._bots || []).concat(
-        draft.userbotId
-          ? [{ id: draft.userbotId, name: draft.userbotName }]
-          : []
-      );
-      /* session bots on draft */
-      var list = window.__bots || [];
+      var list = (st.userbots || []).slice();
+      if (draft.userbotId && !list.some(function (b) { return b.id === draft.userbotId; })) {
+        list.unshift({ id: draft.userbotId, name: draft.userbotName || draft.userbotId });
+      }
       var options =
-        '<option value="">— 请选择 —</option>' +
+        '<option value="">— 暂不绑定（可跳过）—</option>' +
         list
           .map(function (b) {
+            var phone = b.phoneHint ? " · " + b.phoneHint : "";
+            var ch = b.channelCount != null ? " · 已加入 " + b.channelCount + " 频道" : "";
             return (
               '<option value="' +
               b.id +
@@ -175,17 +196,26 @@
               (draft.userbotId === b.id ? " selected" : "") +
               ">" +
               b.name +
+              phone +
+              ch +
               "</option>"
             );
           })
           .join("");
       return (
-        "<h2 style=\"margin:0 0 8px;font-size:18px\">Userbot</h2>" +
-        '<p class="muted" style="margin:0 0 14px">优先选择；可在本步弹窗新建。完整短信/二步验证流程二期可再细化，本期按真实字段填写并模拟成功。</p>' +
-        '<div class="field"><label>选用 Userbot</label><select id="f-bot">' +
+        "<h2 style=\"margin:0 0 8px;font-size:18px\">采集号（Userbot）</h2>" +
+        '<p class="muted" style="margin:0 0 10px">这个项目的 TG 频道，要用哪个号去加、去采？一个项目挂一个采集号；之后在本项目加的频道都只能用这个号。</p>' +
+        '<div class="placeholder-doc" style="text-align:left;margin-bottom:14px">' +
+        "<strong>怎么选</strong>" +
+        "<ul style=\"margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--muted)\">" +
+        "<li>已有号、还要给本项目加频道 / 采料 → 选已有</li>" +
+        "<li>本项目要单独一个号（隔离 / 风控）→ 新建</li>" +
+        "<li>本项目暂不采 TG → 跳过本步</li></ul>" +
+        '<p class="hint" style="margin:8px 0 0">有频道后不可轻易换绑：须先解绑本项目全部频道，再更换采集号。</p></div>' +
+        '<div class="field"><label>选用采集号</label><select id="f-bot">' +
         options +
         "</select></div>" +
-        '<button type="button" class="btn" id="btn-new-bot">新建 Userbot</button>'
+        '<button type="button" class="btn" id="btn-new-bot">新建采集号</button>'
       );
     }
 
@@ -221,7 +251,7 @@
     function panelMedia() {
       return (
         "<h2 style=\"margin:0 0 8px;font-size:18px\">水印 / 封面 / 文章模板</h2>" +
-        '<p class="muted" style="margin:0 0 14px">不依赖对接测通，应在创建时完成。具体选项二期项目配置梳理后补全；本期保留配置位，需确认已审视。</p>' +
+        '<p class="muted" style="margin:0 0 14px">创建时配齐。具体选项二期补全；本期保留配置位。</p>' +
         '<div class="placeholder-doc" style="text-align:left;margin-bottom:12px">' +
         "<strong>水印与封面（配置位）</strong>" +
         "<ul style=\"margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:13px\">" +
@@ -239,6 +269,26 @@
         '<label class="check-item" style="margin-top:10px"><input type="checkbox" id="f-tpl"' +
         (draft.templateDone ? " checked" : "") +
         " /> 已确认将在此配置文章模板（演示占位）</label></div>"
+      );
+    }
+
+    function panelFlow() {
+      return (
+        "<h2 style=\"margin:0 0 8px;font-size:18px\">自动流与通知</h2>" +
+        '<p class="muted" style="margin:0 0 14px">运营侧一次性配齐。通道<strong>接通前不生效</strong>；接通后无需再回来操作。</p>' +
+        '<label class="check-item"><input type="checkbox" id="f-auto"' +
+        (draft.autoflow ? " checked" : "") +
+        " /> 开启自动流（意向）</label>" +
+        '<p class="hint" style="margin:0 0 10px">采集完成 → 自动转编辑 / 可自动发布。未接通前不会写对方站；接通后按此意向生效。</p>' +
+        '<label class="check-item"><input type="checkbox" id="f-collect"' +
+        (draft.hasCollectSource ? " checked" : "") +
+        " /> 演示：已有采集源绑定本项目</label>" +
+        '<p class="hint" style="margin:0 0 10px">真环境在「采集」里绑源；此处仅模拟，用于演示接通后若开自动流仍缺源时的待办。</p>' +
+        '<div class="field" style="margin-top:12px"><label>业务方接收 Webhook URL（可选）</label>' +
+        '<input id="f-hook" placeholder="https://partner.example.com/hooks/fangzhou" value="' +
+        (draft.webhookUrl || "") +
+        '" />' +
+        '<p class="hint">方舟 → 业务方事件通知。接通后按此地址推送；也可稍后在项目编辑里改。</p></div>'
       );
     }
 
@@ -267,6 +317,11 @@
         draft.watermarkDone = !!(document.getElementById("f-wm") || {}).checked;
         draft.templateDone = !!(document.getElementById("f-tpl") || {}).checked;
       }
+      if (id === "flow") {
+        draft.autoflow = !!(document.getElementById("f-auto") || {}).checked;
+        draft.hasCollectSource = !!(document.getElementById("f-collect") || {}).checked;
+        draft.webhookUrl = (document.getElementById("f-hook") || {}).value || "";
+      }
     }
 
     function bind() {
@@ -280,14 +335,14 @@
       assetMode = mode;
       document.getElementById("asset-modal").hidden = false;
       document.getElementById("asset-title").textContent =
-        mode === "bot" ? "新建 Userbot" : "新建外站通道";
+        mode === "bot" ? "新建采集号" : "新建外站通道";
       if (mode === "bot") {
         document.getElementById("asset-body").innerHTML =
           '<div class="field"><label>显示名称 *</label><input id="a-name" placeholder="例如：采集号-主" /></div>' +
-          '<div class="field"><label>手机号 *</label><input id="a-phone" placeholder="+86 …" /></div>' +
+          '<div class="field"><label>手机号 *</label><input id="a-phone" placeholder="+86 …（运营认号用）" /></div>' +
           '<div class="field"><label>api_id</label><input id="a-api" placeholder="Telegram api_id" /></div>' +
           '<div class="field"><label>api_hash</label><input id="a-hash" placeholder="Telegram api_hash" /></div>' +
-          '<p class="hint">演示：保存即模拟登录验证成功，不发真短信。</p>';
+          '<p class="hint">相当于登录一个 TG 号。演示：保存即模拟验证成功。</p>';
       } else {
         document.getElementById("asset-body").innerHTML =
           '<div class="field"><label>通道名称 *</label><input id="a-name" placeholder="例如：合作站 X" /></div>' +
@@ -313,16 +368,24 @@
       var name = (document.getElementById("a-name") || {}).value;
       name = (name || "").trim();
       if (!name) {
-        FZShell.toast("请填写名称");
+        FZShell.toast("请填写名称", "err");
         return;
       }
       if (assetMode === "bot") {
-        if (!window.__bots) window.__bots = [];
-        var bot = { id: FZStore.uid("bot"), name: name };
-        window.__bots.push(bot);
+        var stBot = FZStore.read();
+        if (!stBot.userbots) stBot.userbots = [];
+        var phone = ((document.getElementById("a-phone") || {}).value || "").trim();
+        var bot = {
+          id: FZStore.uid("bot"),
+          name: name,
+          phoneHint: phone ? phone.replace(/^(\+?\d{0,4})\d+(\d{4})$/, "$1****$2") : "",
+          channelCount: 0
+        };
+        stBot.userbots.push(bot);
+        FZStore.write(stBot);
         draft.userbotId = bot.id;
         draft.userbotName = name;
-        FZShell.toast("Userbot 已创建（模拟验证成功）");
+        FZShell.toast("采集号已创建（模拟验证成功）", "ok");
       } else {
         var st = FZStore.read();
         var ext = {
@@ -335,48 +398,179 @@
         st.extChannels.push(ext);
         FZStore.write(st);
         if (draft.attachedExtIds.indexOf(ext.id) === -1) draft.attachedExtIds.push(ext.id);
-        FZShell.toast("外站通道已创建（待激活），并已挂到本项目");
+        FZShell.toast("外站通道已创建（待激活），并已挂到本项目", "ok");
       }
       closeAsset();
       render();
     });
+
+    var createdProjectId = "";
+
+    function stepHasContent(stepId) {
+      if (stepId === "basic") return !!(draft.name || "").trim();
+      if (stepId === "userbot") return !!draft.userbotId;
+      if (stepId === "ext") return (draft.attachedExtIds || []).length > 0;
+      if (stepId === "media") return !!(draft.watermarkDone || draft.templateDone);
+      if (stepId === "flow")
+        return !!(draft.autoflow || draft.hasCollectSource || (draft.webhookUrl || "").trim());
+      return true;
+    }
+
+    function setUnavailable(btn, on, title) {
+      if (on) {
+        btn.classList.add("is-disabled");
+        btn.setAttribute("aria-disabled", "true");
+      } else {
+        btn.classList.remove("is-disabled");
+        btn.removeAttribute("aria-disabled");
+      }
+      btn.title = title || "";
+    }
+
+    function isUnavailable(btn) {
+      return btn.classList.contains("is-disabled") || btn.disabled;
+    }
+
+    function syncFoot() {
+      collect();
+      var step = STEPS[stepIndex];
+      var last = stepIndex === STEPS.length - 1;
+      var prev = document.getElementById("btn-prev");
+      var skip = document.getElementById("btn-skip");
+      var next = document.getElementById("btn-next");
+      var hint = document.getElementById("foot-hint");
+
+      setUnavailable(prev, stepIndex === 0, stepIndex === 0 ? "已是第一步" : "返回上一步");
+      next.textContent = last ? "创建项目" : "下一步";
+      setUnavailable(skip, false, "");
+
+      if (step.required) {
+        skip.style.display = "none";
+        var ok = stepHasContent(step.id);
+        setUnavailable(next, !ok, ok ? "进入下一步" : "请先填写必填项");
+        hint.textContent = ok ? "" : "请填写项目名称后才能下一步";
+      } else if (last) {
+        skip.style.display = "";
+        skip.textContent = "跳过并创建";
+        setUnavailable(next, !draft.name.trim(), "创建项目");
+        hint.textContent = stepHasContent(step.id)
+          ? ""
+          : "本步未填可点「跳过并创建」，或填完后点「创建项目」";
+      } else {
+        skip.style.display = "";
+        skip.textContent = "跳过";
+        var filled = stepHasContent(step.id);
+        setUnavailable(
+          next,
+          !filled,
+          filled ? "保存本步并继续" : "本步未填写，请点「跳过」或先填写"
+        );
+        hint.textContent = filled ? "" : "未填写时「下一步」不可用，请点「跳过」";
+      }
+    }
+
+    function showSuccess(project) {
+      createdProjectId = project.id;
+      document.getElementById("success-title").textContent = "创建成功";
+      document.getElementById("success-lead").textContent =
+        "「" +
+        project.name +
+        "」已创建，凭证已生成。还差一步：完成内容通道开发对接并接通后，项目才真正可用。";
+      var blocks = [
+        "内容通道尚未接通：业务方还不能稳定传/拉内容",
+        project.autoflow
+          ? "已勾选自动流意向，但接通前不会自动转编辑/发布"
+          : "未开自动流；接通后如需自动出稿，可在项目编辑里再开",
+        project.webhookUrl
+          ? "已填 Webhook，接通后才会按此地址推送事件"
+          : "未填业务方 Webhook（可选）"
+      ];
+      if (!project.hasCollectSource && project.autoflow) {
+        blocks.push("自动流需要采集源绑定本项目，请稍后在「采集」中配置");
+      }
+      document.getElementById("success-blocks").innerHTML =
+        "<div style=\"font-weight:600\">当前还不能做的事</div><ul>" +
+        blocks.map(function (b) {
+          return "<li>" + b + "</li>";
+        }).join("") +
+        "</ul><p style=\"margin:10px 0 0;font-size:12.5px;color:var(--muted)\">下一步：把对接材料交给开发，接通后上述能力按你的配置自动生效，运营一般不必再回来配一轮。</p>";
+      document.getElementById("success-modal").hidden = false;
+      FZShell.toast("项目创建成功", "ok");
+    }
 
     function createProject() {
       collect();
       if (!draft.name.trim()) {
         stepIndex = 0;
         render();
-        FZShell.toast("请填写项目名称");
+        FZShell.toast("创建失败：请填写项目名称", "err");
         return;
       }
-      var st = FZStore.read();
-      var id = FZStore.uid("p");
-      var project = {
-        id: id,
-        name: draft.name.trim(),
-        siteType: draft.siteType,
-        marquee: draft.marquee,
-        status: "pending_activate",
-        creds: FZStore.issueProjectCreds(id),
-        contentActivated: false,
-        attachedExtIds: draft.attachedExtIds.slice(),
-        userbotId: draft.userbotId,
-        userbotName: draft.userbotName,
-        watermarkDone: draft.watermarkDone,
-        templateDone: draft.templateDone,
-        autoflow: false,
-        hasCollectSource: false
+      var nextBtn = document.getElementById("btn-next");
+      var skipBtn = document.getElementById("btn-skip");
+      setUnavailable(nextBtn, true, "创建中");
+      setUnavailable(skipBtn, true, "创建中");
+      nextBtn.textContent = "创建中…";
+
+      try {
+        var st = FZStore.read();
+        var id = FZStore.uid("p");
+        var project = {
+          id: id,
+          name: draft.name.trim(),
+          siteType: draft.siteType,
+          marquee: draft.marquee,
+          status: "pending_activate",
+          creds: FZStore.issueProjectCreds(id),
+          contentActivated: false,
+          attachedExtIds: draft.attachedExtIds.slice(),
+          userbotId: draft.userbotId,
+          userbotName: draft.userbotName,
+          watermarkDone: draft.watermarkDone,
+          templateDone: draft.templateDone,
+        autoflow: !!draft.autoflow,
+        hasCollectSource: !!draft.hasCollectSource,
+        webhookUrl: (draft.webhookUrl || "").trim(),
+        webhook: !!(draft.webhookUrl || "").trim(),
+        boundChannels: []
       };
       var wasEmpty = !st.projects.length;
       if (wasEmpty) {
-        st.projects = FZStore.seedAfterFirstCreate(project);
+        st.projects = FZStore.seedAfterFirstCreate(st, project);
         st.firstProjectDone = true;
         st.zeroPromptDismissed = true;
       } else {
         st.projects.unshift(project);
       }
-      FZStore.write(st);
-      location.href = "./project-connect.html?id=" + encodeURIComponent(id);
+        FZStore.write(st);
+        showSuccess(project);
+      } catch (e) {
+        FZShell.toast("创建失败，请重试", "err");
+        nextBtn.textContent = "创建项目";
+        syncFoot();
+      }
+    }
+
+    function bindLive() {
+      ["f-name", "f-marquee", "f-bot", "f-hook", "f-auto", "f-collect", "f-wm", "f-tpl"].forEach(
+        function (fid) {
+          var el = document.getElementById(fid);
+          if (!el) return;
+          var ev = el.tagName === "SELECT" || el.type === "checkbox" ? "change" : "input";
+          el.addEventListener(ev, function () {
+            collect();
+            renderSummary();
+            syncFoot();
+          });
+        }
+      );
+      document.querySelectorAll("[data-ext]").forEach(function (el) {
+        el.addEventListener("change", function () {
+          collect();
+          renderSummary();
+          syncFoot();
+        });
+      });
     }
 
     function render() {
@@ -384,21 +578,22 @@
         basic: panelBasic,
         userbot: panelUserbot,
         ext: panelExt,
-        media: panelMedia
+        media: panelMedia,
+        flow: panelFlow
       };
       document.getElementById("panel").innerHTML = map[STEPS[stepIndex].id]();
-      document.getElementById("btn-prev").disabled = stepIndex === 0;
-      document.getElementById("btn-skip").style.display = STEPS[stepIndex].required
-        ? "none"
-        : "";
-      var last = stepIndex === STEPS.length - 1;
-      document.getElementById("btn-next").textContent = last ? "创建项目" : "下一步";
       renderSteps();
       renderSummary();
       bind();
+      bindLive();
+      syncFoot();
     }
 
     document.getElementById("btn-prev").addEventListener("click", function () {
+      if (isUnavailable(this)) {
+        FZShell.toast("已是第一步", "err");
+        return;
+      }
       collect();
       if (stepIndex > 0) {
         stepIndex--;
@@ -406,25 +601,53 @@
       }
     });
     document.getElementById("btn-skip").addEventListener("click", function () {
+      if (isUnavailable(this)) {
+        FZShell.toast("请稍候", "err");
+        return;
+      }
       collect();
-      if (stepIndex < STEPS.length - 1) {
-        stepIndex++;
-        render();
-      } else createProject();
+      var last = stepIndex === STEPS.length - 1;
+      if (last) {
+        createProject();
+        return;
+      }
+      FZShell.toast("已跳过「" + STEPS[stepIndex].title + "」");
+      stepIndex++;
+      render();
     });
     document.getElementById("btn-next").addEventListener("click", function () {
+      if (isUnavailable(this)) {
+        FZShell.toast(
+          STEPS[stepIndex].required
+            ? "请先填写项目名称"
+            : "本步未填写，请点「跳过」或先完成填写",
+          "err"
+        );
+        return;
+      }
       collect();
       if (STEPS[stepIndex].required && !draft.name.trim()) {
-        FZShell.toast("请填写项目名称");
+        FZShell.toast("请填写项目名称", "err");
         return;
       }
       if (stepIndex < STEPS.length - 1) {
         stepIndex++;
         render();
-      } else createProject();
+      } else {
+        createProject();
+      }
     });
 
-    window.__bots = [];
+    document.getElementById("success-go").addEventListener("click", function () {
+      FZShell.toast("正在打开开发对接…", "ok");
+      location.href =
+        "./project-connect.html?id=" + encodeURIComponent(createdProjectId);
+    });
+    document.getElementById("success-later").addEventListener("click", function () {
+      FZShell.toast("可稍后在待办或项目列表进入对接", "ok");
+      location.href = "./projects.html";
+    });
+
     render();
   </script>
 </body>

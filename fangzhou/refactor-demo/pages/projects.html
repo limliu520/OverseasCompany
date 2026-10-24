@@ -19,7 +19,7 @@
       </div>
       <div class="content">
         <p class="muted" style="margin:0 0 14px">
-          创建后即可「编辑」：改基本信息、看技术对接材料。待激活 / 待完成配置另有快捷入口；外站（待激活）可挂在项目上。
+          创建时配齐配置 → 开发接入；接通后即完成。「编辑」可改信息与查看对接材料；待接通另有对接入口。
         </p>
         <div class="card" id="project-list"></div>
       </div>
@@ -56,12 +56,7 @@
             actions +=
               '<a class="btn btn-primary" href="./project-connect.html?id=' +
               encodeURIComponent(p.id) +
-              '">去激活</a>';
-          } else if (p.status === "need_post_config") {
-            actions +=
-              '<a class="btn btn-primary" href="./project-after.html?id=' +
-              encodeURIComponent(p.id) +
-              '">继续配置</a>';
+              '">对接</a>';
           }
           return (
             '<div class="list-row">' +
@@ -72,7 +67,8 @@
             p.name +
             "</a>" +
             '<div class="muted" style="font-size:12px;margin-top:4px">' +
-            (p.contentActivated ? "内容通道已激活" : "内容通道待激活") +
+            (p.contentActivated ? "内容通道已接通" : "内容通道待接通") +
+            (p.autoflow ? " · 自动流意向开" : "") +
             (extBits ? " · 外站：" + extBits : "") +
             "</div></div>" +
             '<span class="tag ' +

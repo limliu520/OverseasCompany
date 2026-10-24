@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>开发对接与激活 · 方舟</title>
+  <title>开发对接 · 方舟</title>
   <link rel="stylesheet" href="../css/app.css" />
 </head>
 <body>
@@ -11,8 +11,9 @@
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
       <div class="topbar">
-        <h1>开发对接与激活</h1>
+        <h1>开发对接</h1>
         <div class="topbar-actions">
+          <a class="btn btn-ghost" id="btn-edit" href="#">项目编辑</a>
           <button type="button" class="btn btn-ghost" id="btn-close">关闭</button>
           <div id="top-user"></div>
         </div>
@@ -32,11 +33,79 @@
     if (!p) {
       location.href = "./projects.html";
     }
+    document.getElementById("btn-edit").href =
+      "./project-edit.html?id=" + encodeURIComponent(id);
+
+    function intentBits(proj) {
+      var bits = [];
+      bits.push(proj.autoflow ? "自动流：意向开启（接通后生效）" : "自动流：关");
+      bits.push(proj.webhookUrl ? "Webhook：已填" : "Webhook：未填");
+      bits.push(proj.hasCollectSource ? "采集源：演示已绑" : "采集源：演示未绑");
+      return bits.join(" · ");
+    }
+
+    function fallbackCopy(text, ok, fail) {
+      try {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        var done = document.execCommand("copy");
+        document.body.removeChild(ta);
+        if (done) ok();
+        else fail();
+      } catch (e) {
+        fail();
+      }
+    }
+
+    function copyText(text, label) {
+      function ok() {
+        FZShell.toast((label || "内容") + "已复制", "ok");
+      }
+      function fail() {
+        FZShell.toast("复制失败，请手动选择", "err");
+      }
+      if (!text || text === "—") {
+        FZShell.toast("无可复制内容", "err");
+        return;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(ok).catch(function () {
+          fallbackCopy(text, ok, fail);
+        });
+      } else {
+        fallbackCopy(text, ok, fail);
+      }
+    }
+
+    function kvCopyRow(label, value, copyKey) {
+      return (
+        '<div class="kv-row">' +
+        '<div class="kv-meta"><div class="kv-label">' +
+        label +
+        '</div><div class="kv-value" id="' +
+        copyKey +
+        '">' +
+        (value || "—") +
+        "</div></div>" +
+        '<button type="button" class="btn" data-copy-text="' +
+        copyKey +
+        '" data-label="' +
+        label +
+        '">复制</button></div>'
+      );
+    }
 
     function render() {
       st = FZStore.read();
       p = FZStore.findProject(st, id);
+      if (!p.creds) p.creds = FZStore.issueProjectCreds(p.id);
       var status = FZStore.projectStatusLabel(p);
+      var creds = p.creds || {};
       var exts = (p.attachedExtIds || [])
         .map(function (eid) {
           return st.extChannels.find(function (e) {
@@ -57,7 +126,7 @@
                   e.name +
                   "</strong>" +
                   (e.status !== "active"
-                    ? '<div class="muted" style="font-size:12px;margin-top:4px">对接文档已生成；可稍后在待办中激活，不挡本项目后续。</div>'
+                    ? '<div class="muted" style="font-size:12px;margin-top:4px">对接文档已生成；可稍后在待办中激活，不挡本项目。</div>'
                     : "") +
                   '</div><span class="tag ' +
                   es.cls +
@@ -68,84 +137,99 @@
               })
               .join("");
 
+      var doneHint = p.contentActivated
+        ? '<p class="muted" style="margin:0;font-size:13px">通道已接通。前置配置已按意向生效；运营无需再配一轮。可关闭本页或去项目编辑查看。</p>'
+        : '<p class="muted" style="margin:0;font-size:13px">配置已在创建时配齐。本页只做开发接入；接通后状态自动完成。正式环境可能由系统探测 / 业务方首次合法调用等方式自动变「已接通」——下方按钮仅 Demo 模拟。</p>';
+
       document.getElementById("root").innerHTML =
         '<div class="card card-pad" style="margin-bottom:14px">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">' +
         "<div><div style=\"font-size:18px;font-weight:700\">" +
         p.name +
-        '</div><div class="muted" style="font-size:13px;margin-top:4px">创建后已生成内容通道凭证。请业务方按下方方案接入，完成后点击测试激活。</div></div>' +
+        '</div><div class="muted" style="font-size:13px;margin-top:4px">' +
+        intentBits(p) +
+        "</div></div>" +
         '<span class="tag ' +
         status.cls +
         '">' +
         status.text +
-        "</span></div></div>" +
-        '<div class="grid-3" style="margin-bottom:14px">' +
-        '<div class="card card-pad"><div class="muted" style="font-size:12px">App ID</div><div style="font-weight:600;margin-top:6px;word-break:break-all">' +
-        p.creds.appId +
+        "</span></div>" +
+        '<div style="margin-top:12px">' +
+        doneHint +
         "</div></div>" +
-        '<div class="card card-pad"><div class="muted" style="font-size:12px">App Secret</div><div style="font-weight:600;margin-top:6px;word-break:break-all">' +
-        p.creds.appSecret +
-        '</div><button type="button" class="btn" style="margin-top:8px" id="btn-copy-secret">复制</button></div>' +
-        '<div class="card card-pad"><div class="muted" style="font-size:12px">项目状态</div><div style="font-weight:600;margin-top:6px">' +
-        (p.contentActivated ? "内容通道已激活" : "待业务方接入后测试") +
-        "</div></div></div>" +
+        '<div class="card card-pad" style="margin-bottom:14px">' +
+        "<h2 style=\"margin:0 0 8px;font-size:16px\">通道凭证（只读）</h2>" +
+        '<p class="muted" style="margin:0 0 12px;font-size:13px">展示文案 + 复制，不可编辑。交给开发联调时从此处取用。</p>' +
+        '<div class="kv-block">' +
+        kvCopyRow("App ID", creds.appId, "conn-appid") +
+        kvCopyRow("App Secret", creds.appSecret, "conn-secret") +
+        "</div>" +
+        '<div class="muted" style="font-size:12px;margin-top:10px">通道状态：' +
+        (p.contentActivated ? "已接通" : "待接通") +
+        "</div></div>" +
         '<div class="card card-pad" style="margin-bottom:14px">' +
         "<strong>接入方案（占位 · 内容由开发提供）</strong>" +
         '<div class="code-block" style="margin-top:12px"><pre style="margin:0;white-space:pre-wrap">' +
-        "# 业务方调用方舟开放接口（演示规则）\n" +
+        "# 业务方 → 方舟\n" +
         "Authorization: Bearer " +
-        p.creds.appSecret +
+        (creds.appSecret || "…") +
         "\n" +
         "POST /v1/projects/" +
-        p.creds.appId +
+        (creds.appId || "…") +
         "/content\n\n" +
-        "# Webhook 接收（方舟 → 业务方）在激活后配置中填写\n" +
-        "# 完整字段表 / SDK 下载链接 → 开发交付后替换本区\n" +
+        "# 方舟 → 业务方 Webhook（创建时已填则接通后按此推送）\n" +
+        (p.webhookUrl || "# （未配置接收 URL）") +
+        "\n" +
         "</pre></div>" +
         '<div class="placeholder-doc" style="margin-top:12px"><strong>对接文档链接（占位）</strong>正式环境将提供可复制的规范与示例工程。</div>' +
         "</div>" +
         '<div class="card" style="margin-bottom:14px"><div class="card-pad"><strong>已挂外站通道</strong></div>' +
         extBlock +
         "</div>" +
-        '<div style="display:flex;justify-content:flex-end;gap:8px">' +
-        '<button type="button" class="btn btn-ghost" id="btn-close-2">稍后激活</button>' +
-        '<button type="button" class="btn btn-primary" id="btn-test"' +
-        (p.contentActivated ? " disabled" : "") +
-        ">" +
-        (p.contentActivated ? "已激活" : "测试激活（模拟连通成功）") +
-        "</button></div>";
+        '<div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap">' +
+        '<button type="button" class="btn btn-ghost" id="btn-close-2">关闭（稍后由系统/联调接通）</button>' +
+        (p.contentActivated
+          ? '<a class="btn btn-primary" href="./project-edit.html?id=' +
+            encodeURIComponent(id) +
+            '">查看项目</a>'
+          : '<button type="button" class="btn btn-primary" id="btn-test">模拟接通成功</button>') +
+        "</div>";
 
-      document.getElementById("btn-copy-secret").addEventListener("click", function () {
-        FZShell.toast("已复制 App Secret（演示）");
+      document.querySelectorAll("[data-copy-text]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var el = document.getElementById(btn.getAttribute("data-copy-text"));
+          var raw = el ? (el.textContent || "").trim() : "";
+          copyText(raw, btn.getAttribute("data-label"));
+        });
       });
       document.getElementById("btn-close-2").addEventListener("click", closePage);
       var testBtn = document.getElementById("btn-test");
-      if (testBtn && !p.contentActivated) {
+      if (testBtn) {
         testBtn.addEventListener("click", function () {
           var s2 = FZStore.read();
           var proj = FZStore.findProject(s2, id);
-          proj.contentActivated = true;
-          proj.status = "need_post_config";
+          FZStore.markContentConnected(proj);
           FZStore.upsertProject(s2, proj);
           FZStore.write(s2);
-          FZShell.toast("测试通过，内容通道已激活");
-          location.href = "./project-after.html?id=" + encodeURIComponent(id);
+          FZShell.toast(
+            proj.status === "need_collect"
+              ? "已接通；自动流意向将生效，但仍缺采集源（演示）"
+              : "已接通，前置配置生效，项目创建完成"
+          );
+          location.href = "./projects.html";
         });
       }
     }
 
     function closePage() {
-      FZShell.toast("可在待办或项目管理中继续激活");
+      if (!p.contentActivated) {
+        FZShell.toast("可关闭。接通后状态会变为已完成；也可在待办/列表查看");
+      }
       location.href = "./projects.html";
     }
     document.getElementById("btn-close").addEventListener("click", closePage);
 
-    /* 已测通：对接页仍可查看凭证/文档；若还在「待完成激活后配置」则引导去下一步 */
-    if (p.contentActivated && p.status === "need_post_config") {
-      location.replace("./project-after.html?id=" + encodeURIComponent(id));
-    } else {
-      render();
-    }
+    render();
   </script>
 </body>
 </html>
