@@ -29,6 +29,7 @@ body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto
 #view-prd h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
 #view-prd h2 { font-size: 18px; margin: 28px 0 10px; }
 #view-prd h3 { font-size: 14px; margin: 16px 0 6px; color: #0f766e; }
+#view-prd h4 { font-size: 13px; margin: 12px 0 6px; color: #334155; font-weight: 650; }
 #view-prd .meta { color: #5e5e66; font-size: 13px; margin-bottom: 12px; }
 #view-prd p { margin: 0 0 8px; }
 #view-prd ul { margin: 0 0 8px; padding-left: 18px; }
@@ -103,8 +104,42 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; white-spa
 .kpi {
   background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 16px;
 }
-.kpi .label { color: #6b7280; font-size: 12px; }
+.kpi .label {
+  color: #6b7280; font-size: 12px;
+  display: flex; align-items: center; gap: 4px;
+}
 .kpi .value { font-size: 24px; font-weight: 700; margin-top: 6px; letter-spacing: -0.02em; }
+.tip {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1px solid #9ca3af; color: #6b7280;
+  font-size: 10px; line-height: 1; cursor: help; flex-shrink: 0;
+  background: #fff;
+}
+.tip-bubble {
+  display: none; position: absolute; z-index: 30;
+  left: 50%; top: calc(100% + 7px); transform: translateX(-50%);
+  width: 240px; padding: 8px 10px;
+  background: #111827; color: #f9fafb;
+  font-size: 12px; font-weight: 400; line-height: 1.5;
+  border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,.22);
+  white-space: normal; text-align: left; pointer-events: none;
+}
+.tip-bubble::before {
+  content: ""; position: absolute; left: 50%; bottom: 100%;
+  transform: translateX(-50%);
+  border: 5px solid transparent; border-bottom-color: #111827;
+}
+.tip:hover .tip-bubble, .tip:focus .tip-bubble, .tip:focus-within .tip-bubble { display: block; }
+.kpi:nth-child(n+4) .tip-bubble {
+  left: auto; right: 0; transform: none;
+}
+.kpi:nth-child(n+4) .tip-bubble::before {
+  left: auto; right: 6px; transform: none;
+}
+th .tip { vertical-align: middle; margin-left: 2px; }
+th .tip-bubble { width: 220px; }
 .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
 .chart-box h3 { margin: 0 0 10px; font-size: 14px; }
 .chart-svg { width: 100%; height: 180px; background: #fafafa; border-radius: 6px; }
@@ -154,7 +189,7 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; white-spa
 <div class="pane" id="view-prd">
   <div class="wrap">
     <h1>51吃瓜品宣网 · 渠道推广链接配置与数据统计</h1>
-    <div class="meta">版本 v3.1 · 2026-10-24 · 仅品宣网 · 截图均来自本页 Demo（可点击放大）</div>
+    <div class="meta">版本 v3.2 · 2026-10-24 · 仅品宣网 · 截图均来自本页 Demo（可点击放大）</div>
 
     <h2>一、需求目的</h2>
     <p>为不同推广平台、账号配置独立推广链接，统计品宣网从落地访问、下载页访问、点击下载到进入 51吃瓜网的转化，方便运营评估各渠道及账号引流质量。</p>
@@ -166,7 +201,7 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; white-spa
         <tr><td>菜单</td><td>新开「渠道管理」→ 渠道配置、渠道统计</td></tr>
         <tr><td>覆盖范围</td><td>仅品宣网（不含 APP）</td></tr>
         <tr><td>渠道配置</td><td>新建、启停、复制、有限编辑（仅名称/备注）；落地页固定</td></tr>
-        <tr><td>渠道统计</td><td>PV、UV、下载页访问（UV）、下载点击（UV）、51吃瓜网转化（UV）；汇总 + 图表 + 明细 + 导出</td></tr>
+        <tr><td>渠道统计</td><td>PV、UV、下载页访问（UV）、下载点击（UV）、51吃瓜网转化（UV）；汇总 + 图表 + 明细 + 导出；指标旁「?」悬停看口径</td></tr>
         <tr><td>筛选</td><td>日期；渠道名/代理名搜索；推广码（展示带名称）</td></tr>
         <tr><td>归因</td><td>一律跟推广码；名称可改只影响展示</td></tr>
       </tbody>
@@ -224,20 +259,30 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; white-spa
     <table>
       <thead><tr><th>指标</th><th>口径</th><th>说明</th></tr></thead>
       <tbody>
-        <tr><td>PV</td><td>次数</td><td>落地页访问次数</td></tr>
-        <tr><td>UV</td><td>人数</td><td>落地页访问人数</td></tr>
-        <tr><td>下载页访问（UV）</td><td>人数</td><td>到达下载页的人数</td></tr>
-        <tr><td>下载点击（UV）</td><td>人数</td><td>在下载页点击下载的人数</td></tr>
-        <tr><td>51吃瓜网转化（UV）</td><td>人数</td><td>经该渠道从品宣网成功进入 51吃瓜网的人数</td></tr>
+        <tr><td>PV</td><td>次数</td><td>落地页访问次数；每次打开计 1，不去重</td></tr>
+        <tr><td>UV</td><td>人数</td><td>落地页访问人数；按下方 UV 规则去重</td></tr>
+        <tr><td>下载页访问（UV）</td><td>人数</td><td>到达下载页的人数；按 UV 规则去重</td></tr>
+        <tr><td>下载点击（UV）</td><td>人数</td><td>在下载页点击下载的人数；按 UV 规则去重</td></tr>
+        <tr><td>51吃瓜网转化（UV）</td><td>人数</td><td>经该渠道从品宣网成功进入 51吃瓜网的人数；按 UV 规则去重</td></tr>
       </tbody>
     </table>
+
+    <h4>UV 去重规则（已定）</h4>
+    <ul>
+      <li>访客标识：品宣网域下用第一方 Cookie 写入匿名 visitor_id（首次访问生成，长期有效）；无法写 Cookie 时用当次会话临时 ID。</li>
+      <li>去重窗口：自然日（时区 Asia/Shanghai，当日 00:00–24:00）。</li>
+      <li>计次：同一自然日、同一 visitor_id，同一指标最多计 1；当日重复访问或重复点击不叠加。</li>
+      <li>多日筛选：所选日期范围内，各自然日 UV 相加（不做跨日合并，规则简单可落地）。</li>
+      <li>指标独立：落地 UV、下载页访问 UV、下载点击 UV、51吃瓜网转化 UV 各自按「完成该行为」的访客去重，互不替代。</li>
+    </ul>
     <p>用户到达落地页后，路径全程保留渠道来源（推广码），便于后续下载页访问、点击下载及跳转 51吃瓜网的归因。</p>
 
     <h3>5.4 展示与导出</h3>
     <ul>
       <li>汇总卡片 + 简单图表（示意）+ 明细表</li>
+      <li>汇总卡片、明细表头的每个指标名称右侧放小「?」；鼠标悬停（或键盘聚焦）弹出气泡，展示该指标定义与 UV 去重要点（若适用）</li>
       <li>明细含：推广码 + 渠道名 + 代理名 + 指标；下载页访问 / 下载点击 / 51吃瓜网转化列名须标注 UV</li>
-      <li>导出当前筛选下的明细（列名与界面一致，含 UV 标注）</li>
+      <li>导出当前筛选下的明细（列名与界面一致，含 UV 标注）；导出表不含「?」交互</li>
     </ul>
 
     <h2>六、验收标准</h2>
@@ -246,7 +291,9 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; white-spa
       <tbody>
         <tr><td>配置</td><td>可为品宣网建链；落地固定；可复制；名称/备注可改；码与地址不可改；无删除</td></tr>
         <tr><td>统计指标</td><td>PV、UV、下载页访问（UV）、下载点击（UV）、51吃瓜网转化（UV）</td></tr>
-        <tr><td>口径</td><td>下载链路与转化为 UV；汇总/明细/导出列名均标明 UV；落地后路径保留推广码归因</td></tr>
+        <tr><td>UV 去重</td><td>Cookie visitor_id + 自然日（上海时区）；同日同指标最多计 1；多日按日相加；各指标独立去重</td></tr>
+        <tr><td>口径说明</td><td>汇总卡与明细表头指标旁有「?」，悬停气泡展示定义与规则</td></tr>
+        <tr><td>口径</td><td>下载链路与转化为 UV；列名标明 UV；落地后路径保留推广码归因</td></tr>
         <tr><td>筛选</td><td>日期、名称搜索、推广码（带名称展示）</td></tr>
         <tr><td>归因</td><td>跟推广码；进入 51吃瓜网可延续来源</td></tr>
         <tr><td>导出</td><td>可导出当前明细</td></tr>
@@ -306,11 +353,36 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; white-spa
         <datalist id="dl-agent"></datalist>
 
         <div class="kpis">
-          <div class="kpi"><div class="label">PV</div><div class="value" id="kw-pv">0</div></div>
-          <div class="kpi"><div class="label">UV</div><div class="value" id="kw-uv">0</div></div>
-          <div class="kpi"><div class="label">下载页访问（UV）</div><div class="value" id="kw-dl">0</div></div>
-          <div class="kpi"><div class="label">下载点击（UV）</div><div class="value" id="kw-jump">0</div></div>
-          <div class="kpi"><div class="label">51吃瓜网转化（UV）</div><div class="value" id="kw-conv">0</div></div>
+          <div class="kpi">
+            <div class="label">PV
+              <span class="tip" tabindex="0">?<span class="tip-bubble">落地页访问次数。每次打开计 1，不去重。</span></span>
+            </div>
+            <div class="value" id="kw-pv">0</div>
+          </div>
+          <div class="kpi">
+            <div class="label">UV
+              <span class="tip" tabindex="0">?<span class="tip-bubble">落地页访问人数。同一 Cookie 访客 ID，自然日（上海时区）内计 1；多日按日相加。</span></span>
+            </div>
+            <div class="value" id="kw-uv">0</div>
+          </div>
+          <div class="kpi">
+            <div class="label">下载页访问（UV）
+              <span class="tip" tabindex="0">?<span class="tip-bubble">到达下载页的人数。按访客 ID + 自然日去重；当日重复进入不计多次；多日按日相加。</span></span>
+            </div>
+            <div class="value" id="kw-dl">0</div>
+          </div>
+          <div class="kpi">
+            <div class="label">下载点击（UV）
+              <span class="tip" tabindex="0">?<span class="tip-bubble">在下载页点击下载的人数。按访客 ID + 自然日去重；当日重复点击不计多次；多日按日相加。</span></span>
+            </div>
+            <div class="value" id="kw-jump">0</div>
+          </div>
+          <div class="kpi">
+            <div class="label">51吃瓜网转化（UV）
+              <span class="tip" tabindex="0">?<span class="tip-bubble">经该渠道进入 51吃瓜网的人数。按访客 ID + 自然日去重；多日按日相加。</span></span>
+            </div>
+            <div class="value" id="kw-conv">0</div>
+          </div>
         </div>
 
         <div class="charts">
@@ -346,8 +418,11 @@ table.data th { color: #6b7280; font-weight: 600; background: #fafafa; white-spa
               <thead>
                 <tr>
                   <th>推广码</th><th>渠道名</th><th>代理名</th>
-                  <th>PV</th><th>UV</th>
-                  <th>下载页访问（UV）</th><th>下载点击（UV）</th><th>51吃瓜网转化（UV）</th>
+                  <th>PV <span class="tip" tabindex="0">?<span class="tip-bubble">落地页访问次数。每次打开计 1，不去重。</span></span></th>
+                  <th>UV <span class="tip" tabindex="0">?<span class="tip-bubble">落地页访问人数。访客 ID + 自然日去重；多日按日相加。</span></span></th>
+                  <th>下载页访问（UV） <span class="tip" tabindex="0">?<span class="tip-bubble">到达下载页的人数。访客 ID + 自然日去重；多日按日相加。</span></span></th>
+                  <th>下载点击（UV） <span class="tip" tabindex="0">?<span class="tip-bubble">点击下载的人数。访客 ID + 自然日去重；多日按日相加。</span></span></th>
+                  <th>51吃瓜网转化（UV） <span class="tip" tabindex="0">?<span class="tip-bubble">进入 51吃瓜网的人数。访客 ID + 自然日去重；多日按日相加。</span></span></th>
                 </tr>
               </thead>
               <tbody id="st-tbody"></tbody>
