@@ -23,8 +23,9 @@
       </div>
     </div>
   </div>
-  <script src="../js/store.js"></script>
+  <script src="../js/store.js?v=20261026e"></script>
   <script src="../js/shell.js"></script>
+  <script src="../js/project-union.js"></script>
   <script>
     FZShell.boot({ active: "projects" });
     var id = new URLSearchParams(location.search).get("id");
@@ -33,12 +34,14 @@
     if (!p) {
       location.href = "./projects.html";
     }
+    FZProjectUnion.normalizeProject(p);
     document.getElementById("btn-edit").href =
-      "./project-edit.html?id=" + encodeURIComponent(id);
+      "./project-edit.html?id=" + encodeURIComponent(id) + "&tab=connect";
 
     function intentBits(proj) {
       var bits = [];
-      bits.push(proj.autoflow ? "自动流：意向开启（接通后生效）" : "自动流：关");
+      bits.push(FZProjectUnion.siteTypeLabel(proj.siteType));
+      bits.push(proj.autoPush || proj.autoflow ? "推送方式：自动（接通后生效）" : "推送方式：待人工");
       bits.push(proj.webhookUrl ? "Webhook：已填" : "Webhook：未填");
       bits.push(proj.hasCollectSource ? "采集源：演示已绑" : "采集源：演示未绑");
       return bits.join(" · ");
@@ -106,40 +109,9 @@
       if (!p.creds) p.creds = FZStore.issueProjectCreds(p.id);
       var status = FZStore.projectStatusLabel(p);
       var creds = p.creds || {};
-      var exts = (p.attachedExtIds || [])
-        .map(function (eid) {
-          return st.extChannels.find(function (e) {
-            return e.id === eid;
-          });
-        })
-        .filter(Boolean);
-
-      var extBlock =
-        exts.length === 0
-          ? '<p class="muted" style="font-size:13px">本项目未挂外站通道。</p>'
-          : exts
-              .map(function (e) {
-                var es = FZStore.extStatusLabel(e);
-                return (
-                  '<div class="list-row">' +
-                  '<div class="grow"><strong>' +
-                  e.name +
-                  "</strong>" +
-                  (e.status !== "active"
-                    ? '<div class="muted" style="font-size:12px;margin-top:4px">对接文档已生成；可稍后在待办中激活，不挡本项目。</div>'
-                    : "") +
-                  '</div><span class="tag ' +
-                  es.cls +
-                  '">' +
-                  es.text +
-                  "</span></div>"
-                );
-              })
-              .join("");
-
       var doneHint = p.contentActivated
-        ? '<p class="muted" style="margin:0;font-size:13px">通道已接通。前置配置已按意向生效；运营无需再配一轮。可关闭本页或去项目编辑查看。</p>'
-        : '<p class="muted" style="margin:0;font-size:13px">配置已在创建时配齐。本页只做开发接入；接通后状态自动完成。正式环境可能由系统探测 / 业务方首次合法调用等方式自动变「已接通」——下方按钮仅 Demo 模拟。</p>';
+        ? '<p class="muted" style="margin:0;font-size:13px">通道已接通。前置配置已按意向生效。本页供开发继续查凭证与收件配置。</p>'
+        : '<p class="muted" style="margin:0;font-size:13px">给<strong>开发</strong>用：方舟签发的凭证（对方来接我们）+ 可选对方收件地址（我们推到对方）。运营创建流程里不再填这些。接通后可用下方 Demo 按钮模拟。</p>';
 
       document.getElementById("root").innerHTML =
         '<div class="card card-pad" style="margin-bottom:14px">' +
@@ -158,36 +130,45 @@
         doneHint +
         "</div></div>" +
         '<div class="card card-pad" style="margin-bottom:14px">' +
-        "<h2 style=\"margin:0 0 8px;font-size:16px\">通道凭证（只读）</h2>" +
-        '<p class="muted" style="margin:0 0 12px;font-size:13px">展示文案 + 复制，不可编辑。交给开发联调时从此处取用。</p>' +
+        "<h2 style=\"margin:0 0 8px;font-size:16px\">① 方舟签发的通道凭证（只读）</h2>" +
+        '<p class="muted" style="margin:0 0 12px;font-size:13px">交给业务方用来调方舟接口。展示 + 复制，不可编辑。一项目一套通道；推送身份用子账号「CMS 标识」。</p>' +
         '<div class="kv-block">' +
         kvCopyRow("App ID", creds.appId, "conn-appid") +
         kvCopyRow("App Secret", creds.appSecret, "conn-secret") +
+        kvCopyRow("站点代码", p.siteCode || "—", "conn-scode") +
         "</div>" +
         '<div class="muted" style="font-size:12px;margin-top:10px">通道状态：' +
         (p.contentActivated ? "已接通" : "待接通") +
         "</div></div>" +
+        '<div class="card card-pad" style="margin-bottom:14px" id="dev-connect-form">' +
+        "<h2 style=\"margin:0 0 8px;font-size:16px\">② 对方收件与签名（开发填写）</h2>" +
+        '<p class="muted" style="margin:0 0 12px;font-size:13px">需要方舟<strong>推内容到对方</strong>时再填对方接口；仅对方来调方舟时可留空。与项目详情「内容通道对接」同一套字段。</p>' +
+        FZProjectUnion.renderConnectFields(p) +
+        '<button type="button" class="btn btn-primary" id="btn-save-connect" style="margin-top:12px">保存对接参数</button></div>' +
         '<div class="card card-pad" style="margin-bottom:14px">' +
-        "<strong>接入方案（占位 · 内容由开发提供）</strong>" +
+        "<strong>接入方案（占位）</strong>" +
         '<div class="code-block" style="margin-top:12px"><pre style="margin:0;white-space:pre-wrap">' +
-        "# 业务方 → 方舟\n" +
+        "# 对方 → 方舟（用上方 App ID / Secret）\n" +
         "Authorization: Bearer " +
         (creds.appSecret || "…") +
         "\n" +
         "POST /v1/projects/" +
         (creds.appId || "…") +
-        "/content\n\n" +
-        "# 方舟 → 业务方 Webhook（创建时已填则接通后按此推送）\n" +
-        (p.webhookUrl || "# （未配置接收 URL）") +
+        "/content\n" +
+        "# body 可带 cmsIdentity = 子账号 CMS 标识\n\n" +
+        "# 方舟 → 对方（若已配收件地址）\n" +
+        (p.apiBaseUrl
+          ? p.apiBaseUrl + (p.apiPrefix || "/oash/v1")
+          : "# （未配对方收件地址）") +
+        "\n" +
+        "# Webhook：" +
+        (p.webhookUrl || "未配置") +
         "\n" +
         "</pre></div>" +
-        '<div class="placeholder-doc" style="margin-top:12px"><strong>对接文档链接（占位）</strong>正式环境将提供可复制的规范与示例工程。</div>' +
-        "</div>" +
-        '<div class="card" style="margin-bottom:14px"><div class="card-pad"><strong>已挂外站通道</strong></div>' +
-        extBlock +
+        '<div class="placeholder-doc" style="margin-top:12px"><strong>对接文档链接（占位）</strong>正式环境提供规范与示例工程。</div>' +
         "</div>" +
         '<div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap">' +
-        '<button type="button" class="btn btn-ghost" id="btn-close-2">关闭（稍后由系统/联调接通）</button>' +
+        '<button type="button" class="btn btn-ghost" id="btn-close-2">关闭</button>' +
         (p.contentActivated
           ? '<a class="btn btn-primary" href="./project-edit.html?id=' +
             encodeURIComponent(id) +
@@ -202,6 +183,30 @@
           copyText(raw, btn.getAttribute("data-label"));
         });
       });
+      var saveBtn = document.getElementById("btn-save-connect");
+      if (saveBtn) {
+        saveBtn.addEventListener("click", function () {
+          var draft = {};
+          FZProjectUnion.collectConnect(document, draft);
+          var err = FZProjectUnion.validateConnect(draft);
+          if (err) {
+            FZShell.toast(err, "err");
+            return;
+          }
+          var s2 = FZStore.read();
+          var proj = FZStore.findProject(s2, id);
+          proj.siteCode = draft.siteCode || proj.siteCode;
+          proj.apiBaseUrl = draft.apiBaseUrl;
+          proj.apiPrefix = draft.apiPrefix;
+          proj.appSecret = draft.appSecret;
+          proj.channelNotes = draft.channelNotes;
+          FZStore.upsertProject(s2, proj);
+          FZStore.write(s2);
+          p = proj;
+          FZShell.toast("对接参数已保存", "ok");
+          render();
+        });
+      }
       document.getElementById("btn-close-2").addEventListener("click", closePage);
       var testBtn = document.getElementById("btn-test");
       if (testBtn) {

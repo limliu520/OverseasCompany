@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>子账号与授权 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css" />
+  <link rel="stylesheet" href="../css/app.css?v=20261026aspect2" />
 </head>
 <body>
   <div class="app">
@@ -23,31 +23,41 @@
           <button type="button" class="btn" id="tab-roles" data-tab="roles">岗位</button>
         </div>
         <p class="muted" id="tab-desc" style="margin:0 0 14px"></p>
-        <div class="card" id="list-box"></div>
+        <div class="fz-card-grid sub-card-grid" id="list-box"></div>
       </div>
     </div>
   </div>
 
   <div class="modal-mask" id="sub-modal" hidden>
-    <div class="modal" style="width:min(640px,100%);max-height:90vh;overflow:auto">
-      <h2>创建子账号</h2>
-      <div class="field"><label>登录名 *</label><input id="sub-user" placeholder="例如：ops_xiaowang" /></div>
+    <div class="modal modal-perm">
+      <h2 id="sub-modal-title">创建子账号</h2>
+      <p class="hint" style="margin-top:0">列表只读；在此创建或编辑。权限按侧栏层级 + 页内操作勾选。CMS 标识推送内容通道时携带。</p>
+      <div class="field" id="sub-user-field">
+        <label>登录名 *</label>
+        <input id="sub-user" placeholder="例如：ops_xiaowang" />
+      </div>
+      <div class="field" id="sub-user-ro" hidden>
+        <label>登录名</label>
+        <div class="muted" id="sub-user-ro-text" style="font-family:ui-monospace,monospace;font-size:13px"></div>
+      </div>
       <div class="field"><label>显示名</label><input id="sub-name" placeholder="花名" /></div>
-      <div class="field"><label>初始密码 *</label><input id="sub-pass" type="password" value="Changeme1" /></div>
-      <div class="field">
-        <label>权限方式</label>
-        <select id="sub-mode">
-          <option value="custom">自定义勾选功能</option>
-          <option value="role">选择岗位（可再改勾选）</option>
-        </select>
-      </div>
-      <div class="field" id="role-pick-wrap" hidden>
-        <label>岗位</label>
-        <select id="sub-role"></select>
+      <div class="field" id="sub-pass-field">
+        <label>初始密码 *</label>
+        <input id="sub-pass" type="password" value="Changeme1" />
       </div>
       <div class="field">
-        <label>功能权限 *（至少一项）</label>
-        <div class="check-grid" id="sub-feats"></div>
+        <label>CMS 标识</label>
+        <input id="sub-cms" placeholder="从对方后台复制的 ID，可空" />
+        <p class="hint">内容通道推送时带上此 ID，由接收方判断内容归属。</p>
+      </div>
+      <div class="field">
+        <label>权限预设</label>
+        <p class="hint" style="margin:0 0 8px">点岗位快捷套用下方权限；改下方勾选后自动回到「自定义」。</p>
+        <div class="preset-chips role-presets" id="sub-role-presets" role="group" aria-label="权限预设"></div>
+      </div>
+      <div class="field">
+        <label>功能权限 *</label>
+        <div id="sub-feats"></div>
       </div>
       <div class="field">
         <label>可见项目 *（至少一项）</label>
@@ -61,11 +71,13 @@
   </div>
 
   <div class="modal-mask" id="role-modal" hidden>
-    <div class="modal" style="width:min(560px,100%)">
+    <div class="modal modal-perm">
       <h2 id="role-modal-title">新建岗位</h2>
+      <p class="hint" style="margin-top:0">岗位 = 可复用的菜单与页内操作权限包。创建子账号时可套用后再微调。</p>
       <div class="field"><label>岗位名称</label><input id="role-name" placeholder="例如：采集运营" /></div>
-      <div class="field"><label>功能合集</label>
-        <div class="check-grid" id="role-feats"></div>
+      <div class="field">
+        <label>权限范围 *</label>
+        <div id="role-feats"></div>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="role-cancel">取消</button>
@@ -74,319 +86,9 @@
     </div>
   </div>
 
-  <script src="../js/store.js"></script>
-  <script src="../js/shell.js"></script>
-  <script>
-    FZShell.boot({ active: "subs" });
-    var tab = new URLSearchParams(location.search).get("tab") === "roles" ? "roles" : "subs";
-    var editingRoleId = null;
-
-    function setTab(next) {
-      tab = next;
-      history.replaceState(null, "", "./subs.html" + (tab === "roles" ? "?tab=roles" : ""));
-      document.getElementById("tab-subs").className = "btn" + (tab === "subs" ? " btn-primary" : "");
-      document.getElementById("tab-roles").className = "btn" + (tab === "roles" ? " btn-primary" : "");
-      document.getElementById("tab-desc").textContent =
-        tab === "subs"
-          ? "子号默认全无权限；创建时必选功能 + 项目。可选岗位带出功能合集，仍可改勾选。岗位在本页「岗位」Tab 维护。"
-          : "岗位 = 功能合集，不内置模板。建子号时可选用岗位带权，也可自定义勾选。";
-      document.getElementById("btn-primary-act").textContent =
-        tab === "subs" ? "+ 创建子账号" : "+ 新建岗位";
-      renderList();
-    }
-
-    function renderSubs() {
-      var s = FZStore.read();
-      var box = document.getElementById("list-box");
-      if (!s.subs.length) {
-        box.innerHTML =
-          '<div class="card-pad muted">还没有子账号。可先到「岗位」Tab 建合集，也可直接自定义权限创建。</div>';
-        return;
-      }
-      box.innerHTML = s.subs
-        .map(function (u) {
-          return (
-            '<div class="list-row">' +
-            '<div class="grow"><div style="font-weight:600">' +
-            u.displayName +
-            ' <span class="muted">@' +
-            u.username +
-            "</span></div>" +
-            '<div class="muted" style="font-size:12px;margin-top:4px">功能 ' +
-            (u.features || []).length +
-            " · 项目 " +
-            (u.projects || []).length +
-            (u.roleName ? " · 岗位：" + u.roleName : "") +
-            "</div></div>" +
-            '<button type="button" class="btn" data-reset="' +
-            u.id +
-            '">重置密码</button>' +
-            '<button type="button" class="btn btn-ghost" data-disable="' +
-            u.id +
-            '">' +
-            (u.disabled ? "启用" : "停用") +
-            "</button></div>"
-          );
-        })
-        .join("");
-      box.querySelectorAll("[data-reset]").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          FZShell.toast("已重置子账号密码（演示）");
-        });
-      });
-      box.querySelectorAll("[data-disable]").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          var st = FZStore.read();
-          st.subs = st.subs.map(function (u) {
-            if (u.id === btn.getAttribute("data-disable")) {
-              u.disabled = !u.disabled;
-              FZShell.toast(u.disabled ? "已停用，演示为立即失效" : "已启用");
-            }
-            return u;
-          });
-          FZStore.write(st);
-          renderSubs();
-        });
-      });
-    }
-
-    function renderRoles() {
-      var s = FZStore.read();
-      var box = document.getElementById("list-box");
-      if (!s.roles.length) {
-        box.innerHTML =
-          '<div class="card-pad muted">还没有岗位。先建一个功能合集，创建子账号时可选。</div>';
-        return;
-      }
-      box.innerHTML = s.roles
-        .map(function (r) {
-          var names = FZStore.FEATURES.filter(function (f) {
-            return r.features.indexOf(f.id) !== -1;
-          })
-            .map(function (f) {
-              return f.name;
-            })
-            .join("、");
-          return (
-            '<div class="list-row">' +
-            '<div class="grow"><div style="font-weight:600">' +
-            r.name +
-            '</div><div class="muted" style="font-size:12px;margin-top:4px">' +
-            (names || "未勾选功能") +
-            "</div></div>" +
-            '<button type="button" class="btn" data-edit="' +
-            r.id +
-            '">编辑</button>' +
-            '<button type="button" class="btn btn-ghost" data-del="' +
-            r.id +
-            '">删除</button></div>'
-          );
-        })
-        .join("");
-      box.querySelectorAll("[data-edit]").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          openRoleModal(btn.getAttribute("data-edit"));
-        });
-      });
-      box.querySelectorAll("[data-del]").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          var st = FZStore.read();
-          st.roles = st.roles.filter(function (r) {
-            return r.id !== btn.getAttribute("data-del");
-          });
-          FZStore.write(st);
-          renderRoles();
-          FZShell.toast("已删除岗位");
-        });
-      });
-    }
-
-    function renderList() {
-      if (tab === "roles") renderRoles();
-      else renderSubs();
-    }
-
-    function fillFeatureChecks(selected) {
-      selected = selected || [];
-      document.getElementById("sub-feats").innerHTML = FZStore.FEATURES.map(function (f) {
-        return (
-          '<label class="check-item"><input type="checkbox" value="' +
-          f.id +
-          '"' +
-          (selected.indexOf(f.id) !== -1 ? " checked" : "") +
-          " /> " +
-          f.name +
-          "</label>"
-        );
-      }).join("");
-    }
-
-    function openSubModal() {
-      var s = FZStore.read();
-      document.getElementById("sub-user").value = "";
-      document.getElementById("sub-name").value = "";
-      document.getElementById("sub-mode").value = "custom";
-      document.getElementById("role-pick-wrap").hidden = true;
-      fillFeatureChecks([]);
-      document.getElementById("sub-role").innerHTML =
-        '<option value="">— 选择岗位 —</option>' +
-        s.roles
-          .map(function (r) {
-            return '<option value="' + r.id + '">' + r.name + "</option>";
-          })
-          .join("");
-      var projBox = document.getElementById("sub-projects");
-      if (!s.projects.length) {
-        projBox.innerHTML =
-          '<p class="muted">还没有项目，请先<a href="./project-setup.html?new=1">创建项目</a></p>';
-      } else {
-        projBox.innerHTML = s.projects
-          .map(function (p) {
-            return (
-              '<label class="check-item"><input type="checkbox" value="' +
-              p.id +
-              '" /> ' +
-              p.name +
-              "</label>"
-            );
-          })
-          .join("");
-      }
-      document.getElementById("sub-modal").hidden = false;
-    }
-
-    function openRoleModal(id) {
-      editingRoleId = id || null;
-      var s = FZStore.read();
-      var role = id
-        ? s.roles.find(function (r) {
-            return r.id === id;
-          })
-        : null;
-      document.getElementById("role-modal-title").textContent = role ? "编辑岗位" : "新建岗位";
-      document.getElementById("role-name").value = role ? role.name : "";
-      var feats = role ? role.features : [];
-      document.getElementById("role-feats").innerHTML = FZStore.FEATURES.map(function (f) {
-        return (
-          '<label class="check-item"><input type="checkbox" value="' +
-          f.id +
-          '"' +
-          (feats.indexOf(f.id) !== -1 ? " checked" : "") +
-          " /> " +
-          f.name +
-          "</label>"
-        );
-      }).join("");
-      document.getElementById("role-modal").hidden = false;
-    }
-
-    document.getElementById("tab-subs").addEventListener("click", function () {
-      setTab("subs");
-    });
-    document.getElementById("tab-roles").addEventListener("click", function () {
-      setTab("roles");
-    });
-    document.getElementById("btn-primary-act").addEventListener("click", function () {
-      if (tab === "roles") openRoleModal(null);
-      else openSubModal();
-    });
-
-    document.getElementById("sub-cancel").addEventListener("click", function () {
-      document.getElementById("sub-modal").hidden = true;
-    });
-    document.getElementById("sub-modal").addEventListener("click", function (e) {
-      if (e.target === e.currentTarget) document.getElementById("sub-modal").hidden = true;
-    });
-    document.getElementById("sub-mode").addEventListener("change", function () {
-      document.getElementById("role-pick-wrap").hidden = this.value !== "role";
-    });
-    document.getElementById("sub-role").addEventListener("change", function () {
-      var s = FZStore.read();
-      var role = s.roles.find(function (r) {
-        return r.id === this.value;
-      }.bind(this));
-      fillFeatureChecks(role ? role.features : []);
-    });
-    document.getElementById("sub-save").addEventListener("click", function () {
-      var username = document.getElementById("sub-user").value.trim();
-      var displayName = document.getElementById("sub-name").value.trim() || username;
-      var pass = document.getElementById("sub-pass").value;
-      if (!username || !pass) {
-        FZShell.toast("请填写登录名和密码");
-        return;
-      }
-      var features = [];
-      document.querySelectorAll("#sub-feats input:checked").forEach(function (el) {
-        features.push(el.value);
-      });
-      var projects = [];
-      document.querySelectorAll("#sub-projects input:checked").forEach(function (el) {
-        projects.push(el.value);
-      });
-      if (!features.length) {
-        FZShell.toast("请至少勾选一个功能");
-        return;
-      }
-      if (!projects.length) {
-        FZShell.toast("请至少勾选一个项目");
-        return;
-      }
-      var st = FZStore.read();
-      var roleId = document.getElementById("sub-role").value;
-      var role = st.roles.find(function (r) {
-        return r.id === roleId;
-      });
-      st.subs.push({
-        id: FZStore.uid("sub"),
-        username: username,
-        displayName: displayName,
-        features: features,
-        projects: projects,
-        roleName: role ? role.name : "",
-        disabled: false
-      });
-      FZStore.write(st);
-      document.getElementById("sub-modal").hidden = true;
-      renderList();
-      FZShell.toast("子账号已创建，权限立即生效（演示）");
-    });
-
-    document.getElementById("role-cancel").addEventListener("click", function () {
-      document.getElementById("role-modal").hidden = true;
-    });
-    document.getElementById("role-modal").addEventListener("click", function (e) {
-      if (e.target === e.currentTarget) document.getElementById("role-modal").hidden = true;
-    });
-    document.getElementById("role-save").addEventListener("click", function () {
-      var name = document.getElementById("role-name").value.trim();
-      if (!name) {
-        FZShell.toast("请填写岗位名称");
-        return;
-      }
-      var features = [];
-      document.querySelectorAll("#role-feats input:checked").forEach(function (el) {
-        features.push(el.value);
-      });
-      if (!features.length) {
-        FZShell.toast("请至少勾选一个功能");
-        return;
-      }
-      var st = FZStore.read();
-      if (editingRoleId) {
-        st.roles = st.roles.map(function (r) {
-          if (r.id === editingRoleId) return { id: r.id, name: name, features: features };
-          return r;
-        });
-      } else {
-        st.roles.push({ id: FZStore.uid("role"), name: name, features: features });
-      }
-      FZStore.write(st);
-      document.getElementById("role-modal").hidden = true;
-      renderList();
-      FZShell.toast("岗位已保存");
-    });
-
-    setTab(tab);
-  </script>
+  <script src="../js/store.js?v=20261026e"></script>
+  <script src="../js/perm-tree.js?v=20261026d"></script>
+  <script src="../js/shell.js?v=20261026d"></script>
+  <script src="../js/subs-app.js?v=20261026aspect2"></script>
 </body>
 </html>

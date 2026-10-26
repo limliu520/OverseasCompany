@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>项目配置 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css" />
+  <title>项目详情 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css?v=20261026fw" />
 </head>
 <body>
   <div class="app">
@@ -12,469 +12,537 @@
     <div class="main">
       <div class="topbar">
         <div style="display:flex;align-items:center;gap:12px;min-width:0">
-          <a class="btn" href="./projects.html" title="返回项目列表">← 项目列表</a>
-          <h1 id="page-title" style="margin:0">项目配置</h1>
+          <a class="btn" href="./projects.html">← 项目列表</a>
+          <h1 style="margin:0">项目详情</h1>
         </div>
         <div class="topbar-actions" id="topbar-cta"></div>
       </div>
-      <div class="content" id="root">
-        <p class="muted">加载中…</p>
-      </div>
+      <div class="content" id="root"><p class="muted">加载中…</p></div>
     </div>
   </div>
 
-  <div class="modal-mask" id="asset-modal" hidden>
-    <div class="modal" style="width:min(480px,100%)">
-      <h2 id="asset-title">新建</h2>
-      <div id="asset-body"></div>
+  <div class="modal-mask" id="basic-modal" hidden>
+    <div class="modal" style="width:min(640px,100%)">
+      <h2>编辑基本信息</h2>
+      <p class="hint" style="margin-top:0">展示与编辑分离：名称、类型与封面宽高在此修改（生成与推送同一套）。一个项目一套内容通道。</p>
+      <div class="field"><label>项目名称 *</label><input id="b-name" /></div>
+      <div class="field"><label>站点类型</label>
+        <div id="basic-site-types"></div>
+        <p class="hint" id="b-type-hint" style="margin-top:8px">创建后仍可改。改类型只影响后续出稿/分集等规则，已产出的历史稿不会自动重跑或改写。</p>
+      </div>
+      <div class="field"><label>图片封面尺寸（生成与推送共用，200–4096px）</label>
+        <div class="ratio-row">
+          <div class="field"><label>宽 (px)</label><input id="b-cw" /></div>
+          <div class="field"><label>高 (px)</label><input id="b-ch" /></div>
+        </div>
+      </div>
       <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" id="asset-cancel">取消</button>
-        <button type="button" class="btn btn-primary" id="asset-save">创建</button>
+        <button type="button" class="btn btn-ghost" id="basic-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="basic-save">保存</button>
       </div>
     </div>
   </div>
 
-  <script src="../js/store.js"></script>
+  <script src="../js/store.js?v=20261026e"></script>
   <script src="../js/shell.js"></script>
+  <script src="../js/article-defaults.js?v=20261026r"></script>
+  <script src="../js/media-config.js?v=20261026mw"></script>
+  <script src="../js/pick-cards.js"></script>
+  <script src="../js/tg-add-wizard.js"></script>
+  <script src="../js/project-union.js?v=20261026n"></script>
   <script>
     FZShell.boot({ active: "projects" });
     var id = new URLSearchParams(location.search).get("id");
-    var tab = new URLSearchParams(location.search).get("tab") || "basic";
-    /* 与新建能力对齐；技术对接偶发使用，放最右 */
-    var TABS = [
-      { id: "basic", label: "基本信息" },
-      { id: "watermark", label: "水印与封面" },
-      { id: "template", label: "文章模板" },
-      { id: "flow", label: "自动流与通知" },
-      { id: "connect", label: "技术对接" }
+    var tab = new URLSearchParams(location.search).get("tab") || "watermark";
+    var wmAddView = "image";
+    var artSection = "prompt";
+    var artView = "custom";
+    var ALL_TABS = [
+      { id: "watermark", label: "水印管理" },
+      { id: "intro", label: "片头和片尾" },
+      { id: "article", label: "文章管理" },
+      { id: "media", label: "图片视频规则" },
+      { id: "connect", label: "开发对接配置" },
+      { id: "channel", label: "通道管理" },
+      { id: "flow", label: "推送规则" },
+      { id: "optional", label: "可选功能" }
     ];
-    var assetMode = "";
-
-    function ensureDefaults(p) {
-      if (!p.attachedExtIds) p.attachedExtIds = [];
-      if (!p.boundChannels) p.boundChannels = [];
-      if (!p.coverWidth) p.coverWidth = "720";
-      if (!p.coverHeight) p.coverHeight = "1280";
-      if (!p.wmPosition) p.wmPosition = "bottom-right";
-      if (p.templateEnabled == null) p.templateEnabled = !!p.templateDone;
-      if (!p.templateNote) p.templateNote = "";
-      if (!p.creds) p.creds = FZStore.issueProjectCreds(p.id);
-      return p;
+    /** 短剧站不展示「文章管理」（与创建向导 needsArticle 一致） */
+    function tabsForProject(p) {
+      return ALL_TABS.filter(function (t) {
+        if (t.id === "article") return FZProjectUnion.needsArticle(p && p.siteType);
+        return true;
+      });
     }
+    if (!ALL_TABS.some(function (t) { return t.id === tab; })) tab = "watermark";
+    var POS = [
+      ["top-left", "左上"],
+      ["top-right", "右上"],
+      ["bottom-left", "左下"],
+      ["bottom-right", "右下"]
+    ];
 
-    function fallbackCopy(text, ok, fail) {
-      try {
-        var ta = document.createElement("textarea");
-        ta.value = text;
-        ta.setAttribute("readonly", "");
-        ta.style.position = "fixed";
-        ta.style.left = "-9999px";
-        document.body.appendChild(ta);
-        ta.select();
-        var done = document.execCommand("copy");
-        document.body.removeChild(ta);
-        if (done) ok();
-        else fail();
-      } catch (e) {
-        fail();
+    function loadProject() {
+      var st = FZStore.read();
+      var p = FZStore.findProject(st, id);
+      if (!p) {
+        location.href = "./projects.html";
+        return null;
       }
+      if (!p.boundChannels) p.boundChannels = [];
+      if (!p.optionalPacks) p.optionalPacks = {};
+      FZProjectUnion.normalizeProject(p);
+      FZArticle.ensureWatermarks(p);
+      FZArticle.ensureArticle(p);
+      return { st: st, p: p };
     }
 
     function copyText(text, label) {
       function ok() {
         FZShell.toast((label || "内容") + "已复制", "ok");
       }
-      function fail() {
-        FZShell.toast("复制失败，请手动选择", "err");
-      }
-      if (!text || text === "—") {
-        FZShell.toast("无可复制内容", "err");
-        return;
-      }
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(ok).catch(function () {
-          fallbackCopy(text, ok, fail);
+          FZShell.toast("复制失败", "err");
         });
-      } else {
-        fallbackCopy(text, ok, fail);
-      }
+      } else ok();
     }
 
-    function kvCopyRow(label, value, copyKey) {
+    function kvRow(label, value, copyId) {
+      var v = value || "—";
       return (
         '<div class="kv-row">' +
         '<div class="kv-meta"><div class="kv-label">' +
         label +
         '</div><div class="kv-value" id="' +
-        copyKey +
+        copyId +
         '">' +
-        (value || "—") +
+        v +
         "</div></div>" +
-        '<button type="button" class="btn" data-copy-text="' +
-        copyKey +
-        '" data-label="' +
-        label +
-        '">复制</button></div>'
+        (value
+          ? '<button type="button" class="btn" data-copy-text="' +
+            copyId +
+            '" data-label="' +
+            label +
+            '">复制</button>'
+          : "") +
+        "</div>"
       );
     }
 
-    function closeAsset() {
-      document.getElementById("asset-modal").hidden = true;
-      document.getElementById("asset-body").innerHTML = "";
-      assetMode = "";
-    }
-
-    function openAsset(mode) {
-      assetMode = mode;
-      document.getElementById("asset-modal").hidden = false;
-      document.getElementById("asset-title").textContent =
-        mode === "bot" ? "新建采集号" : "新建外站通道";
-      if (mode === "bot") {
-        document.getElementById("asset-body").innerHTML =
-          '<div class="field"><label>显示名称 *</label><input id="a-name" placeholder="例如：出海采集号-主" /></div>' +
-          '<div class="field"><label>手机号 *</label><input id="a-phone" placeholder="+86 …（运营认号用）" /></div>' +
-          '<div class="field"><label>api_id</label><input id="a-api" placeholder="Telegram api_id" /></div>' +
-          '<div class="field"><label>api_hash</label><input id="a-hash" placeholder="Telegram api_hash" /></div>' +
-          '<p class="hint">相当于登录一个 TG 号；创建后关联到本项目。</p>';
-      } else {
-        document.getElementById("asset-body").innerHTML =
-          '<div class="field"><label>通道名称 *</label><input id="a-name" placeholder="例如：合作站 X" /></div>' +
-          '<div class="field"><label>站点备注</label><input id="a-note" placeholder="对接方名称等" /></div>' +
-          '<p class="hint">创建后为待激活，并自动挂到当前项目。</p>';
-      }
-    }
-
-    document.getElementById("asset-cancel").addEventListener("click", closeAsset);
-    document.getElementById("asset-modal").addEventListener("click", function (e) {
-      if (e.target === e.currentTarget) closeAsset();
-    });
-    document.getElementById("asset-save").addEventListener("click", function () {
-      if (!assetMode) {
-        closeAsset();
-        return;
-      }
-      var name = ((document.getElementById("a-name") || {}).value || "").trim();
-      if (!name) {
-        FZShell.toast("请填写名称", "err");
-        return;
-      }
-      var s2 = FZStore.read();
-      var proj = FZStore.findProject(s2, id);
-      ensureDefaults(proj);
-      if (assetMode === "bot") {
-        if (FZStore.projectHasChannels(proj)) {
-          FZShell.toast(
-            "本项目已有绑定频道，请先解绑全部频道后再新建/更换采集号",
-            "err"
-          );
-          return;
-        }
-        if (!s2.userbots) s2.userbots = [];
-        var phone = ((document.getElementById("a-phone") || {}).value || "").trim();
-        var bot = {
-          id: FZStore.uid("bot"),
-          name: name,
-          phoneHint: phone ? phone.slice(0, 4) + "****" + phone.slice(-4) : "",
-          channelCount: 0
-        };
-        s2.userbots.push(bot);
-        proj.userbotId = bot.id;
-        proj.userbotName = name;
-        FZStore.upsertProject(s2, proj);
-        FZStore.write(s2);
-        FZShell.toast("采集号已创建并关联到本项目", "ok");
-      } else {
-        var ext = {
-          id: FZStore.uid("ext"),
-          name: name,
-          note: ((document.getElementById("a-note") || {}).value || "").trim(),
-          status: "pending_activate",
-          docReady: true
-        };
-        s2.extChannels.push(ext);
-        if (proj.attachedExtIds.indexOf(ext.id) === -1) proj.attachedExtIds.push(ext.id);
-        FZStore.upsertProject(s2, proj);
-        FZStore.write(s2);
-        FZShell.toast("外站通道已创建（待激活）并挂到本项目", "ok");
-      }
-      closeAsset();
-      render();
-    });
-
-    function render() {
-      var st = FZStore.read();
-      var p = FZStore.findProject(st, id);
-      if (!p) {
-        location.href = "./projects.html";
-        return;
-      }
-      ensureDefaults(p);
-      var status = FZStore.projectStatusLabel(p);
-      document.getElementById("page-title").textContent = p.name || "项目配置";
-
-      var ctaHtml = '<span class="tag ' + status.cls + '">' + status.text + "</span>";
-      if (p.status === "pending_activate") {
-        ctaHtml +=
-          '<a class="btn btn-primary" href="./project-connect.html?id=' +
-          encodeURIComponent(p.id) +
-          '">去对接</a>';
-      }
-      document.getElementById("topbar-cta").innerHTML = ctaHtml;
-
-      var tabs =
-        '<div class="tabs" style="display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap">' +
-        TABS.map(function (t) {
+    function posRadios(name, selected) {
+      return (
+        '<div class="pos-group">' +
+        POS.map(function (pair) {
           return (
-            '<button type="button" class="btn' +
-            (tab === t.id ? " btn-primary" : "") +
-            '" data-tab="' +
-            t.id +
-            '">' +
-            t.label +
-            "</button>"
+            '<label><input type="radio" name="' +
+            name +
+            '" value="' +
+            pair[0] +
+            '"' +
+            (selected === pair[0] ? " checked" : "") +
+            " /> " +
+            pair[1] +
+            "</label>"
           );
         }).join("") +
-        "</div>";
+        "</div>"
+      );
+    }
 
+    function posChecks(name, selected) {
+      selected = selected || [];
+      return (
+        '<div class="pos-group">' +
+        POS.map(function (pair) {
+          return (
+            '<label><input type="checkbox" data-pos-group="' +
+            name +
+            '" value="' +
+            pair[0] +
+            '"' +
+            (selected.indexOf(pair[0]) !== -1 ? " checked" : "") +
+            " /> " +
+            pair[1] +
+            "</label>"
+          );
+        }).join("") +
+        "</div>"
+      );
+    }
+
+    function wmBlock(key, title, accept, multiPos, extraHtml) {
+      var ctx = loadProject();
+      var w = ctx.p.watermarks[key];
+      var preview = w.dataUrl
+        ? accept.indexOf("video") !== -1 && w.dataUrl.indexOf("video") !== -1
+          ? '<video src="' + w.dataUrl + '" muted></video>'
+          : '<img src="' + w.dataUrl + '" alt="" />'
+        : "未上传";
+      return (
+        '<div class="wm-card" data-wm="' +
+        key +
+        '"><h3>' +
+        title +
+        "</h3>" +
+        '<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start">' +
+        '<div class="wm-preview" id="prev-' +
+        key +
+        '">' +
+        preview +
+        "</div>" +
+        "<div style=\"flex:1;min-width:220px\">" +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' +
+        '<label class="btn">' +
+        (accept.indexOf("image") !== -1 && accept.indexOf("video") === -1
+          ? "上传图片"
+          : "上传素材") +
+        '<input type="file" accept="' +
+        accept +
+        '" data-upload="' +
+        key +
+        '" hidden /></label>' +
+        '<button type="button" class="btn btn-ghost" data-remove-wm="' +
+        key +
+        '">移除水印</button></div>' +
+        '<div class="muted" style="font-size:12px;margin-bottom:8px">' +
+        (w.name ? "已加载：" + w.name : "尚未上传") +
+        "</div>" +
+        "<div class=\"field\" style=\"margin:0 0 8px\"><label>位置" +
+        (multiPos ? "（多选）" : "") +
+        "</label>" +
+        (multiPos ? posChecks(key, w.positions) : posRadios("pos-" + key, w.position)) +
+        "</div>" +
+        (extraHtml || "") +
+        '<div class="field" style="margin:0"><label>宽度比例（0.02~1，留空走默认）</label>' +
+        '<div class="ratio-row">' +
+        '<div class="field"><label>横屏</label><input data-ratio="' +
+        key +
+        '-h" value="' +
+        (w.ratioH || "") +
+        '" placeholder="如 0.2" /></div>' +
+        '<div class="field"><label>竖屏</label><input data-ratio="' +
+        key +
+        '-v" value="' +
+        (w.ratioV || "") +
+        '" placeholder="如 0.2" /></div></div></div>' +
+        "</div></div></div>"
+      );
+    }
+
+    function renderHero(p) {
+      var st = FZStore.projectStatusLabel(p);
+      var typeLabel = FZProjectUnion.siteTypeLabel(p.siteType);
+      var channelHint = p.apiBaseUrl
+        ? "已配接口 · " + (p.contentActivated ? "已接通" : "待接通")
+        : p.contentActivated
+          ? "已接通（待补接口）"
+          : "待配对接 / 待接通";
+      document.getElementById("topbar-cta").innerHTML =
+        '<span class="tag ' +
+        st.cls +
+        '">' +
+        st.text +
+        "</span>" +
+        (p.status === "pending_activate"
+          ? '<a class="btn btn-primary" href="./project-connect.html?id=' +
+            encodeURIComponent(p.id) +
+            '">去对接</a>'
+          : "");
+      return (
+        '<div class="detail-hero">' +
+        '<div class="detail-hero-top">' +
+        "<div><h2>" +
+        (p.name || "未命名项目") +
+        '</h2><div class="muted" style="font-size:13px">只读摘要。修改请点「编辑基本信息」或下方各 Tab 内保存。一个项目 = 一套内容通道（方舟规范对接）；推送带上子账号「CMS 标识」，不做多账号分发。</div></div>' +
+        '<button type="button" class="btn btn-primary" id="btn-edit-basic">编辑基本信息</button></div>' +
+        '<div class="detail-meta">' +
+        '<div><div class="label">站点类型</div><div class="value">' +
+        typeLabel +
+        "</div></div>" +
+        '<div><div class="label">封面</div><div class="value">' +
+        (p.coverWidth || "—") +
+        " × " +
+        (p.coverHeight || "—") +
+        " px</div></div>" +
+        '<div><div class="label">采集号</div><div class="value">' +
+        (p.userbotName || "未关联") +
+        "</div></div>" +
+        '<div><div class="label">已绑频道</div><div class="value">' +
+        FZStore.projectChannels(p).length +
+        " 个</div></div>" +
+        '<div><div class="label">内容通道</div><div class="value">' +
+        channelHint +
+        "</div></div>" +
+        '<div><div class="label">App ID</div><div class="value" style="font-family:ui-monospace,monospace;font-size:12px">' +
+        ((p.creds && p.creds.appId) || "—") +
+        "</div></div></div></div>"
+      );
+    }
+
+    function renderTabs(p) {
+      return (
+        '<div class="config-tabs">' +
+        tabsForProject(p)
+          .map(function (t) {
+            return (
+              '<button type="button" class="btn' +
+              (tab === t.id ? " btn-primary" : "") +
+              '" data-tab="' +
+              t.id +
+              '">' +
+              t.label +
+              "</button>"
+            );
+          })
+          .join("") +
+        "</div>"
+      );
+    }
+
+    function paneWatermark(p) {
+      return (
+        '<div class="card card-pad">' +
+        FZMediaConfig.renderWatermarkPanel(p.watermarks, {
+          lead: "上下同级两块：去源水印、添加水印（图片 / 视频叠层）。片头片尾见「片头和片尾」Tab。",
+          allowDefault: false,
+          showSave: true,
+          dewatermarkEnabled: p.dewatermarkEnabled !== false,
+          showDewatermark: true,
+          wmAddView: wmAddView
+        }) +
+        "</div>"
+      );
+    }
+
+    function paneIntro(p) {
+      return (
+        '<div class="card card-pad">' +
+        FZMediaConfig.renderIntroOutroPanel(p.watermarks, {
+          lead: "整段拼在原片前/后，不是叠层水印。有上传才拼接；可只配一端。",
+          showSave: true
+        }) +
+        "</div>"
+      );
+    }
+
+    function paneArticle(p) {
+      if (!FZProjectUnion.needsArticle(p.siteType)) {
+        return (
+          '<div class="card card-pad">' +
+          '<p class="muted" style="margin:0;font-size:13px">短剧站不配文章管理。分集在「推送规则」，闸门在「图片视频规则」。</p></div>'
+        );
+      }
+      return (
+        '<div class="card card-pad">' +
+        FZMediaConfig.renderArticlePanel(p.article, {
+          lead: "顶栏切换「AI 文章提示词管理 / 文案内链管理」。提示词默认优先自定义；点卡片切换，开关开才展开（可同开，不可同关）。文案内链独立，与提示词无关。",
+          showSave: true,
+          showLinks: true,
+          artSection: artSection,
+          artView: artView
+        }) +
+        "</div>"
+      );
+    }
+
+    function paneToolbar(lead, saveId, saveLabel) {
+      return (
+        '<div class="tab-pane-toolbar">' +
+        '<p class="muted media-lead" style="margin:0">' +
+        lead +
+        "</p>" +
+        '<button type="button" class="btn btn-primary tab-pane-save" id="' +
+        saveId +
+        '">' +
+        saveLabel +
+        "</button></div>"
+      );
+    }
+
+    function paneConnect(p) {
+      var c = p.creds || {};
+      return (
+        '<div class="card card-pad" style="margin-bottom:14px">' +
+        paneToolbar(
+          "与「开发对接」页同一套：方舟签发凭证（对方来接我们）+ 可选对方收件地址（我们推到对方）。运营创建流程不填本块。推送带上子账号「CMS 标识」，不配对方登录账号。",
+          "btn-save-connect",
+          "保存对接配置"
+        ) +
+        '<div class="kv-block">' +
+        kvRow("App ID", c.appId, "c-appid") +
+        kvRow("App Secret", c.appSecret, "c-secret") +
+        "</div>" +
+        (p.status === "pending_activate"
+          ? '<a class="btn" style="margin-top:12px" href="./project-connect.html?id=' +
+            encodeURIComponent(p.id) +
+            '">打开开发对接页</a>'
+          : "") +
+        "</div>" +
+        '<div class="card card-pad" id="union-connect-root">' +
+        "<strong style=\"display:block;margin-bottom:10px\">方舟规范对接（OASH）</strong>" +
+        FZProjectUnion.renderConnectFields(p) +
+        "</div>"
+      );
+    }
+
+    function paneMedia(p) {
+      return (
+        '<div class="card card-pad" id="union-media-root">' +
+        paneToolbar(
+          "左栏图片输出格式；右栏必须含视频、切片、最短时长。分集在「推送规则」。封面在「编辑基本信息」，水印在「水印管理」。",
+          "btn-save-media",
+          "保存图片视频规则"
+        ) +
+        FZProjectUnion.renderVideoRulesFields(p) +
+        "</div>"
+      );
+    }
+
+    function paneChannel(p, st) {
+      var hasCh = FZStore.projectHasChannels(p);
+      var ch = FZStore.projectChannels(p);
       var bots = (st.userbots || []).slice();
       if (p.userbotId && !bots.some(function (b) { return b.id === p.userbotId; })) {
         bots.unshift({ id: p.userbotId, name: p.userbotName || p.userbotId });
       }
-      var hasCh = FZStore.projectHasChannels(p);
-      var channels = FZStore.projectChannels(p);
-      var botOpts =
-        '<option value="">— 未关联 —</option>' +
-        bots
-          .map(function (b) {
-            var phone = b.phoneHint ? " · " + b.phoneHint : "";
-            return (
-              '<option value="' +
-              b.id +
-              '"' +
-              (p.userbotId === b.id ? " selected" : "") +
-              (hasCh && b.id !== p.userbotId ? " disabled" : "") +
-              ">" +
-              b.name +
-              phone +
-              "</option>"
-            );
-          })
-          .join("");
-
-      var chList =
-        channels.length === 0
-          ? '<p class="muted" style="font-size:13px;margin:0">暂无绑定频道。可点下方演示添加（正式环境在采集里建频道）。</p>'
-          : channels
+      var chHtml =
+        ch.length === 0
+          ? '<p class="muted" style="font-size:13px">暂无绑定频道。</p>'
+          : ch
               .map(function (c) {
                 return (
-                  '<div class="list-row">' +
-                  '<div class="grow"><div style="font-weight:600">' +
+                  '<div class="list-row"><div class="grow"><strong>' +
                   c.title +
-                  '</div><div class="muted" style="font-size:12px">' +
-                  (c.note || "已绑本项目 · 采集号：" + (p.userbotName || "—")) +
-                  "</div></div>" +
-                  '<button type="button" class="btn btn-ghost" data-unbind-ch="' +
+                  '</strong><div class="muted" style="font-size:12px">' +
+                  (c.note || "") +
+                  '</div></div><button type="button" class="btn btn-ghost" data-unbind-ch="' +
                   c.id +
                   '">解绑</button></div>'
                 );
               })
               .join("");
+      return (
+        '<div class="card card-pad" style="margin-bottom:14px">' +
+        paneToolbar(
+          "采集号（本项目唯一）：点选卡片关联；有绑定频道时换绑会提示先解绑。账号级资产也可在「全局配置 → Userbot」维护。",
+          "btn-save-bot",
+          "保存采集号关联"
+        ) +
+        '<div id="bot-list">' +
+        FZPickCards.renderUserbotSelect({
+          bots: bots,
+          selectedId: p.userbotId || "",
+          state: st,
+          project: p,
+          allowEmpty: true,
+          emptyLabel: "未关联",
+          emptyText: "暂无采集号"
+        }) +
+        "</div>" +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">' +
+        '<button type="button" class="btn" id="btn-new-bot">新建并关联</button>' +
+        '<button type="button" class="btn btn-ghost" id="btn-clear-bot">取消关联</button>' +
+        '<a class="btn btn-ghost" href="./userbots.html">打开全局 Userbot</a></div>' +
+        '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">' +
+        "<strong style=\"font-size:13px\">本项目频道</strong>" +
+        (hasCh
+          ? '<p class="hint" style="margin:6px 0 0">当前已绑 ' +
+            ch.length +
+            " 个频道，换绑采集号前须全部解绑。</p>"
+          : "") +
+        '<div style="margin-top:8px">' +
+        chHtml +
+        "</div>" +
+        '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
+        '<button type="button" class="btn' +
+        (p.userbotId ? "" : " is-disabled") +
+        '" id="btn-demo-ch">演示：添加频道</button>' +
+        (hasCh
+          ? '<button type="button" class="btn btn-ghost" id="btn-unbind-all">全部解绑</button>'
+          : "") +
+        "</div></div></div>"
+      );
+    }
 
-      var extBoxes = (st.extChannels || [])
-        .map(function (e) {
-          var on = p.attachedExtIds.indexOf(e.id) !== -1;
-          var tag = e.status === "active" ? "" : "（待激活）";
+    function paneFlow(p) {
+      return (
+        '<div class="card card-pad" id="union-flow-root">' +
+        paneToolbar(
+          "推送规则：推送方式（外站 auto_push）+ 短剧分集。内容经本项目一套通道推给业务方；未接通前不生效。",
+          "btn-save-flow",
+          "保存推送规则"
+        ) +
+        FZProjectUnion.renderPushRulesFields(p) +
+        "</div>"
+      );
+    }
+
+    function paneOptional(p) {
+      return (
+        '<div class="card card-pad">' +
+        '<p class="muted" style="margin:0 0 14px;font-size:13px">项目可开通下列可选能力。本期点「开通」仅提示设计中，入口必须可见。</p>' +
+        FZArticle.OPTIONAL_PACKS.map(function (pack) {
+          var on = !!(p.optionalPacks && p.optionalPacks[pack.id]);
           return (
-            '<label class="check-item"><input type="checkbox" data-ext="' +
-            e.id +
-            '"' +
-            (on ? " checked" : "") +
-            " /> " +
-            e.name +
-            " " +
-            tag +
-            "</label>"
+            '<div class="opt-card"><div><div style="font-weight:600">' +
+            pack.name +
+            (on ? ' <span class="tag tag-ok">已标记开通</span>' : "") +
+            '</div><div class="muted" style="font-size:12.5px;margin-top:4px">' +
+            pack.desc +
+            '</div></div><button type="button" class="btn" data-opt="' +
+            pack.id +
+            '">' +
+            (on ? "管理配置" : "开通") +
+            "</button></div>"
           );
-        })
-        .join("");
+        }).join("") +
+        "</div>"
+      );
+    }
 
-      var creds = p.creds || {};
-      var body = "";
-
-      if (tab === "basic") {
-        body =
-          '<div class="card card-pad" style="margin-bottom:14px">' +
-          "<h2 style=\"margin:0 0 12px;font-size:16px\">身份</h2>" +
-          '<div class="field"><label>项目名称 *</label><input id="f-name" value="' +
-          (p.name || "") +
-          '" /></div>' +
-          '<div class="field"><label>站点类型</label><select id="f-type">' +
-          '<option value="chigua"' +
-          (p.siteType === "chigua" ? " selected" : "") +
-          ">内容站</option>" +
-          '<option value="video"' +
-          (p.siteType === "video" ? " selected" : "") +
-          ">视频站</option></select></div>" +
-          '<div class="field"><label>跑马灯文案（可选）</label><input id="f-marquee" value="' +
-          (p.marquee || "") +
-          '" placeholder="列表展示用，可空" /></div></div>' +
-          '<div class="card card-pad" style="margin-bottom:14px">' +
-          "<h2 style=\"margin:0 0 8px;font-size:16px\">通道凭证（只读）</h2>" +
-          '<p class="muted" style="margin:0 0 12px;font-size:13px">创建时签发，不可编辑。展示 + 复制，不用输入框。</p>' +
-          '<div class="kv-block">' +
-          kvCopyRow("App ID", creds.appId, "cred-appid") +
-          kvCopyRow("App Secret", creds.appSecret, "cred-secret") +
-          "</div>" +
-          '<div class="muted" style="font-size:12px;margin-top:10px">通道状态：' +
-          (p.contentActivated ? "已接通" : "待接通") +
-          "</div></div>" +
-          '<div class="card card-pad" style="margin-bottom:14px">' +
-          "<h2 style=\"margin:0 0 8px;font-size:16px\">采集号（Userbot）</h2>" +
-          '<p class="muted" style="margin:0 0 12px;font-size:13px">一个项目挂一个采集号；本项目新建频道时只能用这个号。' +
-          (hasCh
-            ? "当前已有绑定频道，须先全部解绑后才能更换或取消采集号。"
-            : "无频道时可换绑 / 取消 / 新建再挂。") +
-          "</p>" +
-          '<div class="field"><label>关联采集号</label><select id="f-bot"' +
-          (hasCh ? " disabled" : "") +
-          ">" +
-          botOpts +
-          "</select>" +
-          (hasCh
-            ? '<p class="hint">有频道时下拉锁定。请先在下方解绑频道。</p>'
-            : "") +
-          "</div>" +
-          '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-          '<button type="button" class="btn' +
-          (hasCh ? " is-disabled" : "") +
-          '" id="btn-new-bot" title="' +
-          (hasCh ? "请先解绑频道" : "") +
-          '">新建并关联</button>' +
-          '<button type="button" class="btn btn-ghost' +
-          (hasCh ? " is-disabled" : "") +
-          '" id="btn-clear-bot" title="' +
-          (hasCh ? "请先解绑频道" : "") +
-          '">取消关联</button></div>' +
-          '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">' +
-          "<strong style=\"font-size:13px\">本项目已绑频道</strong>" +
-          '<div style="margin-top:8px">' +
-          chList +
-          "</div>" +
-          '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
-          '<button type="button" class="btn' +
-          (p.userbotId ? "" : " is-disabled") +
-          '" id="btn-demo-add-ch" title="' +
-          (p.userbotId ? "" : "请先关联采集号") +
-          '">演示：添加绑定频道</button>' +
-          (hasCh
-            ? '<button type="button" class="btn btn-ghost" id="btn-unbind-all">全部解绑</button>'
-            : "") +
-          "</div></div></div>" +
-          '<div class="card card-pad" style="margin-bottom:14px">' +
-          "<h2 style=\"margin:0 0 8px;font-size:16px\">外站通道</h2>" +
-          '<p class="muted" style="margin:0 0 12px;font-size:13px">勾选本项目使用的外站；可新建通道（待激活也可挂）。</p>' +
-          '<div id="ext-list">' +
-          (extBoxes || '<p class="muted">暂无外站通道，可新建</p>') +
-          "</div>" +
-          '<button type="button" class="btn" id="btn-new-ext" style="margin-top:12px">新建外站通道</button></div>' +
-          '<button type="button" class="btn btn-primary" id="btn-save">保存基本信息</button>';
-      } else if (tab === "watermark") {
-        body =
-          '<div class="card card-pad">' +
-          '<p class="muted" style="margin:0 0 14px;font-size:13px">与新建「水印 / 封面」一致，可随时改。</p>' +
-          '<div class="field"><label>水印位置</label><select id="f-wm-pos">' +
-          [
-            ["bottom-right", "右下"],
-            ["bottom-left", "左下"],
-            ["top-right", "右上"],
-            ["top-left", "左上"]
-          ]
-            .map(function (pair) {
-              return (
-                '<option value="' +
-                pair[0] +
-                '"' +
-                (p.wmPosition === pair[0] ? " selected" : "") +
-                ">" +
-                pair[1] +
-                "</option>"
-              );
-            })
-            .join("") +
-          "</select></div>" +
-          '<label class="check-item"><input type="checkbox" id="f-wm-done"' +
-          (p.watermarkDone ? " checked" : "") +
-          " /> 水印规则已配置（演示占位）</label>" +
-          '<div class="grid-3" style="margin-top:14px">' +
-          '<div class="field"><label>封面宽 (px)</label><input id="f-cw" value="' +
-          p.coverWidth +
-          '" /></div>' +
-          '<div class="field"><label>封面高 (px)</label><input id="f-ch" value="' +
-          p.coverHeight +
-          '" /></div></div>' +
-          '<button type="button" class="btn btn-primary" id="btn-save" style="margin-top:14px">保存水印与封面</button></div>';
-      } else if (tab === "template") {
-        body =
-          '<div class="card card-pad">' +
-          '<p class="muted" style="margin:0 0 14px;font-size:13px">与新建「文章模板」一致。</p>' +
-          '<label class="check-item"><input type="checkbox" id="f-tpl-on"' +
-          (p.templateEnabled || p.templateDone ? " checked" : "") +
-          " /> 启用文章模板</label>" +
-          '<div class="field" style="margin-top:12px"><label>模板说明 / 策略备注</label>' +
-          '<input id="f-tpl-note" value="' +
-          (p.templateNote || "") +
-          '" placeholder="例如：短讯结构优先" /></div>' +
-          '<button type="button" class="btn btn-primary" id="btn-save" style="margin-top:8px">保存文章模板</button></div>';
-      } else if (tab === "flow") {
-        body =
-          '<div class="card card-pad">' +
-          '<p class="muted" style="margin:0 0 14px;font-size:13px">与新建「自动流与通知」一致。未接通前为意向，接通后生效。</p>' +
-          '<label class="check-item"><input type="checkbox" id="f-auto"' +
-          (p.autoflow ? " checked" : "") +
-          " /> 开启自动流（意向" +
-          (p.contentActivated ? "·已接通生效中" : "·接通后生效") +
-          "）</label>" +
-          '<label class="check-item"><input type="checkbox" id="f-collect"' +
-          (p.hasCollectSource ? " checked" : "") +
-          " /> 演示：已有采集源绑定本项目</label>" +
-          '<div class="field" style="margin-top:14px"><label>业务方接收 Webhook URL（可选）</label>' +
-          '<input id="f-hook" value="' +
-          (p.webhookUrl || "") +
-          '" placeholder="https://partner.example.com/hooks/fangzhou" /></div>' +
-          '<button type="button" class="btn btn-primary" id="btn-save" style="margin-top:8px">保存</button></div>';
-      } else {
-        body =
-          '<div class="card card-pad" style="margin-bottom:14px">' +
-          "<h2 style=\"margin:0 0 8px;font-size:16px\">技术对接</h2>" +
-          '<p class="muted" style="margin:0 0 12px;font-size:13px">偶发使用：交给开发看文档与联调。日常改配置请用左侧各 Tab。凭证摘要也在「基本信息」可复制。</p>' +
-          '<div class="kv-block" style="margin-bottom:14px">' +
-          kvCopyRow("App ID", creds.appId, "c-appid") +
-          kvCopyRow("App Secret", creds.appSecret, "c-secret") +
-          "</div>" +
-          '<div class="muted" style="font-size:13px;margin-bottom:12px">状态：' +
-          (p.contentActivated ? "已接通" : "待接通") +
-          "</div>" +
-          '<div class="code-block"><pre style="margin:0;white-space:pre-wrap">' +
-          "# 业务方 → 方舟\nAuthorization: Bearer " +
-          (creds.appSecret || "…") +
-          "\nPOST /v1/projects/" +
-          (creds.appId || "…") +
-          "/content\n\n# Webhook（方舟 → 业务方）\n" +
-          (p.webhookUrl || "# （未配置）") +
-          "\n</pre></div>" +
-          '<div class="placeholder-doc" style="margin-top:12px">正式环境提供完整规范与示例工程。</div></div>' +
-          (p.status === "pending_activate"
-            ? '<a class="btn btn-primary" href="./project-connect.html?id=' +
-              encodeURIComponent(p.id) +
-              '">打开对接页</a>'
-            : "");
+    function render() {
+      var ctx = loadProject();
+      if (!ctx) return;
+      var p = ctx.p;
+      var st = ctx.st;
+      var visible = tabsForProject(p);
+      if (!visible.some(function (t) { return t.id === tab; })) {
+        tab = visible[0] ? visible[0].id : "watermark";
+        history.replaceState(
+          null,
+          "",
+          "./project-edit.html?id=" + encodeURIComponent(id) + "&tab=" + tab
+        );
       }
+      var body = "";
+      if (tab === "watermark") body = paneWatermark(p);
+      else if (tab === "intro") body = paneIntro(p);
+      else if (tab === "article") body = paneArticle(p);
+      else if (tab === "connect") body = paneConnect(p);
+      else if (tab === "media") body = paneMedia(p);
+      else if (tab === "channel") body = paneChannel(p, st);
+      else if (tab === "flow") body = paneFlow(p);
+      else body = paneOptional(p);
 
       document.getElementById("root").innerHTML =
-        '<p class="muted" style="margin:0 0 12px;font-size:13px">编辑与新建字段对齐：身份 / Userbot / 外站 / 水印封面 / 模板 / 自动流；技术对接在最右。</p>' +
-        tabs +
-        body;
+        renderHero(p) + renderTabs(p) + body;
+      bind();
+    }
 
+    function saveProject(mutator, okMsg) {
+      var st = FZStore.read();
+      var p = FZStore.findProject(st, id);
+      FZArticle.ensureWatermarks(p);
+      FZArticle.ensureArticle(p);
+      mutator(p, st);
+      FZStore.upsertProject(st, p);
+      FZStore.write(st);
+      FZShell.toast(okMsg || "已保存", "ok");
+      render();
+    }
+
+    function bind() {
       document.querySelectorAll("[data-tab]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           tab = btn.getAttribute("data-tab");
@@ -486,162 +554,400 @@
           render();
         });
       });
-
       document.querySelectorAll("[data-copy-text]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           var el = document.getElementById(btn.getAttribute("data-copy-text"));
-          var raw = el ? (el.textContent || "").trim() : "";
-          copyText(raw, btn.getAttribute("data-label"));
+          copyText((el && el.textContent) || "", btn.getAttribute("data-label"));
         });
       });
 
+      var eb = document.getElementById("btn-edit-basic");
+      if (eb) {
+        eb.addEventListener("click", function () {
+          var p = loadProject().p;
+          document.getElementById("b-name").value = p.name || "";
+          fillBasicSiteTypes(p.siteType || "chigua");
+          document.getElementById("b-cw").value = p.coverWidth || "720";
+          document.getElementById("b-ch").value = p.coverHeight || "1280";
+          document.getElementById("basic-modal").hidden = false;
+        });
+      }
+
+      var saveConnect = document.getElementById("btn-save-connect");
+      if (saveConnect) {
+        saveConnect.addEventListener("click", function () {
+          var draft = {};
+          FZProjectUnion.collectConnect(document, draft);
+          var err = FZProjectUnion.validateConnect(draft);
+          if (err) {
+            FZShell.toast(err, "err");
+            return;
+          }
+          saveProject(function (p) {
+            FZProjectUnion.collectConnect(document, p);
+          }, "对接配置已保存");
+        });
+      }
+      var saveMedia = document.getElementById("btn-save-media");
+      if (saveMedia) {
+        saveMedia.addEventListener("click", function () {
+          saveProject(function (p) {
+            FZProjectUnion.collectVideoRules(document, p);
+          }, "图片视频规则已保存");
+        });
+      }
+
+      var wmRoot = document.querySelector("[data-media-wm]");
+      if (wmRoot) {
+        FZMediaConfig.bindWatermarkUI(wmRoot, {
+          onSubChange: function (which) {
+            wmAddView = which;
+          },
+          onUpload: function (key, file) {
+            var reader = new FileReader();
+            reader.onload = function () {
+              var wav = document.getElementById("wm-add-view");
+              if (wav) wmAddView = wav.value || "image";
+              saveProject(function (p) {
+                if (FZArticle.ensureWatermarks) FZArticle.ensureWatermarks(p);
+                FZMediaConfig.applyWmUpload(p.watermarks, key, file, reader.result);
+              }, "已加载素材");
+            };
+            reader.readAsDataURL(file);
+          },
+          onRemove: function (key) {
+            saveProject(function (p) {
+              if (FZArticle.ensureWatermarks) FZArticle.ensureWatermarks(p);
+              FZMediaConfig.clearWmUpload(p.watermarks, key);
+            }, "已清除");
+          }
+        });
+        var swm = document.getElementById("btn-save-wm");
+        if (swm) {
+          swm.addEventListener("click", function () {
+            saveProject(function (p) {
+              var dewm = FZMediaConfig.collectDewatermark(document);
+              if (dewm != null) p.dewatermarkEnabled = dewm;
+              FZMediaConfig.applyWatermarkForm(p.watermarks, document);
+              var wav = document.getElementById("wm-add-view");
+              if (wav) wmAddView = wav.value || "image";
+            }, "水印配置已保存");
+          });
+        }
+      }
+
+      var ioRoot = document.querySelector("[data-media-io]");
+      if (ioRoot) {
+        FZMediaConfig.bindIntroOutroUI(ioRoot, {
+          onUpload: function (key, file) {
+            var reader = new FileReader();
+            reader.onload = function () {
+              saveProject(function (p) {
+                if (FZArticle.ensureWatermarks) FZArticle.ensureWatermarks(p);
+                FZMediaConfig.applyWmUpload(p.watermarks, key, file, reader.result);
+              }, "片头/片尾已加载");
+            };
+            reader.readAsDataURL(file);
+          },
+          onRemove: function (key) {
+            saveProject(function (p) {
+              if (FZArticle.ensureWatermarks) FZArticle.ensureWatermarks(p);
+              FZMediaConfig.clearWmUpload(p.watermarks, key);
+            }, "已清除");
+          }
+        });
+        var sio = document.getElementById("btn-save-io");
+        if (sio) {
+          sio.addEventListener("click", function () {
+            saveProject(function (p) {
+              if (FZArticle.ensureWatermarks) FZArticle.ensureWatermarks(p);
+              FZMediaConfig.syncIntroOutroEnabled(p.watermarks);
+            }, "片头片尾已保存");
+          });
+        }
+      }
+
+      var artRoot = document.querySelector("[data-media-art]");
+      if (artRoot) {
+        FZMediaConfig.bindArticleUI(artRoot, {
+          onChange: function () {
+            var s = document.getElementById("art-section");
+            if (s) artSection = s.value || "prompt";
+            var v = document.getElementById("art-view");
+            if (v) artView = v.value || "custom";
+          },
+          onAddLink: function () {
+            artSection = "links";
+            var kw = ((document.getElementById("link-kw") || {}).value || "").trim();
+            var url = ((document.getElementById("link-url") || {}).value || "").trim();
+            if (!kw || !url) {
+              FZShell.toast("请填写关键词和链接", "err");
+              return;
+            }
+            if (!/^https?:\/\//i.test(url)) {
+              FZShell.toast("链接需以 http/https 开头", "err");
+              return;
+            }
+            saveProject(function (p) {
+              if (!p.article.links) p.article.links = [];
+              var hit = p.article.links.find(function (l) {
+                return l.kw === kw;
+              });
+              if (hit) hit.url = url;
+              else p.article.links.push({ kw: kw, url: url });
+              p.article.linkOn = true;
+            }, "链接已保存");
+          },
+          onDelLink: function (i) {
+            artSection = "links";
+            saveProject(function (p) {
+              p.article.links.splice(i, 1);
+              p.article.linkOn = p.article.links.length > 0;
+            }, "已删除链接");
+          }
+        });
+        var saveArt = document.getElementById("btn-save-art");
+        if (saveArt) {
+          saveArt.addEventListener("click", function () {
+            var draft = FZMediaConfig.readArticleForm(document);
+            draft.templates = (loadProject().p.article.templates || []).map(function (t) {
+              return {
+                id: t.id,
+                on: Object.prototype.hasOwnProperty.call(draft.tplOns, t.id)
+                  ? draft.tplOns[t.id]
+                  : t.on
+              };
+            });
+            var err = FZMediaConfig.validateArticle(draft);
+            if (err) {
+              FZShell.toast(err, "err");
+              return;
+            }
+            saveProject(function (p) {
+              FZMediaConfig.applyArticleForm(p.article, document);
+            }, "提示词配置已保存");
+          });
+        }
+      }
+
+      /* 通道 */
+      var botList = document.getElementById("bot-list");
+      if (botList) {
+        FZPickCards.bindUserbotSelect(botList, {
+          getBlockReason: function (nextId) {
+            var ctx = loadProject();
+            return FZStore.userbotChangeBlockReason(ctx.p, nextId);
+          }
+        });
+      }
+
+      var saveBot = document.getElementById("btn-save-bot");
+      if (saveBot) {
+        saveBot.addEventListener("click", function () {
+          var pick = FZPickCards.selectedUserbot(document.getElementById("bot-list"));
+          var next = pick.id || "";
+          var ctx = loadProject();
+          var block = FZStore.userbotChangeBlockReason(ctx.p, next);
+          if (block) {
+            FZShell.toast(block, "err");
+            return;
+          }
+          saveProject(function (p) {
+            p.userbotId = next;
+            p.userbotName = next ? pick.name : "";
+          }, "采集号关联已保存");
+        });
+      }
       var nb = document.getElementById("btn-new-bot");
-      if (nb) {
+      if (nb)
         nb.addEventListener("click", function () {
-          if (nb.classList.contains("is-disabled")) {
-            FZShell.toast("请先解绑全部频道后再新建/更换采集号", "err");
+          var ctx = loadProject();
+          if (FZStore.projectHasChannels(ctx.p)) {
+            FZShell.toast(
+              FZStore.userbotChangeBlockReason(ctx.p, "") || "请先解绑全部频道",
+              "err"
+            );
             return;
           }
-          openAsset("bot");
+          openNewBot();
         });
-      }
-      var ne = document.getElementById("btn-new-ext");
-      if (ne) ne.addEventListener("click", function () { openAsset("ext"); });
       var cb = document.getElementById("btn-clear-bot");
-      if (cb) {
+      if (cb)
         cb.addEventListener("click", function () {
-          if (cb.classList.contains("is-disabled")) {
-            FZShell.toast("请先解绑全部频道后再取消关联", "err");
+          var ctx = loadProject();
+          var block = FZStore.userbotChangeBlockReason(ctx.p, "");
+          if (block) {
+            FZShell.toast(block, "err");
             return;
           }
-          var sel = document.getElementById("f-bot");
-          if (sel) sel.value = "";
-          FZShell.toast("已取消关联（保存后生效）");
+          var list = document.getElementById("bot-list");
+          if (list) {
+            list.querySelectorAll(".pick-card[data-bot]").forEach(function (c) {
+              var on = (c.getAttribute("data-bot") || "") === "";
+              c.classList.toggle("is-selected", on);
+              c.setAttribute("aria-checked", on ? "true" : "false");
+            });
+          }
+          FZShell.toast("已取消选择，请点保存采集号关联", "ok");
         });
-      }
       document.querySelectorAll("[data-unbind-ch]").forEach(function (btn) {
         btn.addEventListener("click", function () {
-          var s2 = FZStore.read();
-          var proj = FZStore.findProject(s2, id);
-          ensureDefaults(proj);
           var cid = btn.getAttribute("data-unbind-ch");
-          proj.boundChannels = (proj.boundChannels || []).filter(function (c) {
-            return c.id !== cid;
-          });
-          FZStore.upsertProject(s2, proj);
-          FZStore.write(s2);
-          FZShell.toast("已解绑该频道", "ok");
-          render();
+          saveProject(function (p) {
+            p.boundChannels = p.boundChannels.filter(function (c) {
+              return c.id !== cid;
+            });
+          }, "已解绑频道");
         });
       });
-      var unbindAll = document.getElementById("btn-unbind-all");
-      if (unbindAll) {
-        unbindAll.addEventListener("click", function () {
-          var s2 = FZStore.read();
-          var proj = FZStore.findProject(s2, id);
-          ensureDefaults(proj);
-          proj.boundChannels = [];
-          FZStore.upsertProject(s2, proj);
-          FZStore.write(s2);
-          FZShell.toast("已解绑全部频道，现在可以更换采集号", "ok");
-          render();
+      var ua = document.getElementById("btn-unbind-all");
+      if (ua)
+        ua.addEventListener("click", function () {
+          saveProject(function (p) {
+            p.boundChannels = [];
+          }, "已全部解绑");
         });
-      }
-      var addCh = document.getElementById("btn-demo-add-ch");
-      if (addCh) {
+      var addCh = document.getElementById("btn-demo-ch");
+      if (addCh)
         addCh.addEventListener("click", function () {
           if (addCh.classList.contains("is-disabled")) {
             FZShell.toast("请先关联采集号", "err");
             return;
           }
-          var s2 = FZStore.read();
-          var proj = FZStore.findProject(s2, id);
-          ensureDefaults(proj);
-          proj.boundChannels.push({
-            id: FZStore.uid("ch"),
-            title: "@demo_" + Math.random().toString(36).slice(2, 7),
-            note: "演示频道 · 绑在采集号「" + (proj.userbotName || "") + "」下"
-          });
-          FZStore.upsertProject(s2, proj);
-          FZStore.write(s2);
-          FZShell.toast("已添加演示频道（此后不可直接换绑采集号）", "ok");
-          render();
-        });
-      }
-
-      var save = document.getElementById("btn-save");
-      if (save) {
-        save.addEventListener("click", function () {
-          var s2 = FZStore.read();
-          var proj = FZStore.findProject(s2, id);
-          ensureDefaults(proj);
-          if (tab === "basic") {
-            var name = ((document.getElementById("f-name") || {}).value || "").trim();
-            if (!name) {
-              FZShell.toast("请填写项目名称", "err");
-              return;
-            }
-            proj.name = name;
-            proj.siteType = (document.getElementById("f-type") || {}).value || "chigua";
-            proj.marquee = (document.getElementById("f-marquee") || {}).value || "";
-            var botSel = document.getElementById("f-bot");
-            if (botSel) {
-              var nextBot = botSel.value || "";
-              var block = FZStore.userbotChangeBlockReason(proj, nextBot);
-              if (block) {
-                FZShell.toast(block, "err");
-                return;
-              }
-              proj.userbotId = nextBot;
-              if (proj.userbotId) {
-                var opt = botSel.options[botSel.selectedIndex];
-                var label = opt ? opt.text : "";
-                proj.userbotName = label.split(" · ")[0] || label;
-              } else {
-                proj.userbotName = "";
-              }
-            }
-            proj.attachedExtIds = [];
-            document.querySelectorAll("[data-ext]").forEach(function (el) {
-              if (el.checked) proj.attachedExtIds.push(el.getAttribute("data-ext"));
+          saveProject(function (p) {
+            p.boundChannels.push({
+              id: FZStore.uid("ch"),
+              title: "@demo_" + Math.random().toString(36).slice(2, 7),
+              note: "演示频道"
             });
-            FZStore.upsertProject(s2, proj);
-            FZStore.write(s2);
-            FZShell.toast("基本信息已保存", "ok");
-          } else if (tab === "watermark") {
-            proj.wmPosition = (document.getElementById("f-wm-pos") || {}).value || "bottom-right";
-            proj.watermarkDone = !!(document.getElementById("f-wm-done") || {}).checked;
-            proj.coverWidth = ((document.getElementById("f-cw") || {}).value || "").trim() || "720";
-            proj.coverHeight = ((document.getElementById("f-ch") || {}).value || "").trim() || "1280";
-            FZStore.upsertProject(s2, proj);
-            FZStore.write(s2);
-            FZShell.toast("水印与封面已保存", "ok");
-          } else if (tab === "template") {
-            proj.templateEnabled = !!(document.getElementById("f-tpl-on") || {}).checked;
-            proj.templateDone = proj.templateEnabled;
-            proj.templateNote = (document.getElementById("f-tpl-note") || {}).value || "";
-            FZStore.upsertProject(s2, proj);
-            FZStore.write(s2);
-            FZShell.toast("文章模板已保存", "ok");
-          } else if (tab === "flow") {
-            proj.autoflow = !!(document.getElementById("f-auto") || {}).checked;
-            proj.hasCollectSource = !!(document.getElementById("f-collect") || {}).checked;
-            proj.webhookUrl = (document.getElementById("f-hook") || {}).value || "";
-            proj.webhook = !!proj.webhookUrl;
-            proj.status = proj.contentActivated
-              ? FZStore.deriveStatus(proj)
-              : "pending_activate";
-            FZStore.upsertProject(s2, proj);
-            FZStore.write(s2);
-            FZShell.toast(
-              proj.contentActivated ? "已保存" : "已保存意向（通道接通后生效）",
-              "ok"
-            );
-          }
-          render();
+          }, "已添加演示频道");
         });
-      }
+
+      var sf = document.getElementById("btn-save-flow");
+      if (sf)
+        sf.addEventListener("click", function () {
+          saveProject(function (p) {
+            FZProjectUnion.collectPushRules(document, p);
+            p.webhook = !!p.webhookUrl;
+            if (p.contentActivated) p.status = FZStore.deriveStatus(p);
+          }, "已保存");
+        });
+
+      document.querySelectorAll("[data-opt]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          FZShell.toast(
+            (btn.textContent || "可选功能") + " · 设计中（本期仅保留开通入口）",
+            "err"
+          );
+        });
+      });
     }
+
+    function openNewBot() {
+      var st0 = FZStore.read();
+      var p0 = FZStore.findProject(st0, id);
+      if (FZStore.projectHasChannels(p0)) {
+        FZShell.toast("请先解绑频道再换采集号", "err");
+        return;
+      }
+      FZTgWizard.open({
+        onSuccess: function (bot) {
+          var st = FZStore.read();
+          var p = FZStore.findProject(st, id);
+          if (FZStore.projectHasChannels(p)) {
+            FZShell.toast("请先解绑频道再换采集号", "err");
+            return;
+          }
+          if (!st.userbots) st.userbots = [];
+          st.userbots.push(bot);
+          p.userbotId = bot.id;
+          p.userbotName = bot.name;
+          FZStore.upsertProject(st, p);
+          FZStore.write(st);
+          FZShell.toast("采集号已创建并关联", "ok");
+          render();
+        }
+      });
+    }
+
+    function fillBasicSiteTypes(selected) {
+      var mount = document.getElementById("basic-site-types");
+      if (!mount) return;
+      mount.innerHTML = FZProjectUnion.renderSiteTypeCards(selected || "chigua", "b-type");
+      FZProjectUnion.bindSiteTypeCards(document.getElementById("basic-modal"));
+    }
+
+    document.getElementById("basic-cancel").addEventListener("click", function () {
+      document.getElementById("basic-modal").hidden = true;
+    });
+    document.getElementById("basic-modal").addEventListener("click", function (e) {
+      if (e.target === e.currentTarget) document.getElementById("basic-modal").hidden = true;
+    });
+
+    document.getElementById("basic-save").addEventListener("click", function () {
+      var name = (document.getElementById("b-name").value || "").trim();
+      if (!name) {
+        FZShell.toast("请填写项目名称", "err");
+        return;
+      }
+      var nextType = (document.getElementById("b-type") || {}).value || "chigua";
+      var coverDraft = {
+        coverWidth: document.getElementById("b-cw").value,
+        coverHeight: document.getElementById("b-ch").value
+      };
+      var coverErr = FZProjectUnion.validateCover(coverDraft);
+      if (coverErr) {
+        FZShell.toast(coverErr, "err");
+        return;
+      }
+      var prevType = (loadProject().p || {}).siteType;
+      if (prevType && prevType !== nextType) {
+        var ok = confirm(
+          "将站点类型改为「" +
+            FZProjectUnion.siteTypeLabel(nextType) +
+            "」？\n\n" +
+            "• 会按新类型调整后续默认规则（如短剧分集、是否配文章管理）。\n" +
+            "• 已生成的历史文章/素材不会自动重跑或改写。\n" +
+            "• 未完成队列仍按新类型规则继续处理。"
+        );
+        if (!ok) return;
+      }
+      saveProject(function (p) {
+        var prev = p.siteType;
+        p.name = name;
+        p.siteType = nextType;
+        p.coverWidth = String(Number(coverDraft.coverWidth) || 720);
+        p.coverHeight = String(Number(coverDraft.coverHeight) || 1280);
+        p.coverAspect = "";
+        if (prev !== nextType) FZProjectUnion.applyTypeDefaults(p, nextType);
+      }, prevType !== nextType ? "基本信息已保存（类型已变更）" : "基本信息已保存");
+      document.getElementById("basic-modal").hidden = true;
+    });
+
+    /* 捕获文章保存时至少启用一套模板 */
+    var _save = saveProject;
+    saveProject = function (mutator, okMsg) {
+      try {
+        _save(function (p, st) {
+          mutator(p, st);
+          if (
+            p.article &&
+            p.article.templateOn &&
+            !p.article.templates.some(function (x) {
+              return x.on;
+            })
+          ) {
+            throw new Error("tpl");
+          }
+        }, okMsg);
+      } catch (e) {
+        if (e && e.message === "tpl") {
+          FZShell.toast("模板提示词已打开，请至少启用一套结构", "err");
+          return;
+        }
+        throw e;
+      }
+    };
 
     render();
   </script>

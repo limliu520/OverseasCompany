@@ -62,19 +62,20 @@
    * - 岗位归属「子账号与授权」页内 Tab，不单独占二级菜单
    * - 未做模块用 stub，点击 Toast「设计中」
    */
+  /** done: 本 Demo 已可点可演示；无 done 且 stub = 未做（侧栏降透） */
   var NAV = [
     {
       id: "home",
       label: "工作台",
       ico: "⌂",
-      children: [{ id: "home", label: "概览", href: "pages/home.html" }]
+      children: [{ id: "home", label: "概览", href: "pages/home.html", done: true }]
     },
     {
       id: "projects",
       label: "项目管理",
       ico: "▣",
       children: [
-        { id: "projects", label: "项目列表", href: "pages/projects.html" }
+        { id: "projects", label: "项目列表", href: "pages/projects.html", done: true }
       ]
     },
     {
@@ -96,7 +97,7 @@
       children: [
         { id: "e_art", label: "文章", stub: "文章" },
         { id: "e_media", label: "修片 / 媒体处理", stub: "修片" },
-        { id: "e_pub", label: "外站发布任务", stub: "外站发布任务" }
+        { id: "e_pub", label: "发布/提交任务", stub: "发布/提交任务 · 设计中（列表提交与编辑内提交统一交互）" }
       ]
     },
     {
@@ -104,8 +105,18 @@
       label: "互动能力",
       ico: "◉",
       children: [
-        { id: "i_ai", label: "AI 评论生成", stub: "AI 评论生成" },
-        { id: "i_air", label: "AI 评论审核", stub: "AI 评论审核" },
+        {
+          id: "i_ai",
+          label: "AI 评论生成",
+          stub:
+            "AI 评论生成 · 设计中。产品债务：须补「评论预览」（前台地址预览已删）"
+        },
+        {
+          id: "i_air",
+          label: "AI 评论审核",
+          stub:
+            "AI 评论审核 · 设计中。产品债务：须补「评论预览」（前台地址预览已删）"
+        },
         { id: "i_user", label: "用户审核", stub: "用户审核" },
         { id: "i_post", label: "社区帖子", stub: "社区帖子" }
       ]
@@ -115,9 +126,8 @@
       label: "全局配置",
       ico: "⚙",
       children: [
-        { id: "subs", label: "子账号与授权", href: "pages/subs.html" },
-        { id: "userbot", label: "Userbot", stub: "Userbot" },
-        { id: "ext", label: "外站通道", stub: "外站通道" }
+        { id: "subs", label: "子账号与授权", href: "pages/subs.html", done: true },
+        { id: "userbot", label: "Userbot", href: "pages/userbots.html", done: true }
       ]
     }
   ];
@@ -137,7 +147,17 @@
     html += '<div class="nav-section">';
 
     NAV.forEach(function (group) {
-      html += '<div class="nav-group">';
+      var hasDone = group.children.some(function (c) {
+        return !!c.done;
+      });
+      var allTodo = group.children.every(function (c) {
+        return !c.done;
+      });
+      html +=
+        '<div class="nav-group' +
+        (allTodo ? " is-todo-group" : "") +
+        (hasDone ? " is-done-group" : "") +
+        '">';
       html +=
         '<div class="nav-group-title"><span class="ico">' +
         group.ico +
@@ -145,17 +165,17 @@
         group.label +
         "</div>";
       group.children.forEach(function (c) {
-        if (c.stub) {
+        if (c.stub || !c.done) {
           html +=
-            '<button type="button" class="nav-item nav-sub" data-stub="' +
-            c.stub +
+            '<button type="button" class="nav-item nav-sub is-todo" data-stub="' +
+            (c.stub || c.label) +
             '">' +
             c.label +
             "</button>";
         } else {
           var act = activeId === c.id ? " active" : "";
           html +=
-            '<a class="nav-item nav-sub' +
+            '<a class="nav-item nav-sub is-done' +
             act +
             '" href="' +
             BASE +
@@ -210,7 +230,8 @@
 
     mount.querySelectorAll("[data-stub]").forEach(function (el) {
       el.addEventListener("click", function () {
-        toast(el.getAttribute("data-stub") + " · 设计中");
+        var msg = el.getAttribute("data-stub") || "";
+        toast(/设计中|产品债务/.test(msg) ? msg : msg + " · 设计中");
       });
     });
 

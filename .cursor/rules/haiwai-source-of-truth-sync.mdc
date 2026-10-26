@@ -9,6 +9,7 @@ alwaysApply: true
 
 - **所有方舟/海外相关文档与材料，只在 `海外项目/` 下修改。**
 - 不要直接改 `fangzhou/`、`qianmu/`、`demo/` 等主目录里与海外项目对应的副本（除非用户明确要求只改对外副本）。
+- **查现网方舟源码**（接口/页面/字段对照）：只看 `海外项目/方舟/重构资料/fangzhou 源代码/`，细则见 `fangzhou-source-code-path.mdc`；禁止到 Downloads 等处乱找。
 
 ## 改完必同步
 

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>项目管理 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css" />
+  <link rel="stylesheet" href="../css/app.css?v=20261026aspect2" />
 </head>
 <body>
   <div class="app">
@@ -18,67 +18,106 @@
         </div>
       </div>
       <div class="content">
-        <p class="muted" style="margin:0 0 14px">
-          创建时配齐配置 → 开发接入；接通后即完成。「编辑」可改信息与查看对接材料；待接通另有对接入口。
+        <p class="proj-page-lead">
+          创建时配齐配置 → 开发接入；接通后即完成。「项目详情」可改信息与查看对接材料；待接通另有对接入口。
         </p>
-        <div class="card" id="project-list"></div>
+        <div class="proj-list fz-card-grid" id="project-list"></div>
       </div>
     </div>
   </div>
-  <script src="../js/store.js"></script>
+  <script src="../js/store.js?v=20261026e"></script>
   <script src="../js/shell.js"></script>
+  <script src="../js/project-union.js"></script>
   <script>
     FZShell.boot({ active: "projects" });
+    var MARK = { chigua: "瓜", video: "视", short_drama: "剧" };
     var s = FZStore.read();
     var list = document.getElementById("project-list");
+
+    function factRow(label, value, valueCls) {
+      if (value == null || value === "") return "";
+      return (
+        '<div class="proj-fact"><span class="proj-fact-k">' +
+        label +
+        '</span><span class="proj-fact-v' +
+        (valueCls ? " " + valueCls : "") +
+        '">' +
+        value +
+        "</span></div>"
+      );
+    }
+
     if (!s.projects.length) {
       list.innerHTML =
-        '<div class="card-pad muted">还没有项目。<a href="./project-setup.html?new=1">创建第一个项目</a></div>';
+        '<div class="card card-pad muted">还没有项目。<a href="./project-setup.html?new=1">创建第一个项目</a></div>';
     } else {
       list.innerHTML = s.projects
         .map(function (p) {
+          FZProjectUnion.normalizeProject(p);
           var st = FZStore.projectStatusLabel(p);
-          var extBits = (p.attachedExtIds || [])
-            .map(function (eid) {
-              var e = s.extChannels.find(function (x) {
-                return x.id === eid;
-              });
-              if (!e) return "";
-              return e.name + (e.status === "active" ? "" : "（待激活）");
-            })
-            .filter(Boolean)
-            .join("、");
+          var type = p.siteType || "chigua";
+          var typeLabel = FZProjectUnion.siteTypeLabel(type);
+          var channelOn = !!p.contentActivated;
+          var auto = !!(p.autoPush || p.autoflow);
+          var chN = FZStore.projectChannels(p).length;
+          var appId = (p.creds && p.creds.appId) || "";
+          var coverW = p.coverWidth;
+          var coverH = p.coverHeight;
           var actions =
             '<a class="btn" href="./project-edit.html?id=' +
             encodeURIComponent(p.id) +
-            '">编辑</a>';
+            '">项目详情</a>';
           if (p.status === "pending_activate") {
             actions +=
               '<a class="btn btn-primary" href="./project-connect.html?id=' +
               encodeURIComponent(p.id) +
               '">对接</a>';
           }
+          var facts =
+            factRow("内容通道", channelOn ? "已接通" : "待接通") +
+            factRow("推送", auto ? "自动" : "待人工");
+          if (coverW && coverH) {
+            facts += factRow("封面", coverW + " × " + coverH + " px");
+          }
+          if (p.userbotName) {
+            facts += factRow("采集号", p.userbotName);
+          } else {
+            facts += factRow("采集号", "未关联", "is-muted");
+          }
+          facts += factRow("已绑频道", chN + " 个");
+          if (appId) {
+            facts += factRow("App ID", appId, "is-mono");
+          }
           return (
-            '<div class="list-row">' +
-            '<div class="grow">' +
-            '<a href="./project-edit.html?id=' +
+            '<article class="proj-card">' +
+            '<div class="proj-card-head">' +
+            '<div class="proj-mark is-' +
+            type +
+            '" aria-hidden="true">' +
+            (MARK[type] || "项") +
+            "</div>" +
+            '<div class="proj-card-head-main">' +
+            '<h2 class="proj-title"><a href="./project-edit.html?id=' +
             encodeURIComponent(p.id) +
-            '" style="font-weight:600;color:inherit;text-decoration:none">' +
+            '">' +
             p.name +
-            "</a>" +
-            '<div class="muted" style="font-size:12px;margin-top:4px">' +
-            (p.contentActivated ? "内容通道已接通" : "内容通道待接通") +
-            (p.autoflow ? " · 自动流意向开" : "") +
-            (extBits ? " · 外站：" + extBits : "") +
-            "</div></div>" +
-            '<span class="tag ' +
+            "</a></h2>" +
+            '<div class="proj-tags"><span class="proj-tag">' +
+            typeLabel +
+            "</span></div>" +
+            "</div>" +
+            '<div class="proj-status"><span class="tag ' +
             st.cls +
             '">' +
             st.text +
-            "</span>" +
-            '<div style="display:flex;gap:6px">' +
+            "</span></div>" +
+            "</div>" +
+            '<div class="proj-facts">' +
+            facts +
+            "</div>" +
+            '<div class="proj-actions">' +
             actions +
-            "</div></div>"
+            "</div></article>"
           );
         })
         .join("");

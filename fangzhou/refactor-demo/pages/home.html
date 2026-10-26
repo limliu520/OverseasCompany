@@ -47,7 +47,7 @@
     </div>
   </div>
 
-  <script src="../js/store.js"></script>
+  <script src="../js/store.js?v=20261026e"></script>
   <script src="../js/shell.js"></script>
   <script>
     FZShell.boot({ active: "home" });
@@ -108,25 +108,12 @@
         } else if (p.status === "need_collect") {
           items.push({
             cls: "todo-dot muted",
-            title: "自动流缺采集源 · " + p.name,
-            desc: "通道已通且意向开了自动流，但演示上尚未绑采集源。",
+            title: "推送规则缺采集源 · " + p.name,
+            desc: "通道已通且推送方式为自动，但演示上尚未绑采集源。",
             action:
               '<a class="btn" href="./project-edit.html?id=' +
               encodeURIComponent(p.id) +
               '&tab=flow">去查看</a>'
-          });
-        }
-      });
-      (s.extChannels || []).forEach(function (e) {
-        if (e.status === "pending_activate") {
-          items.push({
-            cls: "todo-dot muted",
-            title: "外站通道待激活 · " + e.name,
-            desc: "可已挂在项目上；对接文档已生成，稍后完成通道激活即可。",
-            action:
-              '<button type="button" class="btn" data-ext-act="' +
-              e.id +
-              '">模拟激活</button>'
           });
         }
       });
@@ -153,18 +140,6 @@
           );
         })
         .join("");
-      document.querySelectorAll("[data-ext-act]").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          var s2 = FZStore.read();
-          s2.extChannels = s2.extChannels.map(function (e) {
-            if (e.id === btn.getAttribute("data-ext-act")) e.status = "active";
-            return e;
-          });
-          FZStore.write(s2);
-          FZShell.toast("外站通道已激活（演示）");
-          renderTodos();
-        });
-      });
     }
 
     renderTodos();

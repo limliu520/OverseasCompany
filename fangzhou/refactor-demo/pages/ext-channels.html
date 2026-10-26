@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>外站通道 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <div class="topbar">
+        <h1>外站通道</h1>
+        <div class="topbar-actions">
+          <button type="button" class="btn btn-primary" id="btn-new">+ 新建通道</button>
+          <div id="top-user"></div>
+        </div>
+      </div>
+      <div class="content">
+        <p class="muted" style="margin:0 0 14px">
+          账号层资产，对齐现网「外站站点配置」。项目在「通道管理」勾选启用；创建后可为待激活。
+        </p>
+        <div class="card" id="list"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/store.js?v=20261026e"></script>
+  <script src="../js/shell.js"></script>
+  <script src="../js/ext-channel-wizard.js"></script>
+  <script>
+    FZShell.boot({ active: "ext" });
+    function render() {
+      var s = FZStore.read();
+      var box = document.getElementById("list");
+      if (!(s.extChannels || []).length) {
+        box.innerHTML = '<div class="card-pad muted">还没有外站通道。</div>';
+        return;
+      }
+      box.innerHTML = s.extChannels
+        .map(function (e) {
+          var st = FZStore.extStatusLabel(e);
+          var used = FZStore.projectsUsingExt(s, e.id).length;
+          var kind = FZStore.extKindLabel(e);
+          var bits = [
+            kind,
+            e.code || "",
+            e.baseUrl ? e.baseUrl.replace(/^https?:\/\//, "").slice(0, 28) : "",
+            e.note || e.notes || "无备注",
+            used + " 个项目启用"
+          ].filter(Boolean);
+          return (
+            '<div class="list-row"><div class="grow"><div style="font-weight:600">' +
+            e.name +
+            '</div><div class="muted" style="font-size:12px;margin-top:4px">' +
+            bits.join(" · ") +
+            "</div></div>" +
+            '<span class="tag ' +
+            st.cls +
+            '">' +
+            st.text +
+            "</span>" +
+            (e.status === "pending_activate"
+              ? '<button type="button" class="btn" data-act="' +
+                e.id +
+                '">激活</button>'
+              : "") +
+            "</div>"
+          );
+        })
+        .join("");
+      box.querySelectorAll("[data-act]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var s2 = FZStore.read();
+          s2.extChannels = s2.extChannels.map(function (e) {
+            if (e.id === btn.getAttribute("data-act")) {
+              e.status = "active";
+              e.isActive = true;
+            }
+            return e;
+          });
+          FZStore.write(s2);
+          FZShell.toast("外站通道已激活", "ok");
+          render();
+        });
+      });
+    }
+    document.getElementById("btn-new").addEventListener("click", function () {
+      FZExtWizard.open({
+        onSuccess: function (ext) {
+          var s = FZStore.read();
+          s.extChannels.push(ext);
+          FZStore.write(s);
+          FZShell.toast("外站通道已创建（待激活）", "ok");
+          render();
+        }
+      });
+    });
+    render();
+  </script>
+</body>
+</html>

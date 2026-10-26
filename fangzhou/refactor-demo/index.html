@@ -4,17 +4,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>方舟重构 Demo</title>
-  <script src="./js/store.js"></script>
+  <script src="./js/store.js?v=20261026e"></script>
   <script>
     (function () {
-      var s = FZStore.read();
-      if (!s.loggedIn) location.replace("./login.html");
-      else if (!s.totpBound) location.replace("./totp.html");
-      else location.replace("./pages/home.html");
+      function fail(msg) {
+        document.addEventListener("DOMContentLoaded", function () {
+          var el = document.getElementById("boot");
+          if (!el) return;
+          el.innerHTML =
+            msg +
+            ' <a href="./login.html">去登录</a> · <a href="#" id="boot-reset">清空演示数据重试</a>';
+          var r = document.getElementById("boot-reset");
+          if (r)
+            r.addEventListener("click", function (e) {
+              e.preventDefault();
+              try {
+                localStorage.removeItem("fz_refactor_demo_v3");
+                localStorage.removeItem("fz_refactor_demo_v2");
+              } catch (err) {}
+              location.reload();
+            });
+        });
+      }
+      try {
+        if (!window.FZStore) {
+          fail("store.js 未加载。请用本机 http 打开（不要用 file://）。");
+          return;
+        }
+        var s = FZStore.read();
+        if (!s.loggedIn) location.replace("./login.html");
+        else if (!s.totpBound) location.replace("./totp.html");
+        else location.replace("./pages/home.html");
+      } catch (e) {
+        fail("进入失败：" + String((e && e.message) || e) + "。");
+      }
     })();
   </script>
 </head>
 <body>
-  <p style="font:14px sans-serif;padding:24px;color:#666">正在进入 Demo…</p>
+  <p id="boot" style="font:14px sans-serif;padding:24px;color:#666">正在进入 Demo…</p>
 </body>
 </html>
