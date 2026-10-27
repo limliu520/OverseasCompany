@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>方舟 · 水印与片头片尾优化 PRD</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto Sans SC", sans-serif; }
+  .bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20; height: 52px;
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 20px; background: #fff; border-bottom: 1px solid #e4e2de;
+  }
+  .tabs { display: flex; gap: 6px; }
+  .tab {
+    border: 1px solid transparent; background: transparent; color: #5e5e66;
+    border-radius: 8px; padding: 6px 14px; font: inherit; cursor: pointer;
+  }
+  .tab.on { color: #1c1c1f; background: #f6f5f3; border-color: #e4e2de; }
+  .pane { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; overflow: auto; }
+  #view-prd { background: #f6f5f3; }
+  #view-prd .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 24px 64px; }
+  #view-prd h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
+  #view-prd h2 { font-size: 18px; margin: 28px 0 10px; }
+  #view-prd h3 { font-size: 14px; margin: 16px 0 6px; color: #8d2f86; }
+  #view-prd h4 { font-size: 13px; margin: 12px 0 6px; }
+  #view-prd .meta { color: #5e5e66; font-size: 13px; margin-bottom: 8px; }
+  #view-prd p { margin: 0 0 8px; }
+  #view-prd ul, #view-prd ol { margin: 0 0 8px; padding-left: 18px; }
+  #view-prd li { margin: 0 0 4px; }
+  #view-prd table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin: 8px 0 16px; }
+  #view-prd th, #view-prd td { border: 1px solid #e4e2de; padding: 8px 10px; text-align: left; vertical-align: top; }
+  #view-prd th { background: #f3f0f2; }
+  #view-prd figure { margin: 0 0 16px; }
+  #view-prd img { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid #e4e2de; cursor: zoom-in; }
+  #view-prd figcaption { color: #5e5e66; font-size: 12px; margin-top: 6px; }
+  #view-prd .pair {
+    display: grid; grid-template-columns: minmax(280px, 42%) 1fr; gap: 20px;
+    background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+    padding: 16px; margin: 16px 0;
+  }
+  #view-prd .id { font-size: 12px; color: #8d2f86; }
+  #view-prd .toc {
+    background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+    padding: 14px 18px; margin: 16px 0 8px;
+  }
+  #view-prd .toc a { color: #1c1c1f; text-decoration: none; }
+  #view-prd .toc a:hover { color: #8d2f86; }
+  #view-prd .scope {
+    background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+    padding: 12px 16px; margin: 8px 0 16px; font-size: 13px; color: #5e5e66;
+  }
+  .lightbox {
+    position: fixed; inset: 0; z-index: 1000; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(0, 0, 0, 0.82); cursor: zoom-out;
+  }
+  .lightbox.is-open { display: flex; }
+  .lightbox img {
+    max-width: min(96vw, 1400px); max-height: 92vh; width: auto; height: auto;
+    border-radius: 8px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); cursor: default;
+  }
+  @media (max-width: 800px) { #view-prd .pair { grid-template-columns: 1fr; } }
+
+  /* Demo · 贴近现网编辑项目弹窗 */
+  #view-demo { background: #0b1220; color: #e2e8f0; }
+  #view-demo .stage { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  #view-demo .modal {
+    background: #111827; border: 1px solid rgba(56, 189, 248, .2);
+    border-radius: 12px; overflow: hidden;
+  }
+  #view-demo .modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px; border-bottom: 1px solid rgba(148, 163, 184, .15);
+  }
+  #view-demo .modal-head h2 { margin: 0; font-size: 16px; font-weight: 600; }
+  #view-demo .modal-body { padding: 16px 18px 8px; max-height: calc(100vh - 180px); overflow: auto; }
+  #view-demo .modal-foot {
+    display: flex; justify-content: flex-end; gap: 8px;
+    padding: 12px 18px; border-top: 1px solid rgba(148, 163, 184, .15);
+  }
+  #view-demo .hint-top {
+    margin: 0 0 14px; padding: 10px 12px; border-radius: 8px;
+    background: rgba(56, 189, 248, .08); color: #7dd3fc; font-size: 13px;
+  }
+  #view-demo .hint-top .mark-new { color: #f87171; }
+  /* 本期新增：红框 / 红标 */
+  #view-demo .new {
+    outline: 1px solid rgba(248, 113, 113, .85);
+    outline-offset: 0;
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 1px rgba(248, 113, 113, .25);
+  }
+  #view-demo .field.new,
+  #view-demo .switch-row.new,
+  #view-demo .fx-fields.new {
+    padding: 8px 10px;
+    background: rgba(248, 113, 113, .06);
+  }
+  #view-demo .block.new {
+    border-color: rgba(248, 113, 113, .7);
+    box-shadow: none;
+    outline: none;
+  }
+  #view-demo .tag-new {
+    display: inline-block; margin-left: 6px; padding: 1px 6px;
+    border-radius: 4px; font-size: 11px; line-height: 1.4;
+    color: #fecaca; background: rgba(239, 68, 68, .35);
+    border: 1px solid rgba(248, 113, 113, .7); vertical-align: middle;
+  }
+  #view-demo .switch.new-sw {
+    outline: 2px solid #f87171; outline-offset: 2px;
+  }
+  #view-demo .section-title.new-sec { color: #f87171; }
+  #view-demo .field.new label,
+  #view-demo .switch-row.new .label { color: #fca5a5; }
+  #view-demo .block {
+    border: 1px solid rgba(148, 163, 184, .2); border-radius: 10px;
+    padding: 14px; margin-bottom: 12px; background: #0f172a;
+  }
+  #view-demo .block-head {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+  }
+  #view-demo .block-head h3 { margin: 0; font-size: 14px; }
+  #view-demo .block-head .sub { margin: 4px 0 0; color: #94a3b8; font-size: 12px; }
+  #view-demo .block-body { margin-top: 10px; }
+  #view-demo .block-body[hidden], #view-demo .fx-fields[hidden] { display: none !important; }
+  #view-demo .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 8px 0; }
+  #view-demo .field { display: flex; flex-direction: column; gap: 4px; min-width: 120px; }
+  #view-demo .field label { color: #94a3b8; font-size: 12px; }
+  #view-demo input[type="number"], #view-demo input[type="text"], #view-demo select {
+    background: #0c1220; border: 1px solid rgba(148, 163, 184, .3);
+    border-radius: 8px; color: #e2e8f0; padding: 7px 10px; font: inherit; width: 140px;
+  }
+  #view-demo .btn {
+    border: 1px solid rgba(56, 189, 248, .45); background: transparent; color: #e2e8f0;
+    border-radius: 8px; padding: 7px 12px; font: inherit; cursor: pointer;
+  }
+  #view-demo .btn.primary {
+    border: 0; color: #0a0e1a;
+    background: linear-gradient(135deg, #38bdf8, #818cf8);
+  }
+  #view-demo .btn.ghost { border-color: rgba(148, 163, 184, .35); color: #94a3b8; }
+  #view-demo .btn.danger { border-color: rgba(248, 113, 113, .45); color: #f87171; }
+  #view-demo .pos { display: flex; flex-wrap: wrap; gap: 6px; }
+  #view-demo .pos button {
+    border: 1px solid rgba(148, 163, 184, .35); background: #161e2e; color: #cbd5e1;
+    border-radius: 8px; padding: 6px 10px; font: 13px/1 inherit; cursor: pointer;
+  }
+  #view-demo .pos button.on {
+    border-color: transparent; background: linear-gradient(135deg, #38bdf8, #818cf8); color: #0a0e1a;
+  }
+  #view-demo .preview {
+    width: 120px; height: 68px; border-radius: 8px; background: #1e293b;
+    border: 1px solid rgba(56, 189, 248, .25); display: flex; align-items: center; justify-content: center;
+    color: #64748b; font-size: 12px; overflow: hidden;
+  }
+  #view-demo .preview img { width: 100%; height: 100%; object-fit: contain; }
+  #view-demo .switch {
+    width: 42px; height: 24px; border-radius: 99px; border: 0; position: relative;
+    background: #334155; cursor: pointer; flex: none;
+  }
+  #view-demo .switch.on { background: linear-gradient(135deg, #38bdf8, #818cf8); }
+  #view-demo .switch i {
+    position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+    background: #fff; transition: left .15s;
+  }
+  #view-demo .switch.on i { left: 21px; }
+  #view-demo .switch-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(148, 163, 184, .2);
+  }
+  #view-demo .switch-row .label { color: #e2e8f0; font-size: 13px; }
+  #view-demo .switch-row .hint { display: block; color: #94a3b8; font-size: 12px; margin-top: 2px; }
+  #view-demo .fx-fields { margin-top: 8px; padding: 10px 12px; border-radius: 8px; background: #111827; }
+  #view-demo .fx { margin-top: 4px; }
+  #view-demo .section-title {
+    margin: 18px 0 8px; font-size: 13px; color: #7dd3fc; letter-spacing: .04em;
+  }
+  #view-demo .muted { color: #94a3b8; font-size: 12px; margin: 0 0 8px; }
+  #view-demo .toast {
+    position: fixed; right: 20px; bottom: 20px; z-index: 30;
+    background: #1e293b; border: 1px solid rgba(56, 189, 248, .35);
+    padding: 10px 14px; border-radius: 10px; display: none; font-size: 13px;
+  }
+  #view-demo .toast.show { display: block; }
+  #view-demo .body-hidden { display: none; }
+  #view-demo .io-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 640px) { #view-demo .io-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="tabs">
+    <button class="tab on" type="button" data-pane="prd">PRD</button>
+    <button class="tab" type="button" data-pane="demo">Demo · 编辑项目</button>
+  </div>
+</div>
+
+<div class="pane" id="view-prd">
+  <div class="wrap">
+    <h1>方舟 · 水印与片头片尾优化 PRD</h1>
+    <div class="meta">版本 v1.2 · 2026-10-27 · 方舟后台 · 项目管理 → 编辑项目 · 截图可点击放大 · Demo 红色标出本期新增</div>
+
+    <h2>文档索引</h2>
+    <nav class="toc" aria-label="文档索引">
+      <ol>
+        <li><a href="#bg">需求背景</a></li>
+        <li><a href="#matrix">需求功能矩阵</a></li>
+        <li><a href="#fz-fmt-01">FZ-FMT-01 图片输出格式</a></li>
+        <li><a href="#fz-wm-01">FZ-WM-01 水印启用开关</a></li>
+        <li><a href="#fz-wm-02">FZ-WM-02 视频水印镜像翻转</a></li>
+        <li><a href="#fz-wm-03">FZ-WM-03 视频水印间歇展示</a></li>
+        <li><a href="#fz-wm-04">FZ-WM-04 移动水印速度</a></li>
+        <li><a href="#fz-io-01">FZ-IO-01 片头片尾（独立模块）</a></li>
+        <li><a href="#accept">验收表</a></li>
+      </ol>
+    </nav>
+
+    <h2 id="bg">需求背景</h2>
+    <p>运营在「项目管理 → 编辑项目」配置水印时，现网靠「有没有上传素材」暗示是否生效，缺少明确开关；视频水印缺少镜像翻转、间歇显隐、移动速度等防盗与观感调节能力；图片经水印服务输出时固定 PNG，需要可改 JPG。</p>
+    <p>另需在成片前后拼接完整片头、片尾视频。片头片尾不是叠层水印，作为编辑项目内、水印区下方的独立模块配置。</p>
+    <div class="scope">
+      <p>做：仅 CMS「编辑项目」弹窗；图片输出格式；各水印启用开关；视频水印镜像翻转与间歇展示；移动水印速度；片头片尾独立模块。</p>
+      <p>不做：外站站点水印；把片头片尾算作水印类型；浏览器以外的其它入口。</p>
+      <p>前提：水印 / 成片服务已支持本 PRD 描述的全部能力，方舟配置保存后按配置生效。</p>
+    </div>
+
+    <h2 id="matrix">需求功能矩阵</h2>
+    <table>
+      <thead>
+        <tr><th>功能ID</th><th>模块</th><th>名称</th><th>描述</th><th>备注</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>FZ-FMT-01</td>
+          <td>编辑项目 · 图片封面</td>
+          <td>图片输出格式</td>
+          <td>项目级输出格式可选 PNG（默认）或 JPG，作用于水印服务出图。</td>
+          <td>不是上传素材格式。</td>
+        </tr>
+        <tr>
+          <td>FZ-WM-01</td>
+          <td>编辑项目 · 水印</td>
+          <td>水印启用开关</td>
+          <td>图片水印、固定、四角循环、移动各有独立开关；开=启用，关=未启用；关时保留素材与参数。</td>
+          <td>每类型最多 1 套配置；可多类型同时开。</td>
+        </tr>
+        <tr>
+          <td>FZ-WM-02</td>
+          <td>编辑项目 · 视频水印</td>
+          <td>镜像翻转</td>
+          <td>固定 / 四角循环 / 移动可开镜像翻转；开后按「每隔 N 秒翻转一次」做水平整块镜像。</td>
+          <td>与间歇展示独立（方案甲）。</td>
+        </tr>
+        <tr>
+          <td>FZ-WM-03</td>
+          <td>编辑项目 · 视频水印</td>
+          <td>间歇展示</td>
+          <td>可开间歇；配置「显示 X 秒」「隐藏 Y 秒」循环。关则常驻。</td>
+          <td>与镜像翻转独立。</td>
+        </tr>
+        <tr>
+          <td>FZ-WM-04</td>
+          <td>编辑项目 · 移动水印</td>
+          <td>移动速度</td>
+          <td>配置一圈（一个来回）所需秒数；默认 10；数值越小越快。</td>
+          <td>仅移动水印。</td>
+        </tr>
+        <tr>
+          <td>FZ-IO-01</td>
+          <td>编辑项目 · 片头片尾</td>
+          <td>片头片尾拼接</td>
+          <td>水印区下方独立模块；片头 / 片尾各上传完整视频；拼在正文视频前 / 后；不叠水印；分辨率服务端自适应；时长暂不限。</td>
+          <td>不是水印类型。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pair" id="fz-fmt-01">
+      <figure>
+        <img src="prd-screens/demo-cover-format.png" alt="图片封面尺寸旁的输出格式" />
+        <figcaption>Demo：图片封面尺寸旁新增「图片输出格式」，默认 PNG，可选 JPG。</figcaption>
+      </figure>
+      <div>
+        <div class="id">FZ-FMT-01</div>
+        <h2>图片输出格式</h2>
+        <h3>功能逻辑</h3>
+        <p>项目保存一套图片输出格式。水印服务按该格式输出封面等处理后的图片。与水印素材上传允许的文件类型无关。</p>
+        <h3>业务规则</h3>
+        <ul>
+          <li>选项：PNG、JPG。默认 PNG。</li>
+          <li>位置：紧挨「图片封面尺寸」控件组。</li>
+          <li>仅影响本项目后续新产出的图片；不回溯已生成历史文件。</li>
+        </ul>
+        <h3>页面交互</h3>
+        <ul>
+          <li>下拉或单选切换 PNG / JPG；随「保存」一并提交。</li>
+          <li>旁注说明：「水印服务封面等出图格式，不是水印素材上传格式」。</li>
+        </ul>
+        <h3>异常</h3>
+        <ul>
+          <li>未选择：按 PNG。</li>
+          <li>保存失败：Toast「保存失败，请重试」；界面值可保留用户选择，以服务端成功回写为准。</li>
+        </ul>
+        <h3>数据流转</h3>
+        <p>字段随项目配置保存；转编辑 / 出图任务读取项目输出格式传给水印服务。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="fz-wm-01">
+      <figure>
+        <img src="prd-screens/demo-wm-switches.png" alt="各水印类型启用开关" />
+        <figcaption>Demo：各水印标题行右侧为启用开关。关闭后下方配置区整块隐藏；再打开时带回上次参数。</figcaption>
+      </figure>
+      <div>
+        <div class="id">FZ-WM-01</div>
+        <h2>水印启用开关</h2>
+        <h3>功能逻辑</h3>
+        <p>每种水印（图片、固定、四角循环、移动）标题行提供开关。打开表示该类型配置启用并参与压片；关闭表示未启用，不参与压片。</p>
+        <h3>业务规则</h3>
+        <ul>
+          <li>每类型最多保留 1 套素材与参数；可多类型同时启用。</li>
+          <li>关闭开关：下方配置区隐藏，不清除已上传素材、位置、宽度比例及翻转 / 间歇 / 速度等参数。</li>
+          <li>启用但未上传素材：保存时 Toast「请先上传水印素材」，该类型不视为有效启用；其它已有效类型仍可保存。</li>
+          <li>不再用「仅有上传即默认启用」作为唯一信号；以开关为准。</li>
+          <li>交互通则：所有开关（含模块总开关、镜像翻转、间歇展示）均控制其下方内容是否展示；关闭则隐藏，打开再展示。</li>
+        </ul>
+        <h3>页面交互</h3>
+        <ul>
+          <li>开关在标题行右侧；关闭时只保留标题行与开关，下方配置整块不展示。</li>
+          <li>再次打开：展开配置，数值与素材仍是关闭前的状态。</li>
+        </ul>
+        <h3>异常</h3>
+        <ul>
+          <li>全部水印关闭：允许保存；成片不叠本项目添加水印（去源水印若有其它链路逻辑不在本期改）。</li>
+        </ul>
+        <h3>数据流转</h3>
+        <p>各类型增加 enabled 布尔；压片请求只带 enabled=true 且素材齐全的类型。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="fz-wm-02">
+      <figure>
+        <img src="prd-screens/demo-wm-flip-intermittent.png" alt="镜像翻转与间歇展示" />
+        <figcaption>Demo：镜像翻转、间歇展示均为开关（非复选框）；开后才展开下方输入项。</figcaption>
+      </figure>
+      <div>
+        <div class="id">FZ-WM-02</div>
+        <h2>视频水印镜像翻转</h2>
+        <h3>功能逻辑</h3>
+        <p>对固定 / 四角循环 / 移动水印，可开启水平整块镜像翻转（非整词换序）。开启后按配置间隔周期性在「正常朝向」与「水平镜像」之间切换。</p>
+        <h3>业务规则</h3>
+        <ul>
+          <li>仅视频三类水印；图片水印无此配置。</li>
+          <li>与间歇展示相互独立，可同时开。</li>
+          <li>字段：开关 +「每隔 N 秒翻转一次」。N 为正数，单位秒，默认 5；最小 1。</li>
+          <li>翻转的是水印图层，不是整段成片画面。</li>
+        </ul>
+        <h3>页面交互</h3>
+        <ul>
+          <li>「镜像翻转」使用开关，不用复选框。</li>
+          <li>打开开关后展示间隔输入框；关闭则隐藏间隔输入，再次打开带回上次值。</li>
+        </ul>
+        <h3>异常</h3>
+        <ul>
+          <li>N 为空或 &lt; 1：保存时 Toast「翻转间隔至少 1 秒」；不提交该非法值。</li>
+        </ul>
+        <h3>数据流转</h3>
+        <p>随该水印类型配置写入；压片时交给水印服务按间隔镜像。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="fz-wm-03">
+      <div>
+        <p style="margin:0;padding:20px;background:#f3f0f2;border-radius:8px;color:#5e5e66;font-size:13px;">与 FZ-WM-02 共用截图 demo-wm-flip-intermittent.png。</p>
+      </div>
+      <div>
+        <div class="id">FZ-WM-03</div>
+        <h2>视频水印间歇展示</h2>
+        <h3>功能逻辑</h3>
+        <p>开启后水印按「显示 X 秒 → 隐藏 Y 秒」循环，不再常驻画面。关闭后恢复常驻（现网默认观感）。</p>
+        <h3>业务规则</h3>
+        <ul>
+          <li>适用于固定 / 四角循环 / 移动。</li>
+          <li>字段：开关 + 显示秒数 X + 隐藏秒数 Y。默认 X=3、Y=3；均须 ≥ 0.5。</li>
+          <li>与镜像翻转独立。</li>
+        </ul>
+        <h3>页面交互</h3>
+        <ul>
+          <li>「间歇展示」使用开关，不用复选框。</li>
+          <li>打开后展示「显示（秒）」「隐藏（秒）」；关闭则隐藏这两项，再次打开带回上次值。</li>
+        </ul>
+        <h3>异常</h3>
+        <ul>
+          <li>X 或 Y 非法：Toast「显示/隐藏时长至少 0.5 秒」；不保存非法值。</li>
+        </ul>
+        <h3>数据流转</h3>
+        <p>随类型配置保存并传给水印服务。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="fz-wm-04">
+      <figure>
+        <img src="prd-screens/demo-wm-speed.png" alt="移动水印速度配置" />
+        <figcaption>Demo：移动水印「一圈耗时（秒）」，默认 10；旁注说明改小变快、改大变慢。</figcaption>
+      </figure>
+      <div>
+        <div class="id">FZ-WM-04</div>
+        <h2>移动水印速度</h2>
+        <h3>功能逻辑</h3>
+        <p>为移动水印增加「一圈（一个来回）所需秒数」。数值越小运动越快，越大越慢。</p>
+        <h3>业务规则</h3>
+        <ul>
+          <li>仅「移动水印」展示。</li>
+          <li>主字段为秒数；默认 10。</li>
+          <li>允许范围 1～120；超出时 Toast「请输入 1～120 之间的秒数」。</li>
+          <li>Demo 可附「相对默认」只读提示（如当前为默认的 0.5x / 2x），不以倍率为主输入。</li>
+        </ul>
+        <h3>页面交互</h3>
+        <ul>
+          <li>数字输入框，标签「一圈耗时（秒）」；说明「默认 10 秒；改成 5 更快，改成 20 更慢」。</li>
+        </ul>
+        <h3>异常</h3>
+        <ul>
+          <li>空值保存：回退为 10。</li>
+        </ul>
+        <h3>数据流转</h3>
+        <p>写入移动水印配置；压片时作为轨迹周期传给水印服务。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="fz-io-01">
+      <figure>
+        <img src="prd-screens/demo-intro-outro.png" alt="片头片尾独立模块" />
+        <figcaption>Demo：整块水印区下方的「片头片尾」模块；左右分别为片头、片尾上传。</figcaption>
+      </figure>
+      <div>
+        <div class="id">FZ-IO-01</div>
+        <h2>片头片尾（独立模块）</h2>
+        <h3>功能逻辑</h3>
+        <p>在编辑项目中、全部水印块下方，新增「片头片尾」模块。片头视频拼在正文视频之前，片尾拼在之后。只做拼接，不在片头片尾时段叠加本项目水印。</p>
+        <h3>业务规则</h3>
+        <ul>
+          <li>片头、片尾各自可选：可只配一端，也可两端都配，也可都不配。</li>
+          <li>素材必须为视频（MP4 / MOV）；时长暂不设上限。</li>
+          <li>分辨率由服务端自适应到成片，运营无需配宽高。</li>
+          <li>不是水印类型；无位置、无宽度比例、无镜像 / 间歇 / 速度。</li>
+          <li>模块总开关：关则不拼接，并隐藏下方片头/片尾配置区（保留已上传文件）。</li>
+        </ul>
+        <h3>页面交互</h3>
+        <ul>
+          <li>标题「片头片尾」+ 说明「完整视频拼接在正文前后，不是叠层水印」。</li>
+          <li>总开关关闭时只留标题行；打开后展示片头 / 片尾上传区。</li>
+          <li>片头 / 片尾：上传、预览、移除；已加载显示文件名。</li>
+        </ul>
+        <h3>异常</h3>
+        <ul>
+          <li>上传非视频：Toast「请上传 MP4 或 MOV 视频」；不写入。</li>
+          <li>上传失败：Toast「上传失败，请重试」。</li>
+        </ul>
+        <h3>数据流转</h3>
+        <p>片头 / 片尾文件地址随项目保存；成片流水线在叠水印之外先/后拼接；片头片尾内容本身不再走添加水印。</p>
+      </div>
+    </div>
+
+    <h2 id="accept">验收表</h2>
+    <table>
+      <thead><tr><th>功能ID</th><th>验收标准</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>FZ-FMT-01</td>
+          <td>
+            <ul>
+              <li>图片封面尺寸旁可选 PNG / JPG，默认 PNG。</li>
+              <li>文案标明是出图格式而非上传格式。</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>FZ-WM-01</td>
+          <td>
+            <ul>
+              <li>图片 / 固定 / 四角循环 / 移动均有启用开关。</li>
+              <li>关开关后下方配置隐藏，该类型不参与压片，素材与参数仍在。</li>
+              <li>开开关且无素材时保存有明确 Toast。</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>FZ-WM-02</td>
+          <td>
+            <ul>
+              <li>镜像翻转为开关（非复选框）；打开后才出现间隔输入。</li>
+              <li>与间歇展示可同时开。</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>FZ-WM-03</td>
+          <td>
+            <ul>
+              <li>间歇展示为开关；打开后才出现显示/隐藏秒数；关闭后常驻且隐藏这两项输入。</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>FZ-WM-04</td>
+          <td>
+            <ul>
+              <li>移动水印可配一圈耗时秒数，默认 10；5 比 10 快，20 比 10 慢。</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>FZ-IO-01</td>
+          <td>
+            <ul>
+              <li>位于全部水印块下方；可上传片头 / 片尾视频。</li>
+              <li>说明为拼接而非水印；不要求位置与宽度比例。</li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="pane" id="view-demo" hidden>
+  <div class="stage">
+    <p class="hint-top">Demo 模拟现网「编辑项目」相关区块。上方基础信息已省略。<span class="mark-new">红色描边 /「新增」标 = 本期新增</span>。</p>
+    <div class="modal" id="edit-modal">
+      <div class="modal-head">
+        <h2>编辑项目</h2>
+        <button type="button" class="btn ghost" id="btn-close-x">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="section-title">图片封面</div>
+        <div class="block" id="block-cover">
+          <div class="block-head">
+            <div>
+              <h3>图片封面尺寸</h3>
+              <p class="sub">水印服务封面输出，200–4096px</p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field"><label>宽</label><input type="number" id="cover-w" value="1920" /></div>
+            <div class="field"><label>高</label><input type="number" id="cover-h" value="1080" /></div>
+            <div class="field new">
+              <label>图片输出格式 <span class="tag-new">新增</span></label>
+              <select id="img-format" aria-label="图片输出格式">
+                <option value="png" selected>PNG（默认）</option>
+                <option value="jpg">JPG</option>
+              </select>
+            </div>
+          </div>
+          <p class="muted">出图格式，不是水印素材上传格式。</p>
+        </div>
+
+        <div class="section-title">水印管理</div>
+        <p class="muted">开关打开=启用并展开下方配置；关闭=未启用并隐藏配置（参数保留）。每类型最多一套，可多类型同时开。</p>
+
+        <div class="block" data-wm="image">
+          <div class="block-head">
+            <div>
+              <h3>🖼️ 图片水印</h3>
+              <p class="sub">仅支持 PNG 上传，≤20MB（上传格式不变）</p>
+            </div>
+            <button type="button" class="switch on new-sw" data-enable="image" aria-label="图片水印启用" title="新增：启用开关"><i></i></button>
+          </div>
+          <p class="muted" style="margin:6px 0 0"><span class="tag-new">新增</span> 右侧启用开关；关闭后隐藏下方配置</p>
+          <div class="block-body" data-body="image">
+            <div class="row">
+              <div class="preview">PNG</div>
+              <button type="button" class="btn">选择图片 (PNG)</button>
+              <button type="button" class="btn danger">移除水印</button>
+            </div>
+            <div class="row">
+              <span class="muted">位置</span>
+              <div class="pos" data-pos="image">
+                <button type="button" data-v="tl">左上</button>
+                <button type="button" class="on" data-v="tr">右上</button>
+                <button type="button" data-v="bl">左下</button>
+                <button type="button" data-v="br">右下</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="block" data-wm="fixed">
+          <div class="block-head">
+            <div>
+              <h3>🎬 文案视频固定水印</h3>
+              <p class="sub">MP4 / MOV / PNG</p>
+            </div>
+            <button type="button" class="switch on new-sw" data-enable="fixed" aria-label="固定水印启用" title="新增：启用开关"><i></i></button>
+          </div>
+          <p class="muted" style="margin:6px 0 0"><span class="tag-new">新增</span> 右侧启用开关；关闭后隐藏下方配置</p>
+          <div class="block-body" data-body="fixed">
+            <div class="row">
+              <div class="preview">已加载</div>
+              <button type="button" class="btn">选择素材 (MP4/MOV/PNG)</button>
+              <button type="button" class="btn danger">移除水印</button>
+            </div>
+            <div class="row">
+              <span class="muted">位置</span>
+              <div class="pos" data-pos="fixed">
+                <button type="button" data-v="tl">左上</button>
+                <button type="button" data-v="tr">右上</button>
+                <button type="button" data-v="bl">左下</button>
+                <button type="button" class="on" data-v="br">右下</button>
+              </div>
+            </div>
+            <div class="fx" data-fx="fixed"></div>
+          </div>
+        </div>
+
+        <div class="block" data-wm="cycle">
+          <div class="block-head">
+            <div>
+              <h3>🔄 文章视频固定四角循环</h3>
+              <p class="sub">按选择顺序循环切换</p>
+            </div>
+            <button type="button" class="switch new-sw" data-enable="cycle" aria-label="四角循环启用" title="新增：启用开关"><i></i></button>
+          </div>
+          <p class="muted" style="margin:6px 0 0"><span class="tag-new">新增</span> 右侧启用开关；关闭后隐藏下方配置</p>
+          <div class="block-body" data-body="cycle" hidden>
+            <div class="row">
+              <div class="preview">未上传</div>
+              <button type="button" class="btn">选择素材 (MP4/MOV/PNG)</button>
+              <button type="button" class="btn danger">移除水印</button>
+            </div>
+            <div class="fx" data-fx="cycle"></div>
+          </div>
+        </div>
+
+        <div class="block" data-wm="motion">
+          <div class="block-head">
+            <div>
+              <h3>✨ 移动水印</h3>
+              <p class="sub">沿轨迹移动</p>
+            </div>
+            <button type="button" class="switch on new-sw" data-enable="motion" aria-label="移动水印启用" title="新增：启用开关"><i></i></button>
+          </div>
+          <p class="muted" style="margin:6px 0 0"><span class="tag-new">新增</span> 右侧启用开关；关闭后隐藏下方配置</p>
+          <div class="block-body" data-body="motion">
+            <div class="row">
+              <div class="preview">已加载</div>
+              <button type="button" class="btn">选择素材 (MP4/MOV/PNG)</button>
+              <button type="button" class="btn danger">移除水印</button>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label>移动轨迹</label>
+                <select><option>环形运动</option><option>左右来回</option></select>
+              </div>
+              <div class="field new">
+                <label>一圈耗时（秒） <span class="tag-new">新增</span></label>
+                <input type="number" id="motion-sec" min="1" max="120" value="10" />
+              </div>
+            </div>
+            <p class="muted">默认 10 秒一圈；改成 5 更快，改成 20 更慢。当前相对默认：<span id="speed-hint">1.0x</span></p>
+            <div class="fx" data-fx="motion"></div>
+          </div>
+        </div>
+
+        <div class="section-title new-sec">片头片尾（独立模块） <span class="tag-new">新增</span></div>
+        <div class="block new" id="block-io">
+          <div class="block-head">
+            <div>
+              <h3>片头片尾</h3>
+              <p class="sub">完整视频拼在正文前/后，不是叠层水印；不叠加上方水印；分辨率服务端自适应</p>
+            </div>
+            <button type="button" class="switch on new-sw" data-enable="io" aria-label="片头片尾启用" title="新增：模块开关"><i></i></button>
+          </div>
+          <div class="block-body" data-body="io">
+            <div class="io-grid">
+              <div class="block" style="margin:0;background:#111827">
+                <h3 style="margin:0 0 8px;font-size:13px">片头</h3>
+                <p class="muted">拼在正文视频之前</p>
+                <div class="row">
+                  <div class="preview" id="prev-intro">未上传</div>
+                  <button type="button" class="btn" data-io="intro">上传视频</button>
+                  <button type="button" class="btn danger" data-io-clear="intro">移除</button>
+                </div>
+                <p class="muted" id="name-intro"></p>
+              </div>
+              <div class="block" style="margin:0;background:#111827">
+                <h3 style="margin:0 0 8px;font-size:13px">片尾</h3>
+                <p class="muted">拼在正文视频之后</p>
+                <div class="row">
+                  <div class="preview" id="prev-outro">未上传</div>
+                  <button type="button" class="btn" data-io="outro">上传视频</button>
+                  <button type="button" class="btn danger" data-io-clear="outro">移除</button>
+                </div>
+                <p class="muted" id="name-outro"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn ghost" id="btn-cancel">取消</button>
+        <button type="button" class="btn primary" id="btn-save">保存</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="图片放大">
+  <img alt="" />
+</div>
+
+<script>
+(function () {
+  /* tabs */
+  var tabs = document.querySelectorAll(".bar .tab");
+  var panes = { prd: document.getElementById("view-prd"), demo: document.getElementById("view-demo") };
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      tabs.forEach(function (t) { t.classList.toggle("on", t === tab); });
+      Object.keys(panes).forEach(function (k) {
+        panes[k].hidden = tab.getAttribute("data-pane") !== k;
+      });
+    });
+  });
+
+  /* lightbox：仅 PRD 说明图 */
+  var box = document.getElementById("lightbox");
+  var big = box.querySelector("img");
+  document.getElementById("view-prd").addEventListener("click", function (e) {
+    var img = e.target.closest("img");
+    if (!img || img.closest(".lightbox")) return;
+    big.src = img.src;
+    big.alt = img.alt || "";
+    box.classList.add("is-open");
+  });
+  function closeLb() { box.classList.remove("is-open"); big.removeAttribute("src"); }
+  box.addEventListener("click", closeLb);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && box.classList.contains("is-open")) closeLb();
+  });
+
+  /* demo helpers */
+  function toast(msg) {
+    var el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { el.classList.remove("show"); }, 2200);
+  }
+
+  function fxHtml(key) {
+    return (
+      '<div class="switch-row new">' +
+      '<div><span class="label">镜像翻转 <span class="tag-new">新增</span></span><span class="hint">水平整块镜像，不是改字序</span></div>' +
+      '<button type="button" class="switch new-sw" data-flip="' + key + '" aria-label="镜像翻转"><i></i></button>' +
+      "</div>" +
+      '<div class="fx-fields new" data-flip-fields="' + key + '" hidden>' +
+      '<div class="field"><label>每隔多少秒翻转一次</label><input type="number" min="1" step="1" value="5" data-flip-sec="' + key + '" /></div>' +
+      "</div>" +
+      '<div class="switch-row new">' +
+      '<div><span class="label">间歇展示 <span class="tag-new">新增</span></span><span class="hint">关闭则水印常驻画面</span></div>' +
+      '<button type="button" class="switch new-sw" data-inter="' + key + '" aria-label="间歇展示"><i></i></button>' +
+      "</div>" +
+      '<div class="fx-fields new" data-inter-fields="' + key + '" hidden>' +
+      '<div class="row">' +
+      '<div class="field"><label>显示（秒）</label><input type="number" min="0.5" step="0.5" value="3" data-show="' + key + '" /></div>' +
+      '<div class="field"><label>隐藏（秒）</label><input type="number" min="0.5" step="0.5" value="3" data-hide="' + key + '" /></div>' +
+      "</div></div>"
+    );
+  }
+
+  document.querySelectorAll("[data-fx]").forEach(function (el) {
+    el.innerHTML = fxHtml(el.getAttribute("data-fx"));
+  });
+
+  function syncBody(key, on) {
+    var body = document.querySelector('[data-body="' + key + '"]');
+    if (body) body.hidden = !on;
+  }
+
+  document.querySelectorAll("[data-enable]").forEach(function (btn) {
+    var key = btn.getAttribute("data-enable");
+    syncBody(key, btn.classList.contains("on"));
+    btn.addEventListener("click", function () {
+      btn.classList.toggle("on");
+      syncBody(key, btn.classList.contains("on"));
+    });
+  });
+
+  document.getElementById("view-demo").addEventListener("click", function (e) {
+    var flip = e.target.closest("[data-flip]");
+    if (flip) {
+      flip.classList.toggle("on");
+      var kf = flip.getAttribute("data-flip");
+      var wrap = document.querySelector('[data-flip-fields="' + kf + '"]');
+      if (wrap) wrap.hidden = !flip.classList.contains("on");
+      return;
+    }
+    var inter = e.target.closest("[data-inter]");
+    if (inter) {
+      inter.classList.toggle("on");
+      var ki = inter.getAttribute("data-inter");
+      var wrap2 = document.querySelector('[data-inter-fields="' + ki + '"]');
+      if (wrap2) wrap2.hidden = !inter.classList.contains("on");
+    }
+  });
+
+  document.querySelectorAll(".pos").forEach(function (group) {
+    group.addEventListener("click", function (e) {
+      var b = e.target.closest("button");
+      if (!b) return;
+      if (group.getAttribute("data-pos") === "cycle") {
+        b.classList.toggle("on");
+        return;
+      }
+      group.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
+      b.classList.add("on");
+    });
+  });
+
+  var sec = document.getElementById("motion-sec");
+  var hint = document.getElementById("speed-hint");
+  function updSpeed() {
+    var v = parseFloat(sec.value);
+    if (!v || v <= 0) { hint.textContent = "—"; return; }
+    hint.textContent = (10 / v).toFixed(1) + "x";
+  }
+  sec.addEventListener("input", updSpeed);
+  updSpeed();
+
+  var ioFiles = { intro: "", outro: "" };
+  document.querySelectorAll("[data-io]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var slot = btn.getAttribute("data-io");
+      ioFiles[slot] = slot === "intro" ? "opener-brand.mp4" : "ending-cta.mp4";
+      document.getElementById("prev-" + slot).textContent = "已加载";
+      document.getElementById("name-" + slot).textContent = "已加载：" + ioFiles[slot];
+      toast("已选择示例视频（Demo）");
+    });
+  });
+  document.querySelectorAll("[data-io-clear]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var slot = btn.getAttribute("data-io-clear");
+      ioFiles[slot] = "";
+      document.getElementById("prev-" + slot).textContent = "未上传";
+      document.getElementById("name-" + slot).textContent = "";
+    });
+  });
+
+  function validateAndSave() {
+    var flipOk = true;
+    document.querySelectorAll("[data-flip]").forEach(function (sw) {
+      if (!sw.classList.contains("on")) return;
+      var k = sw.getAttribute("data-flip");
+      var n = parseFloat(document.querySelector('[data-flip-sec="' + k + '"]').value);
+      if (!(n >= 1)) flipOk = false;
+    });
+    if (!flipOk) { toast("翻转间隔至少 1 秒"); return; }
+
+    var interOk = true;
+    document.querySelectorAll("[data-inter]").forEach(function (sw) {
+      if (!sw.classList.contains("on")) return;
+      var k = sw.getAttribute("data-inter");
+      var x = parseFloat(document.querySelector('[data-show="' + k + '"]').value);
+      var y = parseFloat(document.querySelector('[data-hide="' + k + '"]').value);
+      if (!(x >= 0.5) || !(y >= 0.5)) interOk = false;
+    });
+    if (!interOk) { toast("显示/隐藏时长至少 0.5 秒"); return; }
+
+    var motionOn = document.querySelector('[data-enable="motion"]').classList.contains("on");
+    if (motionOn) {
+      var ms = parseFloat(sec.value);
+      if (!(ms >= 1 && ms <= 120)) { toast("请输入 1～120 之间的秒数"); return; }
+    }
+
+    toast("已保存（Demo）· 输出格式 " + document.getElementById("img-format").value.toUpperCase());
+  }
+
+  document.getElementById("btn-save").addEventListener("click", validateAndSave);
+  document.getElementById("btn-cancel").addEventListener("click", function () { toast("已取消（Demo 不关闭页）"); });
+  document.getElementById("btn-close-x").addEventListener("click", function () { toast("已取消（Demo 不关闭页）"); });
+})();
+</script>
+</body>
+</html>
