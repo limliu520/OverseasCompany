@@ -26,7 +26,7 @@
       </div>
     </div>
   </div>
-  <script src="../js/store.js?v=20261027tgws"></script>
+  <script src="../js/store.js?v=20261027twoGate"></script>
   <script src="../js/shell.js?v=20261027collect"></script>
   <script src="../js/pager.js?v=20261027pager"></script>
   <script src="../js/project-union.js"></script>
@@ -57,7 +57,8 @@
       var type = p.siteType || "chigua";
       var typeLabel = FZProjectUnion.siteTypeLabel(type);
       var channelOn = !!p.contentActivated;
-      var auto = !!(p.autoPush || p.autoflow);
+      var toEdit = !!p.autoToEdit;
+      var autoPush = !!p.autoPush;
       var chN = FZStore.projectChannels(p).length;
       var appId = (p.creds && p.creds.appId) || "";
       var coverW = p.coverWidth;
@@ -74,7 +75,8 @@
       }
       var facts =
         factRow("内容通道", channelOn ? "已接通" : "待接通") +
-        factRow("推送", auto ? "自动" : "待人工");
+        factRow("进编辑", toEdit ? "自动" : "人工") +
+        factRow("推业务方", autoPush ? "自动" : "待确认");
       if (coverW && coverH) {
         facts += factRow("封面", coverW + " × " + coverH + " px");
       }

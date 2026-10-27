@@ -26,11 +26,20 @@
   ];
 
   function tip(text) {
+    var body =
+      global.FZShell && global.FZShell.tipHtml
+        ? global.FZShell.tipHtml(text)
+        : String(text == null ? "" : text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/"/g, "&quot;")
+            .replace(/；\s*/g, "；<br>")
+            .replace(/;\s*/g, ";<br>");
     return (
       '<button type="button" class="field-tip" aria-label="字段说明">' +
       '<span class="field-tip-ico" aria-hidden="true">?</span>' +
       '<span class="field-tip-bubble" role="tooltip">' +
-      text +
+      body +
       "</span></button>"
     );
   }
@@ -75,6 +84,7 @@
       coverHeight: "1280",
       minVideoSeconds: GLOBAL_MIN_VIDEO_SEC,
       maxEpisodes: GLOBAL_MAX_EPISODES,
+      autoToEdit: false,
       autoPush: false,
       autoflow: false,
       hasCollectSource: false,
@@ -107,8 +117,13 @@
     Object.keys(d).forEach(function (k) {
       if (p[k] == null) p[k] = d[k];
     });
+    /* 两段闸门：autoToEdit=素材→编辑；autoPush=编辑→业务方。旧数据曾混在 autoflow/autoPush */
+    if (p.autoToEdit == null) {
+      p.autoToEdit = !!(p.autoflow || p.autoPush);
+    }
     if (p.autoPush == null && p.autoflow != null) p.autoPush = !!p.autoflow;
-    if (p.autoflow == null) p.autoflow = !!p.autoPush;
+    if (p.autoPush == null) p.autoPush = false;
+    p.autoflow = !!p.autoToEdit;
     if (p.minVideoSeconds == null || p.minVideoSeconds < GLOBAL_MIN_VIDEO_SEC) {
       p.minVideoSeconds = GLOBAL_MIN_VIDEO_SEC;
     }
@@ -165,7 +180,7 @@
       '<div class="field">' +
       label(
         "站点代码",
-        "现网外站 code：站点唯一标识。留空创建时自动生成；创建后一般不可改。"
+        "对接用的站点唯一标识。留空创建时自动生成；创建后一般不要改。"
       ) +
       '<input id="' +
       id("site-code") +
@@ -175,18 +190,15 @@
       '<div class="field">' +
       label(
         "对方收件接口地址",
-        "方舟把内容推到对方时填写对方接收根地址（现网外站 base_url）。若主要是对方来调方舟接口，可先留空，以上方方舟签发的凭证为准。"
+        "方舟把「内容正文/媒体」推到对方业务系统时填对方接收根地址。若主要是对方来调方舟，可先留空。"
       ) +
       '<input id="' +
       id("api-base") +
       '" value="' +
       esc(p.apiBaseUrl) +
-      '" placeholder="https://api.partner.com（可选，推送到对方时再填）" /></div>' +
+      '" placeholder="https://api.partner.com（推送到对方时再填）" /></div>' +
       '<div class="field">' +
-      label(
-        "接口前缀",
-        "现网默认 /oash/v1。与接口地址拼成完整推送路径。"
-      ) +
+      label("接口前缀", "与收件地址拼成完整推送路径，默认 /oash/v1。") +
       '<input id="' +
       id("api-prefix") +
       '" value="' +
@@ -195,7 +207,7 @@
       '<div class="field">' +
       label(
         "签名密钥（可选）",
-        "现网 app_secret：配了则请求带签名；不配不签。不是对方登录密码。"
+        "配了则推送请求带签名；不配不签。不是对方登录密码。"
       ) +
       '<input id="' +
       id("api-secret") +
@@ -203,13 +215,23 @@
       esc(p.appSecret) +
       '" placeholder="对方提供的签名密钥；可不填" autocomplete="off" /></div>' +
       '<div class="field">' +
-      label("对接备注", "现网 notes，仅展示与排障用。") +
+      label(
+        "事件通知地址（Webhook，可选）",
+        "状态变更等事件通知对方；与上面「收件接口」不同：收件接口推内容，这里推事件。未接通前不生效。"
+      ) +
+      '<input id="' +
+      id("hook") +
+      '" placeholder="https://partner.example.com/hooks/fangzhou" value="' +
+      esc(p.webhookUrl || "") +
+      '" /></div>' +
+      '<div class="field">' +
+      label("对接备注", "对接方名称、环境等，仅展示与排障。") +
       '<input id="' +
       id("ch-notes") +
       '" value="' +
       esc(p.channelNotes) +
       '" placeholder="对接方名称、环境等" /></div>' +
-      '<p class="hint">本块给开发联调：上方为方舟签发凭证（对方来接我们）；下方为可选的对方收件地址（我们推到对方）。不配对方登录账号；身份用子账号「CMS 标识」。</p>'
+      '<p class="hint">本块给开发联调：凭证给对方来接方舟；收件接口 / 事件通知按需填。不配对方登录账号；推送身份用子账号「CMS 标识」。</p>'
     );
   }
 
@@ -220,6 +242,7 @@
     into.apiBaseUrl = val(root, prefix + "api-base");
     into.apiPrefix = val(root, prefix + "api-prefix") || "/oash/v1";
     into.appSecret = val(root, prefix + "api-secret");
+    into.webhookUrl = val(root, prefix + "hook");
     into.channelNotes = val(root, prefix + "ch-notes");
   }
 
@@ -352,57 +375,68 @@
     collectVideoRules(root, into, prefix);
   }
 
-  /** 推送规则：外站「推送方式」+ 短剧分集；接通后生效。 */
+  /** 推送规则：两段闸门（素材→编辑 / 编辑→业务方）+ 短剧分集；技术地址在「开发对接」。 */
   function renderPushRulesFields(p, prefix) {
     prefix = prefix || "";
     var id = function (x) {
       return prefix + x;
     };
     var short = p.siteType === "short_drama";
-    var autoOn = !!(p.autoPush || p.autoflow);
+    var toEditOn = !!p.autoToEdit;
+    var pushOn = !!p.autoPush;
     var html =
       '<div class="cfg-card" style="margin-bottom:12px">' +
-      '<div class="cfg-card-head"><div class="cfg-card-title">推送方式</div>' +
-      '<div class="cfg-card-sub">对齐现网外站「推送方式」· auto_push</div></div>' +
-      '<div class="mode-toggles" role="radiogroup" aria-label="推送方式">' +
+      '<div class="cfg-card-head"><div class="cfg-card-title">① 素材进编辑</div>' +
+      '<div class="cfg-card-sub">采集加工完成之后</div></div>' +
+      '<div class="mode-toggles" role="radiogroup" aria-label="素材进编辑">' +
+      '<label class="check-item" style="margin:0"><input type="radio" name="' +
+      id("to-edit-mode") +
+      '" id="' +
+      id("auto-to-edit-on") +
+      '" value="auto"' +
+      (toEditOn ? " checked" : "") +
+      " /> 自动转入编辑 " +
+      tip("素材可用后自动进入本项目编辑链，无需再点「转编辑」。") +
+      "</label>" +
+      '<label class="check-item" style="margin:0"><input type="radio" name="' +
+      id("to-edit-mode") +
+      '" id="' +
+      id("auto-to-edit-off") +
+      '" value="manual"' +
+      (!toEditOn ? " checked" : "") +
+      " /> 人工转编辑 " +
+      tip("停在素材「可使用」，由运营在素材管理里点「转编辑」选进本项目。") +
+      "</label></div></div>" +
+      '<div class="cfg-card" style="margin-bottom:12px">' +
+      '<div class="cfg-card-head"><div class="cfg-card-title">② 推送给业务方</div>' +
+      '<div class="cfg-card-sub">编辑侧内容就绪之后 · 通道接通前只记意向</div></div>' +
+      '<div class="mode-toggles" role="radiogroup" aria-label="推送给业务方">' +
       '<label class="check-item" style="margin:0"><input type="radio" name="' +
       id("push-mode") +
       '" id="' +
       id("auto-push-on") +
       '" value="auto"' +
-      (autoOn ? " checked" : "") +
+      (pushOn ? " checked" : "") +
       " /> 内容就绪后自动推送 " +
-      tip("开：加工完成后自动推；对应外站推送方式「自动」。内容通道接通后才生效。") +
+      tip("编辑完成（或可跳过编辑）后，经本项目内容通道自动推给业务方。未接通时不会真推。") +
       "</label>" +
       '<label class="check-item" style="margin:0"><input type="radio" name="' +
       id("push-mode") +
       '" id="' +
       id("auto-push-off") +
       '" value="manual"' +
-      (!autoOn ? " checked" : "") +
+      (!pushOn ? " checked" : "") +
       " /> 待人工确认再推 " +
-      tip("关：停在待推送，运营点推送/重试；对应外站推送方式「待人工」。待推超 7 天会取消（全局）。") +
+      tip("停在待推送，由运营在列表里点推送/提交。待推超过 7 天会自动取消。") +
       "</label></div>" +
-      '<p class="hint" style="margin:10px 0 0">接通前只存意向，不会真推。列表仍可人工「提交」。</p></div>' +
-      '<label class="check-item"><input type="checkbox" id="' +
-      id("has-collect") +
-      '"' +
-      (p.hasCollectSource ? " checked" : "") +
-      " /> 演示：已有采集源绑定本项目</label>" +
-      '<div class="field" style="margin-top:12px">' +
-      label("业务方 Webhook URL（可选）", "方舟 → 业务方事件通知；接通后按此推送。") +
-      '<input id="' +
-      id("hook") +
-      '" placeholder="https://partner.example.com/hooks/fangzhou" value="' +
-      esc(p.webhookUrl || "") +
-      '" /></div>';
+      '<p class="hint" style="margin:10px 0 0">两段可分开配：例如自动进编辑、推业务方仍要人点。收件/事件通知在「开发对接配置」。</p></div>';
 
     if (short) {
       html +=
         '<div class="cfg-card" style="margin-top:14px">' +
         '<div class="cfg-card-head"><div class="cfg-card-title">推送全部分集</div>' +
-        '<div class="cfg-card-sub">短剧站开关 · 瓜/视频站不展示 · 默认开启</div></div>' +
-        '<p class="muted" style="margin:0 0 12px;font-size:13px;line-height:1.5">一条稿件带上素材里的全部视频（短剧第 1～N 集）；对方须已支持对接规范 v1.1 的 episodes；时长限制按全部分集合计。最多 ' +
+        '<div class="cfg-card-sub">仅短剧站 · 默认开启</div></div>' +
+        '<p class="muted" style="margin:0 0 12px;font-size:13px;line-height:1.5">一条稿件带上素材里的全部视频（第 1～N 集）。时长按全部分集合计，单稿最多 ' +
         GLOBAL_MAX_EPISODES +
         " 集。</p>" +
         '<label class="check-item"><input type="checkbox" id="' +
@@ -413,19 +447,16 @@
         '<div class="field">' +
         label(
           "分集标题格式（可选）",
-          "现网外站就有：如 Episode {n}；留空用源站分集名，没有则「第N集」。英文站建议填。"
+          "例如 Episode {n}。留空则用源站分集名；没有则显示「第 N 集」。面向英文站时可填。"
         ) +
         '<input id="' +
         id("ep-fmt") +
         '" value="' +
         esc(p.episodeTitleFormat) +
-        '" placeholder="留空用源站名；英文站可填 Episode {n}" /></div>' +
-        '<p class="hint" style="margin:0">单稿最多集数：现网是全局上限 ' +
-        GLOBAL_MAX_EPISODES +
-        " 集（MAX_EPISODES），外站弹窗不按站点配；本 Demo 也不单独做项目字段。</p></div>";
+        '" placeholder="留空用源站名；可填 Episode {n}" /></div></div>';
     } else {
       html +=
-        '<p class="hint" style="margin-top:14px">当前非短剧站：不展示「推送全部分集」。选「短剧站」后出现该开关，且默认开启。</p>';
+        '<p class="hint" style="margin-top:14px">当前不是短剧站，不展示「推送全部分集」。项目类型改为「短剧站」后会出现该开关（默认开启）。</p>';
     }
     return html;
   }
@@ -433,14 +464,19 @@
   function collectPushRules(root, into, prefix) {
     root = root || document;
     prefix = prefix || "";
+    var toEditOn = root.getElementById(prefix + "auto-to-edit-on");
+    var toEditLegacy = root.getElementById(prefix + "auto-to-edit");
+    if (toEditOn) into.autoToEdit = !!toEditOn.checked;
+    else if (toEditLegacy) into.autoToEdit = !!toEditLegacy.checked;
+    else if (into.autoToEdit == null) into.autoToEdit = !!(into.autoflow || into.autoPush);
+
     var onEl = root.getElementById(prefix + "auto-push-on");
     var legacy = root.getElementById(prefix + "auto-push");
     if (onEl) into.autoPush = !!onEl.checked;
     else if (legacy) into.autoPush = !!legacy.checked;
-    else into.autoPush = !!(into.autoPush || into.autoflow);
-    into.autoflow = into.autoPush;
-    into.hasCollectSource = !!(root.getElementById(prefix + "has-collect") || {}).checked;
-    into.webhookUrl = val(root, prefix + "hook");
+    else if (into.autoPush == null) into.autoPush = false;
+
+    into.autoflow = !!into.autoToEdit;
     var epEl = root.getElementById(prefix + "episodes");
     if (epEl) {
       into.pushAllEpisodes = !!epEl.checked;

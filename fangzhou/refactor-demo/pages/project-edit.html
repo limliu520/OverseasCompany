@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>项目详情 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261027ubcard" />
+  <link rel="stylesheet" href="../css/app.css?v=20261027tipBr" />
 </head>
 <body>
   <div class="app">
@@ -43,13 +43,13 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261027ch"></script>
-  <script src="../js/shell.js?v=20261027collect"></script>
+  <script src="../js/store.js?v=20261027twoGate"></script>
+  <script src="../js/shell.js?v=20261027tipBr"></script>
   <script src="../js/article-defaults.js?v=20261026r"></script>
-  <script src="../js/media-config.js?v=20261026mw"></script>
+  <script src="../js/media-config.js?v=20261027tipBr"></script>
   <script src="../js/pick-cards.js"></script>
   <script src="../js/tg-add-wizard.js"></script>
-  <script src="../js/project-union.js?v=20261026n"></script>
+  <script src="../js/project-union.js?v=20261027tipBr"></script>
   <script>
     FZShell.boot({ active: "projects" });
     var id = new URLSearchParams(location.search).get("id");
@@ -367,7 +367,7 @@
       return (
         '<div class="card card-pad" style="margin-bottom:14px">' +
         paneToolbar(
-          "与「开发对接」页同一套：方舟签发凭证（对方来接我们）+ 可选对方收件地址（我们推到对方）。运营创建流程不填本块。推送带上子账号「CMS 标识」，不配对方登录账号。",
+          "开发联调用：方舟签发凭证 + 对方收件接口 / 事件通知地址。运营创建时不填；推送身份用子账号「CMS 标识」，不配对方登录账号。",
           "btn-save-connect",
           "保存对接配置"
         ) +
@@ -382,7 +382,7 @@
           : "") +
         "</div>" +
         '<div class="card card-pad" id="union-connect-root">' +
-        "<strong style=\"display:block;margin-bottom:10px\">方舟规范对接（OASH）</strong>" +
+        "<strong style=\"display:block;margin-bottom:10px\">对方收件与事件通知</strong>" +
         FZProjectUnion.renderConnectFields(p) +
         "</div>"
       );
@@ -483,7 +483,7 @@
       return (
         '<div class="card card-pad" id="union-flow-root">' +
         paneToolbar(
-          "推送规则：推送方式（外站 auto_push）+ 短剧分集。内容经本项目一套通道推给业务方；未接通前不生效。",
+          "两段分开配：① 素材要不要自动进编辑；② 编辑就绪后要不要自动推业务方。短剧站还可配分集。对接地址在「开发对接配置」。",
           "btn-save-flow",
           "保存推送规则"
         ) +
@@ -599,6 +599,7 @@
           }
           saveProject(function (p) {
             FZProjectUnion.collectConnect(document, p);
+            p.webhook = !!p.webhookUrl;
           }, "对接配置已保存");
         });
       }
@@ -772,7 +773,6 @@
         sf.addEventListener("click", function () {
           saveProject(function (p) {
             FZProjectUnion.collectPushRules(document, p);
-            p.webhook = !!p.webhookUrl;
             if (p.contentActivated) p.status = FZStore.deriveStatus(p);
           }, "已保存");
         });

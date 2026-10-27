@@ -32,11 +32,20 @@
 
   /** 字段旁 ? 气泡：解释「是什么 / 从哪来」 */
   function fieldTip(text) {
+    var body =
+      global.FZShell && global.FZShell.tipHtml
+        ? global.FZShell.tipHtml(text)
+        : String(text == null ? "" : text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/"/g, "&quot;")
+            .replace(/；\s*/g, "；<br>")
+            .replace(/;\s*/g, ";<br>");
     return (
       '<button type="button" class="field-tip" aria-label="字段说明">' +
       '<span class="field-tip-ico" aria-hidden="true">?</span>' +
       '<span class="field-tip-bubble" role="tooltip">' +
-      text +
+      body +
       "</span></button>"
     );
   }

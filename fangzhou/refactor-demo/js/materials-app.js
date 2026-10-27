@@ -1,4 +1,4 @@
-/* 素材管理：三视图（待我审核 / 全部素材 / 垃圾素材）；全部素材下挂项目/公共池范围 */
+/* 素材管理：三视图（待审核素材 / 全部素材 / 垃圾素材）；全部素材下挂项目/公共池范围 */
 (function () {
   var D = window.FZMatData;
   var Fil = window.FZMatFilters;

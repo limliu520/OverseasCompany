@@ -11,7 +11,7 @@
   var DISPATCH_PROJECTS = ["演示瓜站", "演示视频站", "演示短剧站"];
   var TABS = [
     { id: "all", label: "全部素材" },
-    { id: "pending", label: "待我审核" },
+    { id: "pending", label: "待审核素材" },
     { id: "trash", label: "垃圾素材" }
   ];
   var LABEL = {

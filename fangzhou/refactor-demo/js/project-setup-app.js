@@ -126,16 +126,16 @@
       (FZMediaConfig.hasIntroOutroFile(draft.watermarks) ? "已配" : "未配 / 可跳过") +
       "</div>" +
       artLine +
-      "<div>推送方式：" +
-      (draft.autoPush || draft.autoflow ? "自动推（接通后生效）" : "待人工") +
+      "<div>素材进编辑：" +
+      (draft.autoToEdit ? "自动转入" : "人工转编辑") +
+      "</div><div>推业务方：" +
+      (draft.autoPush ? "内容就绪后自动" : "待人工确认") +
       (draft.siteType === "short_drama"
         ? draft.pushAllEpisodes !== false
           ? " · 分集开"
           : " · 分集关"
         : "") +
-      "</div><div>Webhook：" +
-      (draft.webhookUrl ? "已填" : "未填") +
-      "</div>";
+      "</div><div>对接地址：创建后在「开发对接」配置</div>";
   }
 
   function panelBasic() {
@@ -247,7 +247,7 @@
   function panelFlow() {
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">推送规则</h2>' +
-      '<p class="muted" style="margin:0 0 14px">含外站「推送方式」（自动 / 待人工），短剧另含分集。通道接通前不生效。</p>' +
+      '<p class="muted" style="margin:0 0 14px">① 素材进编辑、② 推业务方，两段分开选。短剧站可配分集。收件/事件通知创建后在「开发对接」填，接通前不会真推。</p>' +
       FZProjectUnion.renderPushRulesFields(draft)
     );
   }
@@ -467,12 +467,7 @@
       return !!(draft.articleConfigured || !FZMediaConfig.validateArticle(draft.article));
     }
     if (stepId === "flow") {
-      return !!(
-        draft.autoPush ||
-        draft.autoflow ||
-        draft.hasCollectSource ||
-        (draft.webhookUrl || "").trim()
-      );
+      return !!(draft.autoToEdit || draft.autoPush || draft.hasCollectSource);
     }
     return true;
   }
@@ -547,16 +542,12 @@
       project.name +
       "」已创建。通道凭证与对接参数统一在「开发对接」里交给开发配置/联调；接通后运营侧配置才真正生效。";
     var blocks = [
-      "开发对接尚未完成：通道凭证、对方收件地址等请在对接页配置",
-      project.autoPush || project.autoflow
-        ? "推送方式为「自动」，接通前不会真推"
-        : "推送方式为「待人工」；接通后可在项目里再改",
-      project.webhookUrl
-        ? "已填 Webhook，接通后才会按此地址推送事件"
-        : "未填业务方 Webhook（可选）"
+      "开发对接尚未完成：通道凭证、对方收件/事件通知等请在对接页配置",
+      "素材进编辑：" + (project.autoToEdit ? "自动转入（接通后生效）" : "人工转编辑"),
+      "推业务方：" + (project.autoPush ? "内容就绪后自动（接通前不会真推）" : "待人工确认")
     ];
-    if (!project.hasCollectSource && (project.autoPush || project.autoflow)) {
-      blocks.push("自动推送需采集源绑定本项目，请稍后在「采集」中配置");
+    if (!project.hasCollectSource && project.autoToEdit) {
+      blocks.push("已开「自动转入编辑」，请稍后在「采集」里为本项目绑定采集源");
     }
     document.getElementById("success-blocks").innerHTML =
       '<div style="font-weight:600">当前还不能做的事</div><ul>' +
@@ -639,8 +630,9 @@
         templateDone: FZProjectUnion.needsArticle(draft.siteType)
           ? !!(draft.articleConfigured || !FZMediaConfig.validateArticle(draft.article))
           : true,
-        autoPush: !!(draft.autoPush || draft.autoflow),
-        autoflow: !!(draft.autoPush || draft.autoflow),
+        autoToEdit: !!draft.autoToEdit,
+        autoPush: !!draft.autoPush,
+        autoflow: !!draft.autoToEdit,
         hasCollectSource: !!draft.hasCollectSource,
         webhookUrl: (draft.webhookUrl || "").trim(),
         webhook: !!(draft.webhookUrl || "").trim(),
@@ -683,14 +675,25 @@
       renderSummary();
       syncFoot();
     }
-    ["f-name", "site-code", "api-base", "api-prefix", "api-secret", "ch-notes", "cat-id", "cat-name", "hook"].forEach(
+    ["f-name", "site-code", "api-base", "api-prefix", "api-secret", "ch-notes", "cat-id", "cat-name", "hook"].forEach( /* hook 仅在对接字段 */
       function (fid) {
         var el = document.getElementById(fid);
         if (!el) return;
         el.addEventListener("input", refreshSide);
       }
     );
-    ["req-video", "de-wm", "slice", "episodes", "auto-push-on", "auto-push-off", "has-collect", "min-sec", "ep-fmt", "hook"].forEach(
+    [
+      "req-video",
+      "de-wm",
+      "slice",
+      "episodes",
+      "auto-to-edit-on",
+      "auto-to-edit-off",
+      "auto-push-on",
+      "auto-push-off",
+      "min-sec",
+      "ep-fmt"
+    ].forEach(
       function (fid) {
         var el = document.getElementById(fid);
         if (!el) return;

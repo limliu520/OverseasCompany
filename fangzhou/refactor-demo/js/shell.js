@@ -13,6 +13,19 @@
 
   var BASE = basePath();
 
+  function escHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/"/g, "&quot;");
+  }
+  /** 气泡文案：分号处分行，便于竖排阅读 */
+  function tipHtml(text) {
+    return escHtml(text)
+      .replace(/；\s*/g, "；<br>")
+      .replace(/;\s*/g, ";<br>");
+  }
+
   /** type: '' | 'ok' | 'err' */
   function toast(msg, type) {
     var wrap = document.querySelector(".toast-wrap");
@@ -289,6 +302,8 @@
   global.FZShell = {
     BASE: BASE,
     toast: toast,
+    escHtml: escHtml,
+    tipHtml: tipHtml,
     requireAuth: requireAuth,
     logout: logout,
     boot: boot

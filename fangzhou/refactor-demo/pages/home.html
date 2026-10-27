@@ -28,7 +28,7 @@
           </div>
           <div class="card card-pad">
             <strong style="display:block;margin-bottom:8px">业务待办（占位）</strong>
-            <p class="muted" style="margin:0 0 8px;font-size:13px">待审素材等将深链到「采集 → 素材管理 · 待我审核」。</p>
+            <p class="muted" style="margin:0 0 8px;font-size:13px">待审素材等将深链到「采集 → 素材管理 · 待审核素材」。</p>
             <div class="empty-dash" style="min-height:88px">工作台待办 · 采集已接素材管理骨架</div>
           </div>
         </div>
@@ -47,7 +47,7 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261026e"></script>
+  <script src="../js/store.js?v=20261027twoGate"></script>
   <script src="../js/shell.js?v=20261027collect"></script>
   <script>
     FZShell.boot({ active: "home" });
@@ -108,8 +108,8 @@
         } else if (p.status === "need_collect") {
           items.push({
             cls: "todo-dot muted",
-            title: "推送规则缺采集源 · " + p.name,
-            desc: "通道已通且推送方式为自动，但演示上尚未绑采集源。",
+            title: "自动进编辑缺采集源 · " + p.name,
+            desc: "通道已通且开了「自动转入编辑」，但演示上尚未绑采集源。",
             action:
               '<a class="btn" href="./project-edit.html?id=' +
               encodeURIComponent(p.id) +

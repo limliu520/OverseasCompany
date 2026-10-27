@@ -1,11 +1,15 @@
 /* 素材管理 · 三视图表头 / 行（全部素材：行动态上色、类型轻标、分类弱化） */
 (function (w) {
   function tip(esc, text) {
+    var body =
+      w.FZShell && w.FZShell.tipHtml
+        ? w.FZShell.tipHtml(text)
+        : esc(text).replace(/；\s*/g, "；<br>").replace(/;\s*/g, ";<br>");
     return (
       '<button type="button" class="field-tip" aria-label="列说明">' +
       '<span class="field-tip-ico" aria-hidden="true">?</span>' +
       '<span class="field-tip-bubble" role="tooltip">' +
-      text +
+      body +
       "</span></button>"
     );
   }

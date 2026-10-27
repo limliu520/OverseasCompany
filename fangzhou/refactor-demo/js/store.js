@@ -269,6 +269,7 @@
       siteType: "chigua",
       contentActivated: true,
       hasCollectSource: true,
+      autoToEdit: false,
       autoPush: false,
       autoflow: false,
       userbotId: "bot_demo_pool",
@@ -382,6 +383,7 @@
       requireVideo: true,
       dewatermarkEnabled: true,
       sliceEnabled: true,
+      autoToEdit: true,
       autoPush: true,
       autoflow: true,
       hasCollectSource: true,
@@ -427,7 +429,8 @@
       sliceEnabled: true,
       pushAllEpisodes: true,
       episodeTitleFormat: "Episode {n}",
-      autoPush: true,
+      autoToEdit: true,
+      autoPush: false,
       autoflow: true,
       hasCollectSource: false,
       watermarkDone: true,
@@ -452,6 +455,7 @@
       siteCode: "site-vid01",
       generationMode: "ai",
       requireVideo: true,
+      autoToEdit: true,
       autoPush: true,
       autoflow: true,
       hasCollectSource: false,
@@ -871,12 +875,13 @@
    * status:
    * - pending_activate  已创建，内容通道待接通（运营可不回来；状态可自动变）
    * - ready             已接通，创建流程完成（前置配置在接通后自动生效）
-   * - need_collect      已接通且开了自动流，但演示上仍缺采集源绑定
+   * - need_collect      已接通且开了「自动转入编辑」，但演示上仍缺采集源绑定
    * 旧态 need_post_config 读入时归一（见 normalizeProjects）
    */
   function deriveStatus(p) {
     if (!p.contentActivated) return "pending_activate";
-    if (p.autoflow && !p.hasCollectSource) return "need_collect";
+    var wantAutoEdit = !!(p.autoToEdit || p.autoflow);
+    if (wantAutoEdit && !p.hasCollectSource) return "need_collect";
     return "ready";
   }
 
@@ -944,7 +949,9 @@
         if (p.dewatermarkEnabled == null) p.dewatermarkEnabled = true;
         if (p.sliceEnabled == null) p.sliceEnabled = true;
         if (p.apiPrefix == null) p.apiPrefix = "/oash/v1";
+        if (p.autoToEdit == null) p.autoToEdit = !!(p.autoflow || p.autoPush);
         if (p.autoPush == null) p.autoPush = !!p.autoflow;
+        p.autoflow = !!p.autoToEdit;
         if (p.coverWidth == null) p.coverWidth = "720";
         if (p.coverHeight == null) p.coverHeight = "1280";
       }

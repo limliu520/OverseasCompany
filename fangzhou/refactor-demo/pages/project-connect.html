@@ -23,9 +23,9 @@
       </div>
     </div>
   </div>
-  <script src="../js/store.js?v=20261026e"></script>
+  <script src="../js/store.js?v=20261027twoGate"></script>
   <script src="../js/shell.js"></script>
-  <script src="../js/project-union.js"></script>
+  <script src="../js/project-union.js?v=20261027twoGate"></script>
   <script>
     FZShell.boot({ active: "projects" });
     var id = new URLSearchParams(location.search).get("id");
@@ -41,9 +41,10 @@
     function intentBits(proj) {
       var bits = [];
       bits.push(FZProjectUnion.siteTypeLabel(proj.siteType));
-      bits.push(proj.autoPush || proj.autoflow ? "推送方式：自动（接通后生效）" : "推送方式：待人工");
-      bits.push(proj.webhookUrl ? "Webhook：已填" : "Webhook：未填");
-      bits.push(proj.hasCollectSource ? "采集源：演示已绑" : "采集源：演示未绑");
+      bits.push(proj.autoToEdit ? "进编辑：自动" : "进编辑：人工");
+      bits.push(proj.autoPush ? "推业务方：自动" : "推业务方：待确认");
+      bits.push(proj.apiBaseUrl ? "收件接口：已填" : "收件接口：未填");
+      bits.push(proj.webhookUrl ? "事件通知：已填" : "事件通知：未填");
       return bits.join(" · ");
     }
 
@@ -161,7 +162,7 @@
           ? p.apiBaseUrl + (p.apiPrefix || "/oash/v1")
           : "# （未配对方收件地址）") +
         "\n" +
-        "# Webhook：" +
+        "# 事件通知（Webhook）：" +
         (p.webhookUrl || "未配置") +
         "\n" +
         "</pre></div>" +
@@ -199,6 +200,8 @@
           proj.apiBaseUrl = draft.apiBaseUrl;
           proj.apiPrefix = draft.apiPrefix;
           proj.appSecret = draft.appSecret;
+          proj.webhookUrl = draft.webhookUrl;
+          proj.webhook = !!draft.webhookUrl;
           proj.channelNotes = draft.channelNotes;
           FZStore.upsertProject(s2, proj);
           FZStore.write(s2);
