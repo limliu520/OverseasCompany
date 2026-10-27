@@ -1,4 +1,4 @@
-/* 素材管理 · 三视图表头 / 行（含列问号气泡） */
+/* 素材管理 · 三视图表头 / 行（全部素材：行动态上色、类型轻标、分类弱化） */
 (function (w) {
   function tip(esc, text) {
     return (
@@ -9,33 +9,60 @@
       "</span></button>"
     );
   }
-  function th(esc, label, tipText) {
-    return "<th>" + esc(label) + (tipText ? tip(esc, tipText) : "") + "</th>";
+  function th(esc, label, tipText, cls) {
+    return (
+      "<th" +
+      (cls ? ' class="' + cls + '"' : "") +
+      ">" +
+      esc(label) +
+      (tipText ? tip(esc, tipText) : "") +
+      "</th>"
+    );
   }
-  function btn(row, label, cls) {
+  function btn(row, label, cls, id) {
     return (
       '<button type="button" class="btn btn-sm ' +
-      (cls || "btn-mat-act") +
+      (cls || "btn-mat-ghost") +
       '" data-row="' +
       row +
+      '" data-id="' +
+      id +
       '">' +
       label +
       "</button>"
     );
   }
+  function emptyCell() {
+    return '<span class="mat-empty" aria-hidden="true">—</span>';
+  }
+  function timeCell(esc, t) {
+    var s = String(t || "").trim();
+    return (
+      '<td class="td-time"><span class="mat-time mono">' +
+      esc(s || "—") +
+      "</span></td>"
+    );
+  }
   function rowActions(tab, m) {
+    var id = m.id;
+    var detail = btn("detail", "详情", null, id);
     if (tab === "pending") {
+      /* 现网 manual_review：仅驳回+通过；详情统一靠右 */
       return (
-        btn("detail", "详情") +
-        btn("reject", "驳回", "btn-danger") +
-        btn("pass", "通过", "btn-primary") +
-        btn("edit", "转编辑")
+        btn("reject", "驳回", "btn-danger", id) +
+        btn("pass", "通过", "btn-primary", id) +
+        detail
       );
     }
-    if (tab === "trash") return btn("detail", "详情") + btn("restore", "手动通过", "btn-primary");
-    var s = btn("detail", "详情") + btn("dl", "下载");
-    if (m.status === "available" || m.status === "pending") s += btn("edit", "转编辑", "btn-primary");
-    return s;
+    if (tab === "trash") {
+      return btn("restore", "手动通过", "btn-primary", id) + detail;
+    }
+    /* 转编辑靠左，详情靠右；下载只在详情里 */
+    var left = "";
+    if (m.status === "available" || m.status === "duplicate") {
+      left = btn("edit", "转编辑", "btn-primary", id);
+    }
+    return left + detail;
   }
   function adRiskHtml(esc, label) {
     var t = String(label || "-");
@@ -44,17 +71,187 @@
     else if (t.indexOf("中风险") >= 0) cls += " is-mid";
     return '<span class="' + cls + '" title="' + esc(t) + '">' + esc(t) + "</span>";
   }
-  function headHtml(esc, tab) {
-    var check = '<th style="width:36px"></th>';
+  /* 类型：同色系轻标，不跟状态抢色 */
+  function typeTag(esc, mediaType) {
+    var t = mediaType || "-";
+    var kind = t.indexOf("视频") >= 0 ? "video" : "image";
+    return '<span class="mat-type-tag is-' + kind + '">' + esc(t) + "</span>";
+  }
+  /* 状态：仅待审 / 可使用上色，其余安静灰字 */
+  function statusHtml(esc, labelMap, m) {
+    var st = labelMap[m.status] || { text: m.status };
+    if (m.status === "pending") {
+      return '<span class="badge badge-warn">' + esc(st.text) + "</span>";
+    }
+    if (m.status === "available") {
+      return '<span class="badge badge-ok">' + esc(st.text) + "</span>";
+    }
+    return '<span class="mat-status-quiet">' + esc(st.text) + "</span>";
+  }
+  function numCell(esc, m) {
+    var num = m.formalNumber || m.id || "";
+    return (
+      '<td class="td-num">' +
+      '<button type="button" class="mat-num-copy mono" data-copy-num="' +
+      esc(num) +
+      '" title="点击复制编号">' +
+      esc(num) +
+      "</button></td>"
+    );
+  }
+  function titleBlock(esc, m, opts) {
+    opts = opts || {};
+    var tags = [];
+    if (opts.withType !== false) tags.push(typeTag(esc, m.mediaType));
+    if (m.category) tags.push('<span class="mat-cat-quiet">' + esc(m.category) + "</span>");
+    /* 单行：标题 + 类型/分类；编号在独立列且位于标题列前 */
+    return (
+      '<div class="mat-title-cell">' +
+      '<div class="mat-title-main">' +
+      '<span class="cell-title">' +
+      esc(m.title) +
+      "</span></div>" +
+      (tags.length ? '<div class="mat-title-tags">' + tags.join("") + "</div>" : "") +
+      "</div>"
+    );
+  }
+  function sortTh(esc, label, key, sortState) {
+    var active = sortState && sortState.sort === key;
+    var dir = active ? sortState.sortDir || "desc" : "";
+    var markCls = "th-sort-mark";
+    if (active) markCls += dir === "asc" ? " is-asc" : " is-desc";
+    else markCls += " is-both";
+    var extra =
+      key === "created_at" ? " th-time" : key === "view_count" || key === "interaction_count" ? " th-metric" : "";
+    return (
+      '<th class="th-sort' +
+      extra +
+      (active ? " is-active" : "") +
+      '" data-sort="' +
+      esc(key) +
+      '" title="点击按' +
+      esc(label) +
+      '排序，再点切换升/降序" role="button" tabindex="0">' +
+      esc(label) +
+      '<span class="' +
+      markCls +
+      '" aria-hidden="true"><i class="th-sort-up"></i><i class="th-sort-down"></i></span></th>'
+    );
+  }
+  /* 全部素材列：来源频道 +（项目：采集方式 / 公共池：分发频道） */
+  function fusedHead(esc, scopeCtx) {
+    var sc = scopeCtx || {};
+    if (sc.kind === "pool") {
+      return th(
+        esc,
+        "分发频道",
+        "公共池经 TG 路由后的分发频道，可能有多个。点击「N 个频道」可查看全部。",
+        "th-fused"
+      );
+    }
+    return th(
+      esc,
+      "采集方式",
+      "「项目自采」表示本项目频道采进来的；「公共池转入」表示从公共池转编辑占用到本项目。",
+      "th-fused"
+    );
+  }
+  function targetList(m) {
+    if (m.targetChannels && m.targetChannels.length) return m.targetChannels;
+    if (m.targetChannel) return [m.targetChannel];
+    return [];
+  }
+  function sourceCell(esc, m) {
+    var isWeb =
+      m.collectType === "web" ||
+      (m.source && String(m.source).indexOf("网站") === 0) ||
+      String(m.channel || "").indexOf("站") >= 0;
+    return (
+      '<div class="mat-source-cell">' +
+      '<span class="mat-collect-tag is-' +
+      (isWeb ? "web" : "tg") +
+      '">' +
+      (isWeb ? "网站" : "TG") +
+      '</span><span class="mat-source-name" title="' +
+      esc(m.channel) +
+      '">' +
+      esc(m.channel) +
+      "</span></div>"
+    );
+  }
+  /* 待审：通过后会落到哪里（项目通道 / TG 频道 / 仅公共池） */
+  function destCell(esc, m) {
+    if (m.belong === "proj") {
+      var proj = m.project || m.dispatchProject || "";
+      return (
+        '<span class="mat-dest is-proj" title="通过后进入该项目内容通道">' +
+        '<span class="mat-dest-k">项目</span>' +
+        '<span class="mat-dest-v">' +
+        esc(proj || "—") +
+        "</span></span>"
+      );
+    }
+    var list = targetList(m);
+    if (list.length) {
+      return (
+        '<span class="mat-dest is-tg" title="通过后按公共池路由推送到这些 TG 频道">' +
+        '<span class="mat-dest-k">TG</span>' +
+        '<button type="button" class="mat-targets-btn" data-row-targets="' +
+        esc(m.id) +
+        '">' +
+        list.length +
+        " 个频道</button></span>"
+      );
+    }
+    return (
+      '<span class="mat-dest is-pool" title="通过后仍留在公共池，暂无项目或 TG 去向">' +
+      '<span class="mat-dest-k">公共池</span>' +
+      '<span class="mat-dest-v mat-dest-muted">无固定去向</span></span>'
+    );
+  }
+  function fusedCell(esc, m, scopeCtx) {
+    var sc = scopeCtx || {};
+    if (sc.kind === "pool") {
+      var list = targetList(m);
+      if (!list.length) return emptyCell();
+      return (
+        '<button type="button" class="mat-targets-btn" data-row-targets="' +
+        esc(m.id) +
+        '" title="查看全部分发频道">' +
+        list.length +
+        " 个频道</button>"
+      );
+    }
+    var name = sc.name || "";
+    if (m.belong === "proj" && m.project === name) {
+      return '<span class="mat-v2-how is-own">项目自采</span>';
+    }
+    if (m.dispatchProject === name) {
+      return '<span class="mat-v2-how is-xfer">公共池转入</span>';
+    }
+    return emptyCell();
+  }
+  function headHtml(esc, tab, sortState, scopeCtx) {
+    var check =
+      '<th class="th-check">' +
+      '<input type="checkbox" id="mat-check-all" class="mat-check-all" title="全选本页" aria-label="全选本页" />' +
+      "</th>";
     var op = '<th class="th-actions">操作</th>';
     if (tab === "trash") {
       return (
         "<thead><tr>" +
         check +
-        th(esc, "频道", "采集来源频道名称（对齐现网垃圾列表「频道」列）。") +
-        "<th>内容</th>" +
-        th(esc, "广告类别", "广告过滤命中的风险标签。高风险红色、中风险黄色。") +
-        "<th>得分</th><th>命中规则</th><th>采集时间</th>" +
+        th(esc, "频道", "采集来源；左侧标签区分 TG 采集或网站采集。", "th-source") +
+        th(esc, "编号", "系统素材编号，点击可复制。", "th-num") +
+        th(esc, "内容", "素材标题；右侧小字是媒体类型和内容分类。", "th-title") +
+        th(
+          esc,
+          "广告类别",
+          "广告过滤给出的风险类别。高风险偏红、中风险偏黄，便于优先处理。",
+          "th-ad"
+        ) +
+        '<th class="th-score">得分</th><th class="th-rule">命中规则</th>' +
+        '<th class="th-time">采集时间</th>' +
         op +
         "</tr></thead>"
       );
@@ -63,9 +260,23 @@
       return (
         "<thead><tr>" +
         check +
-        th(esc, "标题 / 编号", "现网人工审核是卡片墙：编号 + 正文预览。Demo 用表表达同字段。") +
-        th(esc, "来源频道", "素材从哪个采集频道进来（source channel），不是分发目标。") +
-        "<th>浏览</th><th>互动</th><th>采集时间</th>" +
+        th(esc, "编号", "系统素材编号，点击可复制。", "th-num") +
+        th(esc, "标题", "素材标题；右侧小字是媒体类型和内容分类。", "th-title") +
+        th(
+          esc,
+          "来源频道",
+          "从哪个频道采进来；左侧标签区分 TG 采集或网站采集，不是推送目标。",
+          "th-source"
+        ) +
+        th(
+          esc,
+          "通过后去向",
+          "审核通过后素材会落到哪里：「项目」进该项目内容通道；「TG」按公共池路由推频道；「公共池 · 无固定去向」表示暂时只进池子、还没有项目或频道。",
+          "th-dest"
+        ) +
+        sortTh(esc, "浏览", "view_count", sortState) +
+        sortTh(esc, "互动", "interaction_count", sortState) +
+        sortTh(esc, "采集时间", "created_at", sortState) +
         op +
         "</tr></thead>"
       );
@@ -73,51 +284,53 @@
     return (
       "<thead><tr>" +
       check +
-      "<th>素材编号</th><th>类型</th><th>状态</th><th>分类</th><th>标题</th>" +
+      th(esc, "编号", "系统素材编号，点击可复制。", "th-num") +
       th(
         esc,
-        "目标频道",
-        "公共池素材走 TG→TG 路由后的落点频道。专属站点 / 外站素材不进 TG 分发，此列一般为「-」。"
+        "标题",
+        "素材标题；右侧小字是媒体类型（图文/视频）和内容分类。",
+        "th-title"
       ) +
       th(
         esc,
-        "分发项目",
-        "两路展示：①公共池被「转编辑」占用的业务项目（可与目标频道同时有值）；②专属/外站归属徽标（这类料不进 TG，目标频道应为空）。不等于顶栏「归属」筛。"
+        "状态",
+        "「待人工审核」「可使用」会高亮，表示通常需要你处理。其余状态为灰色，可在详情或筛选里查看。",
+        "th-status"
       ) +
-      "<th>采集时间</th>" +
+      th(esc, "来源频道", "从哪个频道采进来；左侧标签区分 TG 采集或网站采集。", "th-source") +
+      fusedHead(esc, scopeCtx) +
+      '<th class="th-time">采集时间</th>' +
       op +
       "</tr></thead>"
     );
   }
   function titleCell(esc, m) {
-    return (
-      '<div class="cell-title">' +
-      esc(m.title) +
-      '</div><div class="cell-sub mono">' +
-      esc(m.formalNumber || m.id) +
-      "</div>"
-    );
+    return titleBlock(esc, m, { withType: true });
   }
-  function rowHtml(esc, tab, labelMap, m) {
-    var check = '<td><input type="checkbox" class="mat-row-check" /></td>';
+  function rowHtml(esc, tab, labelMap, m, scopeCtx) {
+    var check =
+      '<td class="td-check"><input type="checkbox" class="mat-row-check" data-id="' +
+      esc(m.id) +
+      '" aria-label="选择" /></td>';
     var act = '<td class="td-actions">' + rowActions(tab, m) + "</td>";
     var open = '<tr data-id="' + esc(m.id) + '">' + check;
     if (tab === "trash") {
       return (
         open +
-        "<td>" +
-        esc(m.channel) +
-        "</td><td>" +
-        titleCell(esc, m) +
-        "</td><td>" +
-        adRiskHtml(esc, m.adCategory) +
-        '</td><td class="mono mat-ad-score">' +
-        esc(m.score || "-") +
-        "</td><td>" +
-        esc(m.hitRule || "-") +
-        '</td><td class="mono muted">' +
-        esc(m.time) +
+        '<td class="td-source">' +
+        sourceCell(esc, m) +
         "</td>" +
+        numCell(esc, m) +
+        '<td class="td-title">' +
+        titleCell(esc, m) +
+        '</td><td class="td-ad">' +
+        adRiskHtml(esc, m.adCategory) +
+        '</td><td class="td-score mono mat-ad-score">' +
+        esc(m.score || "-") +
+        '</td><td class="td-rule">' +
+        esc(m.hitRule || "-") +
+        "</td>" +
+        timeCell(esc, m.time) +
         act +
         "</tr>"
       );
@@ -125,49 +338,36 @@
     if (tab === "pending") {
       return (
         open +
-        "<td>" +
+        numCell(esc, m) +
+        '<td class="td-title">' +
         titleCell(esc, m) +
-        "</td><td>" +
-        esc(m.channel) +
-        '</td><td class="mono">' +
+        '</td><td class="td-source">' +
+        sourceCell(esc, m) +
+        '</td><td class="td-dest">' +
+        destCell(esc, m) +
+        '</td><td class="td-metric mono mat-metric">' +
         esc(m.views) +
-        '</td><td class="mono">' +
+        '</td><td class="td-metric mono mat-metric">' +
         esc(m.interact) +
-        '</td><td class="mono muted">' +
-        esc(m.time) +
         "</td>" +
+        timeCell(esc, m.time) +
         act +
         "</tr>"
       );
     }
-    var st = labelMap[m.status] || { text: m.status, cls: "badge-muted" };
     return (
       open +
-      '<td class="mono">' +
-      esc(m.formalNumber || m.id) +
-      "</td><td>" +
-      esc(m.mediaType || "-") +
-      '</td><td><span class="badge ' +
-      st.cls +
-      '">' +
-      esc(st.text) +
-      "</span></td><td>" +
-      esc(m.category || "-") +
-      '</td><td><div class="cell-title">' +
-      esc(m.title) +
-      "</div></td><td>" +
-      esc(m.targetChannel || "-") +
-      "</td><td>" +
-      (m.dispatchProject
-        ? '<span class="mat-proj-badge' +
-          (m.dispatchKind === "dedicated" ? " is-dedicated" : "") +
-          '">' +
-          esc(m.dispatchProject) +
-          "</span>"
-        : '<span class="muted">-</span>') +
-      '</td><td class="mono muted">' +
-      esc(m.time) +
+      numCell(esc, m) +
+      '<td class="td-title">' +
+      titleBlock(esc, m) +
+      '</td><td class="td-status">' +
+      statusHtml(esc, labelMap, m) +
+      '</td><td class="td-source">' +
+      sourceCell(esc, m) +
+      '</td><td class="td-fused">' +
+      fusedCell(esc, m, scopeCtx) +
       "</td>" +
+      timeCell(esc, m.time) +
       act +
       "</tr>"
     );

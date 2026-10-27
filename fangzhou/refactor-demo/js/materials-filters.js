@@ -3,7 +3,7 @@
   function blank() {
     return {
       pending: { q: "", sort: "created_at", sortDir: "desc", channel: "" },
-      all: { q: "", status: "", category: "", channel: "", belong: "" },
+      all: { q: "", status: "", category: "", dateFrom: "", dateTo: "" },
       trash: { channel: "", content: "", adCategory: "", hitRule: "", dateFrom: "", dateTo: "" }
     };
   }
@@ -21,10 +21,12 @@
     var el = document.getElementById(id);
     return el ? String(el.value || "").trim() : "";
   }
-  function channelOptions(channels, sel) {
+  function selectOptions(emptyLabel, values, sel) {
     return (
-      '<option value="">全部频道</option>' +
-      channels
+      '<option value="">' +
+      esc(emptyLabel) +
+      "</option>" +
+      values
         .map(function (c) {
           return '<option value="' + esc(c) + '"' + (sel === c ? " selected" : "") + ">" + esc(c) + "</option>";
         })
@@ -89,10 +91,43 @@
     }
     if (f.status) list = list.filter(function (m) { return m.status === f.status; });
     if (f.category) list = list.filter(function (m) { return m.category === f.category; });
-    if (f.channel) list = list.filter(function (m) { return m.channel === f.channel; });
-    if (f.belong === "none") list = list.filter(function (m) { return m.belong === "none"; });
-    if (f.belong === "proj") list = list.filter(function (m) { return m.belong === "proj"; });
+    if (f.dateFrom) list = list.filter(function (m) { return dayOf(m.time) >= f.dateFrom; });
+    if (f.dateTo) list = list.filter(function (m) { return dayOf(m.time) <= f.dateTo; });
+    /* 全部素材：项目 / 公共池范围（替代原分发频道、分发项目筛） */
+    if (tab === "all" && f.scope) list = applyScope(list, f.scope);
     return list;
+  }
+
+  function inProject(m, name) {
+    if (m.status === "trash") return false;
+    if (m.dispatchProject === name) return true;
+    return m.belong === "proj" && m.project === name;
+  }
+  function inPool(m) {
+    return m.status !== "trash" && m.belong === "none" && !m.dispatchProject;
+  }
+  function parseScope(s) {
+    if (s === "pool") return { kind: "pool" };
+    if (String(s || "").indexOf("proj:") === 0) {
+      return { kind: "proj", name: String(s).slice(5) };
+    }
+    return null;
+  }
+  function applyScope(list, scopeKey) {
+    var sc = parseScope(scopeKey);
+    if (!sc) return list;
+    if (sc.kind === "pool") return list.filter(inPool);
+    return list.filter(function (m) {
+      return inProject(m, sc.name);
+    });
+  }
+  function scopeCount(items, scopeKey) {
+    return applyScope(
+      (items || []).filter(function (m) {
+        return m.status !== "trash";
+      }),
+      scopeKey
+    ).length;
   }
 
   function paintToolbar(tab, f, meta) {
@@ -132,26 +167,15 @@
         '" />' +
         '<button type="button" class="btn" id="mat-reset">重置</button>';
     } else if (tab === "pending") {
+      /* 排序改在表头点选：浏览 / 互动 / 采集时间 */
       html +=
         '<input class="input" id="mat-q" placeholder="搜索标题/标签/编号/内容" style="max-width:240px" value="' +
         esc(f.q) +
         '" />' +
-        '<select class="input" id="mat-sort" style="max-width:130px">' +
-        '<option value="created_at"' +
-        (f.sort === "created_at" ? " selected" : "") +
-        ">采集时间</option>" +
-        '<option value="view_count"' +
-        (f.sort === "view_count" ? " selected" : "") +
-        ">浏览量</option>" +
-        '<option value="interaction_count"' +
-        (f.sort === "interaction_count" ? " selected" : "") +
-        ">互动量</option></select>" +
-        '<button type="button" class="btn" id="mat-sort-dir" title="切换排序方向">' +
-        (f.sortDir === "asc" ? "↑" : "↓") +
-        "</button>" +
-        '<select class="input" id="mat-channel" style="max-width:180px">' +
-        channelOptions(CHANNELS, f.channel) +
-        '</select><button type="button" class="btn" id="mat-merge">消息合并</button>';
+        '<select class="input" id="mat-channel" style="max-width:180px" aria-label="来源频道">' +
+        selectOptions("全部来源频道", CHANNELS, f.channel) +
+        '</select><button type="button" class="btn" id="mat-merge">消息合并</button>' +
+        '<button type="button" class="btn" id="mat-reset">重置</button>';
     } else {
       html +=
         '<input class="input" id="mat-q" placeholder="搜索标题/标签/编号/内容" style="max-width:240px" value="' +
@@ -183,36 +207,18 @@
         '<option value="短剧"' +
         (f.category === "短剧" ? " selected" : "") +
         ">短剧</option></select>" +
-        '<select class="input" id="mat-channel" style="max-width:180px">' +
-        channelOptions(CHANNELS, f.channel) +
-        "</select>" +
-        '<span class="mat-filter-with-tip">' +
-        '<select class="input" id="mat-belong" style="max-width:150px" aria-label="归属"><option value="">全部归属</option>' +
-        '<option value="none"' +
-        (f.belong === "none" ? " selected" : "") +
-        ">公共池</option>" +
-        '<option value="proj"' +
-        (f.belong === "proj" ? " selected" : "") +
-        ">业务项目</option></select>" +
-        '<button type="button" class="field-tip" aria-label="归属说明">' +
-        '<span class="field-tip-ico" aria-hidden="true">?</span>' +
-        '<span class="field-tip-bubble" role="tooltip">对齐现网「全部归属」筛：公共池=未绑专属项目的料；业务项目=专属站点/项目内的料。与列表「分发项目」列不同：筛的是素材归属，列的是已转到哪些项目。</span>' +
-        "</button></span>";
+        '<span class="mat-date-range" title="采集时间">' +
+        '<input class="input" type="date" id="mat-date-from" aria-label="采集起始日期" value="' +
+        esc(f.dateFrom) +
+        '" />' +
+        '<span class="mat-date-sep">至</span>' +
+        '<input class="input" type="date" id="mat-date-to" aria-label="采集截止日期" value="' +
+        esc(f.dateTo) +
+        '" /></span>' +
+        '<button type="button" class="btn" id="mat-reset">重置</button>';
     }
     html += '<button type="button" class="btn" id="mat-refresh">刷新</button></div>';
-    html += '<div class="list-toolbar-row list-toolbar-actions">';
-    html += '<label class="check-inline"><input type="checkbox" id="mat-check-all" /> 全选本页</label>';
-    if (tab === "pending") {
-      html +=
-        '<button type="button" class="btn btn-ghost btn-sm" data-bulk="pass">通过</button>' +
-        '<button type="button" class="btn btn-ghost btn-sm" data-bulk="reject">驳回</button>' +
-        '<button type="button" class="btn btn-ghost btn-sm" data-bulk="edit">转编辑</button>';
-    } else if (tab === "all") {
-      html += '<button type="button" class="btn btn-ghost btn-sm" data-bulk="edit">转编辑</button>';
-    } else if (tab === "trash") {
-      html += '<button type="button" class="btn btn-ghost btn-sm" data-bulk="restore">手动通过</button>';
-    }
-    html += "</div>";
+    /* 全选在表头；批量操作在有勾选时出现在表上方，不再单独占一排 */
     return html;
   }
 
@@ -229,15 +235,14 @@
     }
     if (tab === "pending") {
       f.q = val("mat-q");
-      f.sort = val("mat-sort") || "created_at";
       f.channel = val("mat-channel");
       return;
     }
     f.q = val("mat-q");
     f.status = val("mat-status");
     f.category = val("mat-category");
-    f.channel = val("mat-channel");
-    f.belong = val("mat-belong");
+    f.dateFrom = val("mat-date-from");
+    f.dateTo = val("mat-date-to");
   }
 
   w.FZMatFilters = {
@@ -245,6 +250,10 @@
     esc: esc,
     filterList: filterList,
     paintToolbar: paintToolbar,
-    readFilters: readFilters
+    readFilters: readFilters,
+    parseScope: parseScope,
+    scopeCount: scopeCount,
+    inProject: inProject,
+    inPool: inPool
   };
 })(window);

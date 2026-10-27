@@ -1,4 +1,4 @@
-/* 素材管理 · Demo 数据（三视图：待审 / 全部 / 垃圾） */
+/* 素材管理 · Demo 数据（To-Be：公共池 | 业务项目，无专属/外站） */
 (function (w) {
   var AD_CATS = [
     "广告-高风险（拦截）",
@@ -6,19 +6,22 @@
     "广告-中风险（人工复核）"
   ];
   var CHANNELS = ["源频道甲", "源频道乙", "源频道丙", "示例短剧站 A"];
+  /* 全部素材筛选项：对齐列表「分发频道 / 分发项目」列 */
+  var TARGET_CHANNELS = ["@push_demo_a", "@push_demo_b", "@push_demo_c", "@push_demo_d"];
+  var DISPATCH_PROJECTS = ["演示瓜站", "演示视频站", "演示短剧站"];
   var TABS = [
     { id: "all", label: "全部素材" },
-    { id: "trash", label: "垃圾素材" },
-    { id: "pending", label: "待我审核" }
+    { id: "pending", label: "待我审核" },
+    { id: "trash", label: "垃圾素材" }
   ];
-  /* 全部素材用的流水线状态（垃圾非 MaterialStatus，不进此表） */
   var LABEL = {
     pending: { text: "待人工审核", cls: "badge-warn" },
     rejected: { text: "已驳回", cls: "badge-danger" },
     kept: { text: "去重保留", cls: "badge-ok" },
     duplicate: { text: "重复淘汰", cls: "badge-muted" },
     available: { text: "可使用", cls: "badge-ok" },
-    used: { text: "已使用", cls: "badge-muted" }
+    used: { text: "已使用", cls: "badge-muted" },
+    trash: { text: "已驳回", cls: "badge-danger" }
   };
   var ALL_STATUSES = ["pending", "rejected", "kept", "duplicate", "available", "used"];
 
@@ -26,40 +29,71 @@
     opts = opts || {};
     var mediaType = opts.mediaType || (project.indexOf("视频") >= 0 ? "视频" : "图文");
     var num = String(id).replace(/^m/, "");
-    /* belong=none → 公共池（可 TG 分发）；proj → 专属站点（不进 TG，目标频道为空） */
+    /* belong: none=公共池（可 TG→TG）；proj=业务项目自采（进内容通道，无路由） */
     var belong = opts.belong || "none";
-    var dedicated = belong === "proj";
-    var poolDispatched = !dedicated && (status === "available" || status === "used" || status === "kept");
+    var isPool = belong === "none";
+    var poolRouted = isPool && (status === "available" || status === "used" || status === "kept");
+    /* 公共池可一源多目标；targetChannels 为完整列表，targetChannel 保留首个兼容旧字段 */
+    var targets;
+    if (opts.targetChannels) targets = opts.targetChannels.slice();
+    else if (opts.targetChannel != null && opts.targetChannel !== "") targets = [opts.targetChannel];
+    else if (opts.targetChannel === "") targets = [];
+    else if (poolRouted) targets = ["@push_demo_a", "@push_demo_b"];
+    else targets = [];
+    var target = targets[0] || "";
+    var dispatch;
+    if (opts.dispatchProject != null) dispatch = opts.dispatchProject;
+    else if (!isPool) dispatch = project;
+    else if (status === "used") dispatch = project;
+    else dispatch = "";
+    var kw = opts.keywords || ["热点", "资讯", "演示"];
+    var vidN = mediaType === "视频" ? 3 : 0;
+    var imgN = mediaType === "视频" ? 2 : 4;
     return {
       id: id,
       formalNumber: opts.formalNumber || "FZ-" + num,
       title: title,
       project: project,
       channel: channel,
+      collectType: opts.collectType || (channel.indexOf("站") >= 0 ? "web" : "tg"),
       source: channel.indexOf("站") >= 0 ? "网站 · " + channel : "TG · " + channel,
       status: status,
       time: time,
+      publishTime: opts.publishTime || time,
       views: views || 0,
       interact: interact || 0,
       category: opts.category || (mediaType === "视频" ? "短剧" : "资讯"),
       mediaType: mediaType,
       belong: belong,
-      targetChannel:
-        opts.targetChannel != null ? opts.targetChannel : poolDispatched ? "@push_demo_a" : "",
-      /* 专属：列里显示「专属·项目」；公共池 used：显示转编辑占用项目（可与目标频道并存） */
-      dispatchProject:
-        opts.dispatchProject != null
-          ? opts.dispatchProject
-          : dedicated
-            ? "专属·" + project
-            : status === "used"
-              ? project
-              : "",
-      dispatchKind: dedicated ? "dedicated" : status === "used" ? "usage" : ""
+      targetChannel: target,
+      targetChannels: targets,
+      dispatchProject: dispatch,
+      dispatchProjects: opts.dispatchProjects || (dispatch ? [dispatch] : []),
+      keywords: kw,
+      summary: opts.summary || title + "。演示用素材简介，用于详情「素材简介」字段。",
+      textContent: opts.textContent || title + "\n\n（Demo 正文预览，对齐现网详情左侧文案区。）",
+      videoCount: opts.videoCount != null ? opts.videoCount : vidN,
+      imageCount: opts.imageCount != null ? opts.imageCount : imgN,
+      logs: opts.logs || [
+        { agent: "merge_agent", stage: "merge", msg: "Already merged by ChannelMonitor", time: time }
+      ],
+      dispatchLogs: opts.dispatchLogs || targets.map(function (t, i) {
+        return {
+          target: t,
+          status: i === 0 ? "已分发" : i === 1 ? "已分发" : "未分发",
+          time: time
+        };
+      })
     };
   }
-  function mkTrash(id, title, project, channel, time, adCategory, score, hitRule) {
-    var m = mk(id, title, project, channel, "trash", time, 0, 0);
+  function mkTrash(id, title, project, channel, time, adCategory, score, hitRule, opts) {
+    /* 与现网一致：垃圾详情走同一套详情壳；多数广告拦截料 media_files 为空 → 走无媒体布局（非另一套弹窗） */
+    opts = opts || {};
+    var m = mk(id, title, project, channel, "trash", time, 0, 0, {
+      videoCount: opts.videoCount != null ? opts.videoCount : 0,
+      imageCount: opts.imageCount != null ? opts.imageCount : 0,
+      mediaType: opts.mediaType || "图文"
+    });
     m.adCategory = adCategory;
     m.score = String(score);
     m.hitRule = hitRule;
@@ -67,32 +101,50 @@
   }
 
   var ITEMS = [
-    mk("m1012", "频道快讯 · 图文组", "演示瓜站", "源频道甲", "pending", "2026-10-27 10:48", 1200, 88),
+    /* 待审去向示例：公共池已配 TG 路由 / 项目自采 / 公共池无固定去向 */
+    mk("m1012", "频道快讯 · 图文组", "演示瓜站", "源频道甲", "pending", "2026-10-27 10:48", 1200, 88, {
+      imageCount: 12,
+      videoCount: 0,
+      belong: "none",
+      targetChannels: ["@push_demo_a", "@push_demo_b"]
+    }),
     mk("m1011", "短视频素材 #8841", "演示视频站", "源频道乙", "pending", "2026-10-27 10:12", 860, 41, {
-      mediaType: "视频"
+      mediaType: "视频",
+      belong: "proj",
+      targetChannels: []
+    }),
+    mk("m1010", "公共池待审 · 暂无路由", "演示瓜站", "源频道丙", "pending", "2026-10-27 09:40", 420, 19, {
+      belong: "none",
+      targetChannels: []
     }),
     mk("m1009", "已驳回样例", "演示瓜站", "源频道甲", "rejected", "2026-10-27 08:00", 90, 3),
     mk("m1007", "去重保留样例", "演示视频站", "源频道乙", "kept", "2026-10-26 20:10", 500, 20),
     mk("m1006", "重复淘汰样例", "演示瓜站", "源频道丙", "duplicate", "2026-10-26 19:00", 40, 1),
     mkTrash("m1005", "广告疑似 · 已入垃圾", "演示瓜站", "源频道丙", "2026-10-26 22:01", AD_CATS[0], 9.2, "导流外链"),
-    /* 公共池：可有目标频道；尚未转编辑 → 分发项目空 */
+    /* 少数垃圾仍带媒体：证明详情壳相同，有 media_files 就会出预览 */
+    mkTrash("m1004", "垃圾但有图 · 对照", "演示瓜站", "源频道甲", "2026-10-26 21:30", AD_CATS[2], 6.1, "关键词命中", {
+      imageCount: 3,
+      videoCount: 0
+    }),
+    /* 公共池：一源多目标，尚未转编辑 */
     mk("m1002", "可用成片 · 可转编辑", "演示视频站", "示例短剧站 A", "available", "2026-10-26 18:40", 2200, 156, {
       mediaType: "视频",
       belong: "none",
-      targetChannel: "@push_demo_a",
+      targetChannels: ["@push_demo_a", "@push_demo_b", "@push_demo_c"],
       dispatchProject: ""
     }),
-    /* 公共池：TG 已分发 + 又被转编辑占用 → 两列可同时有值 */
+    /* 公共池：多频道已推 + 转编辑进多个项目（Demo：频道与项目并存） */
     mk("m0998", "公共池已转编辑", "演示瓜站", "源频道甲", "used", "2026-10-25 12:00", 300, 18, {
       belong: "none",
-      targetChannel: "@push_demo_b",
-      dispatchProject: "演示瓜站"
+      targetChannels: ["@push_demo_b", "@push_demo_d", "@push_demo_c"],
+      dispatchProject: "演示瓜站",
+      dispatchProjects: ["演示瓜站", "演示视频站"]
     }),
-    /* 专属站点：不进 TG，目标频道空，分发项目显示专属徽标 */
-    mk("m0997", "专属站点自动流转", "演示瓜站", "源频道乙", "available", "2026-10-25 09:00", 180, 9, {
+    /* 业务项目自采：无 TG 路由 */
+    mk("m0997", "项目自采进内容通道", "演示瓜站", "源频道乙", "available", "2026-10-25 09:00", 180, 9, {
       belong: "proj",
-      targetChannel: "",
-      dispatchProject: "专属·演示瓜站"
+      targetChannels: [],
+      dispatchProject: "演示瓜站"
     })
   ];
   (function pad() {
@@ -109,7 +161,6 @@
         );
       } else {
         var st = ALL_STATUSES[i % ALL_STATUSES.length];
-        /* 多数公共池；约 1/8 专属（专属无目标频道） */
         ITEMS.push(
           mk(id, title, proj, ch, st, time, 100 + i * 17, 3 + (i % 20), {
             mediaType: i % 3 ? "图文" : "视频",
@@ -123,6 +174,8 @@
   w.FZMatData = {
     AD_CATS: AD_CATS,
     CHANNELS: CHANNELS,
+    TARGET_CHANNELS: TARGET_CHANNELS,
+    DISPATCH_PROJECTS: DISPATCH_PROJECTS,
     TABS: TABS,
     LABEL: LABEL,
     ALL_STATUSES: ALL_STATUSES,

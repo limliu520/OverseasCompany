@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>素材管理 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261027dispatch" />
+  <link rel="stylesheet" href="../css/app.css?v=20261027disp1" />
 </head>
 <body>
   <div class="app">
@@ -16,17 +16,109 @@
       </div>
       <div class="content">
         <div class="seg-tabs collect-status-tabs" id="mat-tabs" role="tablist"></div>
+        <div class="mat-v2-scopes" id="mat-scopes" hidden role="tablist" aria-label="全部素材范围"></div>
         <div class="list-toolbar" id="mat-toolbar"></div>
         <div id="mat-root"><p class="muted">加载中…</p></div>
       </div>
     </div>
   </div>
+
+  <!-- 素材详情（对齐现网：Tab / 左右布局 / 侧翼上下条；二次弹窗 z-index 更高） -->
+  <div class="mat-detail-mask" id="mat-detail-mask" hidden>
+    <div class="mat-detail" role="dialog" aria-modal="true" aria-labelledby="mat-detail-title">
+      <div class="mat-detail-hd">
+        <h2 class="mat-detail-title" id="mat-detail-title">
+          素材详情 <span class="mat-detail-progress" id="mat-detail-progress"></span>
+        </h2>
+        <button type="button" class="mat-detail-close" data-mat-close aria-label="关闭">×</button>
+      </div>
+      <div class="mat-detail-tabs">
+        <button type="button" class="mat-tab is-active" data-mat-tab="info">基本信息</button>
+        <button type="button" class="mat-tab" data-mat-tab="dispatch">分发记录</button>
+      </div>
+      <div id="mat-detail-panel"></div>
+      <button type="button" class="mat-nav-side is-prev" id="mat-detail-prev" title="上一条素材" aria-label="上一条素材">‹</button>
+      <button type="button" class="mat-nav-side is-next" id="mat-detail-next" title="下一条素材" aria-label="下一条素材">›</button>
+    </div>
+  </div>
+
+  <!-- 转入内容中心（叠在详情之上） -->
+  <div class="mat-xfer-mask" id="mat-xfer-mask" hidden>
+    <div class="mat-xfer" role="dialog" aria-modal="true">
+      <div class="mat-xfer-hd">
+        <h3>转编辑</h3>
+        <button type="button" class="mat-detail-close" data-xfer-close aria-label="关闭">×</button>
+      </div>
+      <div class="mat-xfer-bd">
+        <input type="hidden" id="mat-xfer-mid" />
+        <p class="mat-xfer-lead muted">选择项目后，素材将占用该项目内容通道，并派发媒体处理。</p>
+        <div class="mat-form-row">
+          <label for="mat-xfer-project">选择项目 *</label>
+          <select id="mat-xfer-project"></select>
+          <div class="mat-xfer-hint" id="mat-xfer-hint"></div>
+        </div>
+        <div class="mat-form-row">
+          <label for="mat-xfer-cover">封面拼图数</label>
+          <select id="mat-xfer-cover">
+            <option value="1">1 格</option>
+            <option value="2">2 格</option>
+            <option value="3" selected>3 格</option>
+          </select>
+          <div class="mat-xfer-hint">生成封面时的拼图格数，默认 3 格。</div>
+        </div>
+      </div>
+      <div class="mat-xfer-ft">
+        <button type="button" class="btn btn-ghost" data-xfer-close>取消</button>
+        <button type="button" class="btn btn-primary" id="mat-xfer-submit" disabled>确认转编辑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 分发频道列表（公共池「N 个频道」） -->
+  <div class="mat-targets-mask" id="mat-targets-mask" hidden>
+    <div class="mat-targets" role="dialog" aria-modal="true" aria-labelledby="mat-targets-title">
+      <div class="mat-targets-hd">
+        <h3 id="mat-targets-title">分发频道</h3>
+        <button type="button" class="mat-detail-close" data-targets-close aria-label="关闭">×</button>
+      </div>
+      <div class="mat-targets-bd" id="mat-targets-bd"></div>
+      <div class="mat-targets-ft">
+        <button type="button" class="btn btn-ghost" data-targets-close>关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 驳回 / 审核原因（叠在详情之上） -->
+  <div class="mat-reject-mask" id="mat-reject-mask" hidden>
+    <div class="mat-reject" role="dialog" aria-modal="true">
+      <div class="mat-reject-hd">
+        <h3 id="mat-reject-title">驳回素材</h3>
+        <button type="button" class="mat-detail-close" data-reject-close aria-label="关闭">×</button>
+      </div>
+      <div class="mat-reject-bd">
+        <input type="hidden" id="mat-reject-mid" />
+        <input type="hidden" id="mat-reject-mode" value="reject" />
+        <div class="mat-form-row">
+          <label for="mat-reject-reason" id="mat-reject-label">驳回理由 *</label>
+          <textarea id="mat-reject-reason" placeholder="请输入驳回理由（将反馈给自学习机制优化筛选规则）"></textarea>
+        </div>
+      </div>
+      <div class="mat-reject-ft">
+        <button type="button" class="btn btn-ghost" data-reject-close>取消</button>
+        <button type="button" class="btn btn-danger" id="mat-reject-submit">确认驳回</button>
+      </div>
+    </div>
+  </div>
+
   <script src="../js/store.js?v=20261027ch"></script>
-  <script src="../js/shell.js?v=20261027collect"></script>
+  <script src="../js/shell.js?v=20261027noV2"></script>
   <script src="../js/pager.js?v=20261027pager"></script>
-  <script src="../js/materials-data.js?v=20261027dispatch"></script>
-  <script src="../js/materials-filters.js?v=20261027dispatch"></script>
-  <script src="../js/materials-table.js?v=20261027dispatch"></script>
-  <script src="../js/materials-app.js?v=20261027dispatch"></script>
+  <script src="../js/materials-data.js?v=20261027disp1"></script>
+  <script src="../js/materials-filters.js?v=20261027bulk"></script>
+  <script src="../js/materials-table.js?v=20261027pushCh"></script>
+  <script src="../js/materials-media.js?v=20261027noMsg"></script>
+  <script src="../js/materials-detail.js?v=20261027disp1"></script>
+  <script src="../js/materials-transfer.js?v=20261027nocms"></script>
+  <script src="../js/materials-app.js?v=20261027pushCh"></script>
 </body>
 </html>

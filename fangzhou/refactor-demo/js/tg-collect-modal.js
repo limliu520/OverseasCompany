@@ -176,7 +176,7 @@ window.FZTgCollectModal = (function () {
       return;
     }
     if (tgts.indexOf(src) !== -1) {
-      FZShell.toast("源频道和目标频道不能相同（频道不能路由给自己）", "err");
+      FZShell.toast("源频道和分发频道不能相同（频道不能路由给自己）", "err");
       return;
     }
     var st = FZStore.read();

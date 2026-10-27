@@ -234,7 +234,7 @@ window.FZTgCollectRoutes = (function () {
       (view === "by_target" ? " is-active" : "") +
       '" data-route-view="by_target">按分发</button></div></div>' +
       '<div class="tg-route-controls">' +
-      '<input type="search" class="input tg-route-search" id="tg-route-search" placeholder="搜索源/目标频道…" value="' +
+      '<input type="search" class="input tg-route-search" id="tg-route-search" placeholder="搜索源/分发频道…" value="' +
       esc(opts.routeQuery || "") +
       '" />' +
       healthChips(all, opts.routeHealth) +
