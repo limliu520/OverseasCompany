@@ -85,7 +85,7 @@
       children: [
         { id: "c_web", label: "网站采集配置", stub: "网站采集配置" },
         { id: "c_web_log", label: "网站采集记录", stub: "网站采集记录" },
-        { id: "c_tg", label: "TG 采集配置", stub: "TG 采集配置" },
+        { id: "c_tg", label: "TG 采集配置", href: "pages/tg-collect.html", done: true },
         { id: "c_review", label: "素材审核", stub: "素材审核" },
         { id: "c_err", label: "采集异常", stub: "采集异常" }
       ]
@@ -126,8 +126,7 @@
       label: "全局配置",
       ico: "⚙",
       children: [
-        { id: "subs", label: "子账号与授权", href: "pages/subs.html", done: true },
-        { id: "userbot", label: "Userbot", href: "pages/userbots.html", done: true }
+        { id: "subs", label: "子账号与授权", href: "pages/subs.html", done: true }
       ]
     }
   ];

@@ -1470,6 +1470,183 @@ button { cursor: pointer; }
   }
 }
 
+/* 项目 · 通道管理（采集号 → 频道） */
+.ch-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ch-lead {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.ch-sec {
+  margin: 0;
+}
+.ch-sec-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.ch-sec-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.ch-sec-sub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.ch-empty {
+  margin: 0;
+  padding: 14px 12px;
+  font-size: 13px;
+  color: var(--muted);
+  background: #f7f7f9;
+  border-radius: 8px;
+}
+.ch-bot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.ch-bot-list:empty {
+  display: none;
+}
+.ch-bot-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+}
+.ch-bot-row:last-child {
+  border-bottom: none;
+}
+.ch-bot-main {
+  flex: 1;
+  min-width: 0;
+}
+.ch-bot-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.ch-bot-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.ch-table {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.ch-tr {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.4fr) 72px minmax(100px, 1.2fr) 72px;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.ch-tr:last-child {
+  border-bottom: none;
+}
+.ch-th {
+  background: #f7f7f9;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.ch-td-title {
+  font-weight: 600;
+  word-break: break-all;
+}
+.ch-td-role {
+  color: var(--muted);
+}
+.ch-td-bot {
+  color: var(--ink);
+  word-break: break-all;
+}
+.ch-td-act {
+  text-align: right;
+}
+.ch-add-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.ch-add-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+.ch-add-select {
+  min-width: 180px;
+  max-width: 240px;
+}
+.ch-bot-cards {
+  justify-content: start;
+}
+.tg-ch-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tg-ch-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #f7f7f9;
+  font-size: 12px;
+  color: var(--ink);
+}
+.tg-ch-list.is-readonly li {
+  justify-content: flex-start;
+}
+.ub-card.is-focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+@media (max-width: 720px) {
+  .ch-tr {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ch-th span:nth-child(3),
+  .ch-th span:nth-child(4),
+  .ch-tr .ch-td-bot,
+  .ch-tr .ch-td-act {
+    /* keep simple on narrow: still show */
+  }
+}
+
 /* 子账号 / 岗位竖卡（高度随内容） */
 .sub-card-grid > .sub-empty {
   grid-column: 1 / -1;

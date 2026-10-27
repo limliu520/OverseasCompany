@@ -14,6 +14,8 @@
       siteType: "chigua",
       userbotId: "",
       userbotName: "",
+      userbotIds: [],
+      _pendingBots: [],
       watermarks: FZArticle.defaultWatermarks(),
       wmUseDefault: false,
       wmConfigured: false,
@@ -109,7 +111,11 @@
       "</div><div>类型：" +
       typeLabel +
       "</div><div>采集号：" +
-      (draft.userbotName || "未选/可跳过") +
+      ((draft._pendingBots && draft._pendingBots.length
+        ? draft._pendingBots.length + " 个（待创建）"
+        : "") ||
+        draft.userbotName ||
+        "未选/可跳过") +
       "</div><div>封面：" +
       (draft.coverWidth || "—") +
       " × " +
@@ -146,35 +152,39 @@
   }
 
   function panelUserbot() {
-    var st = FZStore.read();
-    var list = (st.userbots || []).slice();
-    if (draft.userbotId && !list.some(function (b) {
-      return b.id === draft.userbotId;
-    })) {
-      list.unshift({ id: draft.userbotId, name: draft.userbotName || draft.userbotId });
-    }
+    var lim = FZStore.botLimits();
+    var pending = draft._pendingBots || [];
+    var rows =
+      pending.length === 0
+        ? '<p class="muted" style="font-size:13px;margin:0">尚未添加。创建后可在项目「TG 采集号」继续加（最多 ' +
+          lim.maxBotsPerProject +
+          " 个）。</p>"
+        : pending
+            .map(function (b, i) {
+              return (
+                '<div class="list-row"><div class="grow"><strong>' +
+                (b.name || "采集号") +
+                '</strong><div class="muted" style="font-size:12px">' +
+                (b.phoneHint || "") +
+                '</div></div><button type="button" class="btn btn-ghost" data-drop-pending="' +
+                i +
+                '">移除</button></div>'
+              );
+            })
+            .join("");
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">采集号（Userbot）</h2>' +
-      '<p class="muted" style="margin:0 0 10px">这个项目的 TG 频道，要用哪个号去加、去采？一个项目挂一个采集号；之后在本项目加的频道都只能用这个号。</p>' +
-      '<div class="placeholder-doc" style="text-align:left;margin-bottom:14px">' +
-      "<strong>怎么选</strong>" +
-      '<ul style="margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--muted)">' +
-      "<li>已有号、还要给本项目加频道 / 采料 → 选已有</li>" +
-      "<li>本项目要单独一个号（隔离 / 风控）→ 新建</li>" +
-      "<li>本项目暂不采 TG → 选「暂不绑定」或跳过本步</li></ul>" +
-      '<p class="hint" style="margin:8px 0 0">有频道后不可轻易换绑：须先解绑本项目全部频道，再更换采集号。</p></div>' +
-      '<div id="bot-list">' +
-      FZPickCards.renderUserbotSelect({
-        bots: list,
-        selectedId: draft.userbotId || "",
-        state: st,
-        project: null,
-        allowEmpty: true,
-        emptyLabel: "暂不绑定",
-        emptyText: "暂无采集号"
-      }) +
+      '<p class="muted" style="margin:0 0 10px">采集号归属<strong>本项目</strong>（可多个，上限 ' +
+      lim.maxBotsPerProject +
+      "）。创建后挂频道：单号合计 ≤" +
+      lim.maxChannelsPerBot +
+      "；同频道最多 " +
+      lim.maxBotsPerChannel +
+      " 个号。也可跳过，稍后再配。</p>" +
+      '<div id="pending-bots" style="margin-bottom:12px">' +
+      rows +
       "</div>" +
-      '<button type="button" class="btn" id="btn-new-bot" style="margin-top:12px">新建采集号</button>'
+      '<button type="button" class="btn" id="btn-new-bot">+ 为本项目添加采集号</button>'
     );
   }
 
@@ -256,9 +266,12 @@
       draft.siteType = (document.getElementById("f-type") || {}).value || draft.siteType || "chigua";
     }
     if (id === "userbot") {
-      var botPick = FZPickCards.selectedUserbot(document.getElementById("bot-list"));
-      draft.userbotId = botPick.id;
-      draft.userbotName = botPick.id ? botPick.name : "";
+      var pending = draft._pendingBots || [];
+      draft.userbotIds = pending.map(function (b) {
+        return b.id;
+      });
+      draft.userbotId = pending[0] ? pending[0].id : "";
+      draft.userbotName = pending[0] ? pending[0].name : "";
     }
     if (id === "cover") {
       var cov = FZMediaConfig.collectCover(document);
@@ -408,28 +421,32 @@
   }
 
   function bind() {
-    var botList = document.getElementById("bot-list");
-    if (botList) {
-      FZPickCards.bindUserbotSelect(botList, {
-        onChange: function (id, name) {
-          draft.userbotId = id;
-          draft.userbotName = id ? name : "";
-          afterPick();
-        }
+    document.querySelectorAll("[data-drop-pending]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var i = parseInt(btn.getAttribute("data-drop-pending"), 10);
+        draft._pendingBots = (draft._pendingBots || []).filter(function (_, idx) {
+          return idx !== i;
+        });
+        render();
       });
-    }
+    });
     var nb = document.getElementById("btn-new-bot");
     if (nb) {
       nb.addEventListener("click", function () {
+        var lim = FZStore.botLimits().maxBotsPerProject;
+        if ((draft._pendingBots || []).length >= lim) {
+          FZShell.toast("本项目采集号已达上限（" + lim + " 个）", "err");
+          return;
+        }
         FZTgWizard.open({
           onSuccess: function (bot) {
-            var stBot = FZStore.read();
-            if (!stBot.userbots) stBot.userbots = [];
-            stBot.userbots.push(bot);
-            FZStore.write(stBot);
-            draft.userbotId = bot.id;
-            draft.userbotName = bot.name;
-            FZShell.toast("采集号已创建", "ok");
+            bot.status = bot.status || "connected";
+            bot.id = bot.id || FZStore.uid("bot");
+            if (!draft._pendingBots) draft._pendingBots = [];
+            draft._pendingBots.push(bot);
+            draft.userbotId = draft._pendingBots[0].id;
+            draft.userbotName = draft._pendingBots[0].name;
+            FZShell.toast("已加入本项目待创建列表", "ok");
             render();
           }
         });
@@ -442,7 +459,7 @@
 
   function stepHasContent(stepId) {
     if (stepId === "basic") return !!(draft.name || "").trim();
-    if (stepId === "userbot") return !!draft.userbotId;
+    if (stepId === "userbot") return !!(draft._pendingBots && draft._pendingBots.length);
     if (stepId === "cover") return !FZProjectUnion.validateCover(draft);
     if (stepId === "media") return true;
     if (stepId === "watermark") return wmDone();
@@ -611,8 +628,9 @@
         coverAspect: "",
         minVideoSeconds: draft.minVideoSeconds,
         maxEpisodes: draft.maxEpisodes,
-        userbotId: draft.userbotId,
-        userbotName: draft.userbotName,
+        userbotId: "",
+        userbotName: "",
+        userbotIds: [],
         coverWidth: draft.coverWidth || "720",
         coverHeight: draft.coverHeight || "1280",
         watermarks: FZMediaConfig.clone(draft.watermarks),
@@ -629,6 +647,18 @@
         boundChannels: []
       };
       FZProjectUnion.normalizeProject(project);
+
+      if (!st.userbots) st.userbots = [];
+      (draft._pendingBots || []).forEach(function (bot) {
+        if (
+          !st.userbots.some(function (b) {
+            return b.id === bot.id;
+          })
+        ) {
+          st.userbots.push(bot);
+        }
+        FZStore.attachBotToProject(st, project, bot);
+      });
 
       var wasEmpty = !st.projects.length;
       if (wasEmpty) {

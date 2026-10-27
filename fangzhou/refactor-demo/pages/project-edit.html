@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>项目详情 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261026fw" />
+  <link rel="stylesheet" href="../css/app.css?v=20261027tg" />
 </head>
 <body>
   <div class="app">
@@ -43,8 +43,8 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261026e"></script>
-  <script src="../js/shell.js"></script>
+  <script src="../js/store.js?v=20261027ch"></script>
+  <script src="../js/shell.js?v=20261027tg"></script>
   <script src="../js/article-defaults.js?v=20261026r"></script>
   <script src="../js/media-config.js?v=20261026mw"></script>
   <script src="../js/pick-cards.js"></script>
@@ -63,7 +63,7 @@
       { id: "article", label: "文章管理" },
       { id: "media", label: "图片视频规则" },
       { id: "connect", label: "开发对接配置" },
-      { id: "channel", label: "通道管理" },
+      { id: "channel", label: "TG 采集号" },
       { id: "flow", label: "推送规则" },
       { id: "optional", label: "可选功能" }
     ];
@@ -266,7 +266,9 @@
         (p.coverHeight || "—") +
         " px</div></div>" +
         '<div><div class="label">采集号</div><div class="value">' +
-        (p.userbotName || "未关联") +
+        (FZStore.projectUserbotIds(p).length
+          ? FZStore.projectUserbotIds(p).length + " 个"
+          : "未配置") +
         "</div></div>" +
         '<div><div class="label">已绑频道</div><div class="value">' +
         FZStore.projectChannels(p).length +
@@ -400,68 +402,96 @@
     }
 
     function paneChannel(p, st) {
-      var hasCh = FZStore.projectHasChannels(p);
-      var ch = FZStore.projectChannels(p);
-      var bots = (st.userbots || []).slice();
-      if (p.userbotId && !bots.some(function (b) { return b.id === p.userbotId; })) {
-        bots.unshift({ id: p.userbotId, name: p.userbotName || p.userbotId });
-      }
-      var chHtml =
-        ch.length === 0
-          ? '<p class="muted" style="font-size:13px">暂无绑定频道。</p>'
-          : ch
-              .map(function (c) {
+      var lim = FZStore.botLimits();
+      var bots = FZStore.botsForProject(st, p.id);
+      var tgHref =
+        "./tg-collect.html?project=" + encodeURIComponent(p.id);
+      var cards =
+        bots.length === 0
+          ? '<p class="ch-empty">本项目还没有采集号。可在此新建；挂频道、连接/断开请到「采集 → TG 采集配置」。</p>'
+          : '<div class="fz-card-grid ch-bot-cards">' +
+            bots
+              .map(function (b) {
+                var lab = FZStore.userbotStatusLabel(b);
+                var chs = (p.boundChannels || []).filter(function (c) {
+                  return c.botId === b.id;
+                });
+                var connected = b.status === "connected" || b.status === "ok";
+                var markCls = connected
+                  ? "is-on"
+                  : b.status === "disabled"
+                    ? "is-off"
+                    : "is-warn";
+                var chHtml =
+                  chs.length === 0
+                    ? '<p class="muted" style="font-size:12px;margin:0">尚未挂频道</p>'
+                    : '<ul class="tg-ch-list is-readonly">' +
+                      chs
+                        .map(function (c) {
+                          return (
+                            "<li><span><strong>" +
+                            c.title +
+                            "</strong> · " +
+                            (c.role === "push" ? "分发" : "采集") +
+                            "</span></li>"
+                          );
+                        })
+                        .join("") +
+                      "</ul>";
                 return (
-                  '<div class="list-row"><div class="grow"><strong>' +
-                  c.title +
-                  '</strong><div class="muted" style="font-size:12px">' +
-                  (c.note || "") +
-                  '</div></div><button type="button" class="btn btn-ghost" data-unbind-ch="' +
-                  c.id +
-                  '">解绑</button></div>'
+                  '<article class="ub-card">' +
+                  '<div class="ub-card-top">' +
+                  '<div class="ub-mark ' +
+                  markCls +
+                  '">采</div>' +
+                  '<div class="ub-main">' +
+                  '<h3 class="ub-title">' +
+                  b.name +
+                  "</h3>" +
+                  '<p class="ub-status ' +
+                  markCls +
+                  '">' +
+                  lab.text +
+                  "</p>" +
+                  '<p class="ub-phone">' +
+                  (b.phoneHint || "") +
+                  "</p>" +
+                  '<p class="ub-stats">已挂 ' +
+                  chs.length +
+                  " / " +
+                  lim.maxChannelsPerBot +
+                  " 个频道（只读）</p>" +
+                  chHtml +
+                  "</div></div>" +
+                  '<div class="ub-actions">' +
+                  '<a class="btn btn-primary" href="' +
+                  tgHref +
+                  "&bot=" +
+                  encodeURIComponent(b.id) +
+                  '">去采集配置</a>' +
+                  '<button type="button" class="btn btn-ghost" data-detach-bot="' +
+                  b.id +
+                  '">移出本项目</button></div></article>'
                 );
               })
-              .join("");
+              .join("") +
+            "</div>";
       return (
-        '<div class="card card-pad" style="margin-bottom:14px">' +
-        paneToolbar(
-          "采集号（本项目唯一）：点选卡片关联；有绑定频道时换绑会提示先解绑。账号级资产也可在「全局配置 → Userbot」维护。",
-          "btn-save-bot",
-          "保存采集号关联"
-        ) +
-        '<div id="bot-list">' +
-        FZPickCards.renderUserbotSelect({
-          bots: bots,
-          selectedId: p.userbotId || "",
-          state: st,
-          project: p,
-          allowEmpty: true,
-          emptyLabel: "未关联",
-          emptyText: "暂无采集号"
-        }) +
-        "</div>" +
-        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">' +
-        '<button type="button" class="btn" id="btn-new-bot">新建并关联</button>' +
-        '<button type="button" class="btn btn-ghost" id="btn-clear-bot">取消关联</button>' +
-        '<a class="btn btn-ghost" href="./userbots.html">打开全局 Userbot</a></div>' +
-        '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">' +
-        "<strong style=\"font-size:13px\">本项目频道</strong>" +
-        (hasCh
-          ? '<p class="hint" style="margin:6px 0 0">当前已绑 ' +
-            ch.length +
-            " 个频道，换绑采集号前须全部解绑。</p>"
-          : "") +
-        '<div style="margin-top:8px">' +
-        chHtml +
-        "</div>" +
-        '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
-        '<button type="button" class="btn' +
-        (p.userbotId ? "" : " is-disabled") +
-        '" id="btn-demo-ch">演示：添加频道</button>' +
-        (hasCh
-          ? '<button type="button" class="btn btn-ghost" id="btn-unbind-all">全部解绑</button>'
-          : "") +
-        "</div></div></div>"
+        '<div class="ch-wrap">' +
+        '<div class="ch-sec-head" style="margin-bottom:12px">' +
+        "<div><p class=\"ch-lead\" style=\"margin:0\">本页只展示本项目采集号及已挂频道。连接/断开、加频道、解绑请到「采集 → TG 采集配置」（唯一操作台）。此处可新建采集号。</p>" +
+        '<p class="ch-sec-sub">本项目 ' +
+        bots.length +
+        " / " +
+        lim.maxBotsPerProject +
+        " 个</p></div>" +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+        '<button type="button" class="btn btn-primary" id="btn-new-bot">+ 添加采集号</button>' +
+        '<a class="btn" href="' +
+        tgHref +
+        '">打开 TG 采集配置</a></div></div>' +
+        cards +
+        "</div>"
       );
     }
 
@@ -730,98 +760,28 @@
         }
       }
 
-      /* 通道 */
-      var botList = document.getElementById("bot-list");
-      if (botList) {
-        FZPickCards.bindUserbotSelect(botList, {
-          getBlockReason: function (nextId) {
-            var ctx = loadProject();
-            return FZStore.userbotChangeBlockReason(ctx.p, nextId);
-          }
-        });
-      }
-
-      var saveBot = document.getElementById("btn-save-bot");
-      if (saveBot) {
-        saveBot.addEventListener("click", function () {
-          var pick = FZPickCards.selectedUserbot(document.getElementById("bot-list"));
-          var next = pick.id || "";
+      /* TG 采集号：展示 + 新建；频道操作去采集配置 */
+      document.querySelectorAll("[data-detach-bot]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var bid = btn.getAttribute("data-detach-bot");
           var ctx = loadProject();
-          var block = FZStore.userbotChangeBlockReason(ctx.p, next);
-          if (block) {
-            FZShell.toast(block, "err");
-            return;
-          }
-          saveProject(function (p) {
-            p.userbotId = next;
-            p.userbotName = next ? pick.name : "";
-          }, "采集号关联已保存");
-        });
-      }
-      var nb = document.getElementById("btn-new-bot");
-      if (nb)
-        nb.addEventListener("click", function () {
-          var ctx = loadProject();
-          if (FZStore.projectHasChannels(ctx.p)) {
+          var still = (ctx.p.boundChannels || []).some(function (c) {
+            return c.botId === bid;
+          });
+          if (still) {
             FZShell.toast(
-              FZStore.userbotChangeBlockReason(ctx.p, "") || "请先解绑全部频道",
+              "该采集号仍挂有频道。请先到「采集 → TG 采集配置」解绑后再移出",
               "err"
             );
             return;
           }
-          openNewBot();
-        });
-      var cb = document.getElementById("btn-clear-bot");
-      if (cb)
-        cb.addEventListener("click", function () {
-          var ctx = loadProject();
-          var block = FZStore.userbotChangeBlockReason(ctx.p, "");
-          if (block) {
-            FZShell.toast(block, "err");
-            return;
-          }
-          var list = document.getElementById("bot-list");
-          if (list) {
-            list.querySelectorAll(".pick-card[data-bot]").forEach(function (c) {
-              var on = (c.getAttribute("data-bot") || "") === "";
-              c.classList.toggle("is-selected", on);
-              c.setAttribute("aria-checked", on ? "true" : "false");
-            });
-          }
-          FZShell.toast("已取消选择，请点保存采集号关联", "ok");
-        });
-      document.querySelectorAll("[data-unbind-ch]").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          var cid = btn.getAttribute("data-unbind-ch");
-          saveProject(function (p) {
-            p.boundChannels = p.boundChannels.filter(function (c) {
-              return c.id !== cid;
-            });
-          }, "已解绑频道");
+          saveProject(function (p, st) {
+            FZStore.detachBotFromProject(st, p, bid);
+          }, "已从本项目移出采集号");
         });
       });
-      var ua = document.getElementById("btn-unbind-all");
-      if (ua)
-        ua.addEventListener("click", function () {
-          saveProject(function (p) {
-            p.boundChannels = [];
-          }, "已全部解绑");
-        });
-      var addCh = document.getElementById("btn-demo-ch");
-      if (addCh)
-        addCh.addEventListener("click", function () {
-          if (addCh.classList.contains("is-disabled")) {
-            FZShell.toast("请先关联采集号", "err");
-            return;
-          }
-          saveProject(function (p) {
-            p.boundChannels.push({
-              id: FZStore.uid("ch"),
-              title: "@demo_" + Math.random().toString(36).slice(2, 7),
-              note: "演示频道"
-            });
-          }, "已添加演示频道");
-        });
+      var nb = document.getElementById("btn-new-bot");
+      if (nb) nb.addEventListener("click", openNewBot);
 
       var sf = document.getElementById("btn-save-flow");
       if (sf)
@@ -845,26 +805,27 @@
 
     function openNewBot() {
       var st0 = FZStore.read();
-      var p0 = FZStore.findProject(st0, id);
-      if (FZStore.projectHasChannels(p0)) {
-        FZShell.toast("请先解绑频道再换采集号", "err");
+      var block = FZStore.addBotToProjectBlockReason(st0, id);
+      if (block) {
+        FZShell.toast(block, "err");
         return;
       }
       FZTgWizard.open({
         onSuccess: function (bot) {
           var st = FZStore.read();
           var p = FZStore.findProject(st, id);
-          if (FZStore.projectHasChannels(p)) {
-            FZShell.toast("请先解绑频道再换采集号", "err");
+          var again = FZStore.addBotToProjectBlockReason(st, id);
+          if (again) {
+            FZShell.toast(again, "err");
             return;
           }
           if (!st.userbots) st.userbots = [];
+          bot.status = bot.status || "connected";
           st.userbots.push(bot);
-          p.userbotId = bot.id;
-          p.userbotName = bot.name;
+          FZStore.attachBotToProject(st, p, bot);
           FZStore.upsertProject(st, p);
           FZStore.write(st);
-          FZShell.toast("采集号已创建并关联", "ok");
+          FZShell.toast("采集号已添加到本项目", "ok");
           render();
         }
       });

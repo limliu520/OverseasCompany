@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TG 采集配置 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css?v=20261027tg" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <div class="topbar">
+        <h1>TG 采集配置</h1>
+        <div class="topbar-actions" id="top-user"></div>
+      </div>
+      <div class="content">
+        <p class="proj-page-lead" id="tg-lead">
+          在这里处理采集号与频道的关联（加入 / 解绑）、连接与断开。项目详情「TG 采集号」只做展示与入口。
+        </p>
+        <div class="field" style="max-width:360px;margin:0 0 14px">
+          <label>当前项目</label>
+          <select id="tg-project"></select>
+        </div>
+        <div id="tg-root"><p class="muted">加载中…</p></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/store.js?v=20261027ch"></script>
+  <script src="../js/shell.js?v=20261027tg"></script>
+  <script src="../js/tg-add-wizard.js"></script>
+  <script src="../js/tg-collect-app.js?v=20261027tg"></script>
+</body>
+</html>

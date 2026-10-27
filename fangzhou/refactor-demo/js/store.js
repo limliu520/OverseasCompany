@@ -75,8 +75,18 @@
   ];
 
   /**
-   * 采集号演示：connected=已连接可采；disconnected=会话断开；disabled=停用不可选。
-   * 对齐现网 Telegram 配置卡片：仅连接 / 断开 / 删除（无编辑、无列表入口绑 Agent）。
+   * 采集号上限（模拟 Admin 全局配置；业务端只读校验）
+   * 口径：方舟-TG采集号与频道限流口径-20261027
+   */
+  var BOT_LIMITS = {
+    maxBotsPerProject: 10,
+    maxChannelsPerBot: 10,
+    maxBotsPerChannel: 5
+  };
+
+  /**
+   * 采集号演示：归属项目（projectId）；connected=已连接可采。
+   * 对齐现网卡片：仅连接 / 断开 / 删除。
    */
   var DEMO_USERBOTS = [
     {
@@ -84,14 +94,16 @@
       name: "采集号 · 空闲可用",
       phoneHint: "+1****1201",
       status: "connected",
-      channelCount: 0
+      projectId: "proj_demo_ready",
+      channelCount: 2
     },
     {
       id: "bot_demo_busy",
       name: "采集号 · 已断开",
       phoneHint: "+1****2202",
       status: "disconnected",
-      channelCount: 2
+      projectId: "proj_demo_collect",
+      channelCount: 0
     }
   ];
 
@@ -230,13 +242,22 @@
       webhookUrl: "https://partner.example.com/hooks/fangzhou",
       userbotId: "bot_demo_free",
       userbotName: "采集号 · 空闲可用",
+      userbotIds: ["bot_demo_free"],
       boundChannels: [
         {
           id: "ch_demo_a",
           title: "@demo_channel_a",
-          note: "演示：有频道时不可换绑采集号"
+          botId: "bot_demo_free",
+          role: "collect",
+          note: ""
         },
-        { id: "ch_demo_b", title: "@demo_channel_b", note: "" }
+        {
+          id: "ch_demo_b",
+          title: "@demo_channel_b",
+          botId: "bot_demo_free",
+          role: "push",
+          note: ""
+        }
       ]
     },
     {
@@ -265,6 +286,7 @@
       coverHeight: "1280",
       webhookUrl: "",
       userbotName: "",
+      userbotIds: [],
       boundChannels: []
     },
     {
@@ -288,8 +310,9 @@
       coverWidth: "720",
       coverHeight: "1280",
       webhookUrl: "",
-      userbotId: "bot_demo_free",
-      userbotName: "采集号 · 空闲可用",
+      userbotId: "bot_demo_busy",
+      userbotName: "采集号 · 已断开",
+      userbotIds: ["bot_demo_busy"],
       boundChannels: []
     }
   ];
@@ -301,7 +324,7 @@
     displayName: "主账号演示",
     firstProjectDone: true,
     zeroPromptDismissed: false,
-    /** 账号层：Userbot 全局。extChannels 仅兼容旧数据，侧栏已去掉外站入口 */
+    /** Userbot 按项目归属；extChannels 仅兼容旧数据 */
     extChannels: [],
     userbots: JSON.parse(JSON.stringify(DEMO_USERBOTS)),
     projects: JSON.parse(JSON.stringify(DEMO_PROJECTS)),
@@ -515,7 +538,53 @@
     return "ready";
   }
 
+  function syncProjectUserbotFields(p, bots) {
+    var ids = (p.userbotIds || []).slice();
+    if (!ids.length && p.userbotId) ids = [p.userbotId];
+    ids = ids.filter(function (id, i, arr) {
+      return id && arr.indexOf(id) === i;
+    });
+    p.userbotIds = ids;
+    var primary = ids[0] || "";
+    p.userbotId = primary;
+    var hit = (bots || []).find(function (b) {
+      return b.id === primary;
+    });
+    p.userbotName = hit ? hit.name : ids.length ? p.userbotName || primary : "";
+  }
+
+  /** 旧数据：全局 Bot / 单 userbotId → 项目归属 + userbotIds */
+  function normalizeUserbots(state) {
+    if (!state.userbots) state.userbots = [];
+    if (!state.projects) state.projects = [];
+    state.projects.forEach(function (p) {
+      if (!Array.isArray(p.userbotIds)) {
+        p.userbotIds = p.userbotId ? [p.userbotId] : [];
+      }
+      (p.boundChannels || []).forEach(function (ch) {
+        if (!ch.botId && p.userbotIds[0]) ch.botId = p.userbotIds[0];
+        if (!ch.role) ch.role = "collect";
+      });
+    });
+    state.userbots.forEach(function (b) {
+      if (b.projectId) return;
+      var owners = state.projects.filter(function (p) {
+        return (p.userbotIds || []).indexOf(b.id) !== -1 || p.userbotId === b.id;
+      });
+      b.projectId = owners[0] ? owners[0].id : "";
+      owners.slice(1).forEach(function (p) {
+        p.userbotIds = (p.userbotIds || []).filter(function (id) {
+          return id !== b.id;
+        });
+      });
+    });
+    state.projects.forEach(function (p) {
+      syncProjectUserbotFields(p, state.userbots);
+    });
+  }
+
   function normalizeProjects(state) {
+    normalizeUserbots(state);
     (state.projects || []).forEach(function (p) {
       if (p.status === "need_post_config") {
         p.status = deriveStatus(p);
@@ -536,6 +605,7 @@
         if (p.coverWidth == null) p.coverWidth = "720";
         if (p.coverHeight == null) p.coverHeight = "1280";
       }
+      syncProjectUserbotFields(p, state.userbots);
     });
   }
 
@@ -646,38 +716,163 @@
     });
   }
 
-  /** 选用了某采集号的项目列表 */
-  function projectsUsingUserbot(state, botId) {
-    if (!botId) return [];
-    return (state.projects || []).filter(function (p) {
-      return p.userbotId === botId;
+  function projectUserbotIds(project) {
+    if (!project) return [];
+    if (Array.isArray(project.userbotIds) && project.userbotIds.length) {
+      return project.userbotIds.slice();
+    }
+    return project.userbotId ? [project.userbotId] : [];
+  }
+
+  function botsForProject(state, projectId) {
+    if (!projectId) return [];
+    return (state.userbots || []).filter(function (b) {
+      return b.projectId === projectId;
     });
   }
 
-  /** 采集号在各项目上已挂频道总数（优先用项目 boundChannels；否则回落 channelCount） */
+  /** 选用了某采集号的项目列表（归属项目） */
+  function projectsUsingUserbot(state, botId) {
+    if (!botId) return [];
+    var bot = (state.userbots || []).find(function (b) {
+      return b.id === botId;
+    });
+    if (bot && bot.projectId) {
+      var p = findProject(state, bot.projectId);
+      return p ? [p] : [];
+    }
+    return (state.projects || []).filter(function (p) {
+      return projectUserbotIds(p).indexOf(botId) !== -1;
+    });
+  }
+
+  /** 某 Bot 已挂频道数（采集+分发合计） */
   function userbotBoundChannelCount(state, bot) {
     if (!bot) return 0;
-    var projects = projectsUsingUserbot(state, bot.id);
-    if (!projects.length) return bot.channelCount != null ? bot.channelCount : 0;
-    return projects.reduce(function (n, p) {
-      return n + projectChannels(p).length;
-    }, 0);
+    var n = 0;
+    (state.projects || []).forEach(function (p) {
+      (p.boundChannels || []).forEach(function (ch) {
+        if (ch.botId === bot.id || (!ch.botId && projectUserbotIds(p).indexOf(bot.id) !== -1)) {
+          n += 1;
+        }
+      });
+    });
+    if (n) return n;
+    return bot.channelCount != null ? bot.channelCount : 0;
+  }
+
+  /** 某频道已被多少 Bot 挂上（跨项目合计） */
+  function botsOnChannelCount(state, channelId) {
+    if (!channelId) return 0;
+    var n = 0;
+    (state.projects || []).forEach(function (p) {
+      (p.boundChannels || []).forEach(function (ch) {
+        if (ch.id === channelId) n += 1;
+      });
+    });
+    return n;
+  }
+
+  /** 频道是否已被其他项目占用 */
+  function channelOwnerProject(state, channelId, exceptProjectId) {
+    if (!channelId) return null;
+    return (
+      (state.projects || []).find(function (p) {
+        if (exceptProjectId && p.id === exceptProjectId) return false;
+        return (p.boundChannels || []).some(function (ch) {
+          return ch.id === channelId;
+        });
+      }) || null
+    );
+  }
+
+  function botLimits() {
+    return {
+      maxBotsPerProject: BOT_LIMITS.maxBotsPerProject,
+      maxChannelsPerBot: BOT_LIMITS.maxChannelsPerBot,
+      maxBotsPerChannel: BOT_LIMITS.maxBotsPerChannel
+    };
+  }
+
+  /** 本项目再加一个 Bot？null=允许 */
+  function addBotToProjectBlockReason(state, projectId) {
+    var lim = botLimits().maxBotsPerProject;
+    var n = botsForProject(state, projectId).length;
+    if (n >= lim) {
+      return "本项目采集号已达上限（" + lim + " 个），无法再添加。上限由 Admin 配置。";
+    }
+    return null;
+  }
+
+  /** Bot 再挂一个频道？null=允许 */
+  function botJoinChannelBlockReason(state, botId, channelId, projectId) {
+    var bot = (state.userbots || []).find(function (b) {
+      return b.id === botId;
+    });
+    if (!bot) return "采集号不存在";
+    if (bot.projectId && projectId && bot.projectId !== projectId) {
+      return "该采集号归属其他项目，不能在本项目挂频道。";
+    }
+    var owner = channelOwnerProject(state, channelId, projectId);
+    if (owner) {
+      return (
+        "该频道已被项目「" +
+        (owner.name || owner.id) +
+        "」的采集号加入，本项目不能再加入（勿重复进群）。"
+      );
+    }
+    var onCh = botsOnChannelCount(state, channelId);
+    var limCh = botLimits().maxBotsPerChannel;
+    if (onCh >= limCh) {
+      return "该频道上的采集号已达上限（" + limCh + " 个），无法再加入。";
+    }
+    var limBot = botLimits().maxChannelsPerBot;
+    if (userbotBoundChannelCount(state, bot) >= limBot) {
+      return (
+        "该采集号加入的频道已达上限（采集+分发合计 " + limBot + " 个），无法再加入。"
+      );
+    }
+    return null;
   }
 
   /**
-   * 有频道时禁止换绑/取消关联采集号。
-   * 返回 null 表示允许；否则返回阻断文案。
+   * 从本项目移除某采集号：若该号还挂着本项目频道则阻断。
+   * 兼容旧「换绑唯一号」调用：nextId 为空表示清空。
    */
   function userbotChangeBlockReason(project, nextId) {
-    var cur = project.userbotId || "";
+    var ids = projectUserbotIds(project);
     var next = nextId || "";
-    if (cur === next) return null;
-    if (!projectHasChannels(project)) return null;
-    return (
-      "本项目已绑定 " +
-      projectChannels(project).length +
-      " 个频道。请先解绑全部频道后，再更换或取消采集号。"
-    );
+    if (!next) {
+      if (!ids.length) return null;
+      if (!projectHasChannels(project)) return null;
+      return (
+        "本项目仍有 " +
+        projectChannels(project).length +
+        " 个频道绑定在采集号上。请先解绑频道，再移除采集号。"
+      );
+    }
+    if (ids.indexOf(next) !== -1) return null;
+    return null;
+  }
+
+  function attachBotToProject(state, project, bot) {
+    if (!project || !bot) return;
+    bot.projectId = project.id;
+    if (!project.userbotIds) project.userbotIds = [];
+    if (project.userbotIds.indexOf(bot.id) === -1) project.userbotIds.push(bot.id);
+    syncProjectUserbotFields(project, state.userbots);
+  }
+
+  function detachBotFromProject(state, project, botId) {
+    if (!project) return;
+    project.userbotIds = projectUserbotIds(project).filter(function (id) {
+      return id !== botId;
+    });
+    var bot = (state.userbots || []).find(function (b) {
+      return b.id === botId;
+    });
+    if (bot && bot.projectId === project.id) bot.projectId = "";
+    syncProjectUserbotFields(project, state.userbots);
   }
 
   /** 内容通道接通：状态完成，前置意向（自动流等）开始生效 */
@@ -731,6 +926,7 @@
   global.FZStore = {
     KEY: KEY,
     FEATURES: FEATURES,
+    BOT_LIMITS: BOT_LIMITS,
     DEMO_EXT_CHANNELS: DEMO_EXT_CHANNELS,
     DEMO_USERBOTS: DEMO_USERBOTS,
     DEMO_ROLES: DEMO_ROLES,
@@ -749,10 +945,20 @@
     userbotStatusLabel: userbotStatusLabel,
     projectChannels: projectChannels,
     projectHasChannels: projectHasChannels,
+    projectUserbotIds: projectUserbotIds,
+    botsForProject: botsForProject,
     projectsUsingExt: projectsUsingExt,
     projectsUsingUserbot: projectsUsingUserbot,
     userbotBoundChannelCount: userbotBoundChannelCount,
+    botsOnChannelCount: botsOnChannelCount,
+    channelOwnerProject: channelOwnerProject,
+    botLimits: botLimits,
+    addBotToProjectBlockReason: addBotToProjectBlockReason,
+    botJoinChannelBlockReason: botJoinChannelBlockReason,
     userbotChangeBlockReason: userbotChangeBlockReason,
+    attachBotToProject: attachBotToProject,
+    detachBotFromProject: detachBotFromProject,
+    syncProjectUserbotFields: syncProjectUserbotFields,
     deriveStatus: deriveStatus,
     markContentConnected: markContentConnected,
     findProject: findProject,
