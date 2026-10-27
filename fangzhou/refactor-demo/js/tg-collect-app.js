@@ -1,275 +1,231 @@
-/* TG 采集配置：采集号↔频道 的唯一操作台（连接/断开、挂频道、解绑） */
+/* TG 采集：项目 | 公共池 · 左号右详情（真实写 store） */
 (function () {
-  var projectId = new URLSearchParams(location.search).get("project") || "";
-  var focusBot = new URLSearchParams(location.search).get("bot") || "";
+  var R = window.FZTgCollectRender;
+  var M = window.FZTgCollectModal;
+  var q = new URLSearchParams(location.search);
+  var contextId = q.get("project") || q.get("ctx") || FZStore.PUBLIC_POOL_ID;
+  var selectedBotId = q.get("bot") || "";
+  var routeView =
+    q.get("routeView") === "by_target" || sessionStorage.getItem("fz_tg_route_view") === "by_target"
+      ? "by_target"
+      : "by_source";
+  var routeQuery = "";
+  var routeHealth = "";
+  var chQuery = "";
+  var chRole = "all";
+  var chPage = 1;
 
-  function esc(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/"/g, "&quot;");
+  function resetFilters() {
+    routeQuery = "";
+    routeHealth = "";
+    chQuery = "";
+    chRole = "all";
+    chPage = 1;
   }
 
-  function paintProjectSelect(st) {
-    var sel = document.getElementById("tg-project");
-    if (!sel) return;
-    var list = st.projects || [];
-    if (!projectId && list[0]) projectId = list[0].id;
-    sel.innerHTML = list
-      .map(function (p) {
-        return (
-          '<option value="' +
-          esc(p.id) +
-          '"' +
-          (p.id === projectId ? " selected" : "") +
-          ">" +
-          esc(p.name) +
-          "</option>"
-        );
-      })
-      .join("");
-    if (!list.length) {
-      sel.innerHTML = '<option value="">暂无项目</option>';
-      projectId = "";
-    }
+  function syncUrl() {
+    var u = "./tg-collect.html?project=" + encodeURIComponent(contextId);
+    if (selectedBotId) u += "&bot=" + encodeURIComponent(selectedBotId);
+    if (routeView === "by_target") u += "&routeView=by_target";
+    history.replaceState(null, "", u);
   }
 
-  function channelsForBot(p, botId) {
-    return (p.boundChannels || []).filter(function (c) {
-      return c.botId === botId;
-    });
+  function ctx(st) {
+    return FZStore.findProject(st, contextId);
   }
 
-  function render() {
+  function paint() {
     var st = FZStore.read();
+    FZStore.ensureDemoAssets(st);
+    var c = ctx(st);
+    if (!c) {
+      contextId = FZStore.PUBLIC_POOL_ID;
+      c = ctx(st);
+    }
     var lim = FZStore.botLimits();
-    paintProjectSelect(st);
-    var root = document.getElementById("tg-root");
-    if (!root) return;
-    if (!projectId) {
-      root.innerHTML =
-        '<div class="card card-pad muted">请先创建项目，再在此配置采集号与频道。</div>';
-      return;
+    var bots = FZStore.botsForProject(st, contextId);
+    if (!selectedBotId || !bots.some(function (b) { return b.id === selectedBotId; })) {
+      selectedBotId = bots[0] ? bots[0].id : "";
     }
-    var p = FZStore.findProject(st, projectId);
-    if (!p) {
-      root.innerHTML = '<div class="card card-pad muted">项目不存在。</div>';
-      return;
-    }
-    var bots = FZStore.botsForProject(st, projectId);
-    var lead = document.getElementById("tg-lead");
-    if (lead) {
-      lead.textContent =
-        "当前项目：「" +
-        p.name +
-        "」。单号频道 ≤" +
-        lim.maxChannelsPerBot +
-        "；同频道最多 " +
-        lim.maxBotsPerChannel +
-        " 个号；跨项目不可重复进同一频道。";
-    }
+    var bot = bots.find(function (b) {
+      return b.id === selectedBotId;
+    });
 
-    var cards =
-      bots.length === 0
-        ? '<div class="card card-pad muted">本项目还没有采集号。可在下方添加，或到项目详情「TG 采集号」添加。</div>'
-        : '<div class="fz-card-grid">' +
-          bots
-            .map(function (b) {
-              var lab = FZStore.userbotStatusLabel(b);
-              var chs = channelsForBot(p, b.id);
-              var connected = b.status === "connected" || b.status === "ok";
-              var markCls = connected
-                ? "is-on"
-                : b.status === "disabled"
-                  ? "is-off"
-                  : "is-warn";
-              var chList =
-                chs.length === 0
-                  ? '<p class="muted" style="font-size:12px;margin:0">尚未挂频道</p>'
-                  : '<ul class="tg-ch-list">' +
-                    chs
-                      .map(function (c) {
-                        return (
-                          "<li><span><strong>" +
-                          esc(c.title) +
-                          "</strong> · " +
-                          (c.role === "push" ? "分发" : "采集") +
-                          '</span><button type="button" class="btn btn-ghost btn-sm" data-unbind="' +
-                          esc(c.id) +
-                          '">解绑</button></li>'
-                        );
-                      })
-                      .join("") +
-                    "</ul>";
-              var focus = focusBot === b.id ? " is-focus" : "";
-              return (
-                '<article class="ub-card' +
-                focus +
-                '" data-bot="' +
-                esc(b.id) +
-                '">' +
-                '<div class="ub-card-top">' +
-                '<div class="ub-mark ' +
-                markCls +
-                '">采</div>' +
-                '<div class="ub-main">' +
-                '<h2 class="ub-title">' +
-                esc(b.name) +
-                "</h2>" +
-                '<p class="ub-status ' +
-                markCls +
-                '">' +
-                esc(lab.text) +
-                "</p>" +
-                '<p class="ub-phone">' +
-                esc(b.phoneHint || "") +
-                "</p>" +
-                '<p class="ub-stats">已挂 ' +
-                chs.length +
-                " / " +
-                lim.maxChannelsPerBot +
-                " 个频道</p>" +
-                chList +
-                "</div></div>" +
-                '<div class="ub-actions">' +
-                (b.status !== "disabled"
-                  ? '<button type="button" class="btn' +
-                    (connected ? "" : " btn-primary") +
-                    '" data-toggle="' +
-                    esc(b.id) +
-                    '">' +
-                    (connected ? "断开" : "连接") +
-                    "</button>"
-                  : "") +
-                '<button type="button" class="btn" data-add-ch="' +
-                esc(b.id) +
-                '" data-role="collect">+ 采集频道</button>' +
-                '<button type="button" class="btn btn-ghost" data-add-ch="' +
-                esc(b.id) +
-                '" data-role="push">+ 分发频道</button>' +
-                "</div></article>"
-              );
-            })
-            .join("") +
-          "</div>";
+    document.getElementById("tg-ctx").innerHTML = R.contextCards(st, contextId);
+    var prevCh = document.getElementById("tg-ch-search");
+    var prevRr = document.getElementById("tg-route-search");
+    var keepCh = document.activeElement === prevCh;
+    var keepRr = document.activeElement === prevRr;
+    var caretCh = keepCh ? prevCh.selectionStart : null;
+    var caretRr = keepRr ? prevRr.selectionStart : null;
 
-    root.innerHTML =
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">' +
-      '<button type="button" class="btn btn-primary" id="tg-add-bot">+ 添加采集号</button>' +
-      '<a class="btn btn-ghost" href="./project-edit.html?id=' +
-      encodeURIComponent(projectId) +
-      '&tab=channel">回项目「TG 采集号」</a></div>' +
-      cards;
+    document.getElementById("tg-bot-list").innerHTML = R.botList(bots, selectedBotId);
+    document.getElementById("tg-detail").innerHTML = R.detail(c, bot, lim, {
+      routeView: routeView,
+      routeQuery: routeQuery,
+      routeHealth: routeHealth,
+      chQuery: chQuery,
+      chRole: chRole,
+      chPage: chPage
+    });
+
+    function bindSearch(el, apply) {
+      if (!el) return;
+      el.oninput = function () {
+        var val = this.value;
+        clearTimeout(el._fzTimer);
+        el._fzTimer = setTimeout(function () {
+          apply(val);
+          paint();
+        }, 180);
+      };
+    }
+    bindSearch(document.getElementById("tg-ch-search"), function (val) {
+      chQuery = val;
+      chPage = 1;
+    });
+    bindSearch(document.getElementById("tg-route-search"), function (val) {
+      routeQuery = val;
+    });
+    if (keepCh) {
+      var s1 = document.getElementById("tg-ch-search");
+      if (s1) {
+        s1.focus();
+        try {
+          s1.setSelectionRange(caretCh, caretCh);
+        } catch (err) {}
+      }
+    }
+    if (keepRr) {
+      var s2 = document.getElementById("tg-route-search");
+      if (s2) {
+        s2.focus();
+        try {
+          s2.setSelectionRange(caretRr, caretRr);
+        } catch (err) {}
+      }
+    }
+    syncUrl();
   }
 
-  function onRootClick(e) {
+  function onWorkspaceClick(e) {
+    var viewBtn = e.target.closest("[data-route-view]");
+    if (viewBtn) {
+      routeView =
+        viewBtn.getAttribute("data-route-view") === "by_target" ? "by_target" : "by_source";
+      try {
+        sessionStorage.setItem("fz_tg_route_view", routeView);
+      } catch (err) {}
+      paint();
+      return;
+    }
+    var healthBtn = e.target.closest("[data-route-health]");
+    if (healthBtn) {
+      var nextH = healthBtn.getAttribute("data-route-health") || "";
+      routeHealth = routeHealth === nextH ? "" : nextH;
+      paint();
+      return;
+    }
+    var filterBtn = e.target.closest("[data-ch-filter]");
+    if (filterBtn) {
+      chRole = filterBtn.getAttribute("data-ch-filter") || "all";
+      chPage = 1;
+      paint();
+      return;
+    }
+    var pageBtn = e.target.closest("[data-ch-page]");
+    if (pageBtn && !pageBtn.disabled) {
+      var p = parseInt(pageBtn.getAttribute("data-ch-page"), 10);
+      if (p >= 1) {
+        chPage = p;
+        paint();
+      }
+      return;
+    }
+    var pick = e.target.closest("[data-pick-bot]");
+    if (pick) {
+      selectedBotId = pick.getAttribute("data-pick-bot");
+      resetFilters();
+      paint();
+      return;
+    }
     if (e.target.id === "tg-add-bot" || e.target.closest("#tg-add-bot")) {
       var st0 = FZStore.read();
-      var block0 = FZStore.addBotToProjectBlockReason(st0, projectId);
+      var block0 = FZStore.addBotToProjectBlockReason(st0, contextId);
       if (block0) {
         FZShell.toast(block0, "err");
         return;
       }
-      var proj0 = FZStore.findProject(st0, projectId);
+      var c0 = ctx(st0);
       FZTgWizard.open({
-        title: "添加采集号 · " + (proj0 ? proj0.name : ""),
+        title: "添加采集号 · " + (c0 ? c0.name : ""),
         onSuccess: function (bot) {
           var s2 = FZStore.read();
-          var p2 = FZStore.findProject(s2, projectId);
+          var p2 = ctx(s2);
           if (!p2) return;
-          var again = FZStore.addBotToProjectBlockReason(s2, projectId);
+          var again = FZStore.addBotToProjectBlockReason(s2, contextId);
           if (again) {
             FZShell.toast(again, "err");
             return;
           }
           if (!s2.userbots) s2.userbots = [];
-          bot.status = bot.status || "connected";
+          bot.status = "connected";
+          bot.monitoring = false;
           s2.userbots.push(bot);
           FZStore.attachBotToProject(s2, p2, bot);
           FZStore.write(s2);
-          FZShell.toast("采集号已添加", "ok");
-          render();
+          selectedBotId = bot.id;
+          FZShell.toast("采集号已添加并连接会话", "ok");
+          paint();
         }
       });
       return;
     }
 
-    var t = e.target.closest("[data-toggle],[data-unbind],[data-add-ch]");
+    /* 行内启用/解绑优先于整行「未分配」点击，避免点不到 */
+    var rowAction = e.target.closest("[data-ch-active],[data-unbind]");
+    var t =
+      rowAction ||
+      e.target.closest(
+        "[data-toggle],[data-add-ch],[data-sync-ch],[data-monitor],[data-add-route],[data-del-route],[data-del-edge],[data-ch-assign]"
+      );
     if (!t) return;
-    var st = FZStore.read();
-    var p = FZStore.findProject(st, projectId);
-    if (!p) return;
-
-    if (t.getAttribute("data-toggle")) {
-      var bid = t.getAttribute("data-toggle");
-      var bot = (st.userbots || []).find(function (b) {
-        return b.id === bid;
-      });
-      if (!bot) return;
-      var on = bot.status === "connected" || bot.status === "ok";
-      bot.status = on ? "disconnected" : "connected";
-      FZStore.write(st);
-      FZShell.toast(on ? "已断开（演示）" : "已连接（演示）", "ok");
-      render();
-      return;
+    if (rowAction) {
+      e.preventDefault();
+      e.stopPropagation();
     }
-
-    if (t.getAttribute("data-unbind")) {
-      var cid = t.getAttribute("data-unbind");
-      p.boundChannels = (p.boundChannels || []).filter(function (c) {
-        return c.id !== cid;
-      });
-      FZStore.upsertProject(st, p);
-      FZStore.write(st);
-      FZShell.toast("已解绑频道", "ok");
-      render();
-      return;
-    }
-
-    if (t.getAttribute("data-add-ch")) {
-      var botId = t.getAttribute("data-add-ch");
-      var role = t.getAttribute("data-role") || "collect";
-      var chId = FZStore.uid("ch");
-      var block = FZStore.botJoinChannelBlockReason(st, botId, chId, projectId);
-      if (block) {
-        FZShell.toast(block, "err");
-        return;
-      }
-      if (!p.boundChannels) p.boundChannels = [];
-      p.boundChannels.push({
-        id: chId,
-        title: "@demo_" + Math.random().toString(36).slice(2, 7),
-        botId: botId,
-        role: role === "push" ? "push" : "collect",
-        note: ""
-      });
-      if (role !== "push") p.hasCollectSource = true;
-      FZStore.upsertProject(st, p);
-      FZStore.write(st);
-      FZShell.toast(role === "push" ? "已添加分发频道（演示）" : "已添加采集频道（演示）", "ok");
-      render();
-    }
+    FZTgCollectOps.handle(t, {
+      getContextId: function () {
+        return contextId;
+      },
+      getCtx: ctx,
+      paint: paint,
+      modal: M
+    });
   }
 
   function boot() {
     FZShell.boot({ active: "c_tg" });
-    document.getElementById("tg-project").addEventListener("change", function () {
-      projectId = this.value || "";
-      focusBot = "";
-      history.replaceState(
-        null,
-        "",
-        "./tg-collect.html" + (projectId ? "?project=" + encodeURIComponent(projectId) : "")
-      );
-      render();
+    M.bind({
+      getContextId: function () {
+        return contextId;
+      },
+      onDone: paint
     });
-    document.getElementById("tg-root").addEventListener("click", onRootClick);
-    render();
+    document.getElementById("tg-ctx").addEventListener("click", function (e) {
+      var card = e.target.closest("[data-pick-ctx]");
+      if (!card) return;
+      var next = card.getAttribute("data-pick-ctx") || FZStore.PUBLIC_POOL_ID;
+      if (next === contextId) return;
+      contextId = next;
+      selectedBotId = "";
+      resetFilters();
+      paint();
+    });
+    document.getElementById("tg-workspace").addEventListener("click", onWorkspaceClick);
+    paint();
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
-  } else {
-    boot();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
 })();

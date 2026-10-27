@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>项目管理 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261026aspect2" />
+  <link rel="stylesheet" href="../css/app.css?v=20261027pager" />
 </head>
 <body>
   <div class="app">
@@ -22,17 +22,21 @@
           创建时配齐配置 → 开发接入；接通后即完成。「项目详情」可改信息与查看对接材料；待接通另有对接入口。
         </p>
         <div class="proj-list fz-card-grid" id="project-list"></div>
+        <div id="project-pager"></div>
       </div>
     </div>
   </div>
-  <script src="../js/store.js?v=20261026e"></script>
-  <script src="../js/shell.js?v=20261027tg"></script>
+  <script src="../js/store.js?v=20261027tgws"></script>
+  <script src="../js/shell.js?v=20261027collect"></script>
+  <script src="../js/pager.js?v=20261027pager"></script>
   <script src="../js/project-union.js"></script>
   <script>
     FZShell.boot({ active: "projects" });
     var MARK = { chigua: "瓜", video: "视", short_drama: "剧" };
-    var s = FZStore.read();
     var list = document.getElementById("project-list");
+    var pagerBox = document.getElementById("project-pager");
+    var page = 1;
+    var pageSize = FZPager.DEFAULT;
 
     function factRow(label, value, valueCls) {
       if (value == null || value === "") return "";
@@ -47,81 +51,110 @@
       );
     }
 
-    if (!s.projects.length) {
-      list.innerHTML =
-        '<div class="card card-pad muted">还没有项目。<a href="./project-setup.html?new=1">创建第一个项目</a></div>';
-    } else {
-      list.innerHTML = s.projects
-        .map(function (p) {
-          FZProjectUnion.normalizeProject(p);
-          var st = FZStore.projectStatusLabel(p);
-          var type = p.siteType || "chigua";
-          var typeLabel = FZProjectUnion.siteTypeLabel(type);
-          var channelOn = !!p.contentActivated;
-          var auto = !!(p.autoPush || p.autoflow);
-          var chN = FZStore.projectChannels(p).length;
-          var appId = (p.creds && p.creds.appId) || "";
-          var coverW = p.coverWidth;
-          var coverH = p.coverHeight;
-          var actions =
-            '<a class="btn" href="./project-edit.html?id=' +
-            encodeURIComponent(p.id) +
-            '">项目详情</a>';
-          if (p.status === "pending_activate") {
-            actions +=
-              '<a class="btn btn-primary" href="./project-connect.html?id=' +
-              encodeURIComponent(p.id) +
-              '">对接</a>';
-          }
-          var facts =
-            factRow("内容通道", channelOn ? "已接通" : "待接通") +
-            factRow("推送", auto ? "自动" : "待人工");
-          if (coverW && coverH) {
-            facts += factRow("封面", coverW + " × " + coverH + " px");
-          }
-          if (p.userbotName) {
-            facts += factRow("采集号", p.userbotName);
-          } else {
-            facts += factRow("采集号", "未关联", "is-muted");
-          }
-          facts += factRow("已绑频道", chN + " 个");
-          if (appId) {
-            facts += factRow("App ID", appId, "is-mono");
-          }
-          return (
-            '<article class="proj-card">' +
-            '<div class="proj-card-head">' +
-            '<div class="proj-mark is-' +
-            type +
-            '" aria-hidden="true">' +
-            (MARK[type] || "项") +
-            "</div>" +
-            '<div class="proj-card-head-main">' +
-            '<h2 class="proj-title"><a href="./project-edit.html?id=' +
-            encodeURIComponent(p.id) +
-            '">' +
-            p.name +
-            "</a></h2>" +
-            '<div class="proj-tags"><span class="proj-tag">' +
-            typeLabel +
-            "</span></div>" +
-            "</div>" +
-            '<div class="proj-status"><span class="tag ' +
-            st.cls +
-            '">' +
-            st.text +
-            "</span></div>" +
-            "</div>" +
-            '<div class="proj-facts">' +
-            facts +
-            "</div>" +
-            '<div class="proj-actions">' +
-            actions +
-            "</div></article>"
-          );
-        })
-        .join("");
+    function cardHtml(p) {
+      FZProjectUnion.normalizeProject(p);
+      var st = FZStore.projectStatusLabel(p);
+      var type = p.siteType || "chigua";
+      var typeLabel = FZProjectUnion.siteTypeLabel(type);
+      var channelOn = !!p.contentActivated;
+      var auto = !!(p.autoPush || p.autoflow);
+      var chN = FZStore.projectChannels(p).length;
+      var appId = (p.creds && p.creds.appId) || "";
+      var coverW = p.coverWidth;
+      var coverH = p.coverHeight;
+      var actions =
+        '<a class="btn" href="./project-edit.html?id=' +
+        encodeURIComponent(p.id) +
+        '">项目详情</a>';
+      if (p.status === "pending_activate") {
+        actions +=
+          '<a class="btn btn-primary" href="./project-connect.html?id=' +
+          encodeURIComponent(p.id) +
+          '">对接</a>';
+      }
+      var facts =
+        factRow("内容通道", channelOn ? "已接通" : "待接通") +
+        factRow("推送", auto ? "自动" : "待人工");
+      if (coverW && coverH) {
+        facts += factRow("封面", coverW + " × " + coverH + " px");
+      }
+      if (p.userbotName) {
+        facts += factRow("采集号", p.userbotName);
+      } else {
+        facts += factRow("采集号", "未关联", "is-muted");
+      }
+      facts += factRow("已绑频道", chN + " 个");
+      if (appId) {
+        facts += factRow("App ID", appId, "is-mono");
+      }
+      return (
+        '<article class="proj-card">' +
+        '<div class="proj-card-head">' +
+        '<div class="proj-mark is-' +
+        type +
+        '" aria-hidden="true">' +
+        (MARK[type] || "项") +
+        "</div>" +
+        '<div class="proj-card-head-main">' +
+        '<h2 class="proj-title"><a href="./project-edit.html?id=' +
+        encodeURIComponent(p.id) +
+        '">' +
+        p.name +
+        "</a></h2>" +
+        '<div class="proj-tags"><span class="proj-tag">' +
+        typeLabel +
+        "</span></div>" +
+        "</div>" +
+        '<div class="proj-status"><span class="tag ' +
+        st.cls +
+        '">' +
+        st.text +
+        "</span></div>" +
+        "</div>" +
+        '<div class="proj-facts">' +
+        facts +
+        "</div>" +
+        '<div class="proj-actions">' +
+        actions +
+        "</div></article>"
+      );
     }
+
+    function paint() {
+      var s = FZStore.read();
+      var projects = FZStore.businessProjects
+        ? FZStore.businessProjects(s)
+        : (s.projects || []).filter(function (p) {
+            return !p.isPublicPool;
+          });
+      if (!projects.length) {
+        list.innerHTML =
+          '<div class="card card-pad muted">还没有项目。<a href="./project-setup.html?new=1">创建第一个项目</a></div>';
+        pagerBox.innerHTML = "";
+        return;
+      }
+      var slice = FZPager.slice(projects, page, pageSize);
+      page = slice.page;
+      pageSize = slice.pageSize;
+      list.innerHTML = slice.items.map(cardHtml).join("");
+      pagerBox.innerHTML = FZPager.html({
+        total: slice.total,
+        page: slice.page,
+        pageSize: slice.pageSize
+      });
+    }
+
+    FZPager.bind(pagerBox, {
+      getState: function () {
+        return { page: page, pageSize: pageSize };
+      },
+      setState: function (next) {
+        if (next.page != null) page = next.page;
+        if (next.pageSize != null) pageSize = next.pageSize;
+      },
+      onChange: paint
+    });
+    paint();
   </script>
 </body>
 </html>

@@ -83,11 +83,24 @@
       label: "采集",
       ico: "⇩",
       children: [
-        { id: "c_web", label: "网站采集配置", stub: "网站采集配置" },
-        { id: "c_web_log", label: "网站采集记录", stub: "网站采集记录" },
-        { id: "c_tg", label: "TG 采集配置", href: "pages/tg-collect.html", done: true },
-        { id: "c_review", label: "素材审核", stub: "素材审核" },
-        { id: "c_err", label: "采集异常", stub: "采集异常" }
+        {
+          id: "c_tg",
+          label: "TG 采集",
+          href: "pages/tg-collect.html",
+          done: true
+        },
+        {
+          id: "c_web",
+          label: "网站采集",
+          href: "pages/website-collect.html",
+          done: true
+        },
+        {
+          id: "c_mat",
+          label: "素材管理",
+          href: "pages/materials.html",
+          done: true
+        }
       ]
     },
     {

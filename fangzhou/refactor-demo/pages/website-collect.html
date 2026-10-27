@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>网站采集 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css?v=20261027wc-rules" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <div class="topbar">
+        <h1>网站采集</h1>
+        <div class="topbar-actions">
+          <button type="button" class="btn btn-primary" id="btn-add-site">+ 添加网站</button>
+          <div id="top-user"></div>
+        </div>
+      </div>
+      <div class="content">
+        <p class="proj-page-lead">
+          上方为站点配置（低频）；点选某站后下方看该站采集记录。一站一种类型，瓜/视频/短剧均可，只绑同类型项目且最多 5 个（承接原外站多选）。状态机与「启动采集」开关分开；同一页面不可进两条配置。
+        </p>
+
+        <div class="wc-card-head">
+          <span class="wc-card-head-title">采集配置</span>
+          <span class="muted" style="font-size:12px">一排约 5 张；点卡片筛记录，编辑进弹窗</span>
+        </div>
+        <div class="wc-site-grid" id="wc-sites"></div>
+
+        <div class="wc-record-head">
+          <h2 class="wc-section-title" id="wc-record-title">采集记录</h2>
+          <div class="list-toolbar-row" id="wc-filters"></div>
+        </div>
+        <div id="wc-records"><p class="muted">加载中…</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 站点：新增 / 编辑 / 详情 -->
+  <div class="modal-mask" id="wc-site-modal" hidden>
+    <div class="modal" style="max-width:520px">
+      <h2 id="wc-site-modal-title">添加网站</h2>
+      <p class="hint" id="wc-site-modal-hint" style="margin-top:0"></p>
+      <div class="field"><label>站点名称 *</label><input id="wc-f-name" maxlength="120" placeholder="例如：示例短剧站" /></div>
+      <div class="field">
+        <label>类型 *</label>
+        <select id="wc-f-type">
+          <option value="chigua">瓜站</option>
+          <option value="video">视频站</option>
+          <option value="short_drama" selected>短剧站</option>
+        </select>
+        <div id="wc-f-type-ro" class="muted" hidden style="font-size:13px"></div>
+        <p class="hint" style="margin:6px 0 0">一站一种类型；创建后不可改。瓜/视频/短剧均可；只能绑定同类型项目，最多 5 个。</p>
+      </div>
+      <div class="field"><label>主域名 *</label><input id="wc-f-url" type="url" placeholder="https://example.com" /></div>
+      <div class="field"><label>具体网页链接（每行一个，最多 50 个）*</label><textarea id="wc-f-pages" rows="4" placeholder="https://example.com/list"></textarea>
+        <p class="hint" style="margin:6px 0 0">同一页面不能出现在两条配置里；要发到更多项目，请编辑原配置加绑。</p>
+      </div>
+      <div class="field"><label>采集频率</label>
+        <select id="wc-f-interval">
+          <option value="30">每 30 分钟</option>
+          <option value="60" selected>每 1 小时</option>
+          <option value="180">每 3 小时</option>
+          <option value="360">每 6 小时</option>
+          <option value="720">每 12 小时</option>
+          <option value="1440">每天</option>
+        </select>
+      </div>
+      <div class="field">
+        <label id="wc-f-targets-label">绑定项目（同类型，最多 5 个）</label>
+        <div class="wc-bind-box" id="wc-f-targets"></div>
+        <p class="hint" style="margin:6px 0 0">采到的料进素材管理，再按绑定项目分流。承接现网「外站多选 ≤5」，此处改为同类型项目最多 5 个。</p>
+      </div>
+      <div class="field wc-switch-row">
+        <label class="check-inline">
+          <input type="checkbox" id="wc-f-collect" checked /> 启动采集
+        </label>
+        <button type="button" class="field-tip" aria-label="字段说明">
+          <span class="field-tip-ico" aria-hidden="true">?</span>
+          <span class="field-tip-bubble" role="tooltip">生效中时是否参与定时采集。卡片上的「启动 / 暂停」是整站状态；此处是配置开关。</span>
+        </button>
+      </div>
+      <div class="field wc-switch-row">
+        <label class="check-inline">
+          <input type="checkbox" id="wc-f-dedup" checked /> 开启判重
+        </label>
+        <button type="button" class="field-tip" aria-label="字段说明">
+          <span class="field-tip-ico" aria-hidden="true">?</span>
+          <span class="field-tip-bubble" role="tooltip">开启后重复素材会按规则淘汰；关闭则命中重复也照常入库（对齐现网 dedup_enabled）。</span>
+        </button>
+      </div>
+      <div class="field"><label>备注</label><textarea id="wc-f-notes" rows="2" placeholder="选填"></textarea></div>
+      <div class="field" id="wc-f-status-row" hidden>
+        <label>申请状态</label>
+        <div id="wc-f-status-text" class="muted" style="font-size:13px"></div>
+      </div>
+      <div class="modal-actions" id="wc-site-modal-actions"></div>
+    </div>
+  </div>
+
+  <!-- 分片 / 下载进度 -->
+  <div class="modal-mask" id="wc-prog-modal" hidden>
+    <div class="modal" style="max-width:480px">
+      <h2>分片进度 / 下载大小</h2>
+      <div id="wc-prog-body"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="wc-prog-close">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/store.js?v=20261027ch"></script>
+  <script src="../js/shell.js?v=20261027collect"></script>
+  <script src="../js/pager.js?v=20261027pager"></script>
+  <script src="../js/website-collect-data.js?v=20261027wc-rules"></script>
+  <script src="../js/website-collect-render.js?v=20261027wc-rules"></script>
+  <script src="../js/website-collect-form.js?v=20261027wc-rules"></script>
+  <script src="../js/website-collect-modal.js?v=20261027wc-rules"></script>
+  <script src="../js/website-collect-app.js?v=20261027wc-rules"></script>
+</body>
+</html>

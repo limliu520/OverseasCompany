@@ -7,9 +7,12 @@
   /** 子账号弹层：custom | roleId；改权限树时自动回 custom */
   var subPresetId = "custom";
   var applyingPreset = false;
+  var page = 1;
+  var pageSize = window.FZPager ? window.FZPager.DEFAULT : 20;
 
   function setTab(next) {
     tab = next;
+    page = 1;
     history.replaceState(null, "", "./subs.html" + (tab === "roles" ? "?tab=roles" : ""));
     document.getElementById("tab-subs").className =
       "btn" + (tab === "subs" ? " btn-primary" : "");
@@ -22,6 +25,16 @@
     document.getElementById("btn-primary-act").textContent =
       tab === "subs" ? "+ 创建子账号" : "+ 新建岗位";
     renderList();
+  }
+
+  function paintPager(total) {
+    var box = document.getElementById("list-pager");
+    if (!box || !window.FZPager) return;
+    if (!total) {
+      box.innerHTML = "";
+      return;
+    }
+    box.innerHTML = FZPager.html({ total: total, page: page, pageSize: pageSize });
   }
 
   function esc(s) {
@@ -83,9 +96,15 @@
     if (!s.subs.length) {
       box.innerHTML =
         '<div class="card card-pad muted sub-empty">还没有子账号。可先到「岗位」Tab 建合集，也可直接自定义权限创建。</div>';
+      paintPager(0);
       return;
     }
-    box.innerHTML = s.subs
+    var slice = window.FZPager
+      ? FZPager.slice(s.subs, page, pageSize)
+      : { items: s.subs, total: s.subs.length, page: 1, pageSize: s.subs.length };
+    page = slice.page;
+    pageSize = slice.pageSize;
+    box.innerHTML = slice.items
       .map(function (u) {
         var on = !u.disabled;
         return (
@@ -137,6 +156,7 @@
         );
       })
       .join("");
+    paintPager(slice.total);
     box.querySelectorAll("[data-edit-sub]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         openSubModal(btn.getAttribute("data-edit-sub"));
@@ -176,9 +196,15 @@
     if (!s.roles.length) {
       box.innerHTML =
         '<div class="card card-pad muted sub-empty">还没有岗位。先建一个权限包，创建子账号时可选。</div>';
+      paintPager(0);
       return;
     }
-    box.innerHTML = s.roles
+    var slice = window.FZPager
+      ? FZPager.slice(s.roles, page, pageSize)
+      : { items: s.roles, total: s.roles.length, page: 1, pageSize: s.roles.length };
+    page = slice.page;
+    pageSize = slice.pageSize;
+    box.innerHTML = slice.items
       .map(function (r) {
         var used = roleUserCount(r.name, s.subs);
         return (
@@ -213,6 +239,7 @@
         );
       })
       .join("");
+    paintPager(slice.total);
     box.querySelectorAll("[data-edit]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         openRoleModal(btn.getAttribute("data-edit"));
@@ -500,5 +527,17 @@
     FZShell.toast("岗位已保存");
   });
 
+  if (window.FZPager) {
+    FZPager.bind(document.getElementById("list-pager"), {
+      getState: function () {
+        return { page: page, pageSize: pageSize };
+      },
+      setState: function (next) {
+        if (next.page != null) page = next.page;
+        if (next.pageSize != null) pageSize = next.pageSize;
+      },
+      onChange: renderList
+    });
+  }
   setTab(tab);
 })();

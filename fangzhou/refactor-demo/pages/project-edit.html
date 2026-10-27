@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>项目详情 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261027tg" />
+  <link rel="stylesheet" href="../css/app.css?v=20261027ubcard" />
 </head>
 <body>
   <div class="app">
@@ -44,7 +44,7 @@
   </div>
 
   <script src="../js/store.js?v=20261027ch"></script>
-  <script src="../js/shell.js?v=20261027tg"></script>
+  <script src="../js/shell.js?v=20261027collect"></script>
   <script src="../js/article-defaults.js?v=20261026r"></script>
   <script src="../js/media-config.js?v=20261026mw"></script>
   <script src="../js/pick-cards.js"></script>
@@ -408,7 +408,7 @@
         "./tg-collect.html?project=" + encodeURIComponent(p.id);
       var cards =
         bots.length === 0
-          ? '<p class="ch-empty">本项目还没有采集号。可在此新建；挂频道、连接/断开请到「采集 → TG 采集配置」。</p>'
+          ? '<p class="ch-empty">本项目还没有采集号。可在此新建；挂频道、连接/监听请到「采集 → TG 采集」。</p>'
           : '<div class="fz-card-grid ch-bot-cards">' +
             bots
               .map(function (b) {
@@ -422,22 +422,6 @@
                   : b.status === "disabled"
                     ? "is-off"
                     : "is-warn";
-                var chHtml =
-                  chs.length === 0
-                    ? '<p class="muted" style="font-size:12px;margin:0">尚未挂频道</p>'
-                    : '<ul class="tg-ch-list is-readonly">' +
-                      chs
-                        .map(function (c) {
-                          return (
-                            "<li><span><strong>" +
-                            c.title +
-                            "</strong> · " +
-                            (c.role === "push" ? "分发" : "采集") +
-                            "</span></li>"
-                          );
-                        })
-                        .join("") +
-                      "</ul>";
                 return (
                   '<article class="ub-card">' +
                   '<div class="ub-card-top">' +
@@ -452,6 +436,7 @@
                   markCls +
                   '">' +
                   lab.text +
+                  (b.monitoring ? " · 监听中" : " · 未监听") +
                   "</p>" +
                   '<p class="ub-phone">' +
                   (b.phoneHint || "") +
@@ -460,8 +445,7 @@
                   chs.length +
                   " / " +
                   lim.maxChannelsPerBot +
-                  " 个频道（只读）</p>" +
-                  chHtml +
+                  " 个频道</p>" +
                   "</div></div>" +
                   '<div class="ub-actions">' +
                   '<a class="btn btn-primary" href="' +
@@ -479,7 +463,7 @@
       return (
         '<div class="ch-wrap">' +
         '<div class="ch-sec-head" style="margin-bottom:12px">' +
-        "<div><p class=\"ch-lead\" style=\"margin:0\">本页只展示本项目采集号及已挂频道。连接/断开、加频道、解绑请到「采集 → TG 采集配置」（唯一操作台）。此处可新建采集号。</p>" +
+        "<div><p class=\"ch-lead\" style=\"margin:0\">本页只展示采集号核心信息（状态、挂载数）。频道明细与连接/监听请到「采集 → TG 采集」。此处可新建采集号。</p>" +
         '<p class="ch-sec-sub">本项目 ' +
         bots.length +
         " / " +
@@ -489,7 +473,7 @@
         '<button type="button" class="btn btn-primary" id="btn-new-bot">+ 添加采集号</button>' +
         '<a class="btn" href="' +
         tgHref +
-        '">打开 TG 采集配置</a></div></div>' +
+        '">打开 TG 采集</a></div></div>' +
         cards +
         "</div>"
       );
@@ -770,7 +754,7 @@
           });
           if (still) {
             FZShell.toast(
-              "该采集号仍挂有频道。请先到「采集 → TG 采集配置」解绑后再移出",
+              "该采集号仍挂有频道。请先到「采集 → TG 采集」解绑后再移出",
               "err"
             );
             return;

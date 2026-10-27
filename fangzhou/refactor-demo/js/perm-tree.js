@@ -45,11 +45,9 @@
       id: "collect",
       label: "采集",
       children: [
-        leaf("collect.web", "网站采集配置", ["view", "create", "edit", "delete", "enable"]),
-        leaf("collect.web_log", "网站采集记录", ["view", "export"]),
-        leaf("collect.tg", "TG 采集配置", ["view", "create", "edit", "delete"]),
-        leaf("collect.review", "素材审核", ["view", "approve", "edit"]),
-        leaf("collect.err", "采集异常", ["view", "edit"])
+        leaf("collect.tg", "TG 采集", ["view", "create", "edit", "delete"]),
+        leaf("collect.web", "网站采集", ["view", "create", "edit", "delete", "enable"]),
+        leaf("collect.materials", "素材管理", ["view", "approve", "edit", "delete"])
       ]
     },
     {

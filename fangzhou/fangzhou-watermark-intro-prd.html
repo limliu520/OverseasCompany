@@ -188,6 +188,7 @@
   #view-demo .toast.show { display: block; }
   #view-demo .body-hidden { display: none; }
   #view-demo .io-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  #view-demo .io-slot h4 { margin: 0 0 4px; font-size: 12px; color: #fca5a5; font-weight: 600; }
   @media (max-width: 640px) { #view-demo .io-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -202,7 +203,7 @@
 <div class="pane" id="view-prd">
   <div class="wrap">
     <h1>方舟 · 水印与片头片尾优化 PRD</h1>
-    <div class="meta">版本 v1.2 · 2026-10-27 · 方舟后台 · 项目管理 → 编辑项目 · 截图可点击放大 · Demo 红色标出本期新增</div>
+    <div class="meta">版本 v1.3 · 2026-10-27 · 方舟后台 · 项目管理 → 编辑项目 · 截图可点击放大 · Demo 红色标出本期新增</div>
 
     <h2>文档索引</h2>
     <nav class="toc" aria-label="文档索引">
@@ -221,7 +222,7 @@
 
     <h2 id="bg">需求背景</h2>
     <p>运营在「项目管理 → 编辑项目」配置水印时，现网靠「有没有上传素材」暗示是否生效，缺少明确开关；视频水印缺少镜像翻转、间歇显隐、移动速度等防盗与观感调节能力；图片经水印服务输出时固定 PNG，需要可改 JPG。</p>
-    <p>另需在成片前后拼接完整片头、片尾视频。片头片尾不是叠层水印，作为编辑项目内、水印区下方的独立模块配置。</p>
+    <p>另需在成片前后拼接完整片头、片尾视频。片头片尾不是叠层水印，作为编辑项目内、水印区下方的独立模块配置。因视频服务不支持横竖屏互转，片头、片尾须分别上传横屏与竖屏两套素材（启用两端时共四套）。</p>
     <div class="scope">
       <p>做：仅 CMS「编辑项目」弹窗；图片输出格式；各水印启用开关；视频水印镜像翻转与间歇展示；移动水印速度；片头片尾独立模块。</p>
       <p>不做：外站站点水印；把片头片尾算作水印类型；浏览器以外的其它入口。</p>
@@ -273,7 +274,7 @@
           <td>FZ-IO-01</td>
           <td>编辑项目 · 片头片尾</td>
           <td>片头片尾拼接</td>
-          <td>水印区下方独立模块；片头 / 片尾各上传完整视频；拼在正文视频前 / 后；不叠水印；分辨率服务端自适应；时长暂不限。</td>
+          <td>水印区下方独立模块；片头 / 片尾拼在正文前 / 后；不叠水印。因服务不支持横竖互转，片头、片尾各须横屏 + 竖屏两套（两端都开则共四套）；时长暂不限。</td>
           <td>不是水印类型。</td>
         </tr>
       </tbody>
@@ -435,34 +436,39 @@
     <div class="pair" id="fz-io-01">
       <figure>
         <img src="prd-screens/demo-intro-outro.png" alt="片头片尾独立模块" />
-        <figcaption>Demo：整块水印区下方的「片头片尾」模块；左右分别为片头、片尾上传。</figcaption>
+        <figcaption>Demo：片头片尾共四个上传位——片头横屏、片头竖屏、片尾横屏、片尾竖屏。</figcaption>
       </figure>
       <div>
         <div class="id">FZ-IO-01</div>
         <h2>片头片尾（独立模块）</h2>
         <h3>功能逻辑</h3>
-        <p>在编辑项目中、全部水印块下方，新增「片头片尾」模块。片头视频拼在正文视频之前，片尾拼在之后。只做拼接，不在片头片尾时段叠加本项目水印。</p>
+        <p>在编辑项目中、全部水印块下方，新增「片头片尾」模块。片头拼在正文视频之前，片尾拼在之后。只做拼接，不在片头片尾时段叠加本项目水印。</p>
+        <p>视频服务不支持把横屏片头/片尾自动变成竖屏（或反之）。运营须按成片方向分别上传横屏、竖屏素材。成片为横屏时用横屏套，为竖屏时用竖屏套。</p>
         <h3>业务规则</h3>
         <ul>
-          <li>片头、片尾各自可选：可只配一端，也可两端都配，也可都不配。</li>
+          <li>上传位固定四个：片头横屏、片头竖屏、片尾横屏、片尾竖屏。</li>
+          <li>片头、片尾仍可只配一端或都不配：不配片头则两个片头位都留空；不配片尾则两个片尾位都留空。</li>
+          <li>一旦要启用片头：片头横屏与片头竖屏都必须已上传，缺一不可。片尾同理。</li>
+          <li>不允许「只上传横屏、指望服务转成竖屏」；保存时若某一端只传了一向，Toast 说明缺哪一向。</li>
           <li>素材必须为视频（MP4 / MOV）；时长暂不设上限。</li>
-          <li>分辨率由服务端自适应到成片，运营无需配宽高。</li>
           <li>不是水印类型；无位置、无宽度比例、无镜像 / 间歇 / 速度。</li>
-          <li>模块总开关：关则不拼接，并隐藏下方片头/片尾配置区（保留已上传文件）。</li>
+          <li>模块总开关：关则不拼接，并隐藏下方四个上传位（保留已上传文件）。</li>
         </ul>
         <h3>页面交互</h3>
         <ul>
-          <li>标题「片头片尾」+ 说明「完整视频拼接在正文前后，不是叠层水印」。</li>
-          <li>总开关关闭时只留标题行；打开后展示片头 / 片尾上传区。</li>
-          <li>片头 / 片尾：上传、预览、移除；已加载显示文件名。</li>
+          <li>标题「片头片尾」+ 说明：须分别上传横屏、竖屏；服务不支持横竖互转；不是叠层水印。</li>
+          <li>总开关关闭时只留标题行；打开后展示 2×2 上传区。</li>
+          <li>每位：上传、预览、移除；已加载显示文件名。</li>
         </ul>
         <h3>异常</h3>
         <ul>
           <li>上传非视频：Toast「请上传 MP4 或 MOV 视频」；不写入。</li>
           <li>上传失败：Toast「上传失败，请重试」。</li>
+          <li>片头横屏或竖屏缺一（另一向已有）：Toast「片头需同时上传横屏和竖屏视频」，本次保存不生效。</li>
+          <li>片尾横屏或竖屏缺一（另一向已有）：Toast「片尾需同时上传横屏和竖屏视频」，本次保存不生效。</li>
         </ul>
         <h3>数据流转</h3>
-        <p>片头 / 片尾文件地址随项目保存；成片流水线在叠水印之外先/后拼接；片头片尾内容本身不再走添加水印。</p>
+        <p>四个文件地址随项目保存。成片时按正文视频方向选取对应朝向的片头/片尾再拼接；片头片尾内容本身不再走添加水印。</p>
       </div>
     </div>
 
@@ -518,8 +524,9 @@
           <td>FZ-IO-01</td>
           <td>
             <ul>
-              <li>位于全部水印块下方；可上传片头 / 片尾视频。</li>
-              <li>说明为拼接而非水印；不要求位置与宽度比例。</li>
+              <li>位于全部水印块下方；四个上传位：片头横/竖、片尾横/竖。</li>
+              <li>启用片头或片尾时，该端横屏与竖屏必须都有；缺一则 Toast 拦截。</li>
+              <li>说明为拼接而非水印；文案标明服务不支持横竖互转。</li>
             </ul>
           </td>
         </tr>
@@ -671,31 +678,52 @@
           <div class="block-head">
             <div>
               <h3>片头片尾</h3>
-              <p class="sub">完整视频拼在正文前/后，不是叠层水印；不叠加上方水印；分辨率服务端自适应</p>
+              <p class="sub">完整视频拼在正文前/后，不是叠层水印。服务不支持横竖互转，须分别上传横屏、竖屏（两端都开共四套）</p>
             </div>
             <button type="button" class="switch on new-sw" data-enable="io" aria-label="片头片尾启用" title="新增：模块开关"><i></i></button>
           </div>
           <div class="block-body" data-body="io">
+            <p class="muted"><span class="tag-new">新增</span> 四个上传位：片头横屏 / 片头竖屏 / 片尾横屏 / 片尾竖屏。某一端启用时该端两向都必须有。</p>
             <div class="io-grid">
               <div class="block" style="margin:0;background:#111827">
-                <h3 style="margin:0 0 8px;font-size:13px">片头</h3>
-                <p class="muted">拼在正文视频之前</p>
+                <h3 style="margin:0 0 8px;font-size:13px">片头 · 横屏</h3>
+                <p class="muted">拼在正文之前 · 横屏成片用</p>
                 <div class="row">
-                  <div class="preview" id="prev-intro">未上传</div>
-                  <button type="button" class="btn" data-io="intro">上传视频</button>
-                  <button type="button" class="btn danger" data-io-clear="intro">移除</button>
+                  <div class="preview" id="prev-intro-h">未上传</div>
+                  <button type="button" class="btn" data-io="intro-h">上传视频</button>
+                  <button type="button" class="btn danger" data-io-clear="intro-h">移除</button>
                 </div>
-                <p class="muted" id="name-intro"></p>
+                <p class="muted" id="name-intro-h"></p>
               </div>
               <div class="block" style="margin:0;background:#111827">
-                <h3 style="margin:0 0 8px;font-size:13px">片尾</h3>
-                <p class="muted">拼在正文视频之后</p>
+                <h3 style="margin:0 0 8px;font-size:13px">片头 · 竖屏</h3>
+                <p class="muted">拼在正文之前 · 竖屏成片用</p>
                 <div class="row">
-                  <div class="preview" id="prev-outro">未上传</div>
-                  <button type="button" class="btn" data-io="outro">上传视频</button>
-                  <button type="button" class="btn danger" data-io-clear="outro">移除</button>
+                  <div class="preview" id="prev-intro-v">未上传</div>
+                  <button type="button" class="btn" data-io="intro-v">上传视频</button>
+                  <button type="button" class="btn danger" data-io-clear="intro-v">移除</button>
                 </div>
-                <p class="muted" id="name-outro"></p>
+                <p class="muted" id="name-intro-v"></p>
+              </div>
+              <div class="block" style="margin:0;background:#111827">
+                <h3 style="margin:0 0 8px;font-size:13px">片尾 · 横屏</h3>
+                <p class="muted">拼在正文之后 · 横屏成片用</p>
+                <div class="row">
+                  <div class="preview" id="prev-outro-h">未上传</div>
+                  <button type="button" class="btn" data-io="outro-h">上传视频</button>
+                  <button type="button" class="btn danger" data-io-clear="outro-h">移除</button>
+                </div>
+                <p class="muted" id="name-outro-h"></p>
+              </div>
+              <div class="block" style="margin:0;background:#111827">
+                <h3 style="margin:0 0 8px;font-size:13px">片尾 · 竖屏</h3>
+                <p class="muted">拼在正文之后 · 竖屏成片用</p>
+                <div class="row">
+                  <div class="preview" id="prev-outro-v">未上传</div>
+                  <button type="button" class="btn" data-io="outro-v">上传视频</button>
+                  <button type="button" class="btn danger" data-io-clear="outro-v">移除</button>
+                </div>
+                <p class="muted" id="name-outro-v"></p>
               </div>
             </div>
           </div>
@@ -833,11 +861,17 @@
   sec.addEventListener("input", updSpeed);
   updSpeed();
 
-  var ioFiles = { intro: "", outro: "" };
+  var ioNames = {
+    "intro-h": "intro-landscape.mp4",
+    "intro-v": "intro-portrait.mp4",
+    "outro-h": "outro-landscape.mp4",
+    "outro-v": "outro-portrait.mp4"
+  };
+  var ioFiles = { "intro-h": "", "intro-v": "", "outro-h": "", "outro-v": "" };
   document.querySelectorAll("[data-io]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var slot = btn.getAttribute("data-io");
-      ioFiles[slot] = slot === "intro" ? "opener-brand.mp4" : "ending-cta.mp4";
+      ioFiles[slot] = ioNames[slot] || (slot + ".mp4");
       document.getElementById("prev-" + slot).textContent = "已加载";
       document.getElementById("name-" + slot).textContent = "已加载：" + ioFiles[slot];
       toast("已选择示例视频（Demo）");
@@ -876,6 +910,20 @@
     if (motionOn) {
       var ms = parseFloat(sec.value);
       if (!(ms >= 1 && ms <= 120)) { toast("请输入 1～120 之间的秒数"); return; }
+    }
+
+    var ioOn = document.querySelector('[data-enable="io"]').classList.contains("on");
+    if (ioOn) {
+      var introAny = !!(ioFiles["intro-h"] || ioFiles["intro-v"]);
+      var outroAny = !!(ioFiles["outro-h"] || ioFiles["outro-v"]);
+      if (introAny && !(ioFiles["intro-h"] && ioFiles["intro-v"])) {
+        toast("片头需同时上传横屏和竖屏视频");
+        return;
+      }
+      if (outroAny && !(ioFiles["outro-h"] && ioFiles["outro-v"])) {
+        toast("片尾需同时上传横屏和竖屏视频");
+        return;
+      }
     }
 
     toast("已保存（Demo）· 输出格式 " + document.getElementById("img-format").value.toUpperCase());

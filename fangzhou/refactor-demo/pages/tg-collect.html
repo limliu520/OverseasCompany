@@ -3,32 +3,116 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TG 采集配置 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261027tg" />
+  <title>TG 采集 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css?v=20261027rowassign" />
 </head>
 <body>
   <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
       <div class="topbar">
-        <h1>TG 采集配置</h1>
+        <h1>TG 采集</h1>
         <div class="topbar-actions" id="top-user"></div>
       </div>
       <div class="content">
-        <p class="proj-page-lead" id="tg-lead">
-          在这里处理采集号与频道的关联（加入 / 解绑）、连接与断开。项目详情「TG 采集号」只做展示与入口。
-        </p>
-        <div class="field" style="max-width:360px;margin:0 0 14px">
-          <label>当前项目</label>
-          <select id="tg-project"></select>
+        <div class="tg-ctx-field">
+          <div class="tg-ctx-label">项目切换</div>
+          <div class="tg-ctx-cards" id="tg-ctx" role="listbox" aria-label="项目切换"></div>
         </div>
-        <div id="tg-root"><p class="muted">加载中…</p></div>
+        <div class="tg-workspace-divider" aria-hidden="true"></div>
+        <div class="tg-workspace" id="tg-workspace">
+          <aside class="tg-bot-pane">
+            <div class="tg-bot-pane-head">
+              <span>采集号</span>
+              <button type="button" class="btn btn-sm btn-primary" id="tg-add-bot">+ 添加</button>
+            </div>
+            <div id="tg-bot-list"></div>
+          </aside>
+          <div class="tg-detail-pane" id="tg-detail"></div>
+        </div>
       </div>
     </div>
   </div>
-  <script src="../js/store.js?v=20261027ch"></script>
-  <script src="../js/shell.js?v=20261027tg"></script>
+
+  <!-- 加入频道 -->
+  <div class="modal-mask" id="tg-ch-modal" hidden>
+    <div class="modal" style="max-width:440px">
+      <h2 id="tg-ch-modal-title">加入频道</h2>
+      <p class="hint" id="tg-ch-hint" style="margin-top:0">填写 @用户名 或邀请链接。</p>
+      <div class="field">
+        <label>频道 *</label>
+        <input id="tg-ch-link" maxlength="200" placeholder="@channel 或 https://t.me/… / 邀请链接" />
+      </div>
+      <div class="field" id="tg-ch-role-field" hidden>
+        <label>用途 *（仅公共池）</label>
+        <input type="hidden" id="tg-ch-role" value="collect" />
+        <div class="tg-role-seg" role="group" aria-label="频道用途">
+          <button type="button" class="btn tg-role-opt is-active" data-ch-role="collect">采集（进料）</button>
+          <button type="button" class="btn tg-role-opt" data-ch-role="push">分发（TG→TG 目标）</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="tg-ch-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="tg-ch-save">确认加入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 未分配 → 标记用途 -->
+  <div class="modal-mask" id="tg-assign-modal" hidden>
+    <div class="modal" style="max-width:400px" role="dialog" aria-modal="true" aria-labelledby="tg-assign-title">
+      <h2 id="tg-assign-title">标记频道用途</h2>
+      <p class="hint" id="tg-assign-name" style="margin-top:0"></p>
+      <div class="tg-role-seg" role="group" aria-label="选择用途">
+        <button type="button" class="btn tg-role-opt" data-assign-pick="collect">采集（进料）</button>
+        <button type="button" class="btn tg-role-opt" data-assign-pick="push">分发（TG→TG 目标）</button>
+      </div>
+      <div class="modal-actions" style="margin-top:16px">
+        <button type="button" class="btn" id="tg-assign-cancel">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 二次确认（对齐现网 showConfirm） -->
+  <div class="modal-mask" id="tg-confirm-modal" hidden>
+    <div class="modal" style="max-width:400px" role="dialog" aria-modal="true" aria-labelledby="tg-confirm-title">
+      <h2 id="tg-confirm-title">确认操作</h2>
+      <p class="hint" id="tg-confirm-msg" style="margin-top:0"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="tg-confirm-cancel">取消</button>
+        <button type="button" class="btn btn-danger" id="tg-confirm-ok">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新建路由（仅公共池） -->
+  <div class="modal-mask" id="tg-rr-modal" hidden>
+    <div class="modal" style="max-width:480px">
+      <h2>新建 TG→TG 路由</h2>
+      <p class="hint" style="margin-top:0">一次选一个采集源，可勾多个分发；保存时按「一源→一目标」逐条建边。列表默认也按采集聚合，可切到「按分发」统计。</p>
+      <div class="field">
+        <label>采集源 *（单选）</label>
+        <select id="tg-rr-source"></select>
+      </div>
+      <div class="field">
+        <label>分发目标 *（可多选，批量建边）</label>
+        <div class="wc-bind-box" id="tg-rr-targets"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="tg-rr-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="tg-rr-save">保存路由</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/store.js?v=20261027projch"></script>
+  <script src="../js/shell.js?v=20261027collect"></script>
   <script src="../js/tg-add-wizard.js"></script>
-  <script src="../js/tg-collect-app.js?v=20261027tg"></script>
+  <script src="../js/tg-collect-routes.js?v=20261027healthbub"></script>
+  <script src="../js/tg-collect-channels.js?v=20261027boundat"></script>
+  <script src="../js/tg-collect-render.js?v=20261027chpage"></script>
+  <script src="../js/tg-collect-modal.js?v=20261027boundat"></script>
+  <script src="../js/tg-collect-ops.js?v=20261027boundat"></script>
+  <script src="../js/tg-collect-app.js?v=20261027boundat"></script>
 </body>
 </html>

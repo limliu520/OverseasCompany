@@ -78,9 +78,10 @@
    * 采集号上限（模拟 Admin 全局配置；业务端只读校验）
    * 口径：方舟-TG采集号与频道限流口径-20261027
    */
+  /* Demo 抬高频道上限以便验收长列表；产品口径默认 10，Admin 可配 */
   var BOT_LIMITS = {
     maxBotsPerProject: 10,
-    maxChannelsPerBot: 10,
+    maxChannelsPerBot: 40,
     maxBotsPerChannel: 5
   };
 
@@ -88,10 +89,14 @@
    * 采集号演示：归属项目（projectId）；connected=已连接可采。
    * 对齐现网卡片：仅连接 / 断开 / 删除。
    */
+  /** 公共池：与业务项目同级，专管 TG→TG；非项目料进此池 */
+  var PUBLIC_POOL_ID = "proj_public_pool";
+
+  /** 名称只作标签，不含连接/监听状态（状态看 status / monitoring） */
   var DEMO_USERBOTS = [
     {
       id: "bot_demo_free",
-      name: "采集号 · 空闲可用",
+      name: "Alpha 采集号",
       phoneHint: "+1****1201",
       status: "connected",
       projectId: "proj_demo_ready",
@@ -99,13 +104,52 @@
     },
     {
       id: "bot_demo_busy",
-      name: "采集号 · 已断开",
+      name: "Beta 采集号",
       phoneHint: "+1****2202",
       status: "disconnected",
       projectId: "proj_demo_collect",
       channelCount: 0
+    },
+    {
+      id: "bot_demo_pool",
+      name: "公共池 · 转发号 A",
+      phoneHint: "+1****3303",
+      status: "connected",
+      monitoring: true,
+      projectId: PUBLIC_POOL_ID,
+      channelCount: 4
+    },
+    {
+      id: "bot_demo_pool_b",
+      name: "公共池 · 转发号 B",
+      phoneHint: "+1****3304",
+      status: "connected",
+      monitoring: false,
+      projectId: PUBLIC_POOL_ID,
+      channelCount: 2
     }
   ];
+
+  /**
+   * Demo「Telegram 侧已进、方舟尚未登记」的频道。
+   * 「拉取频道」= 把这些同步进当前上下文列表（现网 sync-from-telegram）。
+   */
+  /* 拉取模拟：公共池进列表为未分配；业务项目为采集（见 syncChannelsFromTelegram） */
+  var DEMO_TG_LATENT = {
+    bot_demo_pool: [
+      { id: "ch_pool_latent_src", title: "@pool_latent_src" },
+      { id: "ch_pool_latent_out", title: "@pool_latent_out" },
+      { id: "ch_pool_latent_w1", title: "@pool_latent_wait_1" },
+      { id: "ch_pool_latent_w2", title: "@pool_latent_wait_2" }
+    ],
+    bot_demo_pool_b: [
+      { id: "ch_pool_b_latent", title: "@pool_backup_feed" }
+    ],
+    bot_demo_free: [
+      { id: "ch_proj_latent_a", title: "@alpha_extra_feed" }
+    ],
+    bot_demo_busy: []
+  };
 
   /** 岗位权限：菜单 L2/L3 + 页内操作 id（见 perm-tree.js） */
   var DEMO_ROLES = [
@@ -218,6 +262,112 @@
   /** 各状态演示项目（首次登录即有，不必先走新建） */
   var DEMO_PROJECTS = [
     {
+      id: PUBLIC_POOL_ID,
+      name: "公共池",
+      isPublicPool: true,
+      status: "ready",
+      siteType: "chigua",
+      contentActivated: true,
+      hasCollectSource: true,
+      autoPush: false,
+      autoflow: false,
+      userbotId: "bot_demo_pool",
+      userbotName: "公共池 · 转发号 A",
+      userbotIds: ["bot_demo_pool", "bot_demo_pool_b"],
+      boundChannels: [
+        {
+          id: "ch_pool_src",
+          title: "@pool_source_alpha",
+          botId: "bot_demo_pool",
+          role: "collect",
+          note: ""
+        },
+        {
+          id: "ch_pool_src_beta",
+          title: "@pool_source_beta",
+          botId: "bot_demo_pool",
+          role: "collect",
+          note: ""
+        },
+        {
+          id: "ch_pool_t1",
+          title: "@pool_target_one",
+          botId: "bot_demo_pool",
+          role: "push",
+          note: ""
+        },
+        {
+          id: "ch_pool_t2",
+          title: "@pool_target_two",
+          botId: "bot_demo_pool",
+          role: "push",
+          note: ""
+        },
+        {
+          id: "ch_pool_b_src",
+          title: "@pool_backup_src",
+          botId: "bot_demo_pool_b",
+          role: "collect",
+          note: ""
+        },
+        {
+          id: "ch_pool_b_out",
+          title: "@pool_backup_out",
+          botId: "bot_demo_pool_b",
+          role: "push",
+          note: ""
+        }
+      ],
+      /** TG→TG：仅公共池；一源多目标 */
+      routingRules: [
+        {
+          id: "rr_demo_1a",
+          botId: "bot_demo_pool",
+          sourceId: "ch_pool_src",
+          targetIds: ["ch_pool_t1"],
+          active: true,
+          healthStatus: "OK",
+          healthError: ""
+        },
+        {
+          id: "rr_demo_1b",
+          botId: "bot_demo_pool",
+          sourceId: "ch_pool_src",
+          targetIds: ["ch_pool_t2"],
+          active: true,
+          healthStatus: "BROKEN",
+          healthError: "分发号无法读取源频道（not a member）"
+        },
+        {
+          id: "rr_demo_2",
+          botId: "bot_demo_pool",
+          sourceId: "ch_pool_src_beta",
+          targetIds: ["ch_pool_t1"],
+          active: true,
+          healthStatus: "UNKNOWN",
+          healthError: "体检超时，结果无法判定"
+        },
+        {
+          id: "rr_demo_3",
+          botId: "bot_demo_pool_b",
+          sourceId: "ch_pool_b_src",
+          targetIds: ["ch_pool_b_out"],
+          active: true,
+          healthStatus: "",
+          healthError: ""
+        },
+        {
+          id: "rr_demo_4",
+          botId: "bot_demo_pool",
+          sourceId: "ch_pool_src_beta",
+          targetIds: ["ch_pool_t2"],
+          active: true,
+          healthStatus: "OK",
+          healthError: ""
+        }
+      ]
+    },
+    {
       id: "proj_demo_ready",
       name: "演示项目 · 已完成",
       status: "ready",
@@ -241,7 +391,7 @@
       coverHeight: "1280",
       webhookUrl: "https://partner.example.com/hooks/fangzhou",
       userbotId: "bot_demo_free",
-      userbotName: "采集号 · 空闲可用",
+      userbotName: "Alpha 采集号",
       userbotIds: ["bot_demo_free"],
       boundChannels: [
         {
@@ -255,7 +405,7 @@
           id: "ch_demo_b",
           title: "@demo_channel_b",
           botId: "bot_demo_free",
-          role: "push",
+          role: "collect",
           note: ""
         }
       ]
@@ -311,7 +461,7 @@
       coverHeight: "1280",
       webhookUrl: "",
       userbotId: "bot_demo_busy",
-      userbotName: "采集号 · 已断开",
+      userbotName: "Beta 采集号",
       userbotIds: ["bot_demo_busy"],
       boundChannels: []
     }
@@ -356,7 +506,7 @@
         changed = true;
         return;
       }
-      /* 只补缺，不覆盖用户编辑后的名称/状态 */
+      /* 只补缺；演示号旧名含状态词（空闲可用/已断开等）则纠正为标签名 */
       if (hit.status === "ok") {
         hit.status = "connected";
         changed = true;
@@ -373,9 +523,26 @@
         hit.channelCount = seed.channelCount;
         changed = true;
       }
+      if (
+        /空闲可用|已断开|主转发|备援|转发用/.test(String(hit.name || "")) &&
+        hit.name !== seed.name
+      ) {
+        hit.name = seed.name;
+        changed = true;
+        (state.projects || []).forEach(function (p) {
+          if (p.userbotId === hit.id || (p.userbotIds || []).indexOf(hit.id) !== -1) {
+            if (p.userbotId === hit.id) p.userbotName = hit.name;
+          }
+        });
+      }
     });
-    /* 去掉多余演示号（旧版隔离号等） */
-    var keep = { bot_demo_free: 1, bot_demo_busy: 1 };
+    /* 去掉多余演示号（旧版隔离号等）；公共池号必须保留 */
+    var keep = {
+      bot_demo_free: 1,
+      bot_demo_busy: 1,
+      bot_demo_pool: 1,
+      bot_demo_pool_b: 1
+    };
     var filtered = state.userbots.filter(function (b) {
       if (String(b.id).indexOf("bot_demo_") === 0 && !keep[b.id]) {
         changed = true;
@@ -398,6 +565,181 @@
       });
       if (!hit) {
         state.projects.push(clone(seed));
+        changed = true;
+        return;
+      }
+      /* 公共池：补演示号/频道/路由（不覆盖用户已改过的非空配置） */
+      if (seed.isPublicPool) {
+        if (!(hit.userbotIds || []).length && (seed.userbotIds || []).length) {
+          hit.userbotIds = seed.userbotIds.slice();
+          hit.userbotId = seed.userbotId;
+          hit.userbotName = seed.userbotName;
+          changed = true;
+        } else {
+          (seed.userbotIds || []).forEach(function (bid) {
+            if ((hit.userbotIds || []).indexOf(bid) === -1) {
+              if (!hit.userbotIds) hit.userbotIds = [];
+              hit.userbotIds.push(bid);
+              changed = true;
+            }
+          });
+        }
+        if (!hit.boundChannels) hit.boundChannels = [];
+        (seed.boundChannels || []).forEach(function (ch) {
+          if (
+            !hit.boundChannels.some(function (x) {
+              return x.id === ch.id && x.botId === ch.botId;
+            })
+          ) {
+            hit.boundChannels.push(clone(ch));
+            changed = true;
+          }
+        });
+        if (!hit.routingRules) hit.routingRules = [];
+        (seed.routingRules || []).forEach(function (rr) {
+          var exist = hit.routingRules.find(function (x) {
+            return x.id === rr.id;
+          });
+          if (!exist) {
+            hit.routingRules.push(clone(rr));
+            changed = true;
+          } else {
+            if (exist.healthStatus == null && rr.healthStatus != null) {
+              exist.healthStatus = rr.healthStatus;
+              changed = true;
+            }
+            if (rr.healthError && !exist.healthError) {
+              exist.healthError = rr.healthError;
+              changed = true;
+            }
+          }
+        });
+        /* 旧演示 rr_demo_1（一源两目标）拆成边后可删，避免重复 */
+        var beforeRr = hit.routingRules.length;
+        hit.routingRules = hit.routingRules.filter(function (r) {
+          return r.id !== "rr_demo_1";
+        });
+        if (hit.routingRules.length !== beforeRr) changed = true;
+        /* Demo：补到接近上限，方便验收折叠/搜索（线上 Admin 可把上限调高） */
+        var fillBot = "bot_demo_pool";
+        var onBot = hit.boundChannels.filter(function (x) {
+          return x.botId === fillBot;
+        }).length;
+        var i;
+        for (i = 1; i <= 40 && onBot < BOT_LIMITS.maxChannelsPerBot; i++) {
+          var fid = "ch_pool_fill_" + i;
+          if (
+            hit.boundChannels.some(function (x) {
+              return x.id === fid;
+            })
+          ) {
+            continue;
+          }
+          hit.boundChannels.push({
+            id: fid,
+            title: "@pool_demo_ch_" + (i < 10 ? "0" + i : i),
+            botId: fillBot,
+            role: i % 4 === 0 ? "push" : "collect",
+            active: true,
+            boundAt: Date.now() - (40 - i) * 60000,
+            note: "演示填充"
+          });
+          onBot += 1;
+          changed = true;
+        }
+        /* 修复：曾误把演示填充改成未分配 → 恢复角色并启用 */
+        hit.boundChannels.forEach(function (ch) {
+          if (String(ch.id || "").indexOf("ch_pool_fill_") !== 0) return;
+          if (ch.role === "collect" || ch.role === "push") {
+            if (ch.active == null) {
+              ch.active = true;
+              changed = true;
+            }
+            return;
+          }
+          var num = parseInt(String(ch.id).replace("ch_pool_fill_", ""), 10) || 0;
+          ch.role = num % 4 === 0 ? "push" : "collect";
+          ch.active = true;
+          ch.note = "演示填充";
+          changed = true;
+        });
+        /* 仅保留少量固定「未分配」样例；更多未分配靠「拉取频道」生成 */
+        [
+          { id: "ch_pool_pending_a", title: "@pool_pending_a" },
+          { id: "ch_pool_pending_b", title: "@pool_pending_b" }
+        ].forEach(function (row) {
+          var exist = hit.boundChannels.find(function (x) {
+            return x.id === row.id;
+          });
+          if (exist) {
+            if (!exist.role) {
+              exist.active = false;
+              exist.note = "拉取待分配";
+            }
+            return;
+          }
+          hit.boundChannels.unshift({
+            id: row.id,
+            title: row.title,
+            botId: fillBot,
+            role: "",
+            active: false,
+            boundAt: Date.now(),
+            note: "拉取待分配"
+          });
+          changed = true;
+        });
+        hit.boundChannels.forEach(function (ch, idx) {
+          if (ch.role == null) {
+            ch.role = "";
+            changed = true;
+          }
+          if (ch.role === "collect" || ch.role === "push") {
+            if (ch.active == null) {
+              ch.active = true;
+              changed = true;
+            }
+          } else if (ch.active == null) {
+            ch.active = false;
+            changed = true;
+          }
+          if (ch.boundAt == null) {
+            ch.boundAt = Date.now() - (hit.boundChannels.length - idx) * 1000;
+            changed = true;
+          }
+        });
+        (hit.routingRules || []).forEach(function (rr) {
+          if (rr.healthError == null) {
+            if (rr.healthStatus === "BROKEN") {
+              rr.healthError = "分发号无法读取源频道（not a member）";
+              changed = true;
+            } else if (rr.healthStatus === "UNKNOWN") {
+              rr.healthError = "体检超时，结果无法判定";
+              changed = true;
+            }
+          }
+        });
+      }
+    });
+    /* 全项目频道补 active / boundAt；业务项目禁止分发角色 */
+    (state.projects || []).forEach(function (p) {
+      var pool = isPublicPool(p);
+      (p.boundChannels || []).forEach(function (ch, idx) {
+        if (!pool && ch.role === "push") {
+          ch.role = "collect";
+          changed = true;
+        }
+        if (ch.active == null) {
+          ch.active = ch.role === "collect" || ch.role === "push";
+          changed = true;
+        }
+        if (ch.boundAt == null) {
+          ch.boundAt = Date.now() - ((p.boundChannels || []).length - idx) * 1000;
+          changed = true;
+        }
+      });
+      if (!pool && p.routingRules && p.routingRules.length) {
+        p.routingRules = [];
         changed = true;
       }
     });
@@ -563,7 +905,8 @@
       }
       (p.boundChannels || []).forEach(function (ch) {
         if (!ch.botId && p.userbotIds[0]) ch.botId = p.userbotIds[0];
-        if (!ch.role) ch.role = "collect";
+        /* 公共池允许 role 空=未分配；业务项目旧数据才兜底成采集 */
+        if (!ch.role && !isPublicPool(p)) ch.role = "collect";
       });
     });
     state.userbots.forEach(function (b) {
@@ -804,6 +1147,73 @@
     return null;
   }
 
+  /**
+   * 拉取频道（现网 sync-from-telegram）：把 Telegram 侧已进、方舟未登记的频道同步进当前上下文。
+   * Demo 用 DEMO_TG_LATENT 模拟；返回 { synced, added, skipped }。
+   */
+  function syncChannelsFromTelegram(state, botId, projectId) {
+    var bot = (state.userbots || []).find(function (b) {
+      return b.id === botId;
+    });
+    var project = findProject(state, projectId);
+    if (!bot || !project) {
+      return { ok: false, error: "采集号或上下文不存在" };
+    }
+    if (bot.status !== "connected" && bot.status !== "ok") {
+      return { ok: false, error: "请先连接会话，再拉取频道" };
+    }
+    if (!project.boundChannels) project.boundChannels = [];
+    var isPool = isPublicPool(project);
+    var added = 0;
+    var skipped = 0;
+    var rows = (DEMO_TG_LATENT[botId] || []).slice();
+    /* 公共池：每次拉取再生成 3 条未分配，专门方便演示标记用途 */
+    if (isPool) {
+      var stamp = Date.now().toString(36);
+      var n;
+      for (n = 1; n <= 3; n++) {
+        rows.push({
+          id: "ch_pull_" + stamp + "_" + n,
+          title: "@pool_pulled_" + stamp.slice(-4) + "_" + n
+        });
+      }
+    }
+    if (!rows.length) {
+      return { ok: true, synced: 0, added: 0, skipped: 0 };
+    }
+    rows.forEach(function (row) {
+      if (
+        project.boundChannels.some(function (ch) {
+          return ch.id === row.id && ch.botId === botId;
+        })
+      ) {
+        skipped += 1;
+        return;
+      }
+      /* 拉取：业务项目默认采集；公共池未分配，由运营再标采集/分发 */
+      var role = isPool ? "" : "collect";
+      var block = botJoinChannelBlockReason(state, botId, row.id, projectId);
+      if (block) {
+        skipped += 1;
+        return;
+      }
+      project.boundChannels.unshift({
+        id: row.id,
+        title: row.title,
+        botId: botId,
+        role: role,
+        active: !!role,
+        boundAt: Date.now(),
+        note: "拉取同步"
+      });
+      if (role === "collect" && !isPool) project.hasCollectSource = true;
+      added += 1;
+    });
+    bot.channelCount = userbotBoundChannelCount(state, bot);
+    upsertProject(state, project);
+    return { ok: true, synced: rows.length, added: added, skipped: skipped };
+  }
+
   /** Bot 再挂一个频道？null=允许 */
   function botJoinChannelBlockReason(state, botId, channelId, projectId) {
     var bot = (state.userbots || []).find(function (b) {
@@ -815,10 +1225,11 @@
     }
     var owner = channelOwnerProject(state, channelId, projectId);
     if (owner) {
+      var ownerLabel = owner.isPublicPool ? "公共池" : "项目「" + (owner.name || owner.id) + "」";
       return (
-        "该频道已被项目「" +
-        (owner.name || owner.id) +
-        "」的采集号加入，本项目不能再加入（勿重复进群）。"
+        "该频道已被" +
+        ownerLabel +
+        "的采集号加入，此处不能再加入（勿重复进群）。"
       );
     }
     var onCh = botsOnChannelCount(state, channelId);
@@ -900,6 +1311,19 @@
     });
   }
 
+  function isPublicPool(projectOrId) {
+    if (!projectOrId) return false;
+    if (typeof projectOrId === "string") return projectOrId === PUBLIC_POOL_ID;
+    return !!(projectOrId.isPublicPool || projectOrId.id === PUBLIC_POOL_ID);
+  }
+
+  /** 业务项目列表（不含公共池；项目管理页用） */
+  function businessProjects(state) {
+    return (state.projects || []).filter(function (p) {
+      return !isPublicPool(p);
+    });
+  }
+
   function upsertProject(state, project) {
     var i = state.projects.findIndex(function (p) {
       return p.id === project.id;
@@ -914,6 +1338,8 @@
     { id: "project_config", name: "项目配置" },
     { id: "collect_web", name: "网站采集" },
     { id: "collect_tg", name: "TG 采集" },
+    { id: "collect_web", name: "网站采集" },
+    { id: "collect_materials", name: "素材管理" },
     { id: "review_material", name: "素材审核" },
     { id: "edit_article", name: "文章编辑" },
     { id: "edit_media", name: "修片" },
@@ -925,6 +1351,7 @@
 
   global.FZStore = {
     KEY: KEY,
+    PUBLIC_POOL_ID: PUBLIC_POOL_ID,
     FEATURES: FEATURES,
     BOT_LIMITS: BOT_LIMITS,
     DEMO_EXT_CHANNELS: DEMO_EXT_CHANNELS,
@@ -955,6 +1382,7 @@
     botLimits: botLimits,
     addBotToProjectBlockReason: addBotToProjectBlockReason,
     botJoinChannelBlockReason: botJoinChannelBlockReason,
+    syncChannelsFromTelegram: syncChannelsFromTelegram,
     userbotChangeBlockReason: userbotChangeBlockReason,
     attachBotToProject: attachBotToProject,
     detachBotFromProject: detachBotFromProject,
@@ -963,6 +1391,8 @@
     markContentConnected: markContentConnected,
     findProject: findProject,
     upsertProject: upsertProject,
+    isPublicPool: isPublicPool,
+    businessProjects: businessProjects,
     reset: function () {
       localStorage.removeItem(KEY);
     }
