@@ -512,11 +512,41 @@ button { cursor: pointer; }
   min-width: auto; padding: 0; font-size: 11px; font-weight: 750;
   color: var(--pink); letter-spacing: .02em;
 }
-.post-card .hot-comments .c-body { flex: 1; min-width: 0; }
+.post-card .hot-comments .c-body,
+.post-detail .c-item .c-body { flex: 1; min-width: 0; display: block; }
 .post-card .hot-comments .c-user,
-.post-detail .c-user { color: #c8c8d0; margin-right: 6px; font-weight: 650; }
+.post-detail .c-user {
+  color: #8e8e9c; margin-right: 8px; font-weight: 650;
+}
+.post-card .hot-comments .c-text,
+.post-detail .c-text {
+  color: #f2f2f6; font-weight: 400;
+}
+.post-card .hot-comments .c-meta,
+.post-detail .c-meta {
+  display: inline; white-space: nowrap; margin-left: 8px;
+}
 .post-card .hot-comments .c-time,
-.post-detail .c-time { color: var(--muted); font-size: 11px; margin-left: 8px; }
+.post-detail .c-time { color: #6e6e7a; font-size: 11px; margin: 0; }
+.post-card .hot-comments .c-like,
+.post-detail .c-like {
+  display: inline-flex; align-items: center; gap: 3px;
+  margin: 0 0 0 8px; padding: 0; vertical-align: -2px;
+  border: 0; background: none; box-shadow: none;
+  color: #f0f0f0; font-size: 12px; line-height: 1; cursor: pointer;
+}
+.post-card .hot-comments .c-like .act-ico,
+.post-detail .c-like .act-ico {
+  width: 13px; height: 13px; display: block;
+}
+.post-card .hot-comments .c-like .c-like-n,
+.post-detail .c-like .c-like-n { font-weight: 600; }
+.post-card .hot-comments .c-like:hover,
+.post-detail .c-like:hover { color: #ff8fb3; }
+.post-card .hot-comments .c-like.on,
+.post-detail .c-like.on {
+  color: var(--pink); cursor: default;
+}
 .post-detail .comments-full {
   margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line);
 }
@@ -1062,9 +1092,9 @@ button { cursor: pointer; }
       tag: "沈腾", likes: 128, status: "collecting", mine: false, time: "2小时前",
       user: "瓜友阿茶", anonymous: false,
       comments: [
-        { user: "瓜友A", text: "求完整时间线，别只蹭热度", time: "1小时前", hot: true, hotBy: "ops" },
-        { user: "吃瓜本吃瓜", text: "附议，最好按年份排", time: "40分钟前", hot: true, hotBy: "data" },
-        { user: "路人丙", text: "出道初期那段也想看", time: "30分钟前" }
+        { id: "cw1a", user: "瓜友A", text: "求完整时间线，别只蹭热度", time: "1小时前", likes: 26, hot: true, hotBy: "ops" },
+        { id: "cw1b", user: "吃瓜本吃瓜", text: "附议，最好按年份排", time: "40分钟前", likes: 18, hot: true, hotBy: "data" },
+        { id: "cw1c", user: "路人丙", text: "出道初期那段也想看", time: "30分钟前", likes: 3 }
       ]
     },
     {
@@ -1072,8 +1102,8 @@ button { cursor: pointer; }
       tag: "沈腾", likes: 86, status: "arranged", articleId: "a1", mine: false, time: "昨天",
       user: "匿名", anonymous: true,
       comments: [
-        { user: "路人甲", text: "对照表太需要了", time: "昨天", hot: true, hotBy: "ops" },
-        { user: "瓜妹", text: "圆梦了来看一眼", time: "昨天" }
+        { id: "cw2a", user: "路人甲", text: "对照表太需要了", time: "昨天", likes: 14, hot: true, hotBy: "ops" },
+        { id: "cw2b", user: "瓜妹", text: "圆梦了来看一眼", time: "昨天", likes: 5 }
       ]
     },
     {
@@ -1081,7 +1111,7 @@ button { cursor: pointer; }
       tag: "晚会", likes: 64, status: "collecting", mine: false, time: "昨天",
       user: "晚会观众K", anonymous: false,
       comments: [
-        { user: "晚会观众", text: "求带时间戳的合集", time: "昨天", hot: true, hotBy: "data" }
+        { id: "cw3a", user: "晚会观众", text: "求带时间戳的合集", time: "昨天", likes: 9, hot: true, hotBy: "data" }
       ]
     },
     {
@@ -1102,8 +1132,8 @@ button { cursor: pointer; }
       tag: "明星爆料", likes: 45, status: "collecting", mine: false, time: "5小时前",
       user: "匿名", anonymous: true,
       comments: [
-        { user: "瓜嫂", text: "最好按年份排", time: "4小时前" },
-        { user: "吃瓜达人", text: "时间线比站队有用", time: "3小时前" }
+        { id: "cw4a", user: "瓜嫂", text: "最好按年份排", time: "4小时前", likes: 4 },
+        { id: "cw4b", user: "吃瓜达人", text: "时间线比站队有用", time: "3小时前", likes: 2 }
       ]
     },
     {
@@ -1118,8 +1148,8 @@ button { cursor: pointer; }
       likes: 36, status: "voting",
       user: "运营", anonymous: false,
       comments: [
-        { user: "老粉", text: "近三年争议更多，先看这段", time: "50分钟前", hot: true, hotBy: "ops" },
-        { user: "吃瓜群众", text: "出道到爆红也想补课", time: "40分钟前" }
+        { id: "cv1a", user: "老粉", text: "近三年争议更多，先看这段", time: "50分钟前", likes: 11, hot: true, hotBy: "ops" },
+        { id: "cv1b", user: "吃瓜群众", text: "出道到爆红也想补课", time: "40分钟前", likes: 4 }
       ],
       mine: false, time: "1小时前",
       relatedWishId: "w1", ops: true
@@ -1130,9 +1160,9 @@ button { cursor: pointer; }
       likes: 90, status: "voting",
       user: "运营", anonymous: false,
       comments: [
-        { user: "路人乙", text: "先别审判比较合理", time: "2小时前", hot: true, hotBy: "data", badge: "god" },
-        { user: "瓜友丁", text: "澄清了更好，别拖", time: "1小时前", hot: true, hotBy: "ops" },
-        { user: "匿名瓜", text: "两边都别撕", time: "50分钟前" }
+        { id: "cv2a", user: "路人乙", text: "先别审判比较合理", time: "2小时前", likes: 42, hot: true, hotBy: "data", badge: "god" },
+        { id: "cv2b", user: "瓜友丁", text: "澄清了更好，别拖", time: "1小时前", likes: 15, hot: true, hotBy: "ops" },
+        { id: "cv2c", user: "匿名瓜", text: "两边都别撕", time: "50分钟前", likes: 7 }
       ],
       mine: false, time: "3小时前",
       relatedWishId: "w2", relatedArticleId: "a1", ops: true
@@ -1143,7 +1173,7 @@ button { cursor: pointer; }
       likes: 52, status: "ended",
       user: "运营", anonymous: false,
       comments: [
-        { user: "周更党", text: "晚会翻车合集更解压", time: "4小时前", hot: true, hotBy: "data" }
+        { id: "cv3a", user: "周更党", text: "晚会翻车合集更解压", time: "4小时前", likes: 8, hot: true, hotBy: "data" }
       ],
       mine: false, time: "5小时前",
       relatedWishId: null, ops: true
@@ -1158,6 +1188,7 @@ button { cursor: pointer; }
     wallFilter: "all",
     wallSort: "hot",
     liked: { w3: true },
+    commentLiked: { cw1b: true },
     voted: { v1: "a" },
     myComments: [
       { postId: "w1", text: "我也想看按年份排的完整时间线", time: "50分钟前" }
@@ -1308,12 +1339,28 @@ button { cursor: pointer; }
     return `<span class="c-mark" title="最新" aria-label="最新">🕐</span>`;
   }
 
+  function findComment(cid) {
+    for (const p of posts) {
+      const hit = (p.comments || []).find((x) => x.id === cid);
+      if (hit) return hit;
+    }
+    return null;
+  }
+
+  function commentLikeBtn(c) {
+    const liked = !!state.commentLiked[c.id];
+    const show = (c.likes || 0) + (liked ? 1 : 0);
+    return `<button type="button" class="c-like${liked ? " on" : ""}" data-c-like="${escapeAttr(c.id)}" ${liked ? "disabled" : ""} title="${liked ? "已点赞" : "点赞评论"}">
+      ${icoLike()}<span class="c-like-n">${show}</span>
+    </button>`;
+  }
+
   function commentItemHtml(c) {
     return `<div class="c-item">
       ${commentMark(c)}
       <div class="c-body">
-        <span class="c-user">${escapeHtml(c.user)}</span>${escapeHtml(c.text)}
-        <span class="c-time">${escapeHtml(c.time)}</span>
+        <span class="c-user">${escapeHtml(c.user)}</span><span class="c-text">${escapeHtml(c.text)}</span>
+        <span class="c-meta"><span class="c-time">${escapeHtml(c.time)}</span>${commentLikeBtn(c)}</span>
       </div>
     </div>`;
   }
@@ -2010,6 +2057,16 @@ button { cursor: pointer; }
       render();
       return;
     }
+    const cLike = e.target.closest("[data-c-like]");
+    if (cLike) {
+      const cid = cLike.dataset.cLike;
+      if (!findComment(cid)) return;
+      if (state.commentLiked[cid]) return;
+      state.commentLiked[cid] = true;
+      toast("已点赞评论");
+      render();
+      return;
+    }
     const postDetail = e.target.closest("[data-post-detail]");
     if (postDetail) {
       e.preventDefault();
@@ -2030,7 +2087,7 @@ button { cursor: pointer; }
       const p = posts.find((x) => x.id === id);
       if (!p) return;
       if (!p.comments) p.comments = [];
-      p.comments.push({ user: nick, text, time: "刚刚" });
+      p.comments.push({ id: "c" + Date.now(), user: nick, text, time: "刚刚", likes: 0 });
       state.myComments.unshift({ postId: id, text, time: "刚刚" });
       toast("评论已发布");
       if (state.view !== "post") go("post", { postId: id });
