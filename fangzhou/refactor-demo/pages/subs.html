@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>子账号与授权 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261027pager" />
+  <link rel="stylesheet" href="../css/app.css?v=20261028subWiz" />
 </head>
 <body>
   <div class="app">
@@ -23,6 +23,12 @@
           <button type="button" class="btn" id="tab-roles" data-tab="roles">岗位</button>
         </div>
         <p class="muted" id="tab-desc" style="margin:0 0 14px"></p>
+        <div class="sub-list-bar" id="sub-list-bar" hidden>
+          <label class="sub-list-filter">
+            <span class="muted">按项目</span>
+            <select id="sub-filter-proj" class="input" aria-label="按项目筛选子账号"></select>
+          </label>
+        </div>
         <div class="fz-card-grid sub-card-grid" id="list-box"></div>
         <div id="list-pager"></div>
       </div>
@@ -30,43 +36,67 @@
   </div>
 
   <div class="modal-mask" id="sub-modal" hidden>
-    <div class="modal modal-perm">
+    <div class="modal modal-perm modal-sub-wiz">
       <h2 id="sub-modal-title">创建子账号</h2>
-      <p class="hint" style="margin-top:0">列表只读；在此创建或编辑。权限按侧栏层级 + 页内操作勾选。CMS 标识推送内容通道时携带。</p>
-      <div class="field" id="sub-user-field">
-        <label>登录名 *</label>
-        <input id="sub-user" placeholder="例如：ops_xiaowang" />
+      <p class="hint" id="sub-modal-lead" style="margin-top:0">分三步：① 个人信息 → ② 负责项目 → ③ 岗位与权限。</p>
+      <div class="sub-wiz-steps" id="sub-wiz-steps" role="tablist" aria-label="创建步骤">
+        <button type="button" class="sub-wiz-step is-on" data-goto-step="1" role="tab" aria-selected="true">
+          <span class="sub-wiz-num">1</span><span class="sub-wiz-label">个人信息</span>
+        </button>
+        <button type="button" class="sub-wiz-step" data-goto-step="2" role="tab" aria-selected="false">
+          <span class="sub-wiz-num">2</span><span class="sub-wiz-label">负责项目</span>
+        </button>
+        <button type="button" class="sub-wiz-step" data-goto-step="3" role="tab" aria-selected="false">
+          <span class="sub-wiz-num">3</span><span class="sub-wiz-label">岗位权限</span>
+        </button>
       </div>
-      <div class="field" id="sub-user-ro" hidden>
-        <label>登录名</label>
-        <div class="muted" id="sub-user-ro-text" style="font-family:ui-monospace,monospace;font-size:13px"></div>
+
+      <div class="sub-wiz-pane" id="sub-step-1" data-step="1">
+        <div class="field" id="sub-user-field">
+          <label>登录名 *</label>
+          <input id="sub-user" placeholder="例如：ops_xiaowang" autocomplete="off" />
+        </div>
+        <div class="field" id="sub-user-ro" hidden>
+          <label>登录名</label>
+          <div class="muted" id="sub-user-ro-text" style="font-family:ui-monospace,monospace;font-size:13px"></div>
+        </div>
+        <div class="field"><label>显示名 *</label><input id="sub-name" placeholder="花名 / 对外称呼" /></div>
+        <div class="field" id="sub-pass-field">
+          <label>初始密码 *</label>
+          <input id="sub-pass" type="password" value="Changeme1" autocomplete="new-password" />
+        </div>
+        <div class="field">
+          <label>CMS 标识</label>
+          <input id="sub-cms" placeholder="从对方后台复制的 ID，可空" />
+          <p class="hint">内容通道推送时带上此 ID，由接收方判断内容归属。</p>
+        </div>
       </div>
-      <div class="field"><label>显示名</label><input id="sub-name" placeholder="花名" /></div>
-      <div class="field" id="sub-pass-field">
-        <label>初始密码 *</label>
-        <input id="sub-pass" type="password" value="Changeme1" />
+
+      <div class="sub-wiz-pane" id="sub-step-2" data-step="2" hidden>
+        <p class="hint" style="margin:0 0 12px">点选该子账号可负责的业务项目（可多选，至少一项）。公共池不在此授权。</p>
+        <div class="sub-proj-pick" id="sub-projects" role="group" aria-label="负责项目"></div>
+        <p class="muted" id="sub-proj-count" style="margin:12px 0 0;font-size:12.5px"></p>
       </div>
-      <div class="field">
-        <label>CMS 标识</label>
-        <input id="sub-cms" placeholder="从对方后台复制的 ID，可空" />
-        <p class="hint">内容通道推送时带上此 ID，由接收方判断内容归属。</p>
+
+      <div class="sub-wiz-pane" id="sub-step-3" data-step="3" hidden>
+        <div class="field">
+          <label>岗位 *</label>
+          <p class="hint" style="margin:0 0 8px">先选岗位套用权限；改下方勾选后自动变为「自定义」。</p>
+          <div class="preset-chips role-presets" id="sub-role-presets" role="group" aria-label="岗位"></div>
+        </div>
+        <div class="field">
+          <label>功能权限 *</label>
+          <div id="sub-feats"></div>
+        </div>
       </div>
-      <div class="field">
-        <label>权限预设</label>
-        <p class="hint" style="margin:0 0 8px">点岗位快捷套用下方权限；改下方勾选后自动回到「自定义」。</p>
-        <div class="preset-chips role-presets" id="sub-role-presets" role="group" aria-label="权限预设"></div>
-      </div>
-      <div class="field">
-        <label>功能权限 *</label>
-        <div id="sub-feats"></div>
-      </div>
-      <div class="field">
-        <label>可见项目 *（至少一项）</label>
-        <div id="sub-projects"></div>
-      </div>
-      <div class="modal-actions">
+
+      <div class="modal-actions sub-wiz-actions">
         <button type="button" class="btn btn-ghost" id="sub-cancel">取消</button>
-        <button type="button" class="btn btn-primary" id="sub-save">保存</button>
+        <div class="sub-wiz-nav">
+          <button type="button" class="btn" id="sub-prev" hidden>上一步</button>
+          <button type="button" class="btn btn-primary" id="sub-next">下一步</button>
+          <button type="button" class="btn btn-primary" id="sub-save" hidden>保存</button>
+        </div>
       </div>
     </div>
   </div>
@@ -87,10 +117,11 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261026e"></script>
-  <script src="../js/perm-tree.js?v=20261026d"></script>
-  <script src="../js/shell.js?v=20261027ch"></script>
+  <script src="../js/store.js?v=20261027botName"></script>
+  <script src="../js/perm-tree.js?v=20261027reviewCtr"></script>
+  <script src="../js/shell.js?v=20261027reviewCtr"></script>
   <script src="../js/pager.js?v=20261027pager"></script>
-  <script src="../js/subs-app.js?v=20261027pager"></script>
+  <script src="../js/project-union.js?v=20261028subWiz"></script>
+  <script src="../js/subs-app.js?v=20261028subWiz"></script>
 </body>
 </html>

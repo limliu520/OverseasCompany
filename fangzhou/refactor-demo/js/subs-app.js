@@ -7,6 +7,10 @@
   /** 子账号弹层：custom | roleId；改权限树时自动回 custom */
   var subPresetId = "custom";
   var applyingPreset = false;
+  /** 创建/编辑子账号：1 个人信息 → 2 负责项目 → 3 岗位权限 */
+  var subStep = 1;
+  var subSelectedProjects = [];
+  var filterProjId = "";
   var page = 1;
   var pageSize = window.FZPager ? window.FZPager.DEFAULT : 20;
 
@@ -20,11 +24,38 @@
       "btn" + (tab === "roles" ? " btn-primary" : "");
     document.getElementById("tab-desc").textContent =
       tab === "subs"
-        ? "子号必选权限 + 项目；可填 CMS 标识。权限按侧栏一/二/三级 + 页内操作细化。岗位在「岗位」Tab。"
-        : "岗位 = 菜单层级 + 页内操作的权限包。建子号时可套用岗位再微调。";
+        ? "创建/编辑走三步：个人信息 → 负责项目（可多选）→ 岗位与权限。岗位包在「岗位」Tab 维护。"
+        : "岗位 = 菜单层级 + 页内操作的权限包。建子号时第 3 步可套用后再微调。";
     document.getElementById("btn-primary-act").textContent =
       tab === "subs" ? "+ 创建子账号" : "+ 新建岗位";
+    var bar = document.getElementById("sub-list-bar");
+    if (bar) bar.hidden = tab !== "subs";
+    if (tab === "subs") paintSubFilter();
     renderList();
+  }
+
+  function paintSubFilter() {
+    var sel = document.getElementById("sub-filter-proj");
+    if (!sel) return;
+    var s = FZStore.read();
+    var list =
+      typeof FZStore.businessProjects === "function"
+        ? FZStore.businessProjects(s)
+        : (s.projects || []).filter(function (p) {
+            return !FZStore.isPublicPool(p);
+          });
+    var html = '<option value="">全部项目</option>';
+    list.forEach(function (p) {
+      html +=
+        '<option value="' +
+        esc(p.id) +
+        '"' +
+        (filterProjId === p.id ? " selected" : "") +
+        ">" +
+        esc(p.name) +
+        "</option>";
+    });
+    sel.innerHTML = html;
   }
 
   function paintPager(total) {
@@ -61,8 +92,8 @@
       })
       .filter(Boolean);
     if (!names.length) return "未绑定项目";
-    if (names.length <= 2) return names.join("、");
-    return names.slice(0, 2).join("、") + " 等 " + names.length + " 个";
+    if (names.length <= 3) return names.join("、");
+    return names.slice(0, 3).join("、") + " 等 " + names.length + " 个";
   }
 
   function featureStats(features) {
@@ -95,13 +126,25 @@
     box.className = "fz-card-grid sub-card-grid";
     if (!s.subs.length) {
       box.innerHTML =
-        '<div class="card card-pad muted sub-empty">还没有子账号。可先到「岗位」Tab 建合集，也可直接自定义权限创建。</div>';
+        '<div class="card card-pad muted sub-empty">还没有子账号。点「创建子账号」按三步：个人信息 → 负责项目 → 岗位权限。</div>';
+      paintPager(0);
+      return;
+    }
+    var rows = s.subs;
+    if (filterProjId) {
+      rows = rows.filter(function (u) {
+        return (u.projects || []).indexOf(filterProjId) !== -1;
+      });
+    }
+    if (!rows.length) {
+      box.innerHTML =
+        '<div class="card card-pad muted sub-empty">当前项目下没有子账号。可改筛选，或创建时把该项目勾进「负责项目」。</div>';
       paintPager(0);
       return;
     }
     var slice = window.FZPager
-      ? FZPager.slice(s.subs, page, pageSize)
-      : { items: s.subs, total: s.subs.length, page: 1, pageSize: s.subs.length };
+      ? FZPager.slice(rows, page, pageSize)
+      : { items: rows, total: rows.length, page: 1, pageSize: rows.length };
     page = slice.page;
     pageSize = slice.pageSize;
     box.innerHTML = slice.items
@@ -138,7 +181,7 @@
             : '<div class="proj-tags"><span class="proj-tag is-custom">自定义权限</span></div>') +
           '<div class="proj-facts">' +
           factRow("CMS", u.cmsId || "未填写", u.cmsId ? "is-mono" : "is-muted") +
-          factRow("项目", projectNames(u.projects, s.projects)) +
+          factRow("负责项目", projectNames(u.projects, s.projects)) +
           factRow("权限", featureStats(u.features), "is-muted") +
           "</div>" +
           '<div class="proj-actions">' +
@@ -337,6 +380,134 @@
     applyingPreset = false;
   }
 
+  function siteTypeText(type) {
+    if (window.FZUnion && FZUnion.siteTypeLabel) return FZUnion.siteTypeLabel(type);
+    if (type === "video") return "视频站";
+    if (type === "short_drama") return "短剧站";
+    return "瓜站";
+  }
+
+  function paintSubSteps() {
+    document.querySelectorAll(".sub-wiz-step").forEach(function (btn) {
+      var n = Number(btn.getAttribute("data-goto-step"));
+      btn.classList.toggle("is-on", n === subStep);
+      btn.classList.toggle("is-done", n < subStep);
+      btn.setAttribute("aria-selected", n === subStep ? "true" : "false");
+    });
+    document.querySelectorAll(".sub-wiz-pane").forEach(function (pane) {
+      pane.hidden = Number(pane.getAttribute("data-step")) !== subStep;
+    });
+    document.getElementById("sub-prev").hidden = subStep <= 1;
+    document.getElementById("sub-next").hidden = subStep >= 3;
+    document.getElementById("sub-save").hidden = subStep !== 3;
+  }
+
+  function paintSubProjects() {
+    var s = FZStore.read();
+    var list =
+      typeof FZStore.businessProjects === "function"
+        ? FZStore.businessProjects(s)
+        : (s.projects || []).filter(function (p) {
+            return !FZStore.isPublicPool(p);
+          });
+    var box = document.getElementById("sub-projects");
+    var countEl = document.getElementById("sub-proj-count");
+    if (!list.length) {
+      box.innerHTML =
+        '<p class="muted">还没有业务项目，请先<a href="./project-setup.html?new=1">创建项目</a></p>';
+      if (countEl) countEl.textContent = "";
+      return;
+    }
+    box.innerHTML = list
+      .map(function (p) {
+        var on = subSelectedProjects.indexOf(p.id) !== -1;
+        var st = FZStore.projectStatusLabel
+          ? FZStore.projectStatusLabel(p)
+          : { text: p.status || "—", cls: "tag-muted" };
+        return (
+          '<button type="button" class="sub-proj-card' +
+          (on ? " is-on" : "") +
+          '" data-proj="' +
+          esc(p.id) +
+          '" aria-pressed="' +
+          (on ? "true" : "false") +
+          '">' +
+          '<div class="sub-proj-card-top">' +
+          '<strong class="sub-proj-name">' +
+          esc(p.name) +
+          '</strong><span class="tag ' +
+          esc(st.cls || "tag-muted") +
+          '">' +
+          esc(st.text) +
+          "</span></div>" +
+          '<div class="sub-proj-meta">' +
+          esc(siteTypeText(p.siteType)) +
+          "</div>" +
+          '<span class="sub-proj-check" aria-hidden="true"></span></button>'
+        );
+      })
+      .join("");
+    box.querySelectorAll("[data-proj]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-proj");
+        var i = subSelectedProjects.indexOf(id);
+        if (i >= 0) subSelectedProjects.splice(i, 1);
+        else subSelectedProjects.push(id);
+        paintSubProjects();
+      });
+    });
+    if (countEl) {
+      countEl.textContent = subSelectedProjects.length
+        ? "已选 " + subSelectedProjects.length + " 个项目"
+        : "尚未选择项目";
+    }
+  }
+
+  function validateSubStep(step) {
+    if (step === 1) {
+      var isEdit = !!editingSubId;
+      var username = isEdit ? "" : document.getElementById("sub-user").value.trim();
+      var displayName = document.getElementById("sub-name").value.trim();
+      var pass = document.getElementById("sub-pass").value;
+      if (!isEdit && (!username || !pass)) {
+        FZShell.toast("请填写登录名和初始密码", "err");
+        return false;
+      }
+      if (!displayName) {
+        FZShell.toast("请填写显示名", "err");
+        return false;
+      }
+      return true;
+    }
+    if (step === 2) {
+      if (!subSelectedProjects.length) {
+        FZShell.toast("请至少选择一个负责项目", "err");
+        return false;
+      }
+      return true;
+    }
+    if (step === 3) {
+      var features = FZPerm.collect(document.getElementById("sub-feats"));
+      if (!features.length) {
+        FZShell.toast("请至少勾选一项权限", "err");
+        return false;
+      }
+      return true;
+    }
+    return true;
+  }
+
+  function goSubStep(next) {
+    if (next > subStep && !validateSubStep(subStep)) return;
+    if (next < 1 || next > 3) return;
+    subStep = next;
+    if (subStep === 2) paintSubProjects();
+    if (subStep === 3) {
+      paintRolePresets();
+    }
+    paintSubSteps();
+  }
+
   function openSubModal(subId) {
     var s = FZStore.read();
     editingSubId = subId || null;
@@ -349,6 +520,9 @@
     document.getElementById("sub-modal-title").textContent = isEdit
       ? "编辑子账号"
       : "创建子账号";
+    document.getElementById("sub-modal-lead").textContent = isEdit
+      ? "分三步调整：① 个人信息 → ② 负责项目 → ③ 岗位与权限。"
+      : "分三步：① 个人信息 → ② 负责项目 → ③ 岗位与权限。";
     document.getElementById("sub-user-field").hidden = isEdit;
     document.getElementById("sub-user-ro").hidden = !isEdit;
     document.getElementById("sub-pass-field").hidden = isEdit;
@@ -362,29 +536,12 @@
       document.getElementById("sub-pass").value = "Changeme1";
       document.getElementById("sub-cms").value = "";
     }
+    subSelectedProjects = sub && sub.projects ? sub.projects.slice() : [];
     subPresetId = detectPreset(sub, s.roles);
     paintRolePresets();
     renderSubPermTree(sub ? sub.features : []);
-    var selectedProjects = sub ? sub.projects || [] : [];
-    var projBox = document.getElementById("sub-projects");
-    if (!s.projects.length) {
-      projBox.innerHTML =
-        '<p class="muted">还没有项目，请先<a href="./project-setup.html?new=1">创建项目</a></p>';
-    } else {
-      projBox.innerHTML = s.projects
-        .map(function (p) {
-          return (
-            '<label class="check-item"><input type="checkbox" value="' +
-            p.id +
-            '"' +
-            (selectedProjects.indexOf(p.id) !== -1 ? " checked" : "") +
-            " /> " +
-            p.name +
-            "</label>"
-          );
-        })
-        .join("");
-    }
+    subStep = 1;
+    paintSubSteps();
     document.getElementById("sub-modal").hidden = false;
   }
 
@@ -418,41 +575,60 @@
   document.getElementById("sub-cancel").addEventListener("click", function () {
     document.getElementById("sub-modal").hidden = true;
     editingSubId = null;
+    subStep = 1;
   });
   document.getElementById("sub-modal").addEventListener("click", function (e) {
     if (e.target === e.currentTarget) {
       document.getElementById("sub-modal").hidden = true;
       editingSubId = null;
+      subStep = 1;
     }
   });
+  document.getElementById("sub-prev").addEventListener("click", function () {
+    goSubStep(subStep - 1);
+  });
+  document.getElementById("sub-next").addEventListener("click", function () {
+    goSubStep(subStep + 1);
+  });
+  document.getElementById("sub-wiz-steps").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-goto-step]");
+    if (!btn) return;
+    var target = Number(btn.getAttribute("data-goto-step"));
+    if (target === subStep) return;
+    if (target < subStep) {
+      goSubStep(target);
+      return;
+    }
+    /* 向前跳：逐步校验；失败停在当前未过关的一步 */
+    var cur = subStep;
+    while (cur < target) {
+      if (!validateSubStep(cur)) {
+        if (cur !== subStep) goSubStep(cur);
+        return;
+      }
+      cur += 1;
+    }
+    goSubStep(target);
+  });
   document.getElementById("sub-save").addEventListener("click", function () {
+    if (!validateSubStep(1)) {
+      goSubStep(1);
+      return;
+    }
+    if (!validateSubStep(2)) {
+      goSubStep(2);
+      return;
+    }
+    if (!validateSubStep(3)) {
+      goSubStep(3);
+      return;
+    }
     var isEdit = !!editingSubId;
     var username = isEdit ? "" : document.getElementById("sub-user").value.trim();
     var displayName = document.getElementById("sub-name").value.trim();
     var cmsId = document.getElementById("sub-cms").value.trim();
-    var pass = document.getElementById("sub-pass").value;
-    if (!isEdit && (!username || !pass)) {
-      FZShell.toast("请填写登录名和密码");
-      return;
-    }
-    if (!isEdit && !displayName) displayName = username;
-    if (isEdit && !displayName) {
-      FZShell.toast("请填写显示名");
-      return;
-    }
     var features = FZPerm.collect(document.getElementById("sub-feats"));
-    var projects = [];
-    document.querySelectorAll("#sub-projects input:checked").forEach(function (el) {
-      projects.push(el.value);
-    });
-    if (!features.length) {
-      FZShell.toast("请至少勾选一项权限");
-      return;
-    }
-    if (!projects.length) {
-      FZShell.toast("请至少勾选一个项目");
-      return;
-    }
+    var projects = subSelectedProjects.slice();
     var st = FZStore.read();
     var role =
       subPresetId !== "custom"
@@ -474,6 +650,7 @@
       FZStore.write(st);
       document.getElementById("sub-modal").hidden = true;
       editingSubId = null;
+      subStep = 1;
       renderList();
       FZShell.toast("子账号已更新", "ok");
       return;
@@ -491,8 +668,9 @@
     FZStore.write(st);
     document.getElementById("sub-modal").hidden = true;
     editingSubId = null;
+    subStep = 1;
     renderList();
-    FZShell.toast("子账号已创建，权限立即生效（演示）");
+    FZShell.toast("子账号已创建，权限立即生效（演示）", "ok");
   });
 
   document.getElementById("role-cancel").addEventListener("click", function () {
@@ -537,6 +715,14 @@
         if (next.pageSize != null) pageSize = next.pageSize;
       },
       onChange: renderList
+    });
+  }
+  var filterSel = document.getElementById("sub-filter-proj");
+  if (filterSel) {
+    filterSel.addEventListener("change", function () {
+      filterProjId = filterSel.value || "";
+      page = 1;
+      renderList();
     });
   }
   setTab(tab);

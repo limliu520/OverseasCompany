@@ -43,7 +43,7 @@
     },
     {
       id: "collect",
-      label: "采集",
+      label: "采集中心",
       children: [
         leaf("collect.tg", "TG 采集", ["view", "create", "edit", "delete"]),
         leaf("collect.web", "网站采集", ["view", "create", "edit", "delete", "enable"]),
@@ -51,22 +51,21 @@
       ]
     },
     {
-      id: "edit",
-      label: "编辑",
+      id: "content",
+      label: "内容中心",
       children: [
-        leaf("edit.article", "文章", ["view", "create", "edit", "delete", "publish"]),
-        leaf("edit.media", "修片 / 媒体处理", ["view", "edit", "publish"]),
-        leaf("edit.publish", "发布/提交任务", ["view", "publish", "edit"])
+        leaf("content.article", "文章管理", ["view", "create", "edit", "delete", "publish"]),
+        leaf("content.ai_cmt", "AI 评论", ["view", "create", "edit", "enable"]),
+        leaf("content.pull_wm", "拉取加水印", ["view", "create", "edit", "enable"])
       ]
     },
     {
-      id: "interact",
-      label: "互动能力",
+      id: "review",
+      label: "审核中心",
       children: [
-        leaf("interact.ai_gen", "AI 评论生成", ["view", "create", "edit", "enable"]),
-        leaf("interact.ai_review", "AI 评论审核", ["view", "approve"]),
-        leaf("interact.user", "用户审核", ["view", "approve", "enable"]),
-        leaf("interact.post", "社区帖子", ["view", "approve", "delete"])
+        leaf("review.comment", "评论审核", ["view", "approve", "edit"]),
+        leaf("review.user", "用户审核", ["view", "approve", "enable"]),
+        leaf("review.post", "帖子审核", ["view", "approve", "delete"])
       ]
     },
     {
@@ -110,27 +109,24 @@
       "collect.tg.delete"
     ],
     review_material: [
-      "collect.review.view",
-      "collect.review.approve",
-      "collect.review.edit"
+      "collect.materials.view",
+      "collect.materials.approve",
+      "collect.materials.edit"
     ],
     edit_article: [
-      "edit.article.view",
-      "edit.article.create",
-      "edit.article.edit",
-      "edit.article.publish"
+      "content.article.view",
+      "content.article.create",
+      "content.article.edit",
+      "content.article.publish"
     ],
-    edit_media: ["edit.media.view", "edit.media.edit", "edit.media.publish"],
-    publish_ext: [
-      "edit.publish.view",
-      "edit.publish.publish",
-      "edit.publish.edit"
-    ],
+    /* 旧「修片 / 发布任务」已撤出侧栏；迁移到文章管理查看即可 */
+    edit_media: ["content.article.view"],
+    publish_ext: ["content.article.view", "content.article.publish"],
     interact: [
-      "interact.ai_gen.view",
-      "interact.ai_review.view",
-      "interact.user.view",
-      "interact.post.view"
+      "content.ai_cmt.view",
+      "review.comment.view",
+      "review.user.view",
+      "review.post.view"
     ],
     userbot_cfg: [
       "global.userbot.view",

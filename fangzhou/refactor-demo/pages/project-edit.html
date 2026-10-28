@@ -43,9 +43,9 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261027twoGate"></script>
-  <script src="../js/shell.js?v=20261027tipBr"></script>
-  <script src="../js/article-defaults.js?v=20261026r"></script>
+  <script src="../js/store.js?v=20261027botName"></script>
+  <script src="../js/shell.js?v=20261027reviewCtr"></script>
+  <script src="../js/article-defaults.js?v=20261027reviewCtr"></script>
   <script src="../js/media-config.js?v=20261027tipBr"></script>
   <script src="../js/pick-cards.js"></script>
   <script src="../js/tg-add-wizard.js"></script>
@@ -408,7 +408,7 @@
         "./tg-collect.html?project=" + encodeURIComponent(p.id);
       var cards =
         bots.length === 0
-          ? '<p class="ch-empty">本项目还没有采集号。可在此新建；挂频道、连接/监听请到「采集 → TG 采集」。</p>'
+          ? '<p class="ch-empty">本项目还没有采集号。可在此新建；挂频道、连接/监听请到「采集中心 → TG 采集」。</p>'
           : '<div class="fz-card-grid ch-bot-cards">' +
             bots
               .map(function (b) {
@@ -463,7 +463,7 @@
       return (
         '<div class="ch-wrap">' +
         '<div class="ch-sec-head" style="margin-bottom:12px">' +
-        "<div><p class=\"ch-lead\" style=\"margin:0\">本页只展示采集号核心信息（状态、挂载数）。频道明细与连接/监听请到「采集 → TG 采集」。此处可新建采集号。</p>" +
+        "<div><p class=\"ch-lead\" style=\"margin:0\">本页只展示采集号核心信息（状态、挂载数）。频道明细与连接/监听请到「采集中心 → TG 采集」。此处可新建采集号。</p>" +
         '<p class="ch-sec-sub">本项目 ' +
         bots.length +
         " / " +
@@ -755,7 +755,7 @@
           });
           if (still) {
             FZShell.toast(
-              "该采集号仍挂有频道。请先到「采集 → TG 采集」解绑后再移出",
+              "该采集号仍挂有频道。请先到「采集中心 → TG 采集」解绑后再移出",
               "err"
             );
             return;

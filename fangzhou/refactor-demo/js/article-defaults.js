@@ -39,20 +39,20 @@
     return a;
   }
 
+  /* 可选包：按项目开通。生成进内容中心，审核进审核中心（评论/用户/帖子），不再分站内外站 */
   var OPTIONAL_PACKS = [
     {
       id: "ai_comment",
-      name: "AI 评论生成",
-      desc: "开通后可配条数、分散小时等；互动侧出现运营入口。待办：须补评论预览（前台地址已删）。"
+      name: "AI 评论",
+      desc: "生成能力。开通后可配条数、分散小时等；内容中心出现运营入口。待办：须补评论预览（前台地址已删）。"
     },
     {
-      id: "ai_comment_review",
-      name: "AI 评论审核",
-      desc: "评论人工/半自动审核能力包。待办：须补评论预览（前台地址已删）。"
+      id: "comment_review",
+      name: "评论审核",
+      desc: "审核能力。项目推过来的评论待审（含原 AI 评论审核 / 社区评论 / 外站评论审核）。待办：须补评论预览。"
     },
-    { id: "user_review", name: "用户审核", desc: "用户资料修改等审核能力包。" },
-    { id: "community_post", name: "社区帖子", desc: "社区帖子审核与运营能力包。" },
-    { id: "ext_comment_review", name: "外站评论审核", desc: "外站评论回调与审核记录能力包。" }
+    { id: "user_review", name: "用户审核", desc: "审核能力。用户资料等待审，按项目开通。" },
+    { id: "post_review", name: "帖子审核", desc: "审核能力。社区帖子等待审，按项目开通。" }
   ];
 
   function defaultWmSlot(extra) {

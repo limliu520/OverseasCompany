@@ -93,7 +93,7 @@
     },
     {
       id: "collect",
-      label: "采集",
+      label: "采集中心",
       ico: "⇩",
       children: [
         {
@@ -117,34 +117,46 @@
       ]
     },
     {
-      id: "edit",
-      label: "编辑",
+      id: "content",
+      label: "内容中心",
       ico: "✎",
       children: [
-        { id: "e_art", label: "文章", stub: "文章" },
-        { id: "e_media", label: "修片 / 媒体处理", stub: "修片" },
-        { id: "e_pub", label: "发布/提交任务", stub: "发布/提交任务 · 设计中（列表提交与编辑内提交统一交互）" }
+        { id: "e_art", label: "文章管理", stub: "文章管理 · 设计中" },
+        {
+          id: "i_ai",
+          label: "AI 评论",
+          stub:
+            "AI 评论（生成）· 设计中。产品债务：须补「评论预览」（前台地址预览已删）"
+        },
+        {
+          id: "e_pull_wm",
+          label: "拉取加水印",
+          stub:
+            "拉取加水印 · 设计中（对方领任务加水印后回报；不进项目内容通道并集）"
+        }
       ]
     },
     {
-      id: "interact",
-      label: "互动能力",
-      ico: "◉",
+      id: "review",
+      label: "审核中心",
+      ico: "✓",
       children: [
         {
-          id: "i_ai",
-          label: "AI 评论生成",
+          id: "r_cmt",
+          label: "评论审核",
           stub:
-            "AI 评论生成 · 设计中。产品债务：须补「评论预览」（前台地址预览已删）"
+            "评论审核 · 设计中。按项目开通；含 AI 评论与社区评论等推过来的评论待审（不再分站内/外站）。产品债务：须补「评论预览」"
         },
         {
-          id: "i_air",
-          label: "AI 评论审核",
-          stub:
-            "AI 评论审核 · 设计中。产品债务：须补「评论预览」（前台地址预览已删）"
+          id: "r_user",
+          label: "用户审核",
+          stub: "用户审核 · 设计中。按项目开通"
         },
-        { id: "i_user", label: "用户审核", stub: "用户审核" },
-        { id: "i_post", label: "社区帖子", stub: "社区帖子" }
+        {
+          id: "r_post",
+          label: "帖子审核",
+          stub: "帖子审核 · 设计中。按项目开通"
+        }
       ]
     },
     {

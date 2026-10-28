@@ -96,7 +96,7 @@
   var DEMO_USERBOTS = [
     {
       id: "bot_demo_free",
-      name: "Alpha 采集号",
+      name: "星火采",
       phoneHint: "+1****1201",
       status: "connected",
       projectId: "proj_demo_ready",
@@ -104,7 +104,7 @@
     },
     {
       id: "bot_demo_busy",
-      name: "Beta 采集号",
+      name: "青柚采",
       phoneHint: "+1****2202",
       status: "disconnected",
       projectId: "proj_demo_collect",
@@ -112,7 +112,7 @@
     },
     {
       id: "bot_demo_pool",
-      name: "公共池 · 转发号 A",
+      name: "晚风号",
       phoneHint: "+1****3303",
       status: "connected",
       monitoring: true,
@@ -121,7 +121,7 @@
     },
     {
       id: "bot_demo_pool_b",
-      name: "公共池 · 转发号 B",
+      name: "云雀号",
       phoneHint: "+1****3304",
       status: "connected",
       monitoring: false,
@@ -164,8 +164,8 @@
         "collect.tg.view",
         "collect.tg.create",
         "collect.tg.edit",
-        "collect.review.view",
-        "collect.review.approve"
+        "collect.materials.view",
+        "collect.materials.approve"
       ]
     },
     {
@@ -173,16 +173,17 @@
       name: "内容编辑",
       features: [
         "home.overview.view",
-        "collect.review.view",
-        "collect.review.approve",
-        "edit.article.view",
-        "edit.article.create",
-        "edit.article.edit",
-        "edit.article.publish",
-        "edit.media.view",
-        "edit.media.edit",
-        "edit.publish.view",
-        "edit.publish.publish"
+        "collect.materials.view",
+        "collect.materials.approve",
+        "content.article.view",
+        "content.article.create",
+        "content.article.edit",
+        "content.article.publish",
+        "content.ai_cmt.view",
+        "review.comment.view",
+        "review.comment.approve",
+        "review.user.view",
+        "review.post.view"
       ]
     },
     {
@@ -195,8 +196,9 @@
         "projects.list.edit",
         "projects.list.config",
         "projects.list.connect",
-        "edit.publish.view",
-        "edit.publish.publish",
+        "content.article.view",
+        "content.article.publish",
+        "content.pull_wm.view",
         "global.userbot.view",
         "global.userbot.create",
         "global.userbot.edit",
@@ -273,7 +275,7 @@
       autoPush: false,
       autoflow: false,
       userbotId: "bot_demo_pool",
-      userbotName: "公共池 · 转发号 A",
+      userbotName: "晚风号",
       userbotIds: ["bot_demo_pool", "bot_demo_pool_b"],
       boundChannels: [
         {
@@ -393,7 +395,7 @@
       coverHeight: "1280",
       webhookUrl: "https://partner.example.com/hooks/fangzhou",
       userbotId: "bot_demo_free",
-      userbotName: "Alpha 采集号",
+      userbotName: "星火采",
       userbotIds: ["bot_demo_free"],
       boundChannels: [
         {
@@ -465,7 +467,7 @@
       coverHeight: "1280",
       webhookUrl: "",
       userbotId: "bot_demo_busy",
-      userbotName: "Beta 采集号",
+      userbotName: "青柚采",
       userbotIds: ["bot_demo_busy"],
       boundChannels: []
     }
@@ -528,7 +530,9 @@
         changed = true;
       }
       if (
-        /空闲可用|已断开|主转发|备援|转发用/.test(String(hit.name || "")) &&
+        /空闲可用|已断开|主转发|备援|转发用|公共池|转发号\s*[AB]|Alpha\s*采集|Beta\s*采集/.test(
+          String(hit.name || "")
+        ) &&
         hit.name !== seed.name
       ) {
         hit.name = seed.name;
@@ -1348,10 +1352,9 @@
     { id: "collect_web", name: "网站采集" },
     { id: "collect_materials", name: "素材管理" },
     { id: "review_material", name: "素材审核" },
-    { id: "edit_article", name: "文章编辑" },
-    { id: "edit_media", name: "修片" },
-    { id: "publish_ext", name: "发布/提交任务" },
-    { id: "interact", name: "互动能力" },
+    { id: "edit_article", name: "文章管理" },
+    { id: "interact", name: "内容中心 · 生成 / 审核中心" },
+    { id: "pull_wm", name: "拉取加水印" },
     { id: "userbot_cfg", name: "Userbot 配置" },
     { id: "sub_manage", name: "子账号管理" }
   ];

@@ -547,7 +547,7 @@
       "推业务方：" + (project.autoPush ? "内容就绪后自动（接通前不会真推）" : "待人工确认")
     ];
     if (!project.hasCollectSource && project.autoToEdit) {
-      blocks.push("已开「自动转入编辑」，请稍后在「采集」里为本项目绑定采集源");
+      blocks.push("已开「自动转入编辑」，请稍后在「采集中心」里为本项目绑定采集源");
     }
     document.getElementById("success-blocks").innerHTML =
       '<div style="font-weight:600">当前还不能做的事</div><ul>' +
