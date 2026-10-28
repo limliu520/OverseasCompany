@@ -204,14 +204,25 @@
     PROJECTS.forEach(function (name) {
       var key = "proj:" + name;
       var n = Fil.scopeCount(ITEMS, key);
+      var typeLabel =
+        (D.siteTypeLabel && D.siteTypeLabel(name)) ||
+        (D.SITE_TYPE_LABEL &&
+          D.SITE_TYPE_LABEL[D.PROJECT_SITE_TYPE && D.PROJECT_SITE_TYPE[name]]) ||
+        "";
       parts.push(
         '<button type="button" class="mat-v2-scope' +
           (scope === key ? " is-on" : "") +
           '" data-scope="' +
           esc(key) +
+          '" title="' +
+          esc(name + (typeLabel ? " · " + typeLabel : "")) +
           '"><span class="mat-v2-scope-name">' +
           esc(name) +
-          '</span><span class="mat-v2-scope-n">' +
+          "</span>" +
+          (typeLabel
+            ? '<span class="mat-v2-scope-type">' + esc(typeLabel) + "</span>"
+            : "") +
+          '<span class="mat-v2-scope-n">' +
           n +
           "</span></button>"
       );

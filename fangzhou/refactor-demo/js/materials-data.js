@@ -9,6 +9,21 @@
   /* 全部素材筛选项：对齐列表「分发频道 / 分发项目」列 */
   var TARGET_CHANNELS = ["@push_demo_a", "@push_demo_b", "@push_demo_c", "@push_demo_d"];
   var DISPATCH_PROJECTS = ["演示瓜站", "演示视频站", "演示短剧站"];
+  var PROJECT_SITE_TYPE = {
+    演示瓜站: "chigua",
+    演示视频站: "video",
+    演示短剧站: "short_drama"
+  };
+  var SITE_TYPE_LABEL = {
+    chigua: "瓜站",
+    video: "视频站",
+    short_drama: "短剧站"
+  };
+  function siteTypeLabel(codeOrName) {
+    if (SITE_TYPE_LABEL[codeOrName]) return SITE_TYPE_LABEL[codeOrName];
+    var code = PROJECT_SITE_TYPE[codeOrName];
+    return (code && SITE_TYPE_LABEL[code]) || "";
+  }
   var TABS = [
     { id: "all", label: "全部素材" },
     { id: "pending", label: "待审核素材" },
@@ -29,13 +44,23 @@
     opts = opts || {};
     var mediaType = opts.mediaType || (project.indexOf("视频") >= 0 ? "视频" : "图文");
     var num = String(id).replace(/^m/, "");
-    /* belong: none=公共池（可 TG→TG）；proj=业务项目自采（进内容通道，无路由） */
-    var belong = opts.belong || "none";
+    var collectType =
+      opts.collectType || (String(channel || "").indexOf("站") >= 0 ? "web" : "tg");
+    /*
+     * belong: none=公共池；proj=业务项目内容通道
+     * 公共池含：① TG 采集未进项目（可 TG→TG 分发频道）；② 网站采集未绑任何项目
+     * 网站已绑项目 → proj；网站料永不挂 TG 分发频道（进不了 TG）
+     */
+    var belong = opts.belong != null ? opts.belong : collectType === "web" ? "proj" : "none";
     var isPool = belong === "none";
-    var poolRouted = isPool && (status === "available" || status === "used" || status === "kept");
-    /* 公共池可一源多目标；targetChannels 为完整列表，targetChannel 保留首个兼容旧字段 */
+    var poolRouted =
+      isPool &&
+      collectType === "tg" &&
+      (status === "available" || status === "used" || status === "kept");
+    /* 公共池 TG 可一源多目标；网站公共池无 targetChannels */
     var targets;
-    if (opts.targetChannels) targets = opts.targetChannels.slice();
+    if (collectType === "web") targets = [];
+    else if (opts.targetChannels) targets = opts.targetChannels.slice();
     else if (opts.targetChannel != null && opts.targetChannel !== "") targets = [opts.targetChannel];
     else if (opts.targetChannel === "") targets = [];
     else if (poolRouted) targets = ["@push_demo_a", "@push_demo_b"];
@@ -55,8 +80,8 @@
       title: title,
       project: project,
       channel: channel,
-      collectType: opts.collectType || (channel.indexOf("站") >= 0 ? "web" : "tg"),
-      source: channel.indexOf("站") >= 0 ? "网站 · " + channel : "TG · " + channel,
+      collectType: collectType,
+      source: collectType === "web" ? "网站 · " + channel : "TG · " + channel,
       status: status,
       time: time,
       publishTime: opts.publishTime || time,
@@ -126,45 +151,66 @@
       imageCount: 3,
       videoCount: 0
     }),
-    /* 公共池：一源多目标，尚未转编辑 */
-    mk("m1002", "可用成片 · 可转编辑", "演示视频站", "示例短剧站 A", "available", "2026-10-26 18:40", 2200, 156, {
+    /* 网站已绑项目 → 进项目；无 TG 分发频道 */
+    mk("m1002", "网站已绑项目 · 进短剧站", "演示短剧站", "示例短剧站 A", "available", "2026-10-26 18:40", 2200, 156, {
       mediaType: "视频",
+      collectType: "web",
+      belong: "proj",
+      targetChannels: [],
+      dispatchProject: "演示短剧站"
+    }),
+    /* 网站未绑任何项目 → 进公共池；分发频道为空（进不了 TG） */
+    mk("m1003", "网站未绑项目 · 进公共池", "", "示例短剧站 A", "available", "2026-10-26 18:10", 900, 44, {
+      mediaType: "视频",
+      collectType: "web",
       belong: "none",
-      targetChannels: ["@push_demo_a", "@push_demo_b", "@push_demo_c"],
+      targetChannels: [],
       dispatchProject: ""
     }),
-    /* 公共池：多频道已推 + 转编辑进多个项目（Demo：频道与项目并存） */
+    /* 公共池 TG：多频道已推 + 转编辑进项目后离开公共池列表 */
     mk("m0998", "公共池已转编辑", "演示瓜站", "源频道甲", "used", "2026-10-25 12:00", 300, 18, {
       belong: "none",
       targetChannels: ["@push_demo_b", "@push_demo_d", "@push_demo_c"],
       dispatchProject: "演示瓜站",
       dispatchProjects: ["演示瓜站", "演示视频站"]
     }),
-    /* 业务项目自采：无 TG 路由 */
+    /* TG 项目自采 */
     mk("m0997", "项目自采进内容通道", "演示瓜站", "源频道乙", "available", "2026-10-25 09:00", 180, 9, {
       belong: "proj",
       targetChannels: [],
       dispatchProject: "演示瓜站"
+    }),
+    /* 公共池 TG 可用成片 */
+    mk("m1001", "公共池可用 · 可转编辑", "演示视频站", "源频道甲", "available", "2026-10-26 17:20", 1800, 120, {
+      mediaType: "视频",
+      belong: "none",
+      targetChannels: ["@push_demo_a", "@push_demo_b", "@push_demo_c"],
+      dispatchProject: ""
     })
   ];
   (function pad() {
     var i;
     for (i = 0; i < 40; i++) {
       var ch = CHANNELS[i % CHANNELS.length];
+      var isWeb = String(ch).indexOf("站") >= 0;
       var id = "m" + (980 - i);
       var title = "演示素材 #" + (980 - i);
-      var proj = i % 2 ? "演示视频站" : "演示瓜站";
+      /* 网站：约 1/3 未绑项目进公共池，其余进短剧站 */
+      var webInPool = isWeb && i % 3 === 0;
+      var proj = webInPool ? "" : isWeb ? "演示短剧站" : i % 2 ? "演示视频站" : "演示瓜站";
       var time = "2026-10-24 " + String(8 + (i % 10)).padStart(2, "0") + ":00";
       if (i % 5 === 4) {
         ITEMS.push(
-          mkTrash(id, title, proj, ch, time, AD_CATS[i % 3], (5 + (i % 50) / 10).toFixed(1), "规则#" + ((i % 7) + 1))
+          mkTrash(id, title, proj || "演示瓜站", ch, time, AD_CATS[i % 3], (5 + (i % 50) / 10).toFixed(1), "规则#" + ((i % 7) + 1))
         );
       } else {
         var st = ALL_STATUSES[i % ALL_STATUSES.length];
         ITEMS.push(
           mk(id, title, proj, ch, st, time, 100 + i * 17, 3 + (i % 20), {
             mediaType: i % 3 ? "图文" : "视频",
-            belong: i % 8 === 0 ? "proj" : "none"
+            collectType: isWeb ? "web" : "tg",
+            belong: webInPool ? "none" : isWeb ? "proj" : i % 8 === 0 ? "proj" : "none",
+            dispatchProject: webInPool ? "" : undefined
           })
         );
       }
@@ -176,6 +222,9 @@
     CHANNELS: CHANNELS,
     TARGET_CHANNELS: TARGET_CHANNELS,
     DISPATCH_PROJECTS: DISPATCH_PROJECTS,
+    PROJECT_SITE_TYPE: PROJECT_SITE_TYPE,
+    SITE_TYPE_LABEL: SITE_TYPE_LABEL,
+    siteTypeLabel: siteTypeLabel,
     TABS: TABS,
     LABEL: LABEL,
     ALL_STATUSES: ALL_STATUSES,

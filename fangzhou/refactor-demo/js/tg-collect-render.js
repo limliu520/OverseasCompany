@@ -16,6 +16,17 @@ window.FZTgCollectRender = (function () {
     return { bots: bots.length, channels: chN, monitoring: mon };
   }
 
+  var SITE_TYPE_SHORT = {
+    chigua: "瓜站",
+    video: "视频站",
+    short_drama: "短剧站"
+  };
+
+  function siteTypeShort(p) {
+    if (!p || FZStore.isPublicPool(p)) return "";
+    return SITE_TYPE_SHORT[p.siteType] || "";
+  }
+
   function contextCards(st, selectedId) {
     var items = [];
     var pool = FZStore.findProject(st, FZStore.PUBLIC_POOL_ID);
@@ -27,7 +38,8 @@ window.FZTgCollectRender = (function () {
       .map(function (p) {
         var isPool = FZStore.isPublicPool(p);
         var s = ctxStats(st, p);
-        var title = isPool ? "公共池（TG→TG 转发）" : p.name;
+        var title = isPool ? "公共池" : p.name;
+        var typeLabel = isPool ? "TG→TG 转发" : siteTypeShort(p);
         var meta =
           s.bots +
           " 个采集号 · " +
@@ -42,9 +54,15 @@ window.FZTgCollectRender = (function () {
           (p.id === selectedId ? "true" : "false") +
           '" data-pick-ctx="' +
           esc(p.id) +
+          '" title="' +
+          esc(title + (typeLabel ? " · " + typeLabel : "")) +
           '"><span class="tg-ctx-card-name">' +
           esc(title) +
-          '</span><span class="tg-ctx-card-meta">' +
+          "</span>" +
+          (typeLabel
+            ? '<span class="tg-ctx-card-type">' + esc(typeLabel) + "</span>"
+            : "") +
+          '<span class="tg-ctx-card-meta">' +
           esc(meta) +
           "</span></button>"
         );
@@ -82,7 +100,15 @@ window.FZTgCollectRender = (function () {
           esc(b.id) +
           '"><span class="tg-bot-dot ' +
           (on ? "is-on" : "is-off") +
-          (mon ? " is-mon" : "") +
+          (on && mon ? " is-mon" : "") +
+          '" title="' +
+          esc(
+            on && mon
+              ? "全部畅通：已连接且监听中"
+              : on
+                ? "部分畅通：已连接、未监听"
+                : "完全不畅通：已断开"
+          ) +
           '"></span><span class="tg-bot-item-main"><span class="tg-bot-item-name">' +
           esc(b.name) +
           '</span><span class="tg-bot-item-meta">' +

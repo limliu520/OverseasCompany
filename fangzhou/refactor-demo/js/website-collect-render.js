@@ -151,9 +151,21 @@ window.FZWebCollectRender = (function () {
         var st = D.STATUS[s.status] || { label: s.status, cls: "" };
         var targets = s.targets || [];
         var typeLabel = D.SITE_TYPES[s.type] || s.type || "—";
-        var bindLine = targets.length
-          ? "绑 " + targets.length + "/" + D.MAX_BIND + " 项目"
-          : "未绑定项目";
+        var bindHtml = targets.length
+          ? '<div class="wc-site-bind">' +
+            '<div class="wc-site-bind-hd muted">绑 ' +
+            targets.length +
+            "/" +
+            D.MAX_BIND +
+            " 项目</div>" +
+            '<ul class="wc-site-bind-list">' +
+            targets
+              .map(function (t) {
+                return "<li>" + esc(t) + "</li>";
+              })
+              .join("") +
+            "</ul></div>"
+          : '<div class="wc-site-bind muted">未绑定项目</div>';
         var ops = "";
         if (s.status === "active") {
           ops =
@@ -185,11 +197,9 @@ window.FZWebCollectRender = (function () {
           esc(D.INTERVAL[s.interval] || "—") +
           " · 下次 " +
           esc(s.nextAt) +
-          '</div><div class="wc-site-bind muted" title="' +
-          esc(targets.join("、") || "未绑定") +
-          '">' +
-          esc(bindLine) +
-          '</div><div class="wc-site-card-foot">' +
+          "</div>" +
+          bindHtml +
+          '<div class="wc-site-card-foot">' +
           ops +
           '<button type="button" class="btn btn-sm wc-btn-detail" data-detail="' +
           esc(s.id) +

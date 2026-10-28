@@ -149,14 +149,14 @@
       return th(
         esc,
         "分发频道",
-        "公共池经 TG 路由后的分发频道，可能有多个。点击「N 个频道」可查看全部。",
+        "TG 源经公共池路由后的分发频道；网站未绑定项目进公共池此列为空；点击查看具体分发频道。",
         "th-fused"
       );
     }
     return th(
       esc,
       "采集方式",
-      "「项目自采」表示本项目频道采进来的；「公共池转入」表示从公共池转编辑占用到本项目。",
+      "项目自采：本项目频道采入；公共池转入：从公共池转编辑占用。",
       "th-fused"
     );
   }
@@ -165,11 +165,15 @@
     if (m.targetChannel) return [m.targetChannel];
     return [];
   }
-  function sourceCell(esc, m) {
-    var isWeb =
+  function isWebMat(m) {
+    return (
       m.collectType === "web" ||
       (m.source && String(m.source).indexOf("网站") === 0) ||
-      String(m.channel || "").indexOf("站") >= 0;
+      String(m.channel || "").indexOf("站") >= 0
+    );
+  }
+  function sourceCell(esc, m) {
+    var isWeb = isWebMat(m);
     return (
       '<div class="mat-source-cell">' +
       '<span class="mat-collect-tag is-' +
@@ -183,7 +187,7 @@
       "</span></div>"
     );
   }
-  /* 待审：通过后会落到哪里（项目通道 / TG 频道 / 仅公共池） */
+  /* 待审：通过后会落到哪里（项目通道 / TG 频道 / 公共池） */
   function destCell(esc, m) {
     if (m.belong === "proj") {
       var proj = m.project || m.dispatchProject || "";
@@ -196,7 +200,7 @@
       );
     }
     var list = targetList(m);
-    if (list.length) {
+    if (list.length && !isWebMat(m)) {
       return (
         '<span class="mat-dest is-tg" title="通过后按公共池路由推送到这些 TG 频道">' +
         '<span class="mat-dest-k">TG</span>' +
@@ -208,9 +212,15 @@
       );
     }
     return (
-      '<span class="mat-dest is-pool" title="通过后仍留在公共池，暂无项目或 TG 去向">' +
+      '<span class="mat-dest is-pool" title="' +
+      (isWebMat(m)
+        ? "网站未绑项目：留在公共池；可再转编辑进项目；不会推 TG"
+        : "留在公共池；暂无项目或 TG 去向") +
+      '">' +
       '<span class="mat-dest-k">公共池</span>' +
-      '<span class="mat-dest-v mat-dest-muted">无固定去向</span></span>'
+      '<span class="mat-dest-v mat-dest-muted">' +
+      (isWebMat(m) ? "未绑项目" : "无固定去向") +
+      "</span></span>"
     );
   }
   function fusedCell(esc, m, scopeCtx) {
@@ -245,13 +255,13 @@
       return (
         "<thead><tr>" +
         check +
-        th(esc, "频道", "采集来源；左侧标签区分 TG 采集或网站采集。", "th-source") +
-        th(esc, "编号", "系统素材编号，点击可复制。", "th-num") +
-        th(esc, "内容", "素材标题；右侧小字是媒体类型和内容分类。", "th-title") +
+        th(esc, "频道", "采集来源；左侧标签区分 TG / 网站。", "th-source") +
+        th(esc, "编号", "系统素材编号；点击复制。", "th-num") +
+        th(esc, "内容", "素材标题；右侧小字为媒体类型与分类。", "th-title") +
         th(
           esc,
           "广告类别",
-          "广告过滤给出的风险类别。高风险偏红、中风险偏黄，便于优先处理。",
+          "广告过滤风险类别；高风险偏红；中风险偏黄。",
           "th-ad"
         ) +
         '<th class="th-score">得分</th><th class="th-rule">命中规则</th>' +
@@ -264,18 +274,18 @@
       return (
         "<thead><tr>" +
         check +
-        th(esc, "编号", "系统素材编号，点击可复制。", "th-num") +
-        th(esc, "标题", "素材标题；右侧小字是媒体类型和内容分类。", "th-title") +
+        th(esc, "编号", "系统素材编号；点击复制。", "th-num") +
+        th(esc, "标题", "素材标题；右侧小字为媒体类型与分类。", "th-title") +
         th(
           esc,
           "来源频道",
-          "从哪个频道采进来；左侧标签区分 TG 采集或网站采集，不是推送目标。",
+          "采入来源；左侧区分 TG / 网站；不是推送目标。",
           "th-source"
         ) +
         th(
           esc,
           "通过后去向",
-          "审核通过后素材会落到哪里：「项目」进该项目内容通道；「TG」按公共池路由推频道；「公共池 · 无固定去向」表示暂时只进池子、还没有项目或频道。",
+          "项目：进内容通道；TG：按公共池路由推频道；公共池：暂无固定去向。",
           "th-dest"
         ) +
         sortTh(esc, "浏览", "view_count", sortState) +
@@ -288,20 +298,20 @@
     return (
       "<thead><tr>" +
       check +
-      th(esc, "编号", "系统素材编号，点击可复制。", "th-num") +
+      th(esc, "编号", "系统素材编号；点击复制。", "th-num") +
       th(
         esc,
         "标题",
-        "素材标题；右侧小字是媒体类型（图文/视频）和内容分类。",
+        "素材标题；右侧小字为媒体类型与分类。",
         "th-title"
       ) +
       th(
         esc,
         "状态",
-        "「待人工审核」「可使用」会高亮，表示通常需要你处理。其余状态为灰色，可在详情或筛选里查看。",
+        "待人工审核 / 可使用高亮，通常需处理；其余灰色，可筛可看详情。",
         "th-status"
       ) +
-      th(esc, "来源频道", "从哪个频道采进来；左侧标签区分 TG 采集或网站采集。", "th-source") +
+      th(esc, "来源频道", "采入来源；左侧区分 TG / 网站。", "th-source") +
       fusedHead(esc, scopeCtx) +
       '<th class="th-time">采集时间</th>' +
       op +

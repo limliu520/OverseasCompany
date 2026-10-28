@@ -325,21 +325,21 @@
       '"' +
       (p.requireVideo ? " checked" : "") +
       " /> 必须含视频 " +
-      tip("现网外站 require_video；CMS 视频站发布亦要求有视频。三站默认开。") +
+      tip("必须含视频才可推送；瓜/视频/短剧默认开启。") +
       "</label>" +
       '<label class="check-item"><input type="checkbox" id="' +
       id("slice") +
       '"' +
       (p.sliceEnabled ? " checked" : "") +
       " /> 切片生成 m3u8 " +
-      tip("现网外站 slice_enabled；CMS 转编辑常固定提交切片。合并后做开关。") +
+      tip("开启后生成 m3u8 切片；转编辑时常需要。") +
       "</label>" +
       '<div class="field" style="margin-top:12px">' +
       label(
         "最短视频时长（秒）",
         "全局下限 " +
           GLOBAL_MIN_VIDEO_SEC +
-          " 秒（现网 EXTERNAL_PUBLISH_MIN_VIDEO_SECONDS）。项目可在此之上收紧。"
+          " 秒；项目可在此之上再收紧。"
       ) +
       '<input type="number" id="' +
       id("min-sec") +
@@ -396,7 +396,7 @@
       '" value="auto"' +
       (toEditOn ? " checked" : "") +
       " /> 自动转入编辑 " +
-      tip("素材可用后自动进入本项目编辑链，无需再点「转编辑」。") +
+      tip("素材可用后自动进本项目编辑；无需再点「转编辑」。") +
       "</label>" +
       '<label class="check-item" style="margin:0"><input type="radio" name="' +
       id("to-edit-mode") +
@@ -405,7 +405,7 @@
       '" value="manual"' +
       (!toEditOn ? " checked" : "") +
       " /> 人工转编辑 " +
-      tip("停在素材「可使用」，由运营在素材管理里点「转编辑」选进本项目。") +
+      tip("停在「可使用」；在素材管理点「转编辑」选进本项目。") +
       "</label></div></div>" +
       '<div class="cfg-card" style="margin-bottom:12px">' +
       '<div class="cfg-card-head"><div class="cfg-card-title">② 推送给业务方</div>' +
@@ -418,7 +418,7 @@
       '" value="auto"' +
       (pushOn ? " checked" : "") +
       " /> 内容就绪后自动推送 " +
-      tip("编辑完成（或可跳过编辑）后，经本项目内容通道自动推给业务方。未接通时不会真推。") +
+      tip("编辑完成（或可跳过）后经内容通道自动推；未接通时不会真推。") +
       "</label>" +
       '<label class="check-item" style="margin:0"><input type="radio" name="' +
       id("push-mode") +
@@ -427,9 +427,9 @@
       '" value="manual"' +
       (!pushOn ? " checked" : "") +
       " /> 待人工确认再推 " +
-      tip("停在待推送，由运营在列表里点推送/提交。待推超过 7 天会自动取消。") +
+      tip("停在待推送，列表里人工点推；超过 7 天自动取消。") +
       "</label></div>" +
-      '<p class="hint" style="margin:10px 0 0">两段可分开配：例如自动进编辑、推业务方仍要人点。收件/事件通知在「开发对接配置」。</p></div>';
+      '<p class="hint" style="margin:10px 0 0">两段可分开配（如自动进编辑、推送仍人工）。收件/事件通知在「开发对接」。</p></div>';
 
     if (short) {
       html +=

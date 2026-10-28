@@ -51,13 +51,12 @@
   }
 
   var TIP_API_ID =
-    "Telegram 应用的数字 ID（api_id）。打开 https://my.telegram.org → 登录 → API development tools，创建应用后即可看到。";
+    "Telegram 应用的 api_id；在 my.telegram.org → API development tools 创建后可见。";
   var TIP_API_HASH =
-    "与 API ID 成对的密钥（api_hash），同在 my.telegram.org 的 API development tools 页面获取。请勿泄露。";
-  var TIP_PHONE =
-    "须带国家区号，以 + 开头。例如中国大陆：+8613800138000。";
+    "与 API ID 成对的 api_hash；同页获取；请勿泄露。";
+  var TIP_PHONE = "须带国家区号，以 + 开头；例：+8613800138000。";
   var TIP_2FA =
-    "若该 Telegram 账号已开启两步验证（云密码 / Two-Step Verification），在此输入登录密码；未开启则不会出现本步。";
+    "账号开了两步验证（云密码）时填写；未开启则不会出现本步。";
 
   function ensureDom() {
     var mask = el(MASK_ID);

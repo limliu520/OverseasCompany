@@ -121,7 +121,12 @@
       label: "内容中心",
       ico: "✎",
       children: [
-        { id: "e_art", label: "文章管理", stub: "文章管理 · 设计中" },
+        {
+          id: "e_art",
+          label: "文章管理",
+          href: "pages/articles.html",
+          done: true
+        },
         {
           id: "i_ai",
           label: "AI 评论",

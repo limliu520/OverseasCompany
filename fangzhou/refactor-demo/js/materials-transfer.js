@@ -1,9 +1,15 @@
 /* 转编辑 / 驳回弹窗（只选项目进内容通道） */
 (function (w) {
   var PROJECTS = [
-    { id: "p1", name: "演示瓜站" },
-    { id: "p2", name: "演示视频站" },
-    { id: "p3", name: "演示短剧站", disabled: true, reason: "该素材已被当前项目使用" }
+    { id: "p1", name: "演示瓜站", siteType: "瓜站" },
+    { id: "p2", name: "演示视频站", siteType: "视频站" },
+    {
+      id: "p3",
+      name: "演示短剧站",
+      siteType: "短剧站",
+      disabled: true,
+      reason: "该素材已被当前项目使用"
+    }
   ];
 
   function open(materialId) {
@@ -21,6 +27,7 @@
           (p.disabled ? " disabled" : "") +
           ">" +
           p.name +
+          (p.siteType ? " · " + p.siteType : "") +
           (p.disabled ? "（不可用）" : "") +
           "</option>"
         );

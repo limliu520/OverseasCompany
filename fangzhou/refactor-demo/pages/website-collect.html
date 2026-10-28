@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>网站采集 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261027tipBr" />
+  <link rel="stylesheet" href="../css/app.css?v=20261028wcBind" />
 </head>
 <body>
   <div class="app">
@@ -51,7 +51,12 @@
           <option value="short_drama" selected>短剧站</option>
         </select>
         <div id="wc-f-type-ro" class="muted" hidden style="font-size:13px"></div>
-        <p class="hint" style="margin:6px 0 0">一站一种类型；创建后不可改。瓜/视频/短剧均可；只能绑定同类型项目，最多 5 个。</p>
+        <p class="hint" style="margin:6px 0 0">一站一种类型；创建后不可改。选类型后下方勾选同类型项目。</p>
+      </div>
+      <div class="field">
+        <label id="wc-f-targets-label">绑定项目（同类型，最多 5 个）</label>
+        <div class="wc-bind-box" id="wc-f-targets"></div>
+        <p class="hint" style="margin:6px 0 0">采到的料进素材管理，再按绑定项目分流。承接现网「外站多选 ≤5」，此处改为同类型项目最多 5 个。</p>
       </div>
       <div class="field"><label>主域名 *</label><input id="wc-f-url" type="url" placeholder="https://example.com" /></div>
       <div class="field"><label>具体网页链接（每行一个，最多 50 个）*</label><textarea id="wc-f-pages" rows="4" placeholder="https://example.com/list"></textarea>
@@ -67,18 +72,13 @@
           <option value="1440">每天</option>
         </select>
       </div>
-      <div class="field">
-        <label id="wc-f-targets-label">绑定项目（同类型，最多 5 个）</label>
-        <div class="wc-bind-box" id="wc-f-targets"></div>
-        <p class="hint" style="margin:6px 0 0">采到的料进素材管理，再按绑定项目分流。承接现网「外站多选 ≤5」，此处改为同类型项目最多 5 个。</p>
-      </div>
       <div class="field wc-switch-row">
         <label class="check-inline">
           <input type="checkbox" id="wc-f-collect" checked /> 启动采集
         </label>
         <button type="button" class="field-tip" aria-label="字段说明">
           <span class="field-tip-ico" aria-hidden="true">?</span>
-          <span class="field-tip-bubble" role="tooltip">生效中时是否参与定时采集。卡片上的「启动 / 暂停」是整站状态；<br>此处是配置开关。</span>
+          <span class="field-tip-bubble" role="tooltip">生效中才参与定时采集；卡片「启动 / 暂停」管整站状态；此处是配置开关。</span>
         </button>
       </div>
       <div class="field wc-switch-row">
@@ -87,7 +87,7 @@
         </label>
         <button type="button" class="field-tip" aria-label="字段说明">
           <span class="field-tip-ico" aria-hidden="true">?</span>
-          <span class="field-tip-bubble" role="tooltip">开启后重复素材会按规则淘汰；<br>关闭则命中重复也照常入库（对齐现网 dedup_enabled）。</span>
+          <span class="field-tip-bubble" role="tooltip">开启：重复料按规则淘汰；关闭：重复也照常入库。</span>
         </button>
       </div>
       <div class="field"><label>备注</label><textarea id="wc-f-notes" rows="2" placeholder="选填"></textarea></div>
@@ -114,7 +114,7 @@
   <script src="../js/shell.js?v=20261027reviewCtr"></script>
   <script src="../js/pager.js?v=20261027pager"></script>
   <script src="../js/website-collect-data.js?v=20261027wc-rules"></script>
-  <script src="../js/website-collect-render.js?v=20261027wc-rules"></script>
+  <script src="../js/website-collect-render.js?v=20261028wcBind"></script>
   <script src="../js/website-collect-form.js?v=20261027wc-rules"></script>
   <script src="../js/website-collect-modal.js?v=20261027wc-rules"></script>
   <script src="../js/website-collect-app.js?v=20261027wc-rules"></script>
