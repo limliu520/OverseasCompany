@@ -2940,27 +2940,54 @@ button { cursor: pointer; }
 }
 /* —— 封面 / 水印 / 文章（setup + edit 共用） —— */
 .media-mod,
+.media-mod--wide {
+  max-width: 100%;
+  width: 100%;
+}
 .wm-fx-pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-top: 4px;
 }
+/* display:grid 会盖掉 UA [hidden]，关「间歇展示」后须显式隐藏 */
+.wm-fx-pair[hidden] {
+  display: none !important;
+}
 @media (max-width: 720px) {
   .wm-fx-pair {
     grid-template-columns: 1fr;
   }
 }
-
-.io-orient {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid #f0f0f3;
+.wm-fx-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
 }
-.io-orient:first-of-type {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: 0;
+.wm-fx-switch-copy {
+  min-width: 0;
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.4;
+}
+.wm-fx-switch-title {
+  font-weight: 600;
+}
+
+/* 横屏左 / 竖屏右；各列内片头、片尾仍上下排 */
+.io-orients {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.io-orient {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 .io-orient-hd {
   margin-bottom: 10px;
@@ -2976,11 +3003,17 @@ button { cursor: pointer; }
   color: var(--muted);
   margin-top: 2px;
 }
-
-.media-mod--wide {
-  max-width: 100%;
-  width: 100%;
+.io-orient-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
+@media (max-width: 900px) {
+  .io-orients {
+    grid-template-columns: 1fr;
+  }
+}
+
 .media-lead { margin: 0 0 14px; font-size: 13px; }
 .wm-subtabs,
 .seg-tabs {
@@ -3315,17 +3348,18 @@ button { cursor: pointer; }
 .wm-video-col-head {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 10px;
   margin: 0 0 12px;
-  cursor: pointer;
   font-size: 13px;
   font-weight: 600;
   color: var(--ink);
 }
-.wm-video-col-head input {
-  width: auto !important;
-  margin: 3px 0 0;
-  flex-shrink: 0;
+.wm-video-col-head > div {
+  min-width: 0;
+}
+.wm-video-col-head .switch {
+  margin-top: 2px;
 }
 .wm-video-col-head .art-mode-tag {
   display: block;
@@ -3335,6 +3369,10 @@ button { cursor: pointer; }
 .wm-video-col .wm-acc-grid {
   flex-direction: column;
 }
+.wm-video-col .wm-acc-media {
+  width: 100%;
+  max-width: none;
+}
 .wm-video-col .wm-preview {
   width: 100%;
   height: 88px;
@@ -3343,7 +3381,8 @@ button { cursor: pointer; }
   min-width: 0;
   width: 100%;
 }
-.wm-video-col .pos-group {
+.wm-video-col .wm-acc-fields .pos-group,
+.wm-video-col .wm-acc-fields .ratio-row {
   max-width: none;
 }
 @media (max-width: 1100px) {
@@ -3387,16 +3426,45 @@ button { cursor: pointer; }
 .wm-acc.is-open > .wm-acc-body { display: block; padding-top: 14px; }
 .wm-acc-grid {
   display: flex;
-  gap: 14px;
+  gap: 16px;
   flex-wrap: wrap;
   align-items: flex-start;
 }
-.wm-acc-fields { flex: 1; min-width: 220px; }
+/* 左：预览 + 上传；右：位置 / 比例等配置 */
+.wm-acc-media {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 168px;
+  flex-shrink: 0;
+}
+.wm-acc-media .wm-preview {
+  width: 100%;
+  height: 100px;
+}
+.wm-acc-media .wm-acc-actions {
+  margin-bottom: 0;
+}
+.wm-acc-fields {
+  flex: 1;
+  min-width: 220px;
+}
+.wm-acc-fields .pos-group,
+.wm-acc-fields .ratio-row {
+  width: 100%;
+  max-width: 320px;
+}
 .wm-acc-actions {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   margin-bottom: 6px;
+}
+.wm-acc-actions > label.btn,
+.wm-acc-actions > .btn {
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
 }
 
 .wm-card {
@@ -3437,7 +3505,6 @@ button { cursor: pointer; }
     "tl tr"
     "bl br";
   gap: 8px;
-  max-width: 280px;
 }
 .pos-group label {
   display: inline-flex !important;
@@ -3478,6 +3545,16 @@ button { cursor: pointer; }
 .ratio-row .field {
   margin: 0;
   min-width: 120px;
+}
+.wm-acc-fields .ratio-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex-wrap: unset;
+}
+.wm-acc-fields .ratio-row .field {
+  min-width: 0;
+  width: 100%;
 }
 .switch {
   width: 40px;

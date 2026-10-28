@@ -14,6 +14,10 @@
   --line: #2e2f3a;
   --pink: #ff4d8d;
   --pink-dim: rgba(255, 77, 141, 0.16);
+  --side: #6b6dff;
+  --side-dim: rgba(91, 91, 255, 0.16);
+  --poll: #2ec4b6;
+  --poll-dim: rgba(46, 196, 182, 0.16);
   --ok: #3dd68c;
   --warn: #f5a524;
   --max: 960px;
@@ -168,13 +172,17 @@ button { cursor: pointer; }
 .tabs-row {
   display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;
 }
+.tabs-row.wall-toolbar {
+  flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px 18px;
+}
 .ctrl-row {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
 .ctrl-row .ctrl-label {
   flex-shrink: 0; font-size: 12px; color: var(--muted); min-width: 2.5em;
 }
-.ctrl-row .tabs { flex: 1; }
+.ctrl-row .tabs { flex: 0 1 auto; }
+.wall-toolbar .ctrl-filter { flex: 1 1 auto; min-width: 0; }
 .wall-extra {
   display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto;
 }
@@ -183,6 +191,34 @@ button { cursor: pointer; }
   border-radius: 999px; padding: 6px 14px; font-size: 13px;
 }
 .wall-extra .tab-link:hover { color: var(--pink); border-color: var(--pink); }
+/* 我的 · 评论卡（紧凑，非整帖预览） */
+.mine-c-card {
+  background: var(--bg-card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 12px 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.18);
+}
+.mine-c-card .mine-c-row {
+  display: flex; align-items: baseline; gap: 10px 14px; flex-wrap: wrap;
+}
+.mine-c-card .mine-c-text {
+  flex: 1 1 12em; min-width: 0;
+  margin: 0; font-size: 15px; font-weight: 650; color: #f2f2f6; line-height: 1.45;
+}
+.mine-c-card .mine-c-meta {
+  flex: 0 1 auto; color: var(--muted); font-size: 12px; white-space: nowrap;
+}
+.mine-c-card .mine-c-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line);
+}
+.mine-c-card .mine-c-origin {
+  flex: 1; min-width: 0; margin: 0;
+  color: #8e8e9c; font-size: 12px; line-height: 1.4;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mine-c-card .mine-c-foot .btn {
+  flex-shrink: 0; height: 30px; padding: 0 12px; font-size: 12px;
+}
 .post-list { display: flex; flex-direction: column; gap: 14px; }
 .post-card {
   background: var(--bg-card); border: 1px solid var(--line);
@@ -193,8 +229,11 @@ button { cursor: pointer; }
   height: 6px; border-radius: var(--radius) var(--radius) 0 0;
   background: linear-gradient(90deg, var(--pink), #ff8fb3 55%, transparent);
 }
-.post-card.vote-card .band {
-  background: linear-gradient(90deg, #6b6dff, #9ea0ff 55%, transparent);
+.post-card.side-card .band {
+  background: linear-gradient(90deg, var(--side), #9ea0ff 55%, transparent);
+}
+.post-card.poll-card .band {
+  background: linear-gradient(90deg, var(--poll), #7eefe4 55%, transparent);
 }
 .post-card .inner { padding: 16px 18px 16px; }
 .post-card .top {
@@ -309,8 +348,10 @@ button { cursor: pointer; }
   border-radius: 4px; background: var(--pink); color: #fff;
   margin-top: 3px; letter-spacing: .02em;
 }
-.post-card .type.vote,
-.post-detail .type.vote { background: #6b6dff; color: #fff; }
+.post-card .type.side,
+.post-detail .type.side { background: var(--side); color: #fff; }
+.post-card .type.poll,
+.post-detail .type.poll { background: var(--poll); color: #12131a; }
 .post-card h3 {
   margin: 0 0 12px; padding: 0;
   font-size: 18px; font-weight: 700;
@@ -353,25 +394,53 @@ button { cursor: pointer; }
 }
 .post-card .act.primary .act-lab { color: rgba(255,255,255,.85); }
 .post-card .vote-panel,
-.post-detail .vote-panel {
+.post-detail .vote-panel,
+.post-card .poll-panel,
+.post-detail .poll-panel {
   margin: 2px 0 0; padding: 14px 14px 12px;
   border-radius: 12px;
+}
+.post-card .vote-panel,
+.post-detail .vote-panel {
   background: linear-gradient(180deg, rgba(91,91,255,.14), rgba(91,91,255,.05));
   border: 1px solid rgba(110,112,255,.42);
   box-shadow: inset 0 1px 0 rgba(158,160,255,.12);
 }
+.post-card .poll-panel,
+.post-detail .poll-panel {
+  background: linear-gradient(180deg, rgba(46,196,182,.16), rgba(46,196,182,.05));
+  border: 1px solid rgba(46,196,182,.42);
+  box-shadow: inset 0 1px 0 rgba(126,239,228,.12);
+}
 .post-card .vote-panel .vp-label,
-.post-detail .vote-panel .vp-label {
+.post-detail .vote-panel .vp-label,
+.post-card .poll-panel .vp-label,
+.post-detail .poll-panel .vp-label {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px;
-  margin: 0 0 10px; font-size: 12px; font-weight: 700; color: #9ea0ff; letter-spacing: .02em;
+  margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .02em;
+}
+.post-card .vote-panel .vp-label,
+.post-detail .vote-panel .vp-label { color: #9ea0ff; }
+.post-card .poll-panel .vp-label,
+.post-detail .poll-panel .vp-label { color: #7eefe4; }
+.post-card .vote-panel .vp-label::before,
+.post-detail .vote-panel .vp-label::before,
+.post-card .poll-panel .vp-label::before,
+.post-detail .poll-panel .vp-label::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
 }
 .post-card .vote-panel .vp-label::before,
 .post-detail .vote-panel .vp-label::before {
-  content: ""; width: 6px; height: 6px; border-radius: 50%;
   background: #9ea0ff; box-shadow: 0 0 0 3px rgba(110,112,255,.25);
 }
+.post-card .poll-panel .vp-label::before,
+.post-detail .poll-panel .vp-label::before {
+  background: var(--poll); box-shadow: 0 0 0 3px rgba(46,196,182,.25);
+}
 .post-card .vote-panel .vote-choices,
-.post-detail .vote-panel .vote-choices { margin: 0 0 8px; }
+.post-detail .vote-panel .vote-choices,
+.post-card .poll-panel .vote-choices,
+.post-detail .poll-panel .vote-choices { margin: 0 0 8px; display: flex; flex-direction: column; gap: 8px; }
 .post-card .vote-panel .vote-choices .choice,
 .post-detail .vote-panel .vote-choices .choice {
   background: rgba(18,19,28,.88); border-color: rgba(110,112,255,.35);
@@ -381,10 +450,28 @@ button { cursor: pointer; }
 .post-detail .vote-panel .vote-choices .choice:hover {
   border-color: #9ea0ff; color: #c8caff; background: rgba(91,91,255,.16);
 }
+.post-card .poll-panel .vote-choices .choice,
+.post-detail .poll-panel .vote-choices .choice {
+  background: rgba(18,19,28,.88); border: 1px solid rgba(46,196,182,.35);
+  border-radius: 10px; color: var(--text); font: inherit; font-size: 14px;
+  padding: 12px 14px; text-align: left; cursor: pointer;
+}
+.post-card .poll-panel .vote-choices .choice:hover,
+.post-detail .poll-panel .vote-choices .choice:hover {
+  border-color: var(--poll); color: #b8fff6; background: rgba(46,196,182,.14);
+}
 .post-card .vote-panel .hint,
 .post-detail .vote-panel .hint { margin: 0; color: #a8a9c8; }
+.post-card .poll-panel .hint,
+.post-detail .poll-panel .hint { margin: 0; color: #9ad8d0; }
 .post-card .vote-panel .preview,
-.post-detail .vote-panel .preview { margin: 0 0 8px; }
+.post-detail .vote-panel .preview,
+.post-card .poll-panel .preview,
+.post-detail .poll-panel .preview { margin: 0 0 8px; }
+.post-card .poll-panel .preview .fill,
+.post-detail .poll-panel .preview .fill {
+  background: linear-gradient(90deg, #1fa896, var(--poll));
+}
 .post-card .preview,
 .post-detail .preview {
   display: flex; flex-direction: column; gap: 8px; margin: 0 0 12px;
@@ -412,6 +499,62 @@ button { cursor: pointer; }
 .post-card .preview .line > span:last-child,
 .post-detail .preview .line > span:last-child {
   flex: 0 0 2.5em; text-align: right; font-weight: 700; color: #fff;
+}
+.post-card .preview .line > span:first-child.wide,
+.post-detail .preview .line > span:first-child.wide {
+  flex: 0 0 8em; min-width: 8em;
+}
+.media-grid {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: 4px 0 10px;
+}
+.media-grid img {
+  width: 88px; height: 88px; object-fit: cover;
+  border-radius: 8px; border: 1px solid var(--line);
+  cursor: zoom-in; background: #15161d;
+}
+.post-detail .media-grid img { width: 120px; height: 120px; }
+.c-media {
+  display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0;
+}
+.c-media img {
+  width: 64px; height: 64px; object-fit: cover;
+  border-radius: 6px; border: 1px solid var(--line); cursor: zoom-in;
+}
+.attach-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin-top: 10px;
+}
+.attach-row .attach-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  border: 1px dashed #4a4b58; background: transparent; color: var(--muted);
+  border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: pointer;
+}
+.attach-row .attach-btn:hover { border-color: var(--pink); color: var(--pink); }
+.attach-previews { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+.attach-previews .ap {
+  position: relative; width: 72px; height: 72px;
+}
+.attach-previews .ap img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--line);
+}
+.attach-previews .ap .rm {
+  position: absolute; top: -6px; right: -6px;
+  width: 20px; height: 20px; border-radius: 50%; border: 0;
+  background: #3a3b48; color: #fff; font-size: 12px; line-height: 1; cursor: pointer;
+}
+.attach-previews .ap .rm:hover { background: var(--pink); }
+.attach-hint { font-size: 11px; color: var(--muted); }
+#lightbox {
+  position: fixed; inset: 0; z-index: 120;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.78); padding: 24px; cursor: zoom-out;
+}
+#lightbox.show { display: flex; }
+#lightbox img {
+  max-width: min(920px, 94vw); max-height: 88vh;
+  border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,.45);
+  cursor: default;
 }
 .post-card .foot {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end;
@@ -825,6 +968,9 @@ button { cursor: pointer; }
   .page-title h1 { font-size: 20px; }
   .wall-head { flex-direction: column; align-items: stretch; }
   .compose-fab-dock { padding: 0 14px; bottom: 20px; }
+  .tabs-row.wall-toolbar { gap: 10px; }
+  .wall-toolbar .wall-extra { margin-left: 0; width: 100%; }
+  .wall-toolbar .wall-extra .tab-link { width: 100%; text-align: center; }
 }
 </style>
 </head>
@@ -902,26 +1048,26 @@ button { cursor: pointer; }
         <p>想看的瓜还没有？来墙上喊一声。大家一起点赞评论攒热度，热了就有机会被安排成真瓜。</p>
       </div>
     </div>
-    <div class="tabs-row">
+    <div class="tabs-row wall-toolbar">
       <div class="ctrl-row">
         <span class="ctrl-label">排序</span>
         <div class="tabs" id="wallSort">
           <button class="tab on" data-sort="hot">最热</button>
           <button class="tab" data-sort="new">最新</button>
         </div>
-        <div class="wall-extra">
-          <button class="tab-link" data-go="mine">我的心愿墙</button>
-          <button class="tab-link" data-go="ai">问 AI</button>
-        </div>
       </div>
-      <div class="ctrl-row">
+      <div class="ctrl-row ctrl-filter">
         <span class="ctrl-label">筛选</span>
         <div class="tabs" id="wallFilter">
           <button class="tab on" data-filter="all">全部</button>
           <button class="tab" data-filter="wish">求瓜帖</button>
-          <button class="tab" data-filter="vote">投票帖</button>
+          <button class="tab" data-filter="side">站队帖</button>
+          <button class="tab" data-filter="poll">投票帖</button>
           <button class="tab" data-filter="done">已安排</button>
         </div>
+      </div>
+      <div class="wall-extra">
+        <button class="tab-link" data-go="mine">我的心愿墙</button>
       </div>
     </div>
     <div class="post-list" id="wallFeed"></div>
@@ -932,7 +1078,7 @@ button { cursor: pointer; }
     <div class="panel" id="voteBody"></div>
   </section>
 
-  <!-- POST DETAIL (求瓜 / 投票帖详情 + 全量评论) -->
+  <!-- POST DETAIL (求瓜 / 站队 / 投票详情 + 全量评论) -->
   <section id="view-post" class="view hidden">
     <div class="post-detail" id="postDetailBody"></div>
   </section>
@@ -978,7 +1124,7 @@ button { cursor: pointer; }
     <div class="tabs-row">
       <div class="tabs" id="mineTabs">
         <button class="tab on" data-mine="wish">我的求瓜</button>
-        <button class="tab" data-mine="vote">我站过的队</button>
+        <button class="tab" data-mine="vote">我投过的</button>
         <button class="tab" data-mine="comment">我评论过的</button>
         <button class="tab" data-mine="like">我点赞的</button>
       </div>
@@ -1023,6 +1169,12 @@ button { cursor: pointer; }
         <label class="compose-anon"><input type="checkbox" id="wishAnon" /><span>匿名提交</span></label>
         <span class="char-count" id="wishCharCount">0 / 120</span>
       </div>
+      <div class="attach-row">
+        <button type="button" class="attach-btn" id="wishImgBtn">＋ 添加图片</button>
+        <span class="attach-hint">最多 3 张（选填）</span>
+        <input type="file" id="wishImgInput" accept="image/*" multiple class="hidden" />
+        <div class="attach-previews" id="wishImgPreviews"></div>
+      </div>
     </div>
     <div class="row" style="margin-top:16px">
       <button type="button" class="btn ghost" id="composeCancel">取消</button>
@@ -1030,6 +1182,7 @@ button { cursor: pointer; }
     </div>
   </div>
 </div>
+<div id="lightbox" aria-hidden="true"><img alt="预览" /></div>
 <div id="composeConfirmModal" class="modal-mask hidden">
   <div class="modal">
     <h3>确认提交？</h3>
@@ -1086,13 +1239,24 @@ button { cursor: pointer; }
     }
   ];
 
+  function demoImg(label, c1, c2) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="52%" fill="#fff" font-size="22" font-family="sans-serif" text-anchor="middle">${label}</text></svg>`;
+    return "data:image/svg+xml," + encodeURIComponent(svg);
+  }
+  const IMG = {
+    a: demoImg("截图示意 A", "#ff4d8d", "#6b6dff"),
+    b: demoImg("截图示意 B", "#2ec4b6", "#1a5f7a"),
+    c: demoImg("截图示意 C", "#f5a524", "#ff4d8d")
+  };
+
   let posts = [
     {
       id: "w1", type: "wish", text: "想看沈腾近几年舆情完整时间线盘点",
       tag: "沈腾", likes: 128, status: "collecting", mine: false, time: "2小时前",
       user: "瓜友阿茶", anonymous: false,
+      images: [IMG.a],
       comments: [
-        { id: "cw1a", user: "瓜友A", text: "求完整时间线，别只蹭热度", time: "1小时前", likes: 26, hot: true, hotBy: "ops" },
+        { id: "cw1a", user: "瓜友A", text: "求完整时间线，别只蹭热度", time: "1小时前", likes: 26, hot: true, hotBy: "ops", images: [IMG.b] },
         { id: "cw1b", user: "吃瓜本吃瓜", text: "附议，最好按年份排", time: "40分钟前", likes: 18, hot: true, hotBy: "data" },
         { id: "cw1c", user: "路人丙", text: "出道初期那段也想看", time: "30分钟前", likes: 3 }
       ]
@@ -1101,9 +1265,10 @@ button { cursor: pointer; }
       id: "w2", type: "wish", text: "想看沈腾×林允传闻的「已证实 / 未证实」对照表",
       tag: "沈腾", likes: 86, status: "arranged", articleId: "a1", mine: false, time: "昨天",
       user: "匿名", anonymous: true,
+      images: [IMG.a, IMG.c],
       comments: [
         { id: "cw2a", user: "路人甲", text: "对照表太需要了", time: "昨天", likes: 14, hot: true, hotBy: "ops" },
-        { id: "cw2b", user: "瓜妹", text: "圆梦了来看一眼", time: "昨天", likes: 5 }
+        { id: "cw2b", user: "瓜妹", text: "圆梦了来看一眼", time: "昨天", likes: 5, images: [IMG.c] }
       ]
     },
     {
@@ -1143,7 +1308,7 @@ button { cursor: pointer; }
       comments: []
     },
     {
-      id: "v1", type: "vote", text: "这类盘点你更想先看哪段？",
+      id: "v1", type: "side", text: "这类盘点你更想先看哪段？",
       tag: "沈腾", a: "出道到爆红", b: "近三年舆情", pa: 41, pb: 59,
       likes: 36, status: "voting",
       user: "运营", anonymous: false,
@@ -1155,7 +1320,7 @@ button { cursor: pointer; }
       relatedWishId: "w1", ops: true
     },
     {
-      id: "v2", type: "vote", text: "沈腾林允传闻：你站哪边？",
+      id: "v2", type: "side", text: "沈腾林允传闻：你站哪边？",
       tag: "沈腾", a: "尊重隐私，先别审判", b: "希望当事人尽快澄清", pa: 58, pb: 42,
       likes: 90, status: "voting",
       user: "运营", anonymous: false,
@@ -1168,15 +1333,40 @@ button { cursor: pointer; }
       relatedWishId: "w2", relatedArticleId: "a1", ops: true
     },
     {
-      id: "v3", type: "vote", text: "本周你更想先看哪类瓜？",
-      tag: "本周征集", a: "明星恋情", b: "晚会翻车", pa: 55, pb: 45,
-      likes: 52, status: "ended",
-      user: "运营", anonymous: false,
-      comments: [
-        { id: "cv3a", user: "周更党", text: "晚会翻车合集更解压", time: "4小时前", likes: 8, hot: true, hotBy: "data" }
+      id: "p1", type: "poll", text: "本周你最想先看到哪一类内容？",
+      tag: "本周征集",
+      options: [
+        { id: "o1", label: "明星恋情盘点", votes: 186 },
+        { id: "o2", label: "晚会翻车合集", votes: 152 },
+        { id: "o3", label: "网红停更复盘", votes: 98 },
+        { id: "o4", label: "旧瓜时间线", votes: 74 },
+        { id: "o5", label: "综艺花絮合集", votes: 61 }
       ],
-      mine: false, time: "5小时前",
-      relatedWishId: null, ops: true
+      likes: 48, status: "voting",
+      user: "运营", anonymous: false, ops: true,
+      comments: [
+        { id: "cp1a", user: "周更党", text: "晚会翻车合集更解压", time: "4小时前", likes: 8, hot: true, hotBy: "data" },
+        { id: "cp1b", user: "瓜嫂", text: "选项够全，投了恋情", time: "2小时前", likes: 3 }
+      ],
+      mine: false, time: "5小时前"
+    },
+    {
+      id: "p2", type: "poll", text: "短剧你更在意哪一点？",
+      tag: "短剧",
+      options: [
+        { id: "o1", label: "剧情反转", votes: 210 },
+        { id: "o2", label: "人设张力", votes: 168 },
+        { id: "o3", label: "配乐氛围", votes: 90 },
+        { id: "o4", label: "单集时长", votes: 55 },
+        { id: "o5", label: "更新节奏", votes: 120 },
+        { id: "o6", label: "封面吸引力", votes: 44 }
+      ],
+      likes: 33, status: "voting",
+      user: "运营", anonymous: false, ops: true,
+      comments: [
+        { id: "cp2a", user: "追剧人", text: "反转还是第一", time: "昨天", likes: 6, hot: true, hotBy: "ops" }
+      ],
+      mine: false, time: "昨天"
     }
   ];
 
@@ -1189,7 +1379,9 @@ button { cursor: pointer; }
     wallSort: "hot",
     liked: { w3: true },
     commentLiked: { cw1b: true },
-    voted: { v1: "a" },
+    voted: {},
+    composeImages: [],
+    commentImages: [],
     myComments: [
       { postId: "w1", text: "我也想看按年份排的完整时间线", time: "50分钟前" }
     ],
@@ -1299,11 +1491,11 @@ button { cursor: pointer; }
     const vote = a.voteId ? findVote(a.voteId) : null;
     const voteBlock = vote
       ? `<div class="related-block vote">
-          <div class="rb-lab">相关投票</div>
+          <div class="rb-lab">相关站队</div>
           <p class="rb-title">${escapeHtml(vote.text)}</p>
           <p class="rb-desc">站队表个态，看看大家都怎么选</p>
           <div class="rb-actions">
-            <button type="button" class="btn" data-post-detail="${vote.id}">去投票详情</button>
+            <button type="button" class="btn" data-post-detail="${vote.id}">去站队详情</button>
           </div>
         </div>`
       : "";
@@ -1355,12 +1547,21 @@ button { cursor: pointer; }
     </button>`;
   }
 
+  function mediaGridHtml(images, cls) {
+    const list = images || [];
+    if (!list.length) return "";
+    return `<div class="${cls || "media-grid"}">${list.map((src) =>
+      `<img src="${escapeAttr(src)}" alt="配图" data-lightbox="${escapeAttr(src)}" />`
+    ).join("")}</div>`;
+  }
+
   function commentItemHtml(c) {
     return `<div class="c-item">
       ${commentMark(c)}
       <div class="c-body">
         <span class="c-user">${escapeHtml(c.user)}</span><span class="c-text">${escapeHtml(c.text)}</span>
         <span class="c-meta"><span class="c-time">${escapeHtml(c.time)}</span>${commentLikeBtn(c)}</span>
+        ${mediaGridHtml(c.images, "c-media")}
       </div>
     </div>`;
   }
@@ -1401,6 +1602,12 @@ button { cursor: pointer; }
         <input class="body" type="text" placeholder="${list.length ? "说两句…" : "来抢首评，说两句…"}" data-comment-input="${p.id}" />
         <button class="btn primary" data-comment-send="${p.id}">发送</button>
       </div>
+      <div class="attach-row" style="margin-top:8px">
+        <button type="button" class="attach-btn" data-comment-img="${p.id}">＋ 添加图片</button>
+        <span class="attach-hint">最多 3 张</span>
+        <input type="file" accept="image/*" multiple class="hidden" data-comment-file="${p.id}" />
+        <div class="attach-previews" data-comment-previews="${p.id}"></div>
+      </div>
     </div>`;
   }
 
@@ -1416,7 +1623,7 @@ button { cursor: pointer; }
 
   function authorLabel(p) {
     if (p.anonymous) return "匿名";
-    if (p.ops || p.type === "vote") return p.user || "运营";
+    if (p.ops || p.type === "side" || p.type === "poll") return p.user || "运营";
     return p.user || "瓜友";
   }
 
@@ -1444,15 +1651,15 @@ button { cursor: pointer; }
   function postCard(p) {
     const liked = !!state.liked[p.id];
     const heat = (p.likes || 0) + (liked ? 1 : 0);
-    if (p.type === "vote") {
+    if (p.type === "side") {
       const vst = voteStatusMeta(p.status);
-      return `<div class="post-card vote-card" data-id="${p.id}">
+      return `<div class="post-card side-card" data-id="${p.id}">
         <div class="band"></div>
         <div class="inner">
           <div class="card-head">
             <div class="card-head-main">
               <div class="title-row">
-                <span class="type vote">投票</span>
+                <span class="type side">站队</span>
                 <h3>${escapeHtml(p.text)}</h3>
               </div>
               <div class="sub-row">
@@ -1464,7 +1671,32 @@ button { cursor: pointer; }
             </div>
             ${actLikeBtn(p.id, heat, liked)}
           </div>
-          ${voteOptionsHtml(p)}
+          ${sideOptionsHtml(p)}
+          ${commentsPreview(p)}
+        </div>
+      </div>`;
+    }
+    if (p.type === "poll") {
+      const vst = voteStatusMeta(p.status);
+      return `<div class="post-card poll-card" data-id="${p.id}">
+        <div class="band"></div>
+        <div class="inner">
+          <div class="card-head">
+            <div class="card-head-main">
+              <div class="title-row">
+                <span class="type poll">投票</span>
+                <h3>${escapeHtml(p.text)}</h3>
+              </div>
+              <div class="sub-row">
+                <span class="tag ${vst.cls}">${vst.label}</span>
+                ${authorHtml(p)}
+                <span>${p.time}</span>
+                <button type="button" class="hash-tag" data-tag="${escapeAttr(p.tag)}">#${escapeHtml(p.tag)}</button>
+              </div>
+            </div>
+            ${actLikeBtn(p.id, heat, liked)}
+          </div>
+          ${pollOptionsHtml(p)}
           ${commentsPreview(p)}
         </div>
       </div>`;
@@ -1499,6 +1731,7 @@ button { cursor: pointer; }
           </div>
           ${canInteract ? actLikeBtn(p.id, heat, liked) : ""}
         </div>
+        ${mediaGridHtml(p.images)}
         ${p.status === "rejected" && p.rejectReason ? `<p class="hint" style="margin:0 0 10px">驳回原因：${escapeHtml(p.rejectReason)}（仅自己可见，不推送通知）</p>` : ""}
         ${canInteract ? commentsPreview(p) : ""}
         ${footExtra}
@@ -1518,21 +1751,21 @@ button { cursor: pointer; }
 
   function voteStatusMeta(status) {
     const map = {
-      voting: { label: "投票中", cls: "warn" },
+      voting: { label: "进行中", cls: "warn" },
       ended: { label: "已结束", cls: "pending" }
     };
     return map[status] || map.voting;
   }
 
-  function voteOptionsHtml(p) {
+  function sideOptionsHtml(p) {
     const picked = state.voted[p.id];
     const ended = p.status === "ended";
     const showRatio = ended || !!picked;
     const body = showRatio
       ? (() => {
           const pickHint = picked
-            ? `<p class="hint">你已选择：${escapeHtml(picked === "a" ? p.a : p.b)}${ended ? " · 投票已结束" : ""}</p>`
-            : `<p class="hint">投票已结束 · ${(p.pa || 0) + (p.pb || 0)} 人参与</p>`;
+            ? `<p class="hint">你已站队：${escapeHtml(picked === "a" ? p.a : p.b)}${ended ? " · 已结束" : ""}</p>`
+            : `<p class="hint">已结束 · ${(p.pa || 0) + (p.pb || 0)} 人参与</p>`;
           return `<div class="preview">
               <div class="line"><span style="min-width:5em">${escapeHtml(p.a)}</span><div class="track"><div class="fill" style="width:${p.pa}%"></div></div><span>${p.pa}%</span></div>
               <div class="line"><span style="min-width:5em">${escapeHtml(p.b)}</span><div class="track"><div class="fill b" style="width:${p.pb}%"></div></div><span>${p.pb}%</span></div>
@@ -1543,11 +1776,46 @@ button { cursor: pointer; }
           <button type="button" class="choice" data-cast="a" data-vote-id="${p.id}">${escapeHtml(p.a)}</button>
           <button type="button" class="choice" data-cast="b" data-vote-id="${p.id}">${escapeHtml(p.b)}</button>
         </div>
-        <p class="hint">点选一方即可完成投票；投票后可见结果</p>`;
+        <p class="hint">点选一方完成站队；站队后可见结果</p>`;
     const cue = relatedCueInline(p);
     return `<div class="vote-panel">
-      <div class="vp-label">${ended ? "投票结果" : "选边站队"}${cue}</div>
+      <div class="vp-label">${ended ? "站队结果" : "选边站队"}${cue}</div>
       ${body}
+    </div>`;
+  }
+
+  function pollTotal(p) {
+    return (p.options || []).reduce((s, o) => s + (o.votes || 0), 0);
+  }
+
+  function pollOptionsHtml(p) {
+    const picked = state.voted[p.id];
+    const ended = p.status === "ended";
+    const showRatio = ended || !!picked;
+    const total = Math.max(1, pollTotal(p));
+    const opts = p.options || [];
+    if (showRatio) {
+      const pickLabel = opts.find((o) => o.id === picked);
+      const pickHint = picked
+        ? `<p class="hint">你已投：${escapeHtml(pickLabel ? pickLabel.label : "")}${ended ? " · 已结束" : ""}</p>`
+        : `<p class="hint">已结束 · ${pollTotal(p)} 人参与</p>`;
+      const lines = opts.map((o) => {
+        const pct = Math.round(((o.votes || 0) / total) * 100);
+        return `<div class="line"><span class="wide">${escapeHtml(o.label)}</span><div class="track"><div class="fill" style="width:${pct}%"></div></div><span>${pct}%</span></div>`;
+      }).join("");
+      return `<div class="poll-panel">
+        <div class="vp-label">${ended ? "投票结果" : "投票中 · 已投票"}</div>
+        <div class="preview">${lines}</div>
+        ${pickHint}
+      </div>`;
+    }
+    const choices = opts.map((o) =>
+      `<button type="button" class="choice" data-poll-cast="${escapeAttr(o.id)}" data-vote-id="${p.id}">${escapeHtml(o.label)}</button>`
+    ).join("");
+    return `<div class="poll-panel">
+      <div class="vp-label">多选一投票 · ${opts.length} 个选项</div>
+      <div class="vote-choices">${choices}</div>
+      <p class="hint">点选一项即可完成；投票后可见占比</p>
     </div>`;
   }
 
@@ -1557,7 +1825,8 @@ button { cursor: pointer; }
   }
 
   function heatScore(p) {
-    if (p.type === "vote") return (p.likes || 0) + ((p.pa || 0) + (p.pb || 0)) + (p.comments || []).length * 2;
+    if (p.type === "side") return (p.likes || 0) + ((p.pa || 0) + (p.pb || 0)) + (p.comments || []).length * 2;
+    if (p.type === "poll") return (p.likes || 0) + pollTotal(p) + (p.comments || []).length * 2;
     return (p.likes || 0) + (p.comments || []).length * 2;
   }
 
@@ -1568,16 +1837,16 @@ button { cursor: pointer; }
     return arr;
   }
 
-  /** 全部流：第一条必为求瓜，其后求瓜与投票交错混合 */
-  function mixWishAndVote(list) {
+  /** 全部流：第一条必为求瓜，其后求瓜与站队/投票交错 */
+  function mixFeed(list) {
     const wishes = sortPosts(list.filter((p) => p.type === "wish"));
-    const votes = sortPosts(list.filter((p) => p.type === "vote"));
-    if (!wishes.length) return votes;
+    const others = sortPosts(list.filter((p) => p.type === "side" || p.type === "poll"));
+    if (!wishes.length) return others;
     const out = [wishes[0]];
     let wi = 1;
-    let vi = 0;
-    while (wi < wishes.length || vi < votes.length) {
-      if (vi < votes.length) out.push(votes[vi++]);
+    let oi = 0;
+    while (wi < wishes.length || oi < others.length) {
+      if (oi < others.length) out.push(others[oi++]);
       if (wi < wishes.length) out.push(wishes[wi++]);
     }
     return out;
@@ -1591,40 +1860,49 @@ button { cursor: pointer; }
       t.classList.toggle("on", t.dataset.filter === state.wallFilter);
     });
     let list = posts.filter((p) => {
-      if (p.type === "vote") return true;
+      if (p.type === "side" || p.type === "poll") return true;
       if (p.type !== "wish") return false;
-      /* 公开墙：已征集 / 已安排；本人 pending 预上墙（仅自己可见） */
       return p.status === "collecting" || p.status === "arranged" || (p.status === "pending" && p.mine);
     });
     if (state.wallFilter === "wish") list = sortPosts(list.filter((p) => p.type === "wish"));
-    else if (state.wallFilter === "vote") list = sortPosts(list.filter((p) => p.type === "vote"));
+    else if (state.wallFilter === "side") list = sortPosts(list.filter((p) => p.type === "side"));
+    else if (state.wallFilter === "poll") list = sortPosts(list.filter((p) => p.type === "poll"));
     else if (state.wallFilter === "done") list = sortPosts(list.filter((p) => p.type === "wish" && p.status === "arranged"));
-    else list = mixWishAndVote(list);
+    else list = mixFeed(list);
+    /* Demo：沈腾林允站队帖固定在第 3 位，便于对照求瓜/站队/投票形态 */
+    if (state.wallFilter === "all") {
+      const pin = "v2";
+      const i = list.findIndex((p) => p.id === pin);
+      if (i >= 0) {
+        const [card] = list.splice(i, 1);
+        list.splice(Math.min(2, list.length), 0, card);
+      }
+    }
     $("#wallFeed").innerHTML = list.map(postCard).join("") || '<div class="empty"><h3>暂无内容</h3></div>';
   }
 
   function findVote(voteId) {
-    return posts.find((p) => p.type === "vote" && p.id === voteId) || null;
+    return posts.find((p) => (p.type === "side" || p.type === "poll") && p.id === voteId) || null;
   }
 
   function openVoteModal(voteId) {
     const v = findVote(voteId);
-    if (!v) return;
+    if (!v || v.type !== "side") return;
     state.voteId = voteId;
     const picked = state.voted[v.id];
     const ended = v.status === "ended";
     $("#voteModalTitle").textContent = v.text;
     if (ended || picked) {
       $("#voteModalHint").textContent = picked
-        ? `你已选择「${picked === "a" ? v.a : v.b}」· ${v.pa}% / ${v.pb}%${ended ? " · 已结束" : ""}`
-        : `投票已结束 · ${v.pa}% / ${v.pb}%`;
+        ? `你已站队「${picked === "a" ? v.a : v.b}」· ${v.pa}% / ${v.pb}%${ended ? " · 已结束" : ""}`
+        : `已结束 · ${v.pa}% / ${v.pb}%`;
       $("#voteModalChoices").innerHTML = `
         <div class="preview">
           <div class="line"><span style="min-width:5em">${escapeHtml(v.a)}</span><div class="track"><div class="fill" style="width:${v.pa}%"></div></div><span>${v.pa}%</span></div>
           <div class="line"><span style="min-width:5em">${escapeHtml(v.b)}</span><div class="track"><div class="fill b" style="width:${v.pb}%"></div></div><span>${v.pb}%</span></div>
         </div>`;
     } else {
-      $("#voteModalHint").textContent = "点选一方即可完成 · 投票后可见结果";
+      $("#voteModalHint").textContent = "点选一方即可完成 · 站队后可见结果";
       $("#voteModalChoices").innerHTML = `
         <button type="button" class="choice" data-cast="a" data-vote-id="${v.id}">${escapeHtml(v.a)}</button>
         <button type="button" class="choice" data-cast="b" data-vote-id="${v.id}">${escapeHtml(v.b)}</button>`;
@@ -1633,7 +1911,7 @@ button { cursor: pointer; }
   }
 
   function renderVote() {
-    $("#voteBody").innerHTML = `<p class="hint">投票已改为卡片内点选或弹窗，无需独立页。</p>
+    $("#voteBody").innerHTML = `<p class="hint">站队 / 投票已改为卡片内点选，无需独立页。</p>
       <button class="btn" data-go="wall">返回信息流</button>`;
   }
 
@@ -1646,14 +1924,14 @@ button { cursor: pointer; }
     const liked = !!state.liked[p.id];
     const heat = (p.likes || 0) + (liked ? 1 : 0);
     let main = "";
-    if (p.type === "vote") {
+    if (p.type === "side") {
       const vst = voteStatusMeta(p.status);
       main = `
         <div class="meta" style="margin-bottom:10px"><a href="#wall" data-go="wall" style="color:var(--pink)">← 求瓜心愿墙</a></div>
         <div class="card-head">
           <div class="card-head-main">
             <div class="title-row">
-              <span class="type vote">投票</span>
+              <span class="type side">站队</span>
               <h1>${escapeHtml(p.text)}</h1>
             </div>
             <div class="sub-row">
@@ -1665,7 +1943,27 @@ button { cursor: pointer; }
           </div>
           ${actLikeBtn(p.id, heat, liked)}
         </div>
-        ${voteOptionsHtml(p)}`;
+        ${sideOptionsHtml(p)}`;
+    } else if (p.type === "poll") {
+      const vst = voteStatusMeta(p.status);
+      main = `
+        <div class="meta" style="margin-bottom:10px"><a href="#wall" data-go="wall" style="color:var(--pink)">← 求瓜心愿墙</a></div>
+        <div class="card-head">
+          <div class="card-head-main">
+            <div class="title-row">
+              <span class="type poll">投票</span>
+              <h1>${escapeHtml(p.text)}</h1>
+            </div>
+            <div class="sub-row">
+              <span class="tag ${vst.cls}">${vst.label}</span>
+              ${authorHtml(p)}
+              <span>${p.time}</span>
+              <button type="button" class="hash-tag" data-tag="${escapeAttr(p.tag)}">#${escapeHtml(p.tag)}</button>
+            </div>
+          </div>
+          ${actLikeBtn(p.id, heat, liked)}
+        </div>
+        ${pollOptionsHtml(p)}`;
     } else {
       const st = wishStatusMeta(p.status);
       const statusLabel = p.status === "collecting" ? "征集中" : st.label;
@@ -1686,6 +1984,7 @@ button { cursor: pointer; }
           </div>
           ${actLikeBtn(p.id, heat, liked)}
         </div>
+        ${mediaGridHtml(p.images)}
         ${p.status === "arranged" && p.articleId ? (() => {
           const a = ARTICLES.find((x) => x.id === p.articleId);
           return `<div class="dream-cta">
@@ -1694,6 +1993,7 @@ button { cursor: pointer; }
           </div>`;
         })() : ""}`;
     }
+    state.commentImages = [];
     $("#postDetailBody").innerHTML = `<div class="panel">${main}${fullCommentsBlock(p)}</div>`;
   }
 
@@ -1701,24 +2001,10 @@ button { cursor: pointer; }
     $("#tagTitle").textContent = "#" + state.tag;
     const list = posts.filter((p) => {
       if (p.tag !== state.tag) return false;
-      if (p.type === "vote") return true;
+      if (p.type === "side" || p.type === "poll") return true;
       return p.status === "collecting" || p.status === "arranged";
     });
     $("#tagFeed").innerHTML = list.map(postCard).join("") || '<div class="empty"><h3>该标签下暂无内容</h3></div>';
-  }
-
-  function mineActivityCard(kind, title, meta, actionsHtml) {
-    return `<div class="post-card">
-      <div class="band"></div>
-      <div class="inner">
-        <div class="top">
-          <span class="type ${kind === "vote" ? "vote" : ""}">${kind === "wish" ? "求瓜" : kind === "vote" ? "站队" : kind === "comment" ? "评论" : "点赞"}</span>
-          <div class="meta">${meta}</div>
-        </div>
-        <h3>${title}</h3>
-        <div class="foot"><div class="actions">${actionsHtml}</div></div>
-      </div>
-    </div>`;
   }
 
   function renderMine() {
@@ -1733,53 +2019,35 @@ button { cursor: pointer; }
         ? list.map(postCard).join("")
         : `<div class="empty"><h3>还没有求过瓜</h3><button type="button" class="btn primary" data-compose-wish="">去求瓜</button></div>`;
     } else if (tab === "vote") {
-      const rows = Object.keys(state.voted).map((vid) => {
-        const v = findVote(vid);
-        if (!v) return "";
-        const side = state.voted[vid] === "a" ? v.a : v.b;
-        const related = v.relatedWishId ? posts.find((p) => p.id === v.relatedWishId) : null;
-        return mineActivityCard(
-          "vote",
-          escapeHtml(v.text),
-          related
-            ? `<span>关联求瓜：${escapeHtml(related.text.slice(0, 20))}${related.text.length > 20 ? "…" : ""}</span>`
-            : `<span>独立投票</span>`,
-          `<span class="meta">我选了：${escapeHtml(side)}</span>
-           <button class="btn primary" data-open-vote="${vid}">再看看</button>`
-        );
-      }).filter(Boolean);
-      html = rows.length
-        ? rows.join("")
-        : `<div class="empty"><h3>还没参与过投票</h3><p style="margin:0 0 12px">去信息流里找运营发起的投票帖吧</p><button class="btn primary" data-go="wall">去逛</button></div>`;
+      const list = Object.keys(state.voted).map((vid) => findVote(vid)).filter(Boolean);
+      html = list.length
+        ? list.map(postCard).join("")
+        : `<div class="empty"><h3>还没站队或投票</h3><p style="margin:0 0 12px">去信息流里找运营发起的站队帖 / 投票帖吧</p><button class="btn primary" data-go="wall">去逛</button></div>`;
     } else if (tab === "comment") {
       const rows = (state.myComments || []).map((c) => {
         const p = posts.find((x) => x.id === c.postId);
         if (!p) return "";
-        return mineActivityCard(
-          "comment",
-          escapeHtml(c.text),
-          `<span>${escapeHtml(c.time)}</span><span>评论于${p.type === "vote" ? "投票" : "求瓜"}</span>`,
-          `<span class="meta" style="max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">原帖：${escapeHtml(p.text)}</span>
-           <button class="btn" data-go="wall">去信息流</button>`
-        );
+        const where = p.type === "side" ? "站队" : p.type === "poll" ? "投票" : "求瓜";
+        const origin = p.text || "";
+        return `<div class="mine-c-card">
+          <div class="mine-c-row">
+            <p class="mine-c-text">${escapeHtml(c.text)}</p>
+            <span class="mine-c-meta">${escapeHtml(c.time)} · 评论于${where}</span>
+          </div>
+          ${mediaGridHtml(c.images, "c-media")}
+          <div class="mine-c-foot">
+            <p class="mine-c-origin" title="${escapeAttr(origin)}">原帖：${escapeHtml(origin)}</p>
+            <button type="button" class="btn" data-post-detail="${escapeAttr(p.id)}">看原帖</button>
+          </div>
+        </div>`;
       }).filter(Boolean);
       html = rows.length
         ? rows.join("")
         : `<div class="empty"><h3>还没有评论</h3><button class="btn primary" data-go="wall">去逛求瓜</button></div>`;
     } else if (tab === "like") {
-      const rows = Object.keys(state.liked).map((id) => {
-        const p = posts.find((x) => x.id === id);
-        if (!p) return "";
-        return mineActivityCard(
-          "like",
-          escapeHtml(p.text),
-          `<button type="button" class="hash-tag" data-tag="${escapeAttr(p.tag)}">#${escapeHtml(p.tag)}</button><span>已点赞</span>`,
-          `<button class="btn" data-go="wall">回信息流</button>
-           ${p.status === "done" && p.articleId ? `<button class="btn primary" data-detail="${p.articleId}">看圆梦</button>` : ""}`
-        );
-      }).filter(Boolean);
-      html = rows.length
-        ? rows.join("")
+      const list = Object.keys(state.liked).map((id) => posts.find((x) => x.id === id)).filter(Boolean);
+      html = list.length
+        ? list.map(postCard).join("")
         : `<div class="empty"><h3>还没有点赞</h3><button class="btn primary" data-go="wall">去逛求瓜</button></div>`;
     }
     $("#mineFeed").innerHTML = html;
@@ -1860,7 +2128,7 @@ button { cursor: pointer; }
             <div class="aa-sources">
               <a href="#detail" data-detail="a2">晚会名场面盘点原文</a>
               <button type="button" data-post-detail="w3">相关求瓜</button>
-              <button type="button" data-post-detail="v3">相关投票</button>
+              <button type="button" data-post-detail="p1">相关投票</button>
             </div>
           </div>
           <div class="aa-foot">
@@ -1993,10 +2261,64 @@ button { cursor: pointer; }
     $("#composeConfirmModal").classList.add("hidden");
   }
 
+  function renderWishImgPreviews() {
+    const box = $("#wishImgPreviews");
+    if (!box) return;
+    box.innerHTML = state.composeImages.map((src, i) =>
+      `<div class="ap"><img src="${escapeAttr(src)}" alt="" /><button type="button" class="rm" data-rm-wish-img="${i}" aria-label="移除">×</button></div>`
+    ).join("");
+  }
+
+  function renderCommentImgPreviews(postId) {
+    const box = $(`[data-comment-previews="${postId}"]`);
+    if (!box) return;
+    box.innerHTML = state.commentImages.map((src, i) =>
+      `<div class="ap"><img src="${escapeAttr(src)}" alt="" /><button type="button" class="rm" data-rm-c-img="${i}" aria-label="移除">×</button></div>`
+    ).join("");
+  }
+
+  function readImageFiles(fileList, maxRemain, done) {
+    const files = [...fileList].filter((f) => f.type.startsWith("image/")).slice(0, maxRemain);
+    if (!files.length) return done([]);
+    const out = [];
+    let left = files.length;
+    files.forEach((f) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        out.push(reader.result);
+        left -= 1;
+        if (!left) done(out);
+      };
+      reader.onerror = () => {
+        left -= 1;
+        if (!left) done(out);
+      };
+      reader.readAsDataURL(f);
+    });
+  }
+
+  function openLightbox(src) {
+    const box = $("#lightbox");
+    const img = box && box.querySelector("img");
+    if (!box || !img || !src) return;
+    img.src = src;
+    box.classList.add("show");
+    box.setAttribute("aria-hidden", "false");
+  }
+
+  function closeLightbox() {
+    const box = $("#lightbox");
+    if (!box) return;
+    box.classList.remove("show");
+    box.setAttribute("aria-hidden", "true");
+  }
+
   function openComposeWish(q) {
     if (!requireLogin(() => openComposeWish(q))) return;
     $("#wishText").value = q ? `想看关于「${q}」的完整盘点 / 复盘` : "";
     if ($("#wishAnon")) $("#wishAnon").checked = false;
+    state.composeImages = [];
+    renderWishImgPreviews();
     updateWishCharCount();
     $("#composeModal").classList.remove("hidden");
   }
@@ -2008,13 +2330,16 @@ button { cursor: pointer; }
     const tags = recognizeWishTags(text);
     const tag = tags[0] || "未分类";
     const anonymous = !!($("#wishAnon") && $("#wishAnon").checked);
+    const images = state.composeImages.slice(0, 3);
     posts.unshift({
       id: "w" + Date.now(), type: "wish", text, tag, tags,
       likes: 0, status: "pending",
       mine: true, time: "刚刚", comments: [],
+      images,
       anonymous,
       user: anonymous ? "匿名" : "我"
     });
+    state.composeImages = [];
     closeComposeModal();
     toast("发布成功");
     go("wall");
@@ -2036,12 +2361,6 @@ button { cursor: pointer; }
     if (detail) {
       e.preventDefault();
       go("detail", { detailId: detail.dataset.detail });
-      return;
-    }
-    const openVote = e.target.closest("[data-open-vote]");
-    if (openVote) {
-      e.preventDefault();
-      openVoteModal(openVote.dataset.openVote);
       return;
     }
     const tag = e.target.closest("[data-tag]");
@@ -2087,8 +2406,10 @@ button { cursor: pointer; }
       const p = posts.find((x) => x.id === id);
       if (!p) return;
       if (!p.comments) p.comments = [];
-      p.comments.push({ id: "c" + Date.now(), user: nick, text, time: "刚刚", likes: 0 });
-      state.myComments.unshift({ postId: id, text, time: "刚刚" });
+      const images = state.commentImages.slice(0, 3);
+      p.comments.push({ id: "c" + Date.now(), user: nick, text, time: "刚刚", likes: 0, images });
+      state.myComments.unshift({ postId: id, text, time: "刚刚", images });
+      state.commentImages = [];
       toast("评论已发布");
       if (state.view !== "post") go("post", { postId: id });
       else render();
@@ -2098,8 +2419,8 @@ button { cursor: pointer; }
     if (cast) {
       const vid = cast.dataset.voteId || state.voteId;
       const v = findVote(vid);
-      if (!v || state.voted[vid] || v.status === "ended") {
-        if (v && v.status === "ended") toast("投票已结束");
+      if (!v || v.type !== "side" || state.voted[vid] || v.status === "ended") {
+        if (v && v.status === "ended") toast("站队已结束");
         return;
       }
       state.voted[vid] = cast.dataset.cast;
@@ -2108,9 +2429,61 @@ button { cursor: pointer; }
       const t = v.pa + v.pb;
       v.pa = Math.round((v.pa / t) * 100);
       v.pb = 100 - v.pa;
-      toast("投票成功");
+      toast("站队成功");
       if (!$("#voteModal").classList.contains("hidden")) openVoteModal(vid);
       render();
+      return;
+    }
+    const pollCast = e.target.closest("[data-poll-cast]");
+    if (pollCast) {
+      const vid = pollCast.dataset.voteId;
+      const oid = pollCast.dataset.pollCast;
+      const v = findVote(vid);
+      if (!v || v.type !== "poll" || state.voted[vid] || v.status === "ended") {
+        if (v && v.status === "ended") toast("投票已结束");
+        else if (v && state.voted[vid]) toast("你已经投过了");
+        return;
+      }
+      const opt = (v.options || []).find((o) => o.id === oid);
+      if (!opt) return;
+      opt.votes = (opt.votes || 0) + 1;
+      state.voted[vid] = oid;
+      toast("投票成功");
+      render();
+      return;
+    }
+    const wishImgBtn = e.target.closest("#wishImgBtn");
+    if (wishImgBtn) {
+      $("#wishImgInput").click();
+      return;
+    }
+    const rmWish = e.target.closest("[data-rm-wish-img]");
+    if (rmWish) {
+      state.composeImages.splice(+rmWish.dataset.rmWishImg, 1);
+      renderWishImgPreviews();
+      return;
+    }
+    const cImgBtn = e.target.closest("[data-comment-img]");
+    if (cImgBtn) {
+      const pid = cImgBtn.dataset.commentImg;
+      const file = $(`[data-comment-file="${pid}"]`);
+      if (file) file.click();
+      return;
+    }
+    const rmC = e.target.closest("[data-rm-c-img]");
+    if (rmC) {
+      state.commentImages.splice(+rmC.dataset.rmCImg, 1);
+      renderCommentImgPreviews(state.postId);
+      return;
+    }
+    const lbImg = e.target.closest("[data-lightbox]");
+    if (lbImg) {
+      e.preventDefault();
+      openLightbox(lbImg.dataset.lightbox || lbImg.getAttribute("src"));
+      return;
+    }
+    if (e.target.id === "lightbox") {
+      closeLightbox();
       return;
     }
     const cw = e.target.closest("[data-compose-wish]");
@@ -2119,6 +2492,40 @@ button { cursor: pointer; }
       openComposeWish(cw.dataset.composeWish || "");
       return;
     }
+  });
+
+  $("#wishImgInput").addEventListener("change", (e) => {
+    const remain = 3 - state.composeImages.length;
+    if (remain <= 0) {
+      toast("最多 3 张图片");
+      e.target.value = "";
+      return;
+    }
+    readImageFiles(e.target.files || [], remain, (urls) => {
+      state.composeImages = state.composeImages.concat(urls).slice(0, 3);
+      renderWishImgPreviews();
+      e.target.value = "";
+    });
+  });
+
+  document.addEventListener("change", (e) => {
+    const file = e.target.closest("[data-comment-file]");
+    if (!file) return;
+    const remain = 3 - state.commentImages.length;
+    if (remain <= 0) {
+      toast("最多 3 张图片");
+      file.value = "";
+      return;
+    }
+    readImageFiles(file.files || [], remain, (urls) => {
+      state.commentImages = state.commentImages.concat(urls).slice(0, 3);
+      renderCommentImgPreviews(file.dataset.commentFile);
+      file.value = "";
+    });
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeLightbox();
   });
 
   $("#wishText").addEventListener("input", updateWishCharCount);

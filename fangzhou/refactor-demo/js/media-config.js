@@ -207,12 +207,12 @@
       def.tip +
       "</p>" +
       '<div class="wm-acc-grid">' +
+      '<div class="wm-acc-media">' +
       '<div class="wm-preview" id="prev-' +
       def.key +
       '">' +
       preview +
       "</div>" +
-      '<div class="wm-acc-fields">' +
       '<div class="wm-acc-actions">' +
       '<label class="btn">' +
       uploadLabel +
@@ -228,13 +228,15 @@
         : "") +
       "</div>" +
       (hasFile
-        ? '<p class="hint" style="margin:0 0 10px">「清除素材」只删已上传文件，不等于关闭开关。</p>' +
+        ? '<p class="hint" style="margin:8px 0 0">「清除素材」只删已上传文件，不等于关闭开关。</p>' +
           (w.name
-            ? '<div class="muted" style="font-size:12px;margin-bottom:8px">已加载：' +
+            ? '<div class="muted" style="font-size:12px;margin-top:6px">已加载：' +
               w.name +
               "</div>"
             : "")
         : "") +
+      "</div>" +
+      '<div class="wm-acc-fields">' +
       '<div class="field" style="margin:0 0 8px"><label>位置' +
       (def.multiPos ? "（多选）" : "") +
       " " +
@@ -334,7 +336,7 @@
         '</div><div class="io-orient-sub">' +
         sub +
         "</div></div>" +
-        '<div class="media-rules-split">' +
+        '<div class="io-orient-stack">' +
         clipCard(orient, "intro", "片头", "拼在原视频之前", pack.intro) +
         clipCard(orient, "outro", "片尾", "拼在原视频之后", pack.outro) +
         "</div></div>"
@@ -342,6 +344,7 @@
     }
     return (
       '<p class="hint" style="margin:0 0 12px">不是叠层水印：上传完整视频片段，整段拼在原视频前面（片头）和/或后面（片尾）。横屏、竖屏各配一套，处理时按成片方向取对应素材；可只配一端或某一方向，播完上传文件的完整时长，无角标位置、无宽度比例、无另设秒数。</p>' +
+      '<div class="io-orients">' +
       orientBlock(
         "landscape",
         "横屏",
@@ -353,7 +356,30 @@
         "竖屏",
         "适用于竖版成片（如 9:16）",
         io.portrait
-      )
+      ) +
+      "</div>"
+    );
+  }
+
+  /** 布尔能力行：文案左、开关右（与去源水印等一致，不用复选框） */
+  function wmFxSwitchRow(attr, key, on, title, tip) {
+    return (
+      '<div class="wm-fx-switch-row">' +
+      '<div class="wm-fx-switch-copy"><span class="wm-fx-switch-title">' +
+      title +
+      "</span> " +
+      fieldTip(tip) +
+      '</div><span class="switch' +
+      (on ? " on" : "") +
+      '" ' +
+      attr +
+      '="' +
+      key +
+      '" role="switch" aria-checked="' +
+      (on ? "true" : "false") +
+      '" aria-label="' +
+      title +
+      '"><i></i></span></div>'
     );
   }
 
@@ -364,14 +390,13 @@
     var showSec = w.showSec != null ? w.showSec : w.intervalSec || "3";
     var hideSec = w.hideSec != null ? w.hideSec : w.intervalSec || "3";
     var html = "";
-    html +=
-      '<label class="check-item"><input type="checkbox" data-wm-invert="' +
-      key +
-      '"' +
-      (w.invert ? " checked" : "") +
-      " /> 水印反转 " +
-      fieldTip("水平镜像水印素材；可按下方间隔周期左右翻转。") +
-      "</label>";
+    html += wmFxSwitchRow(
+      "data-wm-invert",
+      key,
+      !!w.invert,
+      "水印反转",
+      "水平镜像水印素材；可按下方间隔周期左右翻转。"
+    );
     html +=
       '<div class="field" data-wm-invert-wrap="' +
       key +
@@ -384,14 +409,13 @@
       '" value="' +
       (w.invertSec || "3") +
       '" /></div>';
-    html +=
-      '<label class="check-item"><input type="checkbox" data-wm-intermittent="' +
-      key +
-      '"' +
-      (w.intermittent ? " checked" : "") +
-      " /> 水印间歇展示 " +
-      fieldTip("一会儿出现、一会儿隐藏，按下方显示/隐藏时长循环。") +
-      "</label>";
+    html += wmFxSwitchRow(
+      "data-wm-intermittent",
+      key,
+      !!w.intermittent,
+      "水印间歇展示",
+      "一会儿出现、一会儿隐藏，按下方显示/隐藏时长循环。"
+    );
     html +=
       '<div class="wm-fx-pair" data-wm-interval-wrap="' +
       key +
@@ -485,17 +509,21 @@
         '" data-video-pane="' +
         d.key +
         '">' +
-        '<label class="wm-video-col-head">' +
-        '<input type="checkbox" data-wm-video-mode="' +
-        d.key +
-        '"' +
-        (on ? " checked" : "") +
-        " />" +
+        '<div class="wm-video-col-head">' +
         "<div><strong>" +
         d.title +
         '</strong><span class="art-mode-tag">' +
         d.tip +
-        "</span></div></label>" +
+        "</span></div>" +
+        '<span class="switch' +
+        (on ? " on" : "") +
+        '" data-wm-video-mode="' +
+        d.key +
+        '" role="switch" aria-checked="' +
+        (on ? "true" : "false") +
+        '" aria-label="' +
+        d.title +
+        '启用"><i></i></span></div>' +
         '<div class="wm-video-col-body">' +
         wmConfigFields(d, watermarks[d.key] || {}) +
         "</div></div>"
@@ -545,7 +573,7 @@
       (view === "video" && videoOn ? "" : " hidden") +
       ">" +
       '<div class="cfg-card-head"><div class="cfg-card-title">视频水印配置</div>' +
-      '<div class="cfg-card-sub">左中右三列并排；勾选启用，至少保留一种</div></div>' +
+      '<div class="cfg-card-sub">左中右三列并排；开关启用 / 禁用，至少保留一种</div></div>' +
       '<div class="wm-video-cols" role="group" aria-label="视频水印类型">' +
       cols +
       "</div></div></div>"
@@ -893,8 +921,12 @@
     syncIntroOutroEnabled(w);
 
     var picked = [];
-    root.querySelectorAll("[data-wm-video-mode]:checked").forEach(function (el) {
-      picked.push(el.getAttribute("data-wm-video-mode"));
+    root.querySelectorAll("[data-wm-video-mode]").forEach(function (el) {
+      var on =
+        el.getAttribute("role") === "switch"
+          ? el.classList.contains("on")
+          : !!el.checked;
+      if (on) picked.push(el.getAttribute("data-wm-video-mode"));
     });
     w.videoModes = normalizeVideoModes(picked.length ? picked : resolveVideoModes(w));
     w.videoMode = w.videoModes[0] || "videoFixed";
@@ -930,9 +962,19 @@
       var inter = root.querySelector('[data-wm-intermittent="' + key + '"]');
       var showEl = root.querySelector('[data-wm-show-sec="' + key + '"]');
       var hideEl = root.querySelector('[data-wm-hide-sec="' + key + '"]');
-      if (inv) w[key].invert = !!inv.checked;
+      if (inv) {
+        w[key].invert =
+          inv.getAttribute("role") === "switch"
+            ? inv.classList.contains("on")
+            : !!inv.checked;
+      }
       if (invSec) w[key].invertSec = invSec.value.trim() || "3";
-      if (inter) w[key].intermittent = !!inter.checked;
+      if (inter) {
+        w[key].intermittent =
+          inter.getAttribute("role") === "switch"
+            ? inter.classList.contains("on")
+            : !!inter.checked;
+      }
       if (showEl) w[key].showSec = showEl.value.trim() || "3";
       if (hideEl) w[key].hideSec = hideEl.value.trim() || "3";
     });
@@ -1235,13 +1277,23 @@
         pane.hidden = false;
       });
       root.querySelectorAll("[data-wm-video-mode]").forEach(function (el) {
-        el.checked = modes.indexOf(el.getAttribute("data-wm-video-mode")) !== -1;
+        var on = modes.indexOf(el.getAttribute("data-wm-video-mode")) !== -1;
+        if (el.getAttribute("role") === "switch") {
+          el.classList.toggle("on", on);
+          el.setAttribute("aria-checked", on ? "true" : "false");
+        } else {
+          el.checked = on;
+        }
       });
     }
     function readVideoModesFromDom() {
       var picked = [];
-      root.querySelectorAll("[data-wm-video-mode]:checked").forEach(function (el) {
-        picked.push(el.getAttribute("data-wm-video-mode"));
+      root.querySelectorAll("[data-wm-video-mode]").forEach(function (el) {
+        var on =
+          el.getAttribute("role") === "switch"
+            ? el.classList.contains("on")
+            : !!el.checked;
+        if (on) picked.push(el.getAttribute("data-wm-video-mode"));
       });
       return picked;
     }
@@ -1291,34 +1343,46 @@
         if (handlers.onFormChange) handlers.onFormChange();
       });
     }
-    root.querySelectorAll("[data-wm-video-mode]").forEach(function (box) {
-      box.addEventListener("change", function () {
-        var before = readVideoModesFromDom();
-        if (!box.checked && !before.length) {
-          box.checked = true;
-          toastWm("至少保留一种视频水印类型", "err");
-          return;
+    root.querySelectorAll("[data-wm-video-mode]").forEach(function (sw) {
+      if (sw.getAttribute("role") !== "switch") return;
+      sw.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var key = sw.getAttribute("data-wm-video-mode");
+        var turningOff = sw.classList.contains("on");
+        var next = readVideoModesFromDom().filter(function (m) {
+          return m !== key;
+        });
+        if (turningOff) {
+          if (!next.length) {
+            toastWm("至少保留一种视频水印类型", "err");
+            return;
+          }
+        } else {
+          next.push(key);
         }
-        syncVideoModePanes(normalizeVideoModes(before));
+        syncVideoModePanes(normalizeVideoModes(next));
         if (handlers.onFormChange) handlers.onFormChange();
       });
     });
-    root.querySelectorAll("[data-wm-invert]").forEach(function (box) {
-      box.addEventListener("change", function () {
-        var key = box.getAttribute("data-wm-invert");
-        var wrap = root.querySelector('[data-wm-invert-wrap="' + key + '"]');
-        if (wrap) wrap.hidden = !box.checked;
-        if (handlers.onFormChange) handlers.onFormChange();
+    function bindFxSwitch(attr, wrapSel) {
+      root.querySelectorAll("[" + attr + "]").forEach(function (sw) {
+        if (sw.getAttribute("role") !== "switch") return;
+        sw.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var on = !sw.classList.contains("on");
+          sw.classList.toggle("on", on);
+          sw.setAttribute("aria-checked", on ? "true" : "false");
+          var key = sw.getAttribute(attr);
+          var wrap = root.querySelector(wrapSel.replace("{key}", key));
+          if (wrap) wrap.hidden = !on;
+          if (handlers.onFormChange) handlers.onFormChange();
+        });
       });
-    });
-    root.querySelectorAll("[data-wm-intermittent]").forEach(function (box) {
-      box.addEventListener("change", function () {
-        var key = box.getAttribute("data-wm-intermittent");
-        var wrap = root.querySelector('[data-wm-interval-wrap="' + key + '"]');
-        if (wrap) wrap.hidden = !box.checked;
-        if (handlers.onFormChange) handlers.onFormChange();
-      });
-    });
+    }
+    bindFxSwitch("data-wm-invert", '[data-wm-invert-wrap="{key}"]');
+    bindFxSwitch("data-wm-intermittent", '[data-wm-interval-wrap="{key}"]');
     root.querySelectorAll("[data-upload]").forEach(function (inp) {
       inp.addEventListener("change", function () {
         var key = inp.getAttribute("data-upload");
