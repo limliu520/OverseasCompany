@@ -63,13 +63,20 @@
       ratioH: "0.2",
       ratioV: "0.2",
       invert: false,
+      invertSec: "3",
       intermittent: false,
-      intervalSec: "3"
+      showSec: "3",
+      hideSec: "3"
     };
     if (extra) {
       Object.keys(extra).forEach(function (k) {
         base[k] = extra[k];
       });
+    }
+    /* 旧版单一间歇间隔 → 显示/隐藏各用该值 */
+    if (base.intervalSec != null && (base.showSec == null || base.hideSec == null)) {
+      if (base.showSec == null) base.showSec = base.intervalSec || "3";
+      if (base.hideSec == null) base.hideSec = base.intervalSec || "3";
     }
     return base;
   }
@@ -93,15 +100,66 @@
       motion: defaultWmSlot({
         track: "circular",
         position: "top-right",
-        speed: "1"
+        cycleSec: "10",
+        speed: "10"
       }),
-      /** 片头/片尾整段拼接（非叠层）；可只配一端或两端 */
+      /** 片头/片尾整段拼接（非叠层）；横屏 / 竖屏各一套，可只配一端或两端 */
       introOutro: {
         enabled: false,
-        intro: { name: "", dataUrl: "" },
-        outro: { name: "", dataUrl: "" }
+        landscape: {
+          intro: { name: "", dataUrl: "" },
+          outro: { name: "", dataUrl: "" }
+        },
+        portrait: {
+          intro: { name: "", dataUrl: "" },
+          outro: { name: "", dataUrl: "" }
+        }
       }
     };
+  }
+
+  function emptyIoClip() {
+    return { name: "", dataUrl: "" };
+  }
+
+  function emptyIoOrient() {
+    return { intro: emptyIoClip(), outro: emptyIoClip() };
+  }
+
+  function ioClipFilled(clip) {
+    return !!(clip && (clip.name || clip.dataUrl));
+  }
+
+  function normalizeIntroOutro(io) {
+    io = io || {};
+    /* 旧版扁平 intro/outro → 迁到横屏，竖屏另开空套 */
+    if (!io.landscape && (io.intro || io.outro || io.name || io.dataUrl)) {
+      var legacyIntro = io.intro || emptyIoClip();
+      if ((io.name || io.dataUrl) && !legacyIntro.name && !legacyIntro.dataUrl) {
+        legacyIntro = { name: io.name || "", dataUrl: io.dataUrl || "" };
+      }
+      io.landscape = {
+        intro: legacyIntro,
+        outro: io.outro || emptyIoClip()
+      };
+    }
+    if (!io.landscape) io.landscape = emptyIoOrient();
+    if (!io.portrait) io.portrait = emptyIoOrient();
+    if (!io.landscape.intro) io.landscape.intro = emptyIoClip();
+    if (!io.landscape.outro) io.landscape.outro = emptyIoClip();
+    if (!io.portrait.intro) io.portrait.intro = emptyIoClip();
+    if (!io.portrait.outro) io.portrait.outro = emptyIoClip();
+    return io;
+  }
+
+  function introOutroHasFile(io) {
+    io = normalizeIntroOutro(io);
+    return (
+      ioClipFilled(io.landscape.intro) ||
+      ioClipFilled(io.landscape.outro) ||
+      ioClipFilled(io.portrait.intro) ||
+      ioClipFilled(io.portrait.outro)
+    );
   }
 
   function ensureWatermarks(project) {
@@ -117,16 +175,7 @@
         });
       }
     });
-    if (!w.introOutro) w.introOutro = defaults.introOutro;
-    else {
-      if (!w.introOutro.intro) w.introOutro.intro = { name: "", dataUrl: "" };
-      if (!w.introOutro.outro) w.introOutro.outro = { name: "", dataUrl: "" };
-      /* 旧版单文件字段迁到片头 */
-      if ((w.introOutro.name || w.introOutro.dataUrl) && !w.introOutro.intro.name && !w.introOutro.intro.dataUrl) {
-        w.introOutro.intro.name = w.introOutro.name || "";
-        w.introOutro.intro.dataUrl = w.introOutro.dataUrl || "";
-      }
-    }
+    w.introOutro = normalizeIntroOutro(w.introOutro || defaults.introOutro);
     if (w.image.enabled == null) {
       w.image.enabled = !!(w.image.name || w.image.dataUrl);
     }
@@ -147,14 +196,8 @@
         return !!(w[k] && (w[k].enabled || w[k].name || w[k].dataUrl));
       });
     }
-    /* 片头片尾：有上传文件即生效，无独立总开关 */
-    var io = w.introOutro || {};
-    w.introOutroEnabled = !!(
-      (io.intro && (io.intro.name || io.intro.dataUrl)) ||
-      (io.outro && (io.outro.name || io.outro.dataUrl)) ||
-      io.name ||
-      io.dataUrl
-    );
+    /* 片头片尾：任一方向有上传即生效，无独立总开关 */
+    w.introOutroEnabled = introOutroHasFile(w.introOutro);
     videoKeys.forEach(function (k) {
       w[k].enabled = !!(w.videoEnabled && w.videoModes.indexOf(k) !== -1);
     });
@@ -177,6 +220,8 @@
     TPL: TPL,
     OPTIONAL_PACKS: OPTIONAL_PACKS,
     defaultArticle: defaultArticle,
+    normalizeIntroOutro: normalizeIntroOutro,
+    introOutroHasFile: introOutroHasFile,
     ensureArticle: ensureArticle,
     defaultWatermarks: defaultWatermarks,
     ensureWatermarks: ensureWatermarks,

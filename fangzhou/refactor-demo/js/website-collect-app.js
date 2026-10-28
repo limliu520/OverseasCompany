@@ -129,8 +129,12 @@
     });
     document.getElementById("wc-filters").addEventListener("click", function (e) {
       if (e.target.id === "wc-refresh") {
-        FZShell.toast("已刷新当前站点记录（筛选保留）", "ok");
+        if (typeof D.resetDemo === "function") D.resetDemo();
+        sites = D.sites.slice();
+        records = D.records;
+        page = 1;
         paint();
+        FZShell.toast("已重置并刷新本列表（筛选保留）", "ok");
       }
       if (e.target.id === "wc-reset") {
         filterQ = "";

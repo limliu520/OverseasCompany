@@ -217,6 +217,16 @@
     }
   })();
 
+  var SEED_ITEMS = JSON.parse(JSON.stringify(ITEMS));
+
+  function reset() {
+    var fresh = JSON.parse(JSON.stringify(SEED_ITEMS));
+    ITEMS.length = 0;
+    fresh.forEach(function (row) {
+      ITEMS.push(row);
+    });
+  }
+
   w.FZMatData = {
     AD_CATS: AD_CATS,
     CHANNELS: CHANNELS,
@@ -228,6 +238,7 @@
     TABS: TABS,
     LABEL: LABEL,
     ALL_STATUSES: ALL_STATUSES,
-    ITEMS: ITEMS
+    ITEMS: ITEMS,
+    reset: reset
   };
 })(window);

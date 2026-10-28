@@ -217,3 +217,22 @@ window.FZWebCollectData = {
     });
   }
 })();
+
+/* 列表「刷新」可重置本页演示数据，无需全局重置 */
+(function attachReset(D) {
+  function clone(x) {
+    return JSON.parse(JSON.stringify(x));
+  }
+  var SEED_SITES = clone(D.sites);
+  var SEED_RECORDS = clone(D.records);
+  D.resetDemo = function () {
+    D.sites.splice(0, D.sites.length);
+    SEED_SITES.forEach(function (s) {
+      D.sites.push(clone(s));
+    });
+    D.records.splice(0, D.records.length);
+    SEED_RECORDS.forEach(function (r) {
+      D.records.push(clone(r));
+    });
+  };
+})(window.FZWebCollectData);

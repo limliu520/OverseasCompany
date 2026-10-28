@@ -1,6 +1,14 @@
 /* 素材详情弹窗（主预览媒体 / Tab / 上下条；处理日志不对业务端默认展示） */
 (function (w) {
-  var state = { id: null, list: [], tab: "info", mediaIdx: 0, mediaPlaying: false, minH: 0 };
+  var state = {
+    id: null,
+    list: [],
+    tab: "info",
+    mediaIdx: 0,
+    mediaPlaying: false,
+    minH: 0,
+    previewOnly: false
+  };
   var Media = w.FZMatMedia;
   function hasMedia(m) {
     return !!((m.videoCount || 0) + (m.imageCount || 0));
@@ -13,9 +21,14 @@
       .replace(/"/g, "&quot;");
   }
   function find(id) {
-    var items = (w.FZMatData && w.FZMatData.ITEMS) || [];
     var i;
-    for (i = 0; i < items.length; i++) if (items[i].id === id) return items[i];
+    for (i = 0; i < state.list.length; i++) if (state.list[i].id === id) return state.list[i];
+    var items = (w.FZMatData && w.FZMatData.ITEMS) || [];
+    for (i = 0; i < items.length; i++) {
+      if (items[i].id === id || String(items[i].formalNumber) === String(id)) {
+        return items[i];
+      }
+    }
     return null;
   }
   function idxInList() {
@@ -222,11 +235,12 @@
     var mediaCol = hasMedia(m)
       ? '<div class="mat-detail-media">' +
         Media.html(m, state.mediaIdx, state.mediaPlaying) +
-        mediaActionsHtml(m) +
+        (state.previewOnly ? "" : mediaActionsHtml(m)) +
         "</div>"
       : "";
-    var note =
-      m.status === "pending"
+    var note = state.previewOnly
+      ? '<div class="mat-detail-note">原素材预览 · 仅查看，不可操作</div>'
+      : m.status === "pending"
         ? '<div class="mat-detail-note">该素材待人工审核</div>'
         : "";
     var typeCat = [m.mediaType, m.category].filter(Boolean).join(" · ") || "-";
@@ -239,13 +253,13 @@
       mediaCol +
       '<div class="mat-detail-main">' +
       note +
-      adBlock(m) +
+      (state.previewOnly ? "" : adBlock(m)) +
       '<header class="mat-summary">' +
       '<div class="mat-summary-head">' +
       '<div class="mat-summary-text">' +
       '<h3 class="mat-summary-title">' +
       esc(m.title) +
-      (m.status === "available"
+      (!state.previewOnly && m.status === "available"
         ? ' <button type="button" class="btn btn-ghost btn-sm" data-detail-act="edit-title">✎ 编辑</button>'
         : "") +
       "</h3>" +
@@ -254,7 +268,7 @@
       '<span class="mat-summary-typecat">' + esc(typeCat) + "</span>" +
       '<span class="mat-summary-metrics">' + metaBits + "</span>" +
       "</div></div>" +
-      bizActionsHtml(m) +
+      (state.previewOnly ? "" : bizActionsHtml(m)) +
       "</div></header>" +
       '<section class="mat-detail-sec mat-detail-sec--meta">' +
       '<div class="mat-detail-sec-title">基本信息</div>' +
@@ -350,8 +364,10 @@
     if (panel) panel.innerHTML = state.tab === "dispatch" ? dispatchHtml(m) : infoHtml(m);
     requestAnimationFrame(lockHeight);
   }
-  function open(id, list) {
+  function open(id, list, opts) {
+    opts = opts || {};
     bind();
+    state.previewOnly = !!opts.previewOnly;
     state.id = id;
     state.list = list && list.length ? list.slice() : [find(id)].filter(Boolean);
     state.tab = "info";
@@ -361,17 +377,39 @@
     var shell = document.querySelector("#mat-detail-mask .mat-detail");
     if (shell) shell.style.minHeight = "";
     var mask = document.getElementById("mat-detail-mask");
-    if (mask) mask.hidden = false;
+    if (mask) {
+      mask.hidden = false;
+      mask.classList.toggle("is-preview-only", state.previewOnly);
+    }
+    var title = document.getElementById("mat-detail-title");
+    if (title) {
+      title.innerHTML =
+        (state.previewOnly ? "原素材 " : "素材详情 ") +
+        '<span class="mat-detail-progress" id="mat-detail-progress"></span>';
+    }
+    var prev = document.getElementById("mat-detail-prev");
+    var next = document.getElementById("mat-detail-next");
+    if (prev) prev.hidden = state.previewOnly && state.list.length <= 1;
+    if (next) next.hidden = state.previewOnly && state.list.length <= 1;
     paint();
   }
   function close() {
     var mask = document.getElementById("mat-detail-mask");
-    if (mask) mask.hidden = true;
+    if (mask) {
+      mask.hidden = true;
+      mask.classList.remove("is-preview-only");
+    }
     var shell = document.querySelector("#mat-detail-mask .mat-detail");
     if (shell) shell.style.minHeight = "";
+    var title = document.getElementById("mat-detail-title");
+    if (title) {
+      title.innerHTML =
+        '素材详情 <span class="mat-detail-progress" id="mat-detail-progress"></span>';
+    }
     state.id = null;
     state.mediaPlaying = false;
     state.minH = 0;
+    state.previewOnly = false;
   }
   function goto(delta) {
     var i = idxInList();
@@ -455,6 +493,7 @@
         state.tab = t.getAttribute("data-mat-tab");
         paint();
       } else {
+        if (state.previewOnly) return;
         var m = find(state.id);
         if (m) onAct(t.getAttribute("data-detail-act"), m);
       }

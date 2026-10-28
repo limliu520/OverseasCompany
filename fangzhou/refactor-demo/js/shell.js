@@ -297,6 +297,9 @@
           if (act === "logout") logout();
           else if (act === "reset") {
             if (confirm("重置全部演示数据并回到登录页？")) {
+              if (global.FZArticles && typeof FZArticles.reset === "function") {
+                FZArticles.reset();
+              }
               FZStore.reset();
               location.href = BASE + "login.html";
             }

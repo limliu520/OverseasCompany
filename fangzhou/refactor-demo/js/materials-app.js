@@ -303,8 +303,12 @@
     var bar = document.getElementById("mat-toolbar");
     bar.addEventListener("click", function (e) {
       if (e.target.id === "mat-refresh") {
-        FZShell.toast("已刷新当前列表（筛选与 Tab 保留）", "ok");
+        if (window.FZMatData && typeof FZMatData.reset === "function") {
+          FZMatData.reset();
+        }
+        page = 1;
         applyFiltersAndPaint();
+        FZShell.toast("已重置并刷新本列表（筛选与 Tab 保留）", "ok");
         return;
       }
       if (e.target.id === "mat-reset") {

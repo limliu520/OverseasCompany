@@ -1405,6 +1405,14 @@
     businessProjects: businessProjects,
     reset: function () {
       localStorage.removeItem(KEY);
+      /* 文章列表独立缓存，重置时一并清掉，避免失败/已推送等种子态回不来 */
+      try {
+        localStorage.removeItem("fz_articles_demo_v1");
+        localStorage.removeItem("fz_articles_demo_v2");
+      } catch (err) {}
+      if (global.FZArticles && typeof FZArticles.reset === "function") {
+        FZArticles.reset();
+      }
     }
   };
 })(window);

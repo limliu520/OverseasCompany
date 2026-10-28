@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>51吃瓜 · 求瓜 / 互动模块 Demo</title>
+<style>
+:root {
+  --bg: #191a22;
+  --bg-elev: #22232d;
+  --bg-card: #1e1f28;
+  --text: #f0f0f0;
+  --muted: #9a9aa8;
+  --line: #2e2f3a;
+  --pink: #ff4d8d;
+  --pink-dim: rgba(255, 77, 141, 0.16);
+  --ok: #3dd68c;
+  --warn: #f5a524;
+  --max: 960px;
+  --card-ratio: 20 / 9;
+  --radius: 12px;
+  --font: "HarmonyOS Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft Yahei", sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 14px/1.55 var(--font);
+}
+a { color: inherit; text-decoration: none; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.hidden { display: none !important; }
+
+/* demo rail */
+.demo-rail {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  padding: 8px 16px; background: #111218; border-bottom: 1px solid var(--line);
+  font-size: 12px; color: var(--muted);
+}
+.demo-rail strong { color: var(--pink); font-weight: 650; }
+.demo-rail .chip {
+  border: 1px solid var(--line); background: var(--bg-elev);
+  border-radius: 999px; padding: 4px 10px; color: var(--text);
+}
+.demo-rail .chip.on { border-color: var(--pink); color: var(--pink); background: var(--pink-dim); }
+.demo-rail .chip.main { font-weight: 650; }
+.demo-rail .rail-sep {
+  width: 1px; height: 16px; background: #3a3b48; margin: 0 6px; flex-shrink: 0;
+}
+.demo-rail .rail-entries {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+}
+
+/* site chrome */
+.top {
+  border-bottom: 1px solid var(--line);
+  background: rgba(25, 26, 34, 0.96);
+  backdrop-filter: blur(8px);
+  position: sticky; top: 37px; z-index: 40;
+}
+.top-inner {
+  max-width: calc(var(--max) + 48px); margin: 0 auto;
+  padding: 10px 24px; display: flex; align-items: center; gap: 18px;
+}
+.logo {
+  display: flex; align-items: baseline; gap: 2px; flex-shrink: 0;
+  font-weight: 800; font-size: 22px; letter-spacing: 0.5px;
+}
+.logo span { color: var(--pink); }
+.nav { display: flex; flex-wrap: wrap; gap: 4px 14px; flex: 1; align-items: center; }
+.nav a {
+  color: #d8d8e0; font-size: 13px; padding: 4px 0;
+  border-bottom: 2px solid transparent;
+}
+.nav a:hover, .nav a.on { color: #fff; border-bottom-color: var(--pink); }
+.nav a.wish-entry { color: var(--pink); font-weight: 650; }
+.tools { display: flex; gap: 10px; align-items: center; margin-left: auto; }
+.icon-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--bg-elev);
+  display: grid; place-items: center; color: #ddd;
+}
+.icon-btn:hover { border-color: var(--pink); color: var(--pink); }
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, #5b5bff, var(--pink));
+  border: 0; color: #fff; font-size: 12px; font-weight: 700;
+}
+
+.wrap { max-width: calc(var(--max) + 48px); margin: 0 auto; padding: 20px 24px 80px; }
+.page-title {
+  text-align: center; margin: 8px 0 22px;
+}
+.page-title h1 { margin: 0 0 6px; font-size: 26px; font-weight: 750; }
+.page-title p { margin: 0; color: var(--muted); font-size: 13px; }
+
+/* wide cover cards ~20:9 */
+.card-list { display: flex; flex-direction: column; gap: 18px; }
+.cover-card {
+  position: relative; display: block; border-radius: var(--radius); overflow: hidden;
+  aspect-ratio: var(--card-ratio); background: #2a2b36;
+  box-shadow: 0 8px 24px rgba(0,0,0,.28);
+}
+.cover-card .thumb {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(255,77,141,.35), transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(91,91,255,.28), transparent 45%),
+    linear-gradient(135deg, #2a2b38 0%, #1a1b24 55%, #3a2030 100%);
+  transition: transform .35s ease;
+}
+.cover-card:hover .thumb { transform: scale(1.03); }
+.cover-card img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0;
+}
+.cover-card .shade {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 42%, rgba(0,0,0,.88) 100%);
+  pointer-events: none;
+}
+.cover-card .body {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 18px 14px;
+}
+.cover-card h2 {
+  margin: 0 0 6px; font-size: 18px; line-height: 1.35; font-weight: 700;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: #c8c8d0; font-size: 12px; }
+.tag {
+  display: inline-flex; align-items: center; height: 20px; padding: 0 8px;
+  border-radius: 4px; background: var(--pink); color: #fff; font-size: 11px; font-weight: 650;
+}
+.tag.ghost { background: rgba(255,255,255,.14); }
+.tag.ok { background: rgba(61,214,140,.2); color: var(--ok); }
+.tag.warn { background: rgba(245,165,36,.18); color: var(--warn); }
+.tag.pending { background: rgba(154,154,168,.2); color: #c8c8d0; }
+.tag.reject { background: rgba(255,90,90,.18); color: #ff8e8e; }
+/* wish / vote cards in module */
+.wall-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; margin: 4px 0 18px;
+}
+.wall-head .titles h1 { margin: 0 0 6px; font-size: 26px; font-weight: 750; }
+.wall-head .titles p { margin: 0; color: var(--muted); font-size: 13px; }
+.wall-head .compose-btn {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px;
+  border: 0; border-radius: 8px; height: 34px; padding: 0 14px;
+  background: var(--pink); color: #fff; font-size: 13px; font-weight: 700;
+  box-shadow: 0 4px 14px rgba(255,77,141,.28); line-height: 1;
+}
+.wall-head .compose-btn .ico { font-size: 14px; line-height: 1; }
+.wall-head .compose-btn:hover { filter: brightness(1.06); }
+.tabs-row {
+  display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;
+}
+.ctrl-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.ctrl-row .ctrl-label {
+  flex-shrink: 0; font-size: 12px; color: var(--muted); min-width: 2.5em;
+}
+.ctrl-row .tabs { flex: 1; }
+.wall-extra {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto;
+}
+.wall-extra .tab-link {
+  border: 1px solid var(--line); background: transparent; color: var(--muted);
+  border-radius: 999px; padding: 6px 14px; font-size: 13px;
+}
+.wall-extra .tab-link:hover { color: var(--pink); border-color: var(--pink); }
+.post-list { display: flex; flex-direction: column; gap: 14px; }
+.post-card {
+  background: var(--bg-card); border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 18px rgba(0,0,0,.22);
+}
+.post-card .band {
+  height: 6px; border-radius: var(--radius) var(--radius) 0 0;
+  background: linear-gradient(90deg, var(--pink), #ff8fb3 55%, transparent);
+}
+.post-card.vote-card .band {
+  background: linear-gradient(90deg, #6b6dff, #9ea0ff 55%, transparent);
+}
+.post-card .inner { padding: 16px 18px 16px; }
+.post-card .top {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px;
+}
+.post-card .card-head,
+.post-detail .card-head {
+  display: flex; align-items: stretch; gap: 12px; margin: 0 0 12px;
+}
+.post-card .card-head-main,
+.post-detail .card-head-main {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px;
+}
+.post-card .title-row,
+.post-detail .title-row {
+  display: flex; align-items: flex-start; gap: 10px; margin: 0;
+}
+.post-card .title-row h3 {
+  flex: 1; margin: 0; min-width: 0;
+  font-size: 18px; font-weight: 700;
+  line-height: 1.45; overflow: visible; word-break: break-word;
+}
+.post-detail .title-row h1 {
+  flex: 1; margin: 0; min-width: 0;
+  font-size: 22px; font-weight: 750;
+  line-height: 1.4; word-break: break-word;
+}
+.post-card .card-head > .act.act-like,
+.post-detail .card-head > .act.act-like {
+  flex-shrink: 0; align-self: stretch;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; min-width: 68px; padding: 8px 12px; height: auto;
+  border-color: rgba(255,77,141,.45);
+  background: linear-gradient(180deg, rgba(255,77,141,.2), rgba(255,77,141,.06));
+  box-shadow: 0 0 0 1px rgba(255,77,141,.08);
+}
+.post-card .card-head > .act.act-like .act-num,
+.post-detail .card-head > .act.act-like .act-num {
+  font-size: 18px; font-weight: 750; color: #fff; line-height: 1.1;
+}
+.post-card .card-head > .act.act-like .act-bot,
+.post-detail .card-head > .act.act-like .act-bot {
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.post-card .card-head > .act.act-like .act-ico,
+.post-detail .card-head > .act.act-like .act-ico {
+  width: 14px; height: 14px; color: var(--pink);
+}
+.post-card .card-head > .act.act-like .act-lab,
+.post-detail .card-head > .act.act-like .act-lab {
+  font-size: 11px; color: var(--pink); font-weight: 650;
+}
+.post-card .card-head > .act.act-like:hover,
+.post-detail .card-head > .act.act-like:hover {
+  border-color: var(--pink);
+  background: linear-gradient(180deg, rgba(255,77,141,.32), rgba(255,77,141,.12));
+}
+.post-card .card-head > .act.act-like.on,
+.post-detail .card-head > .act.act-like.on {
+  background: var(--pink); border-color: var(--pink);
+}
+.post-card .card-head > .act.act-like.on .act-num,
+.post-card .card-head > .act.act-like.on .act-lab,
+.post-card .card-head > .act.act-like.on .act-ico,
+.post-detail .card-head > .act.act-like.on .act-num,
+.post-detail .card-head > .act.act-like.on .act-lab,
+.post-detail .card-head > .act.act-like.on .act-ico { color: #fff; }
+.post-card .sub-row,
+.post-detail .sub-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin: 0; color: var(--muted); font-size: 12px;
+}
+/* 状态弱于类型：纯文案色，不抢「求瓜/投票」实心标 */
+.post-card .sub-row .tag,
+.post-detail .sub-row .tag {
+  height: auto; padding: 0; border-radius: 0;
+  background: none; font-weight: 550; font-size: 12px;
+  color: var(--muted);
+}
+.post-card .sub-row .tag.warn,
+.post-detail .sub-row .tag.warn { color: #b89a6e; }
+.post-card .sub-row .tag.ok,
+.post-detail .sub-row .tag.ok { color: #6fbf9a; }
+.post-card .sub-row .tag.pending,
+.post-detail .sub-row .tag.pending { color: #9a9aac; }
+.post-card .sub-row .tag.reject,
+.post-detail .sub-row .tag.reject { color: #d88a8a; }
+.hash-tag {
+  display: inline; padding: 0; margin: 0; border: 0; background: none;
+  color: #5b9dff; font: inherit; font-size: 12px; cursor: pointer;
+  text-decoration: none;
+}
+.hash-tag:hover { text-decoration: underline; color: #7eb0ff; }
+.post-card .vote-panel .vp-label .vp-cue,
+.post-detail .vote-panel .vp-label .vp-cue {
+  font-weight: 550; color: #a8a9c8; letter-spacing: 0;
+}
+.post-card .vote-panel .vp-label .related-link,
+.post-detail .vote-panel .vp-label .related-link {
+  font-size: 12px; font-weight: 650;
+}
+.related-link {
+  display: inline; padding: 0; margin: 0; border: 0; background: none;
+  color: var(--pink); font: inherit; font-size: 13px; font-weight: 650;
+  cursor: pointer; text-align: left; text-decoration: none;
+  word-break: break-word;
+}
+.related-link:hover { text-decoration: underline; color: #ff8fb3; }
+.post-card .type,
+.post-detail .type {
+  flex-shrink: 0; font-size: 12px; font-weight: 750; padding: 4px 9px;
+  border-radius: 4px; background: var(--pink); color: #fff;
+  margin-top: 3px; letter-spacing: .02em;
+}
+.post-card .type.vote,
+.post-detail .type.vote { background: #6b6dff; color: #fff; }
+.post-card h3 {
+  margin: 0 0 12px; padding: 0;
+  font-size: 18px; font-weight: 700;
+  line-height: 1.6; min-height: 1.6em;
+  overflow: visible; word-break: break-word;
+  display: block;
+}
+.post-card .act,
+.post-detail .act {
+  display: inline-flex; flex-direction: row; align-items: center; justify-content: center;
+  gap: 6px; min-width: 0; height: auto; padding: 8px 12px;
+  border: 1px solid var(--line); background: var(--bg-elev); color: var(--text);
+  border-radius: 8px; font: inherit; cursor: pointer;
+}
+.post-card .act:hover,
+.post-detail .act:hover { border-color: #4a4b58; }
+.post-card .act .act-top,
+.post-detail .act .act-top {
+  display: contents;
+}
+.post-card .act .act-ico,
+.post-detail .act .act-ico {
+  width: 15px; height: 15px; flex-shrink: 0;
+  color: var(--muted);
+}
+.post-card .act .act-num,
+.post-detail .act .act-num { font-size: 13px; font-weight: 700; line-height: 1.2; color: #fff; }
+.post-card .act .act-lab,
+.post-detail .act .act-lab { font-size: 12px; color: var(--muted); line-height: 1.2; }
+.post-card .act.on .act-ico,
+.post-detail .act.on .act-ico { color: var(--pink); }
+.post-card .act.on .act-num,
+.post-detail .act.on .act-num { color: var(--pink); }
+.post-card .act.on .act-lab,
+.post-detail .act.on .act-lab { color: var(--pink); }
+.post-card .act[disabled],
+.post-detail .act[disabled] { opacity: .7; cursor: not-allowed; }
+.post-card .act.primary {
+  background: var(--pink); border-color: var(--pink); color: #fff;
+}
+.post-card .act.primary .act-lab { color: rgba(255,255,255,.85); }
+.post-card .vote-panel,
+.post-detail .vote-panel {
+  margin: 2px 0 0; padding: 14px 14px 12px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(91,91,255,.14), rgba(91,91,255,.05));
+  border: 1px solid rgba(110,112,255,.42);
+  box-shadow: inset 0 1px 0 rgba(158,160,255,.12);
+}
+.post-card .vote-panel .vp-label,
+.post-detail .vote-panel .vp-label {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px;
+  margin: 0 0 10px; font-size: 12px; font-weight: 700; color: #9ea0ff; letter-spacing: .02em;
+}
+.post-card .vote-panel .vp-label::before,
+.post-detail .vote-panel .vp-label::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: #9ea0ff; box-shadow: 0 0 0 3px rgba(110,112,255,.25);
+}
+.post-card .vote-panel .vote-choices,
+.post-detail .vote-panel .vote-choices { margin: 0 0 8px; }
+.post-card .vote-panel .vote-choices .choice,
+.post-detail .vote-panel .vote-choices .choice {
+  background: rgba(18,19,28,.88); border-color: rgba(110,112,255,.35);
+  font-size: 15px; padding: 13px 14px;
+}
+.post-card .vote-panel .vote-choices .choice:hover,
+.post-detail .vote-panel .vote-choices .choice:hover {
+  border-color: #9ea0ff; color: #c8caff; background: rgba(91,91,255,.16);
+}
+.post-card .vote-panel .hint,
+.post-detail .vote-panel .hint { margin: 0; color: #a8a9c8; }
+.post-card .vote-panel .preview,
+.post-detail .vote-panel .preview { margin: 0 0 8px; }
+.post-card .preview,
+.post-detail .preview {
+  display: flex; flex-direction: column; gap: 8px; margin: 0 0 12px;
+}
+.post-card .preview .line,
+.post-detail .preview .line {
+  display: flex; align-items: center; gap: 10px; font-size: 12px; color: #c8c8d0;
+}
+.post-card .preview .line > span:first-child,
+.post-detail .preview .line > span:first-child {
+  flex: 0 0 5.5em; min-width: 5.5em;
+}
+.post-card .preview .track,
+.post-detail .preview .track {
+  flex: 1; min-width: 0; height: 8px; border-radius: 999px; background: #12131a; overflow: hidden;
+}
+.post-card .preview .fill,
+.post-detail .preview .fill {
+  height: 100%; border-radius: 999px; background: linear-gradient(90deg, #6b6dff, #9ea0ff);
+}
+.post-card .preview .fill.b,
+.post-detail .preview .fill.b {
+  background: linear-gradient(90deg, var(--pink), #ff8fb3);
+}
+.post-card .preview .line > span:last-child,
+.post-detail .preview .line > span:last-child {
+  flex: 0 0 2.5em; text-align: right; font-weight: 700; color: #fff;
+}
+.post-card .foot {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end;
+  gap: 10px; padding-top: 12px; border-top: 1px solid var(--line);
+}
+.post-card .actions {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-left: auto; justify-content: flex-end;
+}
+.post-card .dream-cta,
+.post-detail .dream-cta {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  gap: 8px; margin: 4px 0 0; padding: 16px 14px;
+  border-top: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255,77,141,.1), rgba(255,77,141,.03));
+  border-radius: 0 0 10px 10px;
+}
+.post-card .dream-cta .dream-lab,
+.post-detail .dream-cta .dream-lab {
+  font-size: 12px; font-weight: 650; color: var(--pink); letter-spacing: .02em;
+}
+.post-card .dream-cta .dream-title,
+.post-detail .dream-cta .dream-title {
+  margin: 0; max-width: 36em;
+  font-size: 15px; font-weight: 700; line-height: 1.45; color: #fff;
+}
+.post-card .dream-cta .dream-btn,
+.post-detail .dream-cta .dream-btn {
+  margin-top: 4px; height: 44px; padding: 0 28px;
+  font-size: 15px; font-weight: 750; border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(255,77,141,.28);
+}
+.post-card .ops-vote {
+  margin-top: 14px; padding: 12px 14px; border-radius: 10px;
+  background: #15161d; border: 1px solid rgba(110,112,255,.35);
+}
+.post-card .ops-vote .ops-label {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  font-size: 12px; color: #9ea0ff;
+}
+.post-card .ops-vote h4 { margin: 0 0 10px; font-size: 14px; font-weight: 650; }
+.post-card .hot-comments {
+  margin: 4px 0 0; padding: 12px 0 2px;
+  border-radius: 0; background: transparent;
+  border: 0; border-top: 1px solid var(--line);
+}
+.post-card .hot-comments .hc-head {
+  display: flex; align-items: center; justify-content: flex-start;
+  flex-wrap: wrap; gap: 8px; margin-bottom: 6px;
+}
+.post-card .hot-comments .hc-label {
+  font-size: 13px; color: #c8c8d0; font-weight: 650;
+  letter-spacing: .02em;
+}
+.post-card .hot-comments .hc-label .hc-num {
+  margin-left: 6px; color: var(--muted); font-weight: 600;
+}
+.post-card .hot-comments .hc-more {
+  flex-shrink: 0; padding: 0; border: 0; background: none;
+  color: var(--pink); font: inherit; font-size: 12px; font-weight: 650;
+  cursor: pointer;
+}
+.post-card .hot-comments .hc-more:hover { text-decoration: underline; color: #ff8fb3; }
+.post-card .hot-comments .hc-empty {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin: 4px 0 2px; padding: 12px 14px; border-radius: 10px;
+  background: rgba(255,255,255,.03); border: 1px dashed rgba(255,255,255,.12);
+}
+.post-card .hot-comments .hc-empty p {
+  margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45;
+}
+.post-card .hot-comments .hc-empty .hc-sofa {
+  flex-shrink: 0; padding: 0; border: 0; background: none;
+  color: var(--pink); font: inherit; font-size: 12px; font-weight: 650;
+  cursor: pointer; white-space: nowrap;
+}
+.post-card .hot-comments .hc-empty .hc-sofa:hover {
+  text-decoration: underline; color: #ff8fb3;
+}
+.post-card .hot-comments .c-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 0; font-size: 13px; line-height: 1.5;
+  border-bottom: 1px dashed rgba(255,255,255,.1);
+}
+.post-card .hot-comments .c-item:last-child { border-bottom: 0; }
+.post-card .hot-comments .c-mark,
+.post-detail .c-mark {
+  flex-shrink: 0; min-width: 1.25em; margin-top: 2px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; line-height: 1; background: none;
+}
+.post-card .hot-comments .c-mark.god,
+.post-detail .c-mark.god {
+  min-width: auto; padding: 0; font-size: 11px; font-weight: 750;
+  color: var(--pink); letter-spacing: .02em;
+}
+.post-card .hot-comments .c-body { flex: 1; min-width: 0; }
+.post-card .hot-comments .c-user,
+.post-detail .c-user { color: #c8c8d0; margin-right: 6px; font-weight: 650; }
+.post-card .hot-comments .c-time,
+.post-detail .c-time { color: var(--muted); font-size: 11px; margin-left: 8px; }
+.post-detail .comments-full {
+  margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line);
+}
+.post-detail .comments-full h3 { margin: 0 0 12px; font-size: 16px; }
+.post-detail .c-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; line-height: 1.55;
+}
+.post-detail .c-item .c-body { flex: 1; min-width: 0; }
+.post-detail .c-compose {
+  display: flex; gap: 8px; margin-top: 14px; align-items: stretch;
+}
+.post-detail .c-compose input {
+  background: #15161d; border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; outline: none; color: var(--text); font: inherit;
+}
+.post-detail .c-compose input.nick {
+  flex: 0 0 96px; width: 96px; max-width: 30%;
+}
+.post-detail .c-compose input.body {
+  flex: 1; min-width: 0;
+}
+.post-detail .c-compose input:focus { border-color: var(--pink); }
+.ai-tags {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 40px;
+  padding: 10px 12px; border-radius: 8px; background: #15161d; border: 1px solid var(--line);
+}
+.ai-tags .ai-tag {
+  display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 10px;
+  border-radius: 999px; background: var(--pink-dim); color: var(--pink);
+  font-size: 13px; font-weight: 650; border: 1px solid rgba(255,77,141,.35);
+}
+.ai-tags .ai-empty { color: var(--muted); font-size: 12px; }
+.ai-tags .ai-spin { color: var(--muted); font-size: 12px; }
+.btn {
+  border: 1px solid var(--line); background: var(--bg-elev); color: var(--text);
+  border-radius: 8px; padding: 8px 14px; font-size: 13px;
+}
+.btn:hover { border-color: #4a4b58; }
+.btn.primary { background: var(--pink); border-color: var(--pink); color: #fff; font-weight: 650; }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.ghost { background: transparent; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs .tab {
+  border: 1px solid var(--line); background: transparent; color: var(--muted);
+  border-radius: 999px; padding: 6px 14px; font-size: 13px;
+}
+.tabs .tab.on { color: #fff; border-color: var(--pink); background: var(--pink-dim); }
+
+.panel {
+  background: var(--bg-card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 18px;
+}
+.field { margin-bottom: 12px; }
+.field label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 12px; }
+.field input, .field textarea, .field select {
+  width: 100%; background: #15161d; border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; outline: none;
+}
+.field input:focus, .field textarea:focus { border-color: var(--pink); }
+.field textarea { min-height: 110px; resize: vertical; }
+.hint { color: var(--muted); font-size: 12px; line-height: 1.7; margin: 0 0 12px; }
+.empty {
+  text-align: center; padding: 48px 20px; color: var(--muted);
+  border: 1px dashed var(--line); border-radius: var(--radius);
+}
+.empty h3 { color: var(--text); margin: 0 0 8px; font-size: 18px; }
+.cta-bar {
+  margin: 0 0 16px; padding: 14px 16px; border-radius: var(--radius);
+  background: var(--pink-dim); border: 1px solid rgba(255,77,141,.35);
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+}
+.cta-bar p { margin: 0; font-size: 13px; }
+.article h1 { font-size: 24px; margin: 0 0 10px; line-height: 1.35; }
+.article .lead { color: var(--muted); margin-bottom: 16px; }
+.article .cover {
+  position: relative; aspect-ratio: var(--card-ratio); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px;
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(255,77,141,.3), transparent 55%),
+    linear-gradient(135deg, #2a2b38, #1a1b24 60%, #3a2030);
+}
+.article .cover img { width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+.article .content p { margin: 0 0 12px; color: #ddd; }
+.related {
+  margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.related > h3 {
+  margin: 0; font-size: 15px; font-weight: 700;
+}
+.related-block {
+  padding: 14px 14px 12px; border-radius: 12px;
+  border: 1px solid var(--line); background: #15161d;
+}
+.related-block.vote {
+  border-color: rgba(110,112,255,.4);
+  background: linear-gradient(180deg, rgba(91,91,255,.12), rgba(91,91,255,.04));
+}
+.related-block.wish {
+  border-color: rgba(255,77,141,.35);
+  background: linear-gradient(180deg, rgba(255,77,141,.1), rgba(255,77,141,.03));
+}
+.related-block .rb-lab {
+  margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .02em;
+}
+.related-block.vote .rb-lab { color: #9ea0ff; }
+.related-block.wish .rb-lab { color: var(--pink); }
+.related-block .rb-title {
+  margin: 0 0 8px; font-size: 14px; font-weight: 650; line-height: 1.45; color: #fff;
+}
+.related-block .rb-desc {
+  margin: 0 0 12px; font-size: 12px; color: var(--muted); line-height: 1.45;
+}
+.related-block .rb-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.vote-opts { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+.vote-opt {
+  position: relative; overflow: hidden; border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px 14px; background: #15161d; cursor: pointer;
+}
+.vote-opt .bar {
+  position: absolute; inset: 0 auto 0 0; background: var(--pink-dim); width: 0; transition: width .3s;
+}
+.vote-opt .lab { position: relative; display: flex; justify-content: space-between; gap: 8px; }
+.vote-opt.on { border-color: var(--pink); }
+.vote-choices { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 12px; }
+.vote-choices .choice {
+  width: 100%; text-align: left; border: 1px solid var(--line);
+  background: #15161d; border-radius: 10px; padding: 12px 14px;
+  color: var(--text); font-size: 14px; font-weight: 650;
+}
+.vote-choices .choice:hover { border-color: var(--pink); color: var(--pink); }
+.vote-choices .choice.on {
+  border-color: var(--pink); background: var(--pink-dim); color: #fff;
+}
+
+.modal-mask {
+  position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.64);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal {
+  width: min(400px, 100%); background: var(--bg-elev); border: 1px solid var(--line);
+  border-radius: 14px; padding: 20px;
+}
+.modal h3 { margin: 0 0 8px; }
+.modal p { margin: 0 0 16px; color: var(--muted); font-size: 13px; }
+.modal .row { display: flex; gap: 8px; justify-content: flex-end; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
+  z-index: 90; background: #2a2b36; border: 1px solid var(--line);
+  padding: 10px 16px; border-radius: 999px; font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35); pointer-events: none;
+  opacity: 0; transition: opacity .2s;
+}
+.toast.show { opacity: 1; }
+
+.ai-bubble {
+  background: #15161d; border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px; margin-top: 12px; font-size: 13px; color: #ddd;
+}
+.ai-bubble a { color: var(--pink); text-decoration: underline; }
+.ai-suggest {
+  display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px;
+}
+.ai-suggest button {
+  border: 1px solid var(--line); background: #15161d; color: #c8c8d0;
+  border-radius: 999px; padding: 6px 12px; font-size: 12px; cursor: pointer;
+}
+.ai-suggest button:hover { border-color: var(--pink); color: var(--pink); }
+.ai-agent {
+  margin-top: 16px; border: 1px solid rgba(255,77,141,.28);
+  border-radius: 14px; overflow: hidden;
+  background: linear-gradient(180deg, rgba(255,77,141,.08), rgba(21,22,29,.95));
+}
+.ai-agent .aa-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 14px 16px; border-bottom: 1px solid var(--line);
+}
+.ai-agent .aa-head h3 { margin: 0 0 4px; font-size: 15px; }
+.ai-agent .aa-head p { margin: 0; font-size: 12px; color: var(--muted); }
+.ai-agent .aa-badge {
+  flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--pink);
+  padding: 4px 8px; border-radius: 999px; background: var(--pink-dim);
+}
+.ai-agent .aa-body { padding: 14px 16px 16px; }
+.ai-agent .aa-q {
+  margin: 0 0 12px; font-size: 13px; color: #c8c8d0;
+}
+.ai-agent .aa-q strong { color: #fff; font-weight: 650; }
+.ai-agent .aa-summary {
+  margin: 0 0 16px; font-size: 14px; line-height: 1.65; color: #eee;
+}
+.ai-agent .aa-sec { margin: 0 0 16px; }
+.ai-agent .aa-sec h4 {
+  margin: 0 0 10px; font-size: 13px; font-weight: 700; color: #9ea0ff;
+}
+.ai-agent .aa-timeline { display: flex; flex-direction: column; gap: 0; }
+.ai-agent .aa-tl-item {
+  display: grid; grid-template-columns: 72px 1fr; gap: 10px;
+  padding: 10px 0; border-bottom: 1px dashed rgba(255,255,255,.1);
+}
+.ai-agent .aa-tl-item:last-child { border-bottom: 0; }
+.ai-agent .aa-tl-item .t { font-size: 12px; color: var(--muted); }
+.ai-agent .aa-tl-item .d { font-size: 13px; line-height: 1.5; color: #ddd; }
+.ai-agent .aa-media {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+}
+.ai-agent .aa-shot {
+  aspect-ratio: 16 / 10; border-radius: 8px; border: 1px solid var(--line);
+  background-size: cover; background-position: center;
+}
+.ai-agent .aa-eps { display: flex; flex-direction: column; gap: 8px; }
+.ai-agent .aa-ep {
+  display: flex; gap: 10px; align-items: center;
+  padding: 10px; border-radius: 10px; background: #12131a; border: 1px solid var(--line);
+}
+.ai-agent .aa-ep .thumb {
+  width: 72px; height: 44px; border-radius: 6px; flex-shrink: 0;
+  background-size: cover; background-position: center;
+}
+.ai-agent .aa-ep .meta { min-width: 0; }
+.ai-agent .aa-ep .meta .ep-no { font-size: 11px; color: var(--pink); font-weight: 700; }
+.ai-agent .aa-ep .meta .ep-t { font-size: 13px; color: #fff; margin-top: 2px; }
+.ai-agent .aa-ep .meta .ep-from { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.ai-agent .aa-sources {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.ai-agent .aa-sources a,
+.ai-agent .aa-sources button {
+  font-size: 12px; color: var(--pink); background: none; border: 0;
+  padding: 0; cursor: pointer; text-decoration: underline;
+}
+.ai-agent .aa-foot {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.ai-agent.loading .aa-body { color: var(--muted); font-size: 13px; }
+
+@media (max-width: 720px) {
+  .top-inner { padding: 10px 14px; gap: 10px; }
+  .nav { display: none; }
+  .wrap { padding: 16px 14px 88px; }
+  .cover-card h2 { font-size: 15px; }
+  .page-title h1 { font-size: 20px; }
+  .wall-head { flex-direction: column; align-items: stretch; }
+  .wall-head .compose-btn { width: 100%; justify-content: center; }
+}
+</style>
+</head>
+<body>
+<div class="demo-rail">
+  <strong>Demo</strong>
+  <span>讨论稿 · 非研发终稿</span>
+  <button class="chip main" data-go="wall">求瓜心愿墙</button>
+  <span class="rail-sep" aria-hidden="true"></span>
+  <div class="rail-entries">
+    <button class="chip" data-go="search">搜索(有结果)</button>
+    <button class="chip" data-go="search-empty">搜索(无结果)</button>
+    <button class="chip" data-go="detail">详情</button>
+    <span class="rail-sep" aria-hidden="true"></span>
+    <button class="chip" data-go="ai">问 AI</button>
+  </div>
+  <span style="margin-left:auto" id="loginState"></span>
+  <button class="chip" id="toggleLogin">切换登录</button>
+</div>
+
+<header class="top">
+  <div class="top-inner">
+    <a class="logo" href="#home" data-go="home"><span>51</span>吃瓜</a>
+    <nav class="nav">
+      <a href="#home" data-go="home">首页</a>
+      <a href="#home">今日吃瓜</a>
+      <a href="#wall" class="wish-entry" data-go="wall">求瓜心愿墙</a>
+      <a href="#home">吃瓜热门</a>
+      <a href="#home">娱乐天地</a>
+      <a href="#home">黑料事件</a>
+      <a href="#home">官方信息</a>
+    </nav>
+    <div class="tools">
+      <button class="icon-btn" title="搜索" data-go="search" aria-label="搜索">⌕</button>
+      <button class="avatar" id="avatarBtn" title="账号">游</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- HOME -->
+  <section id="view-home" class="view">
+    <div class="page-title">
+      <h1>51吃瓜网 - 全网更新最快最全的吃瓜网</h1>
+      <p>网红黑料、明星绯闻、吃瓜视频、瓜榜实时更新 · Demo 示例内容</p>
+    </div>
+    <div class="card-list" id="homeList"></div>
+  </section>
+
+  <!-- SEARCH -->
+  <section id="view-search" class="view hidden">
+    <div class="page-title">
+      <h1>搜索</h1>
+      <p>有结果也可求瓜；无结果直接去求瓜</p>
+    </div>
+    <div class="panel" style="margin-bottom:16px">
+      <div class="field" style="margin:0;display:flex;gap:8px">
+        <input id="searchInput" placeholder="搜艺人 / 事件 / 关键词" style="flex:1" />
+        <button class="btn primary" id="searchBtn">搜索</button>
+      </div>
+    </div>
+    <div id="searchResult"></div>
+  </section>
+
+  <!-- DETAIL -->
+  <section id="view-detail" class="view hidden">
+    <article class="article" id="detailBody"></article>
+  </section>
+
+  <!-- WALL -->
+  <section id="view-wall" class="view hidden">
+    <div class="wall-head">
+      <div class="titles">
+        <h1>求瓜心愿墙</h1>
+        <p>想看的瓜还没有？来墙上喊一声。大家一起点赞评论攒热度，热了就有机会被安排成真瓜。</p>
+      </div>
+      <button class="compose-btn" data-go="compose"><span class="ico" aria-hidden="true">＋</span>求瓜</button>
+    </div>
+    <div class="tabs-row">
+      <div class="ctrl-row">
+        <span class="ctrl-label">排序</span>
+        <div class="tabs" id="wallSort">
+          <button class="tab on" data-sort="hot">最热</button>
+          <button class="tab" data-sort="new">最新</button>
+        </div>
+        <div class="wall-extra">
+          <button class="tab-link" data-go="mine">我的心愿墙</button>
+          <button class="tab-link" data-go="ai">问 AI</button>
+        </div>
+      </div>
+      <div class="ctrl-row">
+        <span class="ctrl-label">筛选</span>
+        <div class="tabs" id="wallFilter">
+          <button class="tab on" data-filter="all">全部</button>
+          <button class="tab" data-filter="wish">求瓜帖</button>
+          <button class="tab" data-filter="vote">投票帖</button>
+          <button class="tab" data-filter="done">已安排</button>
+        </div>
+      </div>
+    </div>
+    <div class="post-list" id="wallFeed"></div>
+  </section>
+
+  <!-- COMPOSE -->
+  <section id="view-compose" class="view hidden">
+    <div class="page-title"><h1>发布吃瓜心愿</h1><p>用户可发求瓜；投票仅运营可发</p></div>
+    <div class="panel">
+      <div class="field">
+        <label>我想看什么瓜</label>
+        <textarea id="wishText" placeholder="例：想看某某艺人近年舆情盘点 / 想看某晚会名场面复盘"></textarea>
+      </div>
+      <div class="field">
+        <label>标签（AI 自动识别，无需手填）</label>
+        <div class="ai-tags" id="wishTagBox">
+          <span class="ai-empty">输入求瓜内容后，AI 会自动识别艺人 / 事件标签</span>
+        </div>
+      </div>
+      <p class="hint">在这里写下你想看的娱乐盘点、艺人内容或旧瓜复盘。标签由 AI 根据文案识别生成，用于聚合同类求瓜。高赞求瓜我们优先安排产出。本板块只征集选题方向，禁止提交未经证实的爆料、造谣、人身攻击等内容，违规将直接驳回。提交后为「待审核」（公开墙不展示）；通过后为「征集投票中」；运营产出后为「已安排」。</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn ghost" data-go="wall">取消</button>
+        <button class="btn primary" id="composeSubmit">发布吃瓜心愿</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- VOTE DETAIL (legacy shell) -->
+  <section id="view-vote" class="view hidden">
+    <div class="panel" id="voteBody"></div>
+  </section>
+
+  <!-- POST DETAIL (求瓜 / 投票帖详情 + 全量评论) -->
+  <section id="view-post" class="view hidden">
+    <div class="post-detail" id="postDetailBody"></div>
+  </section>
+
+  <!-- TAG -->
+  <section id="view-tag" class="view hidden">
+    <div class="page-title">
+      <h1 id="tagTitle">标签</h1>
+      <p>同一标签下的心愿聚合</p>
+    </div>
+    <div id="tagFeed"></div>
+  </section>
+
+  <!-- AI Agent -->
+  <section id="view-ai" class="view hidden">
+    <div class="page-title">
+      <h1>吃瓜 Agent</h1>
+      <p>不是搜列表。一次提问，把站内相关瓜、图、短剧集数汇到一起，由 AI 理清脉络。</p>
+    </div>
+    <div class="panel">
+      <div class="field">
+        <label>你想理清什么</label>
+        <textarea id="aiQ" placeholder="例：沈腾林允传闻时间线；或：某某 AI 短剧一共几集、按顺序看"></textarea>
+      </div>
+      <div class="ai-suggest">
+        <button type="button" data-ai-suggest="沈腾林允传闻完整时间线">沈腾林允时间线</button>
+        <button type="button" data-ai-suggest="AI短剧《夜色便利店》全集按集整理">AI 短剧全集</button>
+        <button type="button" data-ai-suggest="某顶流晚会翻车名场面盘点">晚会翻车盘点</button>
+      </div>
+      <button class="btn primary" id="aiAsk">让 Agent 梳理</button>
+      <div id="aiAns" class="hidden"></div>
+    </div>
+  </section>
+
+  <!-- MINE -->
+  <section id="view-mine" class="view hidden">
+    <div class="wall-head">
+      <div class="titles">
+        <h1>我的心愿墙</h1>
+        <p>本机的求瓜、站队、评论、点赞都收在这里回看（无通知，靠回访）</p>
+      </div>
+      <button class="compose-btn" data-go="compose"><span class="ico" aria-hidden="true">＋</span>求瓜</button>
+    </div>
+    <div class="tabs-row">
+      <div class="tabs" id="mineTabs">
+        <button class="tab on" data-mine="wish">我的求瓜</button>
+        <button class="tab" data-mine="vote">我站过的队</button>
+        <button class="tab" data-mine="comment">我评论过的</button>
+        <button class="tab" data-mine="like">我点赞的</button>
+      </div>
+    </div>
+    <div class="post-list" id="mineFeed"></div>
+  </section>
+</main>
+
+<div id="loginModal" class="modal-mask hidden">
+  <div class="modal">
+    <h3>需要登录</h3>
+    <p>只有发求瓜需要登录。点赞、投票、评论（填昵称）都不用登录。Demo 点确认即视为已登录。</p>
+    <div class="row">
+      <button class="btn ghost" id="loginCancel">取消</button>
+      <button class="btn primary" id="loginOk">确认登录</button>
+    </div>
+  </div>
+</div>
+<div id="voteModal" class="modal-mask hidden">
+  <div class="modal" style="width:min(440px,100%)">
+    <h3 id="voteModalTitle">投票</h3>
+    <p id="voteModalHint" class="hint"></p>
+    <div class="vote-choices" id="voteModalChoices"></div>
+    <div class="row">
+      <button class="btn ghost" id="voteModalClose">关闭</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  const ARTICLES = [
+    {
+      id: "a1",
+      title: "喜剧影帝沈腾与林允秘恋传闻发酵 三亚同游细节被扒",
+      author: "瓜小哥",
+      date: "2026年10月26日",
+      cats: "今日吃瓜, 明星爆料",
+      hot: true,
+      fromWish: "w2",
+      thumbStyle: "background:radial-gradient(ellipse at 25% 30%,rgba(255,120,160,.4),transparent 50%),linear-gradient(135deg,#3a2a40,#1a1b24 55%,#2a3550)",
+      voteId: "v1",
+      body: [
+        "近日有站姐称沈腾与林允行程高度重合，并流出同游照片（Demo 示意正文，非真实报道）。",
+        "事件在社交平台迅速扩散，粉丝与路人分成两派：一方呼吁尊重隐私，一方要求当事人正面回应。",
+        "运营另发了相关站队投票，欢迎去表态；也欢迎继续求瓜。"
+      ]
+    },
+    {
+      id: "a2",
+      title: "某顶流晚会名场面盘点：翻车、神回复与镜头外花絮",
+      author: "瓜瓜",
+      date: "2026年10月24日",
+      cats: "今日吃瓜, 吃瓜百科",
+      hot: true,
+      thumbStyle: "background:radial-gradient(ellipse at 70% 20%,rgba(100,140,255,.35),transparent 45%),linear-gradient(135deg,#243044,#1a1b24 50%,#402830)",
+      body: [
+        "把近两年晚会高光与翻车串成时间线，方便补课党一次看完（Demo 示意）。",
+        "若你还想看某一季的完整复盘，可以去求瓜点名。"
+      ]
+    },
+    {
+      id: "a3",
+      title: "网红「藤原Yuki」账号异常 粉丝催更引发讨论",
+      author: "瓜仔",
+      date: "2026年10月23日",
+      cats: "今日吃瓜, 网红黑料",
+      hot: false,
+      thumbStyle: "background:radial-gradient(ellipse at 40% 60%,rgba(255,77,141,.25),transparent 50%),linear-gradient(160deg,#2a2b38,#1a1b24 60%,#203040)",
+      body: ["账号状态异常后的时间线梳理（Demo 示意）。"]
+    }
+  ];
+
+  let posts = [
+    {
+      id: "w1", type: "wish", text: "想看沈腾近几年舆情完整时间线盘点",
+      tag: "沈腾", likes: 128, status: "collecting", mine: false, time: "2小时前",
+      comments: [
+        { user: "瓜友A", text: "求完整时间线，别只蹭热度", time: "1小时前", hot: true, hotBy: "ops" },
+        { user: "吃瓜本吃瓜", text: "附议，最好按年份排", time: "40分钟前", hot: true, hotBy: "data" },
+        { user: "路人丙", text: "出道初期那段也想看", time: "30分钟前" }
+      ]
+    },
+    {
+      id: "w2", type: "wish", text: "想看沈腾×林允传闻的「已证实 / 未证实」对照表",
+      tag: "沈腾", likes: 86, status: "arranged", articleId: "a1", mine: false, time: "昨天",
+      comments: [
+        { user: "路人甲", text: "对照表太需要了", time: "昨天", hot: true, hotBy: "ops" },
+        { user: "瓜妹", text: "圆梦了来看一眼", time: "昨天" }
+      ]
+    },
+    {
+      id: "w3", type: "wish", text: "想看2026晚会翻车名场面合集",
+      tag: "晚会", likes: 64, status: "collecting", mine: false, time: "昨天",
+      comments: [
+        { user: "晚会观众", text: "求带时间戳的合集", time: "昨天", hot: true, hotBy: "data" }
+      ]
+    },
+    {
+      id: "w_pending", type: "wish", text: "想看某顶流综艺未播出花絮合集",
+      tag: "综艺", likes: 0, status: "pending", mine: true, time: "今天",
+      comments: []
+    },
+    {
+      id: "w_rejected", type: "wish", text: "求某某未证实黑料完整锤",
+      tag: "违规示例", likes: 0, status: "rejected", mine: true, time: "昨天",
+      rejectReason: "涉及未经证实爆料，不符合求瓜征集规范",
+      comments: []
+    },
+    {
+      id: "w4", type: "wish", text: "想看明星恋情瓜的时间线盘点合集",
+      tag: "明星爆料", likes: 45, status: "collecting", mine: false, time: "5小时前",
+      comments: [
+        { user: "瓜嫂", text: "最好按年份排", time: "4小时前" },
+        { user: "吃瓜达人", text: "时间线比站队有用", time: "3小时前" }
+      ]
+    },
+    {
+      id: "w5", type: "wish", text: "想看某顶流账号突然停更背后的时间线",
+      tag: "网红", likes: 12, status: "collecting", mine: false, time: "今天",
+      comments: []
+    },
+    {
+      id: "v1", type: "vote", text: "这类盘点你更想先看哪段？",
+      tag: "沈腾", a: "出道到爆红", b: "近三年舆情", pa: 41, pb: 59,
+      likes: 36, status: "voting",
+      comments: [
+        { user: "老粉", text: "近三年争议更多，先看这段", time: "50分钟前", hot: true, hotBy: "ops" },
+        { user: "吃瓜群众", text: "出道到爆红也想补课", time: "40分钟前" }
+      ],
+      mine: false, time: "1小时前",
+      relatedWishId: "w1", ops: true
+    },
+    {
+      id: "v2", type: "vote", text: "沈腾林允传闻：你站哪边？",
+      tag: "沈腾", a: "尊重隐私，先别审判", b: "希望当事人尽快澄清", pa: 58, pb: 42,
+      likes: 90, status: "voting",
+      comments: [
+        { user: "路人乙", text: "先别审判比较合理", time: "2小时前", hot: true, hotBy: "data", badge: "god" },
+        { user: "瓜友丁", text: "澄清了更好，别拖", time: "1小时前", hot: true, hotBy: "ops" },
+        { user: "匿名瓜", text: "两边都别撕", time: "50分钟前" }
+      ],
+      mine: false, time: "3小时前",
+      relatedWishId: "w2", relatedArticleId: "a1", ops: true
+    },
+    {
+      id: "v3", type: "vote", text: "本周你更想先看哪类瓜？",
+      tag: "本周征集", a: "明星恋情", b: "晚会翻车", pa: 55, pb: 45,
+      likes: 52, status: "ended",
+      comments: [
+        { user: "周更党", text: "晚会翻车合集更解压", time: "4小时前", hot: true, hotBy: "data" }
+      ],
+      mine: false, time: "5小时前",
+      relatedWishId: null, ops: true
+    }
+  ];
+
+  const state = {
+    view: "home",
+    loggedIn: false,
+    pendingAction: null,
+    nickname: (typeof localStorage !== "undefined" && localStorage.getItem("ww_nick")) || "",
+    wallFilter: "all",
+    wallSort: "hot",
+    liked: { w3: true },
+    voted: { v1: "a" },
+    myComments: [
+      { postId: "w1", text: "我也想看按年份排的完整时间线", time: "50分钟前" }
+    ],
+    openComments: {},
+    mineTab: "wish",
+    searchMode: "hit",
+    detailId: "a1",
+    postId: "w1",
+    voteId: "v1",
+    votePostId: "w2",
+    tag: "沈腾",
+    aiTags: []
+  };
+
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+
+  function toast(msg) {
+    const t = $("#toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  function requireLogin(action) {
+    if (state.loggedIn) return true;
+    state.pendingAction = action;
+    $("#loginModal").classList.remove("hidden");
+    return false;
+  }
+
+  function setLogin(on) {
+    state.loggedIn = on;
+    $("#loginState").textContent = on ? "已登录" : "未登录";
+    $("#avatarBtn").textContent = on ? "我" : "游";
+    $$(".demo-rail .chip").forEach((c) => {});
+  }
+
+  function go(view, payload) {
+    state.view = view;
+    if (payload && payload.detailId) state.detailId = payload.detailId;
+    if (payload && payload.postId) state.postId = payload.postId;
+    if (payload && payload.voteId) state.voteId = payload.voteId;
+    if (payload && payload.votePostId) state.votePostId = payload.votePostId;
+    if (payload && payload.tag) state.tag = payload.tag;
+    if (payload && payload.searchMode) state.searchMode = payload.searchMode;
+    if (payload && payload.q != null) $("#searchInput").value = payload.q;
+    if (view === "search-empty") {
+      state.view = "search";
+      state.searchMode = "empty";
+      if (!$("#searchInput").value) $("#searchInput").value = "某个根本没有的瓜xyz";
+    } else if (view === "search") {
+      state.searchMode = (payload && payload.searchMode) || "hit";
+      if (state.searchMode === "hit" && (!$("#searchInput").value || $("#searchInput").value.includes("根本没有"))) {
+        $("#searchInput").value = "沈腾";
+      }
+    }
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  function coverCard(a) {
+    return `<a class="cover-card" href="#detail" data-detail="${a.id}">
+      <div class="thumb" style="${a.thumbStyle || ""}"></div>
+      <div class="shade"></div>
+      <div class="body">
+        <h2>${a.title}</h2>
+        <div class="meta">
+          <span>${a.author}</span><span>·</span><span>${a.date}</span><span>·</span>
+          <span>${a.cats}</span>
+          ${a.hot ? '<span class="tag">热门</span>' : ""}
+        </div>
+      </div>
+    </a>`;
+  }
+
+  function renderHome() {
+    $("#homeList").innerHTML = ARTICLES.map(coverCard).join("");
+  }
+
+  function renderSearch() {
+    const q = ($("#searchInput").value || "").trim() || "沈腾";
+    const box = $("#searchResult");
+    if (state.searchMode === "empty") {
+      box.innerHTML = `
+        <div class="empty">
+          <h3>没找到「${escapeHtml(q)}」相关内容</h3>
+          <p>可以把想看的方向发到求瓜，热门的我们优先安排。</p>
+          <button class="btn primary" data-compose-wish="${escapeAttr(q)}">去求瓜</button>
+        </div>`;
+      return;
+    }
+    const hits = ARTICLES.filter((a) => a.title.includes(q) || q === "沈腾" || q.length < 2);
+    const list = (hits.length ? hits : ARTICLES).map(coverCard).join("");
+    box.innerHTML = `
+      <div class="cta-bar">
+        <p>结果里没有你想看的？也可以直接求瓜。</p>
+        <button class="btn primary" data-compose-wish="${escapeAttr(q)}">去求瓜</button>
+      </div>
+      <p class="hint">找到 ${hits.length || ARTICLES.length} 条与「${escapeHtml(q)}」相关</p>
+      <div class="card-list">${list}</div>`;
+  }
+
+  function renderDetail() {
+    const a = ARTICLES.find((x) => x.id === state.detailId) || ARTICLES[0];
+    const wish = a.fromWish ? posts.find((p) => p.id === a.fromWish) : null;
+    const vote = a.voteId ? findVote(a.voteId) : null;
+    const voteBlock = vote
+      ? `<div class="related-block vote">
+          <div class="rb-lab">相关投票</div>
+          <p class="rb-title">${escapeHtml(vote.text)}</p>
+          <p class="rb-desc">站队表个态，看看大家都怎么选</p>
+          <div class="rb-actions">
+            <button type="button" class="btn" data-post-detail="${vote.id}">去投票详情</button>
+          </div>
+        </div>`
+      : "";
+    const wishBlock = `<div class="related-block wish">
+        <div class="rb-lab">求瓜心愿墙</div>
+        <p class="rb-title">还想看别的瓜？去墙上喊一声</p>
+        <p class="rb-desc">点赞评论攒热度，热了就有机会被安排成真瓜</p>
+        <div class="rb-actions">
+          <button type="button" class="btn primary" data-go="wall">去心愿墙</button>
+        </div>
+      </div>`;
+    $("#detailBody").innerHTML = `
+      <div class="meta" style="margin-bottom:10px">
+        <a href="#home" data-go="home" style="color:var(--pink)">← 返回</a>
+        ${wish ? `<span class="tag ok">来自心愿</span><span style="color:var(--muted)">「${escapeHtml(wish.text)}」</span>` : ""}
+      </div>
+      <h1>${escapeHtml(a.title)}</h1>
+      <div class="meta lead">${a.author} · ${a.date} · ${a.cats}</div>
+      <div class="cover" style="${a.thumbStyle || ""}"></div>
+      <div class="content">${a.body.map((p) => `<p>${escapeHtml(p)}</p>`).join("")}</div>
+      <div class="related">
+        <h3>接着玩</h3>
+        ${voteBlock}
+        ${wishBlock}
+      </div>`;
+  }
+
+  /* 左侧标记表达「为何出现」：神评用文字；其余用 icon（赞=运营推 / 火=热 / 钟=新），不再跟右侧文案标 */
+  function commentMark(c) {
+    if (c.badge === "god") return `<span class="c-mark god" title="神评">神评</span>`;
+    if (c.hotBy === "ops") return `<span class="c-mark" title="精选" aria-label="精选">👍</span>`;
+    if (c.hot) return `<span class="c-mark" title="热门" aria-label="热门">🔥</span>`;
+    return `<span class="c-mark" title="最新" aria-label="最新">🕐</span>`;
+  }
+
+  function commentItemHtml(c) {
+    return `<div class="c-item">
+      ${commentMark(c)}
+      <div class="c-body">
+        <span class="c-user">${escapeHtml(c.user)}</span>${escapeHtml(c.text)}
+        <span class="c-time">${escapeHtml(c.time)}</span>
+      </div>
+    </div>`;
+  }
+
+  /* 信息流：统一「评论 N」+「查看全部评论」；预览精选优先否则最新，规则只靠左侧 icon/神评表达 */
+  function commentsPreview(p) {
+    const list = p.comments || [];
+    const cCount = list.length;
+    const hot = list.filter((c) => c.hot);
+    const preview = (hot.length ? hot : list).slice(0, 2);
+    const body = cCount
+      ? preview.map((c) => commentItemHtml(c)).join("")
+      : `<div class="hc-empty">
+          <p>还没人评，来说两句</p>
+          <button type="button" class="hc-sofa" data-post-detail="${p.id}">去抢首评</button>
+        </div>`;
+    return `<div class="hot-comments" data-cstate="${cCount ? "has" : "empty"}">
+      <div class="hc-head">
+        <div class="hc-label">评论<span class="hc-num">${cCount}</span></div>
+        <button type="button" class="hc-more" data-post-detail="${p.id}">查看全部评论</button>
+      </div>
+      ${body}
+    </div>`;
+  }
+
+  function fullCommentsBlock(p) {
+    const list = p.comments || [];
+    const items = list.length
+      ? list.map((c) => commentItemHtml(c)).join("")
+      : `<div class="hc-empty" style="margin:0 0 12px">
+          <p>还没人评，来说两句</p>
+        </div>`;
+    return `<div class="comments-full">
+      <h3>全部评论（${list.length}）</h3>
+      ${items}
+      <div class="c-compose">
+        <input class="nick" type="text" maxlength="12" placeholder="昵称" data-comment-nick="${p.id}" value="${escapeAttr(state.nickname || "")}" />
+        <input class="body" type="text" placeholder="${list.length ? "说两句…" : "来抢首评，说两句…"}" data-comment-input="${p.id}" />
+        <button class="btn primary" data-comment-send="${p.id}">发送</button>
+      </div>
+    </div>`;
+  }
+
+  function icoLike() {
+    return `<svg class="act-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20.5s-7.2-4.35-9.3-8.4C1.2 9.2 2.4 6 5.4 5.4c1.7-.35 3.3.35 4.2 1.55C10.5 5.75 12.1 5.05 13.8 5.4c3 .6 4.2 3.8 2.7 6.7C14.4 16.15 12 20.5 12 20.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="currentColor" fill-opacity=".18"/></svg>`;
+  }
+  function actLikeBtn(id, heat, liked) {
+    return `<button class="act act-like${liked ? " on" : ""}" data-like="${id}" ${liked ? "disabled" : ""}>
+      <span class="act-num">${heat}</span>
+      <span class="act-bot">${icoLike()}<span class="act-lab">${liked ? "已点赞" : "点赞"}</span></span>
+    </button>`;
+  }
+
+  function relatedCueInline(p) {
+    if (p.type !== "vote") return "";
+    let link = "";
+    if (p.relatedWishId) {
+      const w = posts.find((x) => x.id === p.relatedWishId);
+      if (w) link = `<button type="button" class="related-link" data-post-detail="${w.id}">${escapeHtml(w.text)}</button>`;
+    } else if (p.relatedArticleId) {
+      const a = ARTICLES.find((x) => x.id === p.relatedArticleId);
+      const title = a ? a.title : "查看原文";
+      link = `<button type="button" class="related-link" data-detail="${p.relatedArticleId}">${escapeHtml(title)}</button>`;
+    }
+    if (!link) return "";
+    return `<span class="vp-cue">，站队前先吃瓜：</span>${link}`;
+  }
+
+  function postCard(p) {
+    const liked = !!state.liked[p.id];
+    const heat = (p.likes || 0) + (liked ? 1 : 0);
+    if (p.type === "vote") {
+      const vst = voteStatusMeta(p.status);
+      return `<div class="post-card vote-card" data-id="${p.id}">
+        <div class="band"></div>
+        <div class="inner">
+          <div class="card-head">
+            <div class="card-head-main">
+              <div class="title-row">
+                <span class="type vote">投票</span>
+                <h3>${escapeHtml(p.text)}</h3>
+              </div>
+              <div class="sub-row">
+                <span class="tag ${vst.cls}">${vst.label}</span>
+                <span>${p.time}</span>
+                <button type="button" class="hash-tag" data-tag="${escapeAttr(p.tag)}">#${escapeHtml(p.tag)}</button>
+              </div>
+            </div>
+            ${actLikeBtn(p.id, heat, liked)}
+          </div>
+          ${voteOptionsHtml(p)}
+          ${commentsPreview(p)}
+        </div>
+      </div>`;
+    }
+    const st = wishStatusMeta(p.status);
+    const canInteract = p.status === "collecting" || p.status === "arranged";
+    const statusLabel = p.status === "collecting" ? "征集中" : st.label;
+    const dreamArticle = p.articleId ? ARTICLES.find((a) => a.id === p.articleId) : null;
+    const footExtra = p.status === "arranged" && p.articleId
+      ? `<div class="dream-cta">
+          <div class="dream-lab">圆梦内容已上线</div>
+          <p class="dream-title">${escapeHtml(dreamArticle ? dreamArticle.title : "相关内容")}</p>
+          <button type="button" class="btn primary dream-btn" data-detail="${p.articleId}">看圆梦内容</button>
+        </div>`
+      : (!canInteract ? `<div class="foot"><span class="meta">暂未上墙互动</span></div>` : "");
+    return `<div class="post-card" data-id="${p.id}">
+      <div class="band"></div>
+      <div class="inner">
+        <div class="card-head">
+          <div class="card-head-main">
+            <div class="title-row">
+              <span class="type">求瓜</span>
+              <h3>${escapeHtml(p.text)}</h3>
+            </div>
+            <div class="sub-row">
+              <span class="tag ${st.cls}">${statusLabel}</span>
+              <span>${p.time}</span>
+              <button type="button" class="hash-tag" data-tag="${escapeAttr(p.tag)}">#${escapeHtml(p.tag)}</button>
+            </div>
+          </div>
+          ${canInteract ? actLikeBtn(p.id, heat, liked) : ""}
+        </div>
+        ${p.status === "rejected" && p.rejectReason ? `<p class="hint" style="margin:0 0 10px">驳回原因：${escapeHtml(p.rejectReason)}（仅自己可见，不推送通知）</p>` : ""}
+        ${p.status === "pending" ? `<p class="hint" style="margin:0 0 10px">审核通过后才会出现在公开墙上</p>` : ""}
+        ${canInteract ? commentsPreview(p) : ""}
+        ${footExtra}
+      </div>
+    </div>`;
+  }
+
+  function wishStatusMeta(status) {
+    const map = {
+      pending: { label: "待审核", cls: "pending" },
+      collecting: { label: "征集投票中", cls: "warn" },
+      arranged: { label: "已安排", cls: "ok" },
+      rejected: { label: "已驳回", cls: "reject" }
+    };
+    return map[status] || map.collecting;
+  }
+
+  function voteStatusMeta(status) {
+    const map = {
+      voting: { label: "投票中", cls: "warn" },
+      ended: { label: "已结束", cls: "pending" }
+    };
+    return map[status] || map.voting;
+  }
+
+  function voteOptionsHtml(p) {
+    const picked = state.voted[p.id];
+    const ended = p.status === "ended";
+    const showRatio = ended || !!picked;
+    const body = showRatio
+      ? (() => {
+          const pickHint = picked
+            ? `<p class="hint">你已选择：${escapeHtml(picked === "a" ? p.a : p.b)}${ended ? " · 投票已结束" : ""}</p>`
+            : `<p class="hint">投票已结束 · ${(p.pa || 0) + (p.pb || 0)} 人参与</p>`;
+          return `<div class="preview">
+              <div class="line"><span style="min-width:5em">${escapeHtml(p.a)}</span><div class="track"><div class="fill" style="width:${p.pa}%"></div></div><span>${p.pa}%</span></div>
+              <div class="line"><span style="min-width:5em">${escapeHtml(p.b)}</span><div class="track"><div class="fill b" style="width:${p.pb}%"></div></div><span>${p.pb}%</span></div>
+            </div>
+            ${pickHint}`;
+        })()
+      : `<div class="vote-choices">
+          <button type="button" class="choice" data-cast="a" data-vote-id="${p.id}">${escapeHtml(p.a)}</button>
+          <button type="button" class="choice" data-cast="b" data-vote-id="${p.id}">${escapeHtml(p.b)}</button>
+        </div>
+        <p class="hint">点选一方即可完成投票；投票后可见结果</p>`;
+    const cue = relatedCueInline(p);
+    return `<div class="vote-panel">
+      <div class="vp-label">${ended ? "投票结果" : "选边站队"}${cue}</div>
+      ${body}
+    </div>`;
+  }
+
+  function postTimeRank(p) {
+    const map = { "刚刚": 0, "今天": 1, "2小时前": 2, "3小时前": 3, "4小时前": 4, "5小时前": 5, "50分钟前": 1.5, "1小时前": 2.5, "昨天": 20 };
+    return map[p.time] != null ? map[p.time] : 50;
+  }
+
+  function heatScore(p) {
+    if (p.type === "vote") return (p.likes || 0) + ((p.pa || 0) + (p.pb || 0)) + (p.comments || []).length * 2;
+    return (p.likes || 0) + (p.comments || []).length * 2;
+  }
+
+  function sortPosts(list) {
+    const arr = list.slice();
+    if (state.wallSort === "hot") arr.sort((a, b) => heatScore(b) - heatScore(a));
+    else arr.sort((a, b) => postTimeRank(a) - postTimeRank(b));
+    return arr;
+  }
+
+  /** 全部流：第一条必为求瓜，其后求瓜与投票交错混合 */
+  function mixWishAndVote(list) {
+    const wishes = sortPosts(list.filter((p) => p.type === "wish"));
+    const votes = sortPosts(list.filter((p) => p.type === "vote"));
+    if (!wishes.length) return votes;
+    const out = [wishes[0]];
+    let wi = 1;
+    let vi = 0;
+    while (wi < wishes.length || vi < votes.length) {
+      if (vi < votes.length) out.push(votes[vi++]);
+      if (wi < wishes.length) out.push(wishes[wi++]);
+    }
+    return out;
+  }
+
+  function renderWall() {
+    $$("#wallSort .tab").forEach((t) => {
+      t.classList.toggle("on", t.dataset.sort === state.wallSort);
+    });
+    $$("#wallFilter .tab").forEach((t) => {
+      t.classList.toggle("on", t.dataset.filter === state.wallFilter);
+    });
+    let list = posts.filter((p) => {
+      if (p.type === "vote") return true;
+      if (p.type !== "wish") return false;
+      return p.status === "collecting" || p.status === "arranged";
+    });
+    if (state.wallFilter === "wish") list = sortPosts(list.filter((p) => p.type === "wish"));
+    else if (state.wallFilter === "vote") list = sortPosts(list.filter((p) => p.type === "vote"));
+    else if (state.wallFilter === "done") list = sortPosts(list.filter((p) => p.type === "wish" && p.status === "arranged"));
+    else list = mixWishAndVote(list);
+    $("#wallFeed").innerHTML = list.map(postCard).join("") || '<div class="empty"><h3>暂无内容</h3></div>';
+  }
+
+  function findVote(voteId) {
+    return posts.find((p) => p.type === "vote" && p.id === voteId) || null;
+  }
+
+  function openVoteModal(voteId) {
+    const v = findVote(voteId);
+    if (!v) return;
+    state.voteId = voteId;
+    const picked = state.voted[v.id];
+    const ended = v.status === "ended";
+    $("#voteModalTitle").textContent = v.text;
+    if (ended || picked) {
+      $("#voteModalHint").textContent = picked
+        ? `你已选择「${picked === "a" ? v.a : v.b}」· ${v.pa}% / ${v.pb}%${ended ? " · 已结束" : ""}`
+        : `投票已结束 · ${v.pa}% / ${v.pb}%`;
+      $("#voteModalChoices").innerHTML = `
+        <div class="preview">
+          <div class="line"><span style="min-width:5em">${escapeHtml(v.a)}</span><div class="track"><div class="fill" style="width:${v.pa}%"></div></div><span>${v.pa}%</span></div>
+          <div class="line"><span style="min-width:5em">${escapeHtml(v.b)}</span><div class="track"><div class="fill b" style="width:${v.pb}%"></div></div><span>${v.pb}%</span></div>
+        </div>`;
+    } else {
+      $("#voteModalHint").textContent = "点选一方即可完成 · 投票后可见结果";
+      $("#voteModalChoices").innerHTML = `
+        <button type="button" class="choice" data-cast="a" data-vote-id="${v.id}">${escapeHtml(v.a)}</button>
+        <button type="button" class="choice" data-cast="b" data-vote-id="${v.id}">${escapeHtml(v.b)}</button>`;
+    }
+    $("#voteModal").classList.remove("hidden");
+  }
+
+  function renderVote() {
+    $("#voteBody").innerHTML = `<p class="hint">投票已改为卡片内点选或弹窗，无需独立页。</p>
+      <button class="btn" data-go="wall">返回信息流</button>`;
+  }
+
+  function renderPostDetail() {
+    const p = posts.find((x) => x.id === state.postId);
+    if (!p) {
+      $("#postDetailBody").innerHTML = `<div class="empty"><h3>帖子不存在</h3><button class="btn" data-go="wall">返回</button></div>`;
+      return;
+    }
+    const liked = !!state.liked[p.id];
+    const heat = (p.likes || 0) + (liked ? 1 : 0);
+    let main = "";
+    if (p.type === "vote") {
+      const vst = voteStatusMeta(p.status);
+      main = `
+        <div class="meta" style="margin-bottom:10px"><a href="#wall" data-go="wall" style="color:var(--pink)">← 求瓜心愿墙</a></div>
+        <div class="card-head">
+          <div class="card-head-main">
+            <div class="title-row">
+              <span class="type vote">投票</span>
+              <h1>${escapeHtml(p.text)}</h1>
+            </div>
+            <div class="sub-row">
+              <span class="tag ${vst.cls}">${vst.label}</span>
+              <span>${p.time}</span>
+              <button type="button" class="hash-tag" data-tag="${escapeAttr(p.tag)}">#${escapeHtml(p.tag)}</button>
+            </div>
+          </div>
+          ${actLikeBtn(p.id, heat, liked)}
+        </div>
+        ${voteOptionsHtml(p)}`;
+    } else {
+      const st = wishStatusMeta(p.status);
+      const statusLabel = p.status === "collecting" ? "征集中" : st.label;
+      main = `
+        <div class="meta" style="margin-bottom:10px"><a href="#wall" data-go="wall" style="color:var(--pink)">← 求瓜心愿墙</a></div>
+        <div class="card-head">
+          <div class="card-head-main">
+            <div class="title-row">
+              <span class="type">求瓜</span>
+              <h1>${escapeHtml(p.text)}</h1>
+            </div>
+            <div class="sub-row">
+              <span class="tag ${st.cls}">${statusLabel}</span>
+              <span>${p.time}</span>
+              <button type="button" class="hash-tag" data-tag="${escapeAttr(p.tag)}">#${escapeHtml(p.tag)}</button>
+            </div>
+          </div>
+          ${actLikeBtn(p.id, heat, liked)}
+        </div>
+        ${p.status === "arranged" && p.articleId ? (() => {
+          const a = ARTICLES.find((x) => x.id === p.articleId);
+          return `<div class="dream-cta">
+            <div class="dream-lab">圆梦内容已上线</div>
+            <p class="dream-title">${escapeHtml(a ? a.title : "相关内容")}</p>
+            <button type="button" class="btn primary dream-btn" data-detail="${p.articleId}">看圆梦内容</button>
+          </div>`;
+        })() : ""}`;
+    }
+    $("#postDetailBody").innerHTML = `<div class="panel">${main}${fullCommentsBlock(p)}</div>`;
+  }
+
+  function renderTag() {
+    $("#tagTitle").textContent = "#" + state.tag;
+    const list = posts.filter((p) => {
+      if (p.tag !== state.tag) return false;
+      if (p.type === "vote") return true;
+      return p.status === "collecting" || p.status === "arranged";
+    });
+    $("#tagFeed").innerHTML = list.map(postCard).join("") || '<div class="empty"><h3>该标签下暂无内容</h3></div>';
+  }
+
+  function mineActivityCard(kind, title, meta, actionsHtml) {
+    return `<div class="post-card">
+      <div class="band"></div>
+      <div class="inner">
+        <div class="top">
+          <span class="type ${kind === "vote" ? "vote" : ""}">${kind === "wish" ? "求瓜" : kind === "vote" ? "站队" : kind === "comment" ? "评论" : "点赞"}</span>
+          <div class="meta">${meta}</div>
+        </div>
+        <h3>${title}</h3>
+        <div class="foot"><div class="actions">${actionsHtml}</div></div>
+      </div>
+    </div>`;
+  }
+
+  function renderMine() {
+    $$("#mineTabs .tab").forEach((t) => {
+      t.classList.toggle("on", t.dataset.mine === state.mineTab);
+    });
+    const tab = state.mineTab;
+    let html = "";
+    if (tab === "wish") {
+      const list = posts.filter((p) => p.mine);
+      html = list.length
+        ? list.map(postCard).join("")
+        : `<div class="empty"><h3>还没有求过瓜</h3><button class="btn primary" data-go="compose">去求瓜</button></div>`;
+    } else if (tab === "vote") {
+      const rows = Object.keys(state.voted).map((vid) => {
+        const v = findVote(vid);
+        if (!v) return "";
+        const side = state.voted[vid] === "a" ? v.a : v.b;
+        const related = v.relatedWishId ? posts.find((p) => p.id === v.relatedWishId) : null;
+        return mineActivityCard(
+          "vote",
+          escapeHtml(v.text),
+          related
+            ? `<span>关联求瓜：${escapeHtml(related.text.slice(0, 20))}${related.text.length > 20 ? "…" : ""}</span>`
+            : `<span>独立投票</span>`,
+          `<span class="meta">我选了：${escapeHtml(side)}</span>
+           <button class="btn primary" data-open-vote="${vid}">再看看</button>`
+        );
+      }).filter(Boolean);
+      html = rows.length
+        ? rows.join("")
+        : `<div class="empty"><h3>还没参与过投票</h3><p style="margin:0 0 12px">去信息流里找运营发起的投票帖吧</p><button class="btn primary" data-go="wall">去逛</button></div>`;
+    } else if (tab === "comment") {
+      const rows = (state.myComments || []).map((c) => {
+        const p = posts.find((x) => x.id === c.postId);
+        if (!p) return "";
+        return mineActivityCard(
+          "comment",
+          escapeHtml(c.text),
+          `<span>${escapeHtml(c.time)}</span><span>评论于${p.type === "vote" ? "投票" : "求瓜"}</span>`,
+          `<span class="meta" style="max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">原帖：${escapeHtml(p.text)}</span>
+           <button class="btn" data-go="wall">去信息流</button>`
+        );
+      }).filter(Boolean);
+      html = rows.length
+        ? rows.join("")
+        : `<div class="empty"><h3>还没有评论</h3><button class="btn primary" data-go="wall">去逛求瓜</button></div>`;
+    } else if (tab === "like") {
+      const rows = Object.keys(state.liked).map((id) => {
+        const p = posts.find((x) => x.id === id);
+        if (!p) return "";
+        return mineActivityCard(
+          "like",
+          escapeHtml(p.text),
+          `<button type="button" class="hash-tag" data-tag="${escapeAttr(p.tag)}">#${escapeHtml(p.tag)}</button><span>已点赞</span>`,
+          `<button class="btn" data-go="wall">回信息流</button>
+           ${p.status === "done" && p.articleId ? `<button class="btn primary" data-detail="${p.articleId}">看圆梦</button>` : ""}`
+        );
+      }).filter(Boolean);
+      html = rows.length
+        ? rows.join("")
+        : `<div class="empty"><h3>还没有点赞</h3><button class="btn primary" data-go="wall">去逛求瓜</button></div>`;
+    }
+    $("#mineFeed").innerHTML = html;
+  }
+
+  function renderAi() {
+    /* 保留上一次回答，切回来还能看 */
+  }
+
+  function aiAgentAnswerHtml(q) {
+    const raw = q || "";
+    const isDrama = /短剧|全集|便利店|剧集/.test(raw);
+    const isParty = /晚会|翻车/.test(raw);
+    if (isDrama) {
+      return `<div class="ai-agent">
+        <div class="aa-head">
+          <div>
+            <h3>已汇集 · AI 短剧剧集线</h3>
+            <p>跨 4 个帖子 / 去重 2 条重复搬运 · Demo 示意</p>
+          </div>
+          <span class="aa-badge">Agent</span>
+        </div>
+        <div class="aa-body">
+          <p class="aa-q">你问：<strong>${escapeHtml(raw)}</strong></p>
+          <p class="aa-summary">站内关于《夜色便利店》的内容散落在盘点帖、求瓜跟评和搬运帖里。Agent 按集数重排，去掉重复封面与同名搬运，下面是可连看的全集脉络。</p>
+          <div class="aa-sec">
+            <h4>剧集脉络（跨帖汇总）</h4>
+            <div class="aa-eps">
+              <div class="aa-ep"><div class="thumb" style="background:linear-gradient(135deg,#3a2a50,#1a1b24)"></div><div class="meta"><div class="ep-no">第 1 集</div><div class="ep-t">便利店夜班开张</div><div class="ep-from">来自：短剧速递帖</div></div></div>
+              <div class="aa-ep"><div class="thumb" style="background:linear-gradient(135deg,#243044,#402830)"></div><div class="meta"><div class="ep-no">第 2–3 集</div><div class="ep-t">熟客与神秘快递</div><div class="ep-from">来自：周更合集（已合并重复）</div></div></div>
+              <div class="aa-ep"><div class="thumb" style="background:linear-gradient(135deg,#2a3550,#1a1b24)"></div><div class="meta"><div class="ep-no">第 4 集</div><div class="ep-t">夜色反转</div><div class="ep-from">来自：求瓜跟评里的补档</div></div></div>
+            </div>
+          </div>
+          <div class="aa-sec">
+            <h4>关键封面 / 截帧</h4>
+            <div class="aa-media">
+              <div class="aa-shot" style="background:linear-gradient(135deg,#3a2a50,#1a1b24)"></div>
+              <div class="aa-shot" style="background:linear-gradient(135deg,#243044,#402830)"></div>
+              <div class="aa-shot" style="background:linear-gradient(135deg,#2a3550,#203040)"></div>
+            </div>
+          </div>
+          <div class="aa-sec">
+            <h4>来源帖</h4>
+            <div class="aa-sources">
+              <button type="button" data-go="wall">短剧速递帖</button>
+              <button type="button" data-go="wall">周更合集</button>
+              <button type="button" data-compose-wish="夜色便利店后续集数">缺集？去求瓜</button>
+            </div>
+          </div>
+          <div class="aa-foot">
+            <button type="button" class="btn primary" data-go="wall">去心愿墙看相关讨论</button>
+          </div>
+        </div>
+      </div>`;
+    }
+    if (isParty) {
+      return `<div class="ai-agent">
+        <div class="aa-head">
+          <div>
+            <h3>已汇集 · 晚会翻车名场面</h3>
+            <p>跨文章 + 求瓜 + 评论补刀 · Demo 示意</p>
+          </div>
+          <span class="aa-badge">Agent</span>
+        </div>
+        <div class="aa-body">
+          <p class="aa-q">你问：<strong>${escapeHtml(raw)}</strong></p>
+          <p class="aa-summary">站内相关内容原先按单场散落。Agent 按年份串成一条「翻车 / 神回复」脉络，并挂上可点进的原文。</p>
+          <div class="aa-sec">
+            <h4>脉络时间线</h4>
+            <div class="aa-timeline">
+              <div class="aa-tl-item"><div class="t">2024</div><div class="d">某顶流口误名场面 · 评论区神回复集中爆出</div></div>
+              <div class="aa-tl-item"><div class="t">2025</div><div class="d">同台互怼切片被盘点帖收录，求瓜墙出现「要时间戳合集」</div></div>
+              <div class="aa-tl-item"><div class="t">2026</div><div class="d">新一季高光 + 翻车并帖，运营开相关投票征集「更想先看哪类」</div></div>
+            </div>
+          </div>
+          <div class="aa-sec">
+            <h4>来源</h4>
+            <div class="aa-sources">
+              <a href="#detail" data-detail="a2">晚会名场面盘点原文</a>
+              <button type="button" data-post-detail="w3">相关求瓜</button>
+              <button type="button" data-post-detail="v3">相关投票</button>
+            </div>
+          </div>
+          <div class="aa-foot">
+            <button type="button" class="btn primary" data-detail="a2">看原文</button>
+            <button type="button" class="btn" data-go="wall">去心愿墙</button>
+          </div>
+        </div>
+      </div>`;
+    }
+    const hit = ARTICLES.find((a) => a.id === "a1") || ARTICLES[0];
+    return `<div class="ai-agent">
+      <div class="aa-head">
+        <div>
+          <h3>已汇集 · 沈腾林允传闻脉络</h3>
+          <p>跨 1 篇正文 · 2 条求瓜 · 1 场投票 · 去重跟风搬运 · Demo 示意</p>
+        </div>
+        <span class="aa-badge">Agent</span>
+      </div>
+      <div class="aa-body">
+        <p class="aa-q">你问：<strong>${escapeHtml(raw || "沈腾林允传闻完整时间线")}</strong></p>
+        <p class="aa-summary">Agent 把站内散落的「同游传闻 / 对照表求瓜 / 站队投票」收成一条可读脉络：先看已发正文定场，再跟求瓜里还缺的盘点，最后可去站队表态。重复的搬运帖已折叠。</p>
+        <div class="aa-sec">
+          <h4>脉络时间线</h4>
+          <div class="aa-timeline">
+            <div class="aa-tl-item"><div class="t">传闻起</div><div class="d">站姐称行程重合，同游照片流出（正文已写，非实锤）</div></div>
+            <div class="aa-tl-item"><div class="t">扩散</div><div class="d">社交平台两派对立：隐私派 vs 催澄清派</div></div>
+            <div class="aa-tl-item"><div class="t">墙上</div><div class="d">求瓜出现「完整时间线」「已证实/未证实对照表」；运营开站队投票</div></div>
+            <div class="aa-tl-item"><div class="t">圆梦</div><div class="d">对照表相关求瓜已安排，可回看圆梦正文</div></div>
+          </div>
+        </div>
+        <div class="aa-sec">
+          <h4>相关图 / 封面</h4>
+          <div class="aa-media">
+            <div class="aa-shot" style="${hit.thumbStyle || ""}"></div>
+            <div class="aa-shot" style="background:radial-gradient(ellipse at 70% 20%,rgba(100,140,255,.35),transparent 45%),linear-gradient(135deg,#243044,#1a1b24)"></div>
+            <div class="aa-shot" style="background:radial-gradient(ellipse at 40% 60%,rgba(255,77,141,.25),transparent 50%),linear-gradient(160deg,#2a2b38,#1a1b24)"></div>
+          </div>
+        </div>
+        <div class="aa-sec">
+          <h4>来源帖（可点回）</h4>
+          <div class="aa-sources">
+            <a href="#detail" data-detail="${hit.id}">${escapeHtml(hit.title)}</a>
+            <button type="button" data-post-detail="w1">求瓜·舆情时间线</button>
+            <button type="button" data-post-detail="w2">求瓜·对照表（已安排）</button>
+            <button type="button" data-post-detail="v2">投票·你站哪边</button>
+          </div>
+        </div>
+        <div class="aa-foot">
+          <button type="button" class="btn primary" data-detail="${hit.id}">看圆梦正文</button>
+          <button type="button" class="btn" data-post-detail="v2">去站队</button>
+          <button type="button" class="btn" data-compose-wish="${escapeAttr(raw || "沈腾林允")}">还缺一段？去求瓜</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function render() {
+    const map = {
+      home: "view-home",
+      search: "view-search",
+      detail: "view-detail",
+      wall: "view-wall",
+      compose: "view-compose",
+      vote: "view-vote",
+      post: "view-post",
+      tag: "view-tag",
+      ai: "view-ai",
+      mine: "view-mine"
+    };
+    Object.values(map).forEach((id) => $("#" + id).classList.add("hidden"));
+    const id = map[state.view] || "view-home";
+    $("#" + id).classList.remove("hidden");
+    $$(".nav a").forEach((a) => a.classList.toggle("on", a.dataset.go === state.view || (state.view === "wall" && a.classList.contains("wish-entry"))));
+    $$(".demo-rail .chip[data-go]").forEach((c) => {
+      const go = c.dataset.go;
+      let on = false;
+      if (go === "search") on = state.view === "search" && state.searchMode !== "empty";
+      else if (go === "search-empty") on = state.view === "search" && state.searchMode === "empty";
+      else on = go === state.view;
+      c.classList.toggle("on", on);
+    });
+
+    if (state.view === "home") renderHome();
+    if (state.view === "search") renderSearch();
+    if (state.view === "detail") renderDetail();
+    if (state.view === "wall") renderWall();
+    if (state.view === "vote") renderVote();
+    if (state.view === "post") renderPostDetail();
+    if (state.view === "tag") renderTag();
+    if (state.view === "mine") renderMine();
+    if (state.view === "ai") renderAi();
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  function escapeAttr(s) { return escapeHtml(s).replace(/`/g, ""); }
+
+  function recognizeWishTags(text) {
+    const raw = String(text || "");
+    const dict = [
+      ["沈腾", "沈腾"], ["林允", "林允"], ["晚会", "晚会"], ["综艺", "综艺"],
+      ["恋情", "明星爆料"], ["盘点", "盘点"], ["复盘", "复盘"], ["时间线", "时间线"],
+      ["网红", "网红黑料"], ["翻车", "晚会"]
+    ];
+    const tags = [];
+    dict.forEach(([key, tag]) => {
+      if (raw.includes(key) && !tags.includes(tag)) tags.push(tag);
+    });
+    if (!tags.length && raw.trim().length >= 5) tags.push("未分类待确认");
+    return tags.slice(0, 4);
+  }
+
+  function renderAiTags(loading) {
+    const box = $("#wishTagBox");
+    if (loading) {
+      box.innerHTML = '<span class="ai-spin">AI 识别标签中…</span>';
+      return;
+    }
+    if (!state.aiTags.length) {
+      box.innerHTML = '<span class="ai-empty">输入求瓜内容后，AI 会自动识别艺人 / 事件标签</span>';
+      return;
+    }
+    box.innerHTML = state.aiTags.map((t) => `<span class="ai-tag">#${escapeHtml(t)}</span>`).join("")
+      + '<span class="ai-empty" style="margin-left:4px">AI 生成</span>';
+  }
+
+  let tagTimer = null;
+  function scheduleTagRecognize() {
+    clearTimeout(tagTimer);
+    const text = $("#wishText").value.trim();
+    if (text.length < 2) {
+      state.aiTags = [];
+      renderAiTags(false);
+      return;
+    }
+    renderAiTags(true);
+    tagTimer = setTimeout(() => {
+      state.aiTags = recognizeWishTags(text);
+      renderAiTags(false);
+    }, 450);
+  }
+
+  function openComposeWish(q) {
+    if (!requireLogin(() => openComposeWish(q))) return;
+    go("compose");
+    $("#wishText").value = q ? `想看关于「${q}」的完整盘点 / 复盘` : "";
+    state.aiTags = [];
+    renderAiTags(false);
+    if ($("#wishText").value.trim()) scheduleTagRecognize();
+  }
+
+  document.addEventListener("click", (e) => {
+    const goEl = e.target.closest("[data-go]");
+    if (goEl) {
+      e.preventDefault();
+      const target = goEl.dataset.go;
+      if (target === "compose" && !requireLogin(() => go("compose"))) return;
+      go(target);
+      return;
+    }
+    const detail = e.target.closest("[data-detail]");
+    if (detail) {
+      e.preventDefault();
+      go("detail", { detailId: detail.dataset.detail });
+      return;
+    }
+    const openVote = e.target.closest("[data-open-vote]");
+    if (openVote) {
+      e.preventDefault();
+      openVoteModal(openVote.dataset.openVote);
+      return;
+    }
+    const tag = e.target.closest("[data-tag]");
+    if (tag) {
+      e.preventDefault();
+      go("tag", { tag: tag.dataset.tag });
+      return;
+    }
+    const like = e.target.closest("[data-like]");
+    if (like) {
+      state.liked[like.dataset.like] = true;
+      toast("已点赞");
+      render();
+      return;
+    }
+    const postDetail = e.target.closest("[data-post-detail]");
+    if (postDetail) {
+      e.preventDefault();
+      go("post", { postId: postDetail.dataset.postDetail });
+      return;
+    }
+    const sendC = e.target.closest("[data-comment-send]");
+    if (sendC) {
+      const id = sendC.dataset.commentSend;
+      const nickEl = $(`[data-comment-nick="${id}"]`);
+      const input = $(`[data-comment-input="${id}"]`);
+      const nick = (nickEl && nickEl.value.trim()) || "";
+      const text = (input && input.value.trim()) || "";
+      if (!nick) return toast("先填个昵称");
+      if (!text) return toast("先写点评论内容");
+      state.nickname = nick;
+      try { localStorage.setItem("ww_nick", nick); } catch (err) {}
+      const p = posts.find((x) => x.id === id);
+      if (!p) return;
+      if (!p.comments) p.comments = [];
+      p.comments.push({ user: nick, text, time: "刚刚" });
+      state.myComments.unshift({ postId: id, text, time: "刚刚" });
+      toast("评论已发布");
+      if (state.view !== "post") go("post", { postId: id });
+      else render();
+      return;
+    }
+    const cast = e.target.closest("[data-cast]");
+    if (cast) {
+      const vid = cast.dataset.voteId || state.voteId;
+      const v = findVote(vid);
+      if (!v || state.voted[vid] || v.status === "ended") {
+        if (v && v.status === "ended") toast("投票已结束");
+        return;
+      }
+      state.voted[vid] = cast.dataset.cast;
+      if (cast.dataset.cast === "a") v.pa += 1;
+      else v.pb += 1;
+      const t = v.pa + v.pb;
+      v.pa = Math.round((v.pa / t) * 100);
+      v.pb = 100 - v.pa;
+      toast("投票成功");
+      if (!$("#voteModal").classList.contains("hidden")) openVoteModal(vid);
+      render();
+      return;
+    }
+    const cw = e.target.closest("[data-compose-wish]");
+    if (cw) {
+      e.preventDefault();
+      openComposeWish(cw.dataset.composeWish || "");
+      return;
+    }
+  });
+
+  $("#wishText").addEventListener("input", scheduleTagRecognize);
+
+  $("#composeSubmit").addEventListener("click", () => {
+    if (!requireLogin(() => $("#composeSubmit").click())) return;
+    const text = $("#wishText").value.trim();
+    if (text.length < 5) return toast("请至少写 5 个字");
+    if (!state.aiTags.length) state.aiTags = recognizeWishTags(text);
+    const tag = state.aiTags[0] || "未分类";
+    posts.unshift({
+      id: "w" + Date.now(), type: "wish", text, tag, tags: state.aiTags.slice(),
+      likes: 0, status: "pending",
+      mine: true, time: "刚刚", comments: []
+    });
+    toast("提交成功，标签已由 AI 识别；状态为待审核");
+    state.mineTab = "wish";
+    go("mine");
+  });
+
+  $("#searchBtn").addEventListener("click", () => {
+    const q = $("#searchInput").value.trim();
+    const hit = ARTICLES.some((a) => a.title.includes(q)) || q === "沈腾" || !q;
+    state.searchMode = hit ? "hit" : "empty";
+    renderSearch();
+  });
+
+  document.body.addEventListener("click", (e) => {
+    const sug = e.target.closest("[data-ai-suggest]");
+    if (!sug) return;
+    $("#aiQ").value = sug.dataset.aiSuggest;
+  });
+
+  $("#aiAsk").addEventListener("click", () => {
+    const q = $("#aiQ").value.trim() || "沈腾林允传闻完整时间线";
+    const box = $("#aiAns");
+    box.classList.remove("hidden");
+    box.innerHTML = `<div class="ai-agent loading"><div class="aa-head"><div><h3>Agent 正在翻站内相关帖…</h3><p>汇集正文 / 求瓜 / 投票 / 短剧切片</p></div><span class="aa-badge">整理中</span></div><div class="aa-body">去重搬运、对齐时间线、挂上可点来源…</div></div>`;
+    clearTimeout($("#aiAsk")._t);
+    $("#aiAsk")._t = setTimeout(() => {
+      box.innerHTML = aiAgentAnswerHtml(q);
+    }, 650);
+  });
+
+  $("#wallSort").addEventListener("click", (e) => {
+    const tab = e.target.closest(".tab[data-sort]");
+    if (!tab) return;
+    state.wallSort = tab.dataset.sort;
+    renderWall();
+  });
+
+  $("#wallFilter").addEventListener("click", (e) => {
+    const tab = e.target.closest(".tab[data-filter]");
+    if (!tab) return;
+    state.wallFilter = tab.dataset.filter;
+    renderWall();
+  });
+
+  $("#mineTabs").addEventListener("click", (e) => {
+    const tab = e.target.closest(".tab[data-mine]");
+    if (!tab) return;
+    state.mineTab = tab.dataset.mine;
+    renderMine();
+  });
+
+  $("#toggleLogin").addEventListener("click", () => {
+    setLogin(!state.loggedIn);
+    toast(state.loggedIn ? "已登录" : "已退出");
+    render();
+  });
+  $("#avatarBtn").addEventListener("click", () => {
+    go("mine");
+  });
+  $("#loginCancel").addEventListener("click", () => {
+    $("#loginModal").classList.add("hidden");
+    state.pendingAction = null;
+  });
+  $("#loginOk").addEventListener("click", () => {
+    setLogin(true);
+    $("#loginModal").classList.add("hidden");
+    toast("登录成功");
+    const act = state.pendingAction;
+    state.pendingAction = null;
+    if (typeof act === "function") act();
+    else render();
+  });
+  $("#voteModalClose").addEventListener("click", () => {
+    $("#voteModal").classList.add("hidden");
+  });
+  $("#voteModal").addEventListener("click", (e) => {
+    if (e.target.id === "voteModal") $("#voteModal").classList.add("hidden");
+  });
+
+  setLogin(false);
+  go("wall");
+})();
+</script>
+</body>
+</html>

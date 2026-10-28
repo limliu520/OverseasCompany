@@ -268,18 +268,24 @@
     );
   }
 
-  /** 片头/片尾拼接：上传完整视频，拼在原片前或后；无位置、无时长裁切、无宽度比例 */
+  /** 片头/片尾拼接：横屏 / 竖屏各一套；上传完整视频，拼在原片前或后 */
   function renderIntroOutroFields(io) {
-    io = io || {};
-    var intro = io.intro || {};
-    var outro = io.outro || {};
-    function clipCard(slot, title, tip, clip) {
+    if (window.FZArticle && FZArticle.normalizeIntroOutro) {
+      io = FZArticle.normalizeIntroOutro(io);
+    } else {
+      io = io || {};
+    }
+    function clipCard(orient, slot, title, tip, clip) {
+      clip = clip || {};
       var hasFile = !!(clip.name || clip.dataUrl);
+      var key = "introOutro:" + orient + ":" + slot;
       var preview = clip.dataUrl
         ? '<video src="' + clip.dataUrl + '" muted></video>'
         : "未上传";
       return (
-        '<div class="cfg-card" style="margin:0;box-shadow:none" data-io-slot="' +
+        '<div class="cfg-card" style="margin:0;box-shadow:none" data-io-orient="' +
+        orient +
+        '" data-io-slot="' +
         slot +
         '">' +
         '<div class="cfg-card-head"><div class="cfg-card-title">' +
@@ -290,6 +296,8 @@
         "</div></div>" +
         '<div class="wm-acc-grid">' +
         '<div class="wm-preview" id="prev-io-' +
+        orient +
+        "-" +
         slot +
         '">' +
         preview +
@@ -298,12 +306,12 @@
         '<div class="wm-acc-actions">' +
         '<label class="btn">' +
         (hasFile ? "更换视频" : "上传视频") +
-        '<input type="file" accept="video/mp4,video/quicktime" data-upload="introOutro:' +
-        slot +
+        '<input type="file" accept="video/mp4,video/quicktime" data-upload="' +
+        key +
         '" hidden /></label>' +
         (hasFile
-          ? '<button type="button" class="btn btn-ghost" data-remove-wm="introOutro:' +
-            slot +
+          ? '<button type="button" class="btn btn-ghost" data-remove-wm="' +
+            key +
             '">清除</button>'
           : "") +
         "</div>" +
@@ -315,12 +323,37 @@
         "</div></div></div>"
       );
     }
+    function orientBlock(orient, title, sub, pack) {
+      pack = pack || {};
+      return (
+        '<div class="io-orient" data-io-orient-block="' +
+        orient +
+        '">' +
+        '<div class="io-orient-hd"><div class="io-orient-title">' +
+        title +
+        '</div><div class="io-orient-sub">' +
+        sub +
+        "</div></div>" +
+        '<div class="media-rules-split">' +
+        clipCard(orient, "intro", "片头", "拼在原视频之前", pack.intro) +
+        clipCard(orient, "outro", "片尾", "拼在原视频之后", pack.outro) +
+        "</div></div>"
+      );
+    }
     return (
-      '<p class="hint" style="margin:0 0 12px">不是叠层水印：上传完整视频片段，整段拼在原视频前面（片头）和/或后面（片尾）。可只配一端，也可两段都配；播完上传文件的完整时长，无角标位置、无宽度比例、无另设秒数。</p>' +
-      '<div class="media-rules-split">' +
-      clipCard("intro", "片头", "拼在原视频之前", intro) +
-      clipCard("outro", "片尾", "拼在原视频之后", outro) +
-      "</div>"
+      '<p class="hint" style="margin:0 0 12px">不是叠层水印：上传完整视频片段，整段拼在原视频前面（片头）和/或后面（片尾）。横屏、竖屏各配一套，处理时按成片方向取对应素材；可只配一端或某一方向，播完上传文件的完整时长，无角标位置、无宽度比例、无另设秒数。</p>' +
+      orientBlock(
+        "landscape",
+        "横屏",
+        "适用于横版成片（如 16:9）",
+        io.landscape
+      ) +
+      orientBlock(
+        "portrait",
+        "竖屏",
+        "适用于竖版成片（如 9:16）",
+        io.portrait
+      )
     );
   }
 
@@ -328,6 +361,8 @@
   function wmFxFields(key, w) {
     var isVideoType = VIDEO_MODE_KEYS.indexOf(key) !== -1;
     if (!isVideoType) return "";
+    var showSec = w.showSec != null ? w.showSec : w.intervalSec || "3";
+    var hideSec = w.hideSec != null ? w.hideSec : w.intervalSec || "3";
     var html = "";
     html +=
       '<label class="check-item"><input type="checkbox" data-wm-invert="' +
@@ -335,36 +370,65 @@
       '"' +
       (w.invert ? " checked" : "") +
       " /> 水印反转 " +
-      fieldTip("水平镜像水印素材（本轮新能力）。") +
+      fieldTip("水平镜像水印素材；可按下方间隔周期左右翻转。") +
       "</label>";
+    html +=
+      '<div class="field" data-wm-invert-wrap="' +
+      key +
+      '"' +
+      (w.invert ? "" : " hidden") +
+      "><label>反转间隔（秒） " +
+      fieldTip("每隔多少秒翻转一次镜像方向，例如 3 表示每 3 秒反转一次。") +
+      '</label><input type="number" min="0.5" step="0.5" data-wm-invert-sec="' +
+      key +
+      '" value="' +
+      (w.invertSec || "3") +
+      '" /></div>';
     html +=
       '<label class="check-item"><input type="checkbox" data-wm-intermittent="' +
       key +
       '"' +
       (w.intermittent ? " checked" : "") +
       " /> 水印间歇展示 " +
-      fieldTip("一会儿出现、一会儿隐藏，按下方间隔循环（本轮新能力）。") +
+      fieldTip("一会儿出现、一会儿隐藏，按下方显示/隐藏时长循环。") +
       "</label>";
     html +=
-      '<div class="field" data-wm-interval-wrap="' +
+      '<div class="wm-fx-pair" data-wm-interval-wrap="' +
       key +
       '"' +
       (w.intermittent ? "" : " hidden") +
-      "><label>间歇间隔（秒） " +
-      fieldTip("显隐一轮的大致间隔；仅开启「间歇展示」时生效。") +
-      '</label><input type="number" min="0.5" step="0.5" data-wm-interval="' +
+      ">" +
+      '<div class="field"><label>显示时间（秒） ' +
+      fieldTip("水印可见时长；仅开启「间歇展示」时生效。") +
+      '</label><input type="number" min="0.5" step="0.5" data-wm-show-sec="' +
       key +
       '" value="' +
-      (w.intervalSec || "3") +
-      '" /></div>';
+      showSec +
+      '" /></div>' +
+      '<div class="field"><label>隐藏时间（秒） ' +
+      fieldTip("水印隐藏时长；与显示时间交替循环。") +
+      '</label><input type="number" min="0.5" step="0.5" data-wm-hide-sec="' +
+      key +
+      '" value="' +
+      hideSec +
+      '" /></div></div>';
     if (key === "motion") {
+      var cycleVal = w.cycleSec;
+      if (cycleVal == null || cycleVal === "") {
+        var oldSp = Number(w.speed);
+        /* 旧「倍速」一般 ≤5；已存秒数通常更大。无法判断时回落默认 10 */
+        cycleVal =
+          !isNaN(oldSp) && oldSp > 5 ? String(w.speed) : "10";
+      }
       html +=
-        '<div class="field"><label>移动速度 ' +
-        fieldTip("相对默认轨迹速度的倍率，1 为正常（本轮新能力）。") +
-        '</label><input type="number" min="0.2" max="5" step="0.1" data-wm-speed="' +
+        '<div class="field"><label>循环时长（秒） ' +
+        fieldTip(
+          "完成一圈移动轨迹所需时间。默认 10 秒；数值越大，移动越慢。"
+        ) +
+        '</label><input type="number" min="1" max="120" step="1" data-wm-cycle-sec="' +
         key +
         '" value="' +
-        (w.speed || "1") +
+        cycleVal +
         '" /></div>';
     }
     return html;
@@ -541,7 +605,7 @@
       paneTopBar(lead, opts.showSave ? { saveId: "btn-save-io", saveLabel: "保存片头片尾" } : null) +
       '<div class="cfg-card">' +
       '<div class="cfg-card-head"><div class="cfg-card-title">片头和片尾</div>' +
-      '<div class="cfg-card-sub">上传完整视频片段 · 可只配一端或两端</div></div>' +
+      '<div class="cfg-card-sub">横屏 / 竖屏各一套 · 上传完整视频片段 · 可只配一端或某一方向</div></div>' +
       renderIntroOutroFields(io) +
       "</div></div>"
     );
@@ -815,7 +879,12 @@
     root = root || document;
     var w = watermarks;
     if (!w.image) w.image = {};
-    if (!w.introOutro) w.introOutro = { intro: {}, outro: {} };
+    if (!w.introOutro) {
+      w.introOutro =
+        window.FZArticle && FZArticle.normalizeIntroOutro
+          ? FZArticle.normalizeIntroOutro({})
+          : { landscape: { intro: {}, outro: {} }, portrait: { intro: {}, outro: {} } };
+    }
     var swImg = root.querySelector("#sw-wm-image");
     var swVid = root.querySelector("#sw-wm-video");
     if (swImg) w.image.enabled = swImg.classList.contains("on");
@@ -857,14 +926,22 @@
     });
     VIDEO_MODE_KEYS.forEach(function (key) {
       var inv = root.querySelector('[data-wm-invert="' + key + '"]');
+      var invSec = root.querySelector('[data-wm-invert-sec="' + key + '"]');
       var inter = root.querySelector('[data-wm-intermittent="' + key + '"]');
-      var iv = root.querySelector('[data-wm-interval="' + key + '"]');
+      var showEl = root.querySelector('[data-wm-show-sec="' + key + '"]');
+      var hideEl = root.querySelector('[data-wm-hide-sec="' + key + '"]');
       if (inv) w[key].invert = !!inv.checked;
+      if (invSec) w[key].invertSec = invSec.value.trim() || "3";
       if (inter) w[key].intermittent = !!inter.checked;
-      if (iv) w[key].intervalSec = iv.value.trim() || "3";
+      if (showEl) w[key].showSec = showEl.value.trim() || "3";
+      if (hideEl) w[key].hideSec = hideEl.value.trim() || "3";
     });
-    var sp = root.querySelector('[data-wm-speed="motion"]');
-    if (sp) w.motion.speed = sp.value.trim() || "1";
+    var cyc = root.querySelector('[data-wm-cycle-sec="motion"]');
+    if (cyc) {
+      w.motion.cycleSec = cyc.value.trim() || "10";
+      /* 兼容旧字段名，避免别处仍读 speed */
+      w.motion.speed = w.motion.cycleSec;
+    }
     return w;
   }
 
@@ -873,13 +950,29 @@
   }
 
   function syncIntroOutroEnabled(watermarks) {
-    var io = watermarks.introOutro || {};
+    if (window.FZArticle && FZArticle.normalizeIntroOutro) {
+      watermarks.introOutro = FZArticle.normalizeIntroOutro(
+        watermarks.introOutro || {}
+      );
+    }
     var has =
-      ioClipHasFile(io.intro) ||
-      ioClipHasFile(io.outro) ||
-      !!(io.name || io.dataUrl);
+      window.FZArticle && FZArticle.introOutroHasFile
+        ? FZArticle.introOutroHasFile(watermarks.introOutro)
+        : false;
+    if (!has) {
+      var io = watermarks.introOutro || {};
+      var land = io.landscape || {};
+      var port = io.portrait || {};
+      has =
+        ioClipHasFile(land.intro) ||
+        ioClipHasFile(land.outro) ||
+        ioClipHasFile(port.intro) ||
+        ioClipHasFile(port.outro) ||
+        ioClipHasFile(io.intro) ||
+        ioClipHasFile(io.outro);
+    }
     watermarks.introOutroEnabled = has;
-    if (!watermarks.introOutro) watermarks.introOutro = { intro: {}, outro: {} };
+    if (!watermarks.introOutro) watermarks.introOutro = {};
     watermarks.introOutro.enabled = has;
     return has;
   }
@@ -898,21 +991,45 @@
     return syncIntroOutroEnabled(watermarks || {});
   }
 
-  /** 解析 introOutro:intro / introOutro:outro；普通 key 原样返回 */
+  /**
+   * 解析 introOutro:landscape:intro / introOutro:intro（旧）；普通 key 原样返回
+   */
   function parseWmUploadKey(key) {
     if (String(key).indexOf("introOutro:") === 0) {
-      return { kind: "introOutro", slot: String(key).slice("introOutro:".length) };
+      var rest = String(key).slice("introOutro:".length).split(":");
+      if (rest.length >= 2) {
+        return { kind: "introOutro", orient: rest[0], slot: rest[1] };
+      }
+      /* 兼容旧 key：默认落到横屏 */
+      return { kind: "introOutro", orient: "landscape", slot: rest[0] };
     }
     return { kind: "slot", key: key };
+  }
+
+  function ensureIoOrient(watermarks, orient) {
+    if (window.FZArticle && FZArticle.normalizeIntroOutro) {
+      watermarks.introOutro = FZArticle.normalizeIntroOutro(
+        watermarks.introOutro || {}
+      );
+    } else if (!watermarks.introOutro) {
+      watermarks.introOutro = {
+        landscape: { intro: {}, outro: {} },
+        portrait: { intro: {}, outro: {} }
+      };
+    }
+    if (!watermarks.introOutro[orient]) {
+      watermarks.introOutro[orient] = { intro: {}, outro: {} };
+    }
+    return watermarks.introOutro[orient];
   }
 
   function applyWmUpload(watermarks, key, file, dataUrl) {
     var parsed = parseWmUploadKey(key);
     if (parsed.kind === "introOutro") {
-      if (!watermarks.introOutro) watermarks.introOutro = { intro: {}, outro: {} };
-      if (!watermarks.introOutro[parsed.slot]) watermarks.introOutro[parsed.slot] = {};
-      watermarks.introOutro[parsed.slot].name = file.name;
-      watermarks.introOutro[parsed.slot].dataUrl = dataUrl;
+      var pack = ensureIoOrient(watermarks, parsed.orient);
+      if (!pack[parsed.slot]) pack[parsed.slot] = {};
+      pack[parsed.slot].name = file.name;
+      pack[parsed.slot].dataUrl = dataUrl;
       syncIntroOutroEnabled(watermarks);
       return;
     }
@@ -925,7 +1042,8 @@
     var parsed = parseWmUploadKey(key);
     if (parsed.kind === "introOutro") {
       if (!watermarks.introOutro) return;
-      watermarks.introOutro[parsed.slot] = { name: "", dataUrl: "" };
+      var pack = ensureIoOrient(watermarks, parsed.orient);
+      pack[parsed.slot] = { name: "", dataUrl: "" };
       syncIntroOutroEnabled(watermarks);
       return;
     }
@@ -1182,6 +1300,14 @@
           return;
         }
         syncVideoModePanes(normalizeVideoModes(before));
+        if (handlers.onFormChange) handlers.onFormChange();
+      });
+    });
+    root.querySelectorAll("[data-wm-invert]").forEach(function (box) {
+      box.addEventListener("change", function () {
+        var key = box.getAttribute("data-wm-invert");
+        var wrap = root.querySelector('[data-wm-invert-wrap="' + key + '"]');
+        if (wrap) wrap.hidden = !box.checked;
         if (handlers.onFormChange) handlers.onFormChange();
       });
     });

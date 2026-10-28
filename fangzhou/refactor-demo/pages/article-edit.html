@@ -4,159 +4,291 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>编辑文章 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261028art4" />
+  <link rel="stylesheet" href="../css/app.css?v=20261028push1" />
 </head>
-<body>
+<body class="page-art-edit">
   <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
-      <div class="topbar art-edit-topbar">
-        <div class="art-edit-top-left">
-          <a class="btn btn-ghost" href="./articles.html">← 返回</a>
+      <header class="art-edit-bar">
+        <div class="art-edit-bar-left">
+          <a class="btn btn-sm" href="./articles.html">← 返回列表</a>
+          <span class="art-edit-bar-sep" aria-hidden="true"></span>
           <span class="badge badge-warn" id="art-edit-status">待编辑</span>
-          <span class="muted mono" id="art-edit-id"></span>
+          <span class="art-edit-id mono" id="art-edit-id"></span>
         </div>
-        <div class="topbar-actions art-edit-actions">
-          <button type="button" class="btn btn-ghost" id="art-btn-ai">AI 稿件</button>
-          <button type="button" class="btn btn-ghost" id="art-btn-preview">预览</button>
-          <button type="button" class="btn" id="art-btn-draft">保存</button>
-          <button type="button" class="btn btn-primary" id="art-btn-push">确认推送</button>
-          <div class="art-more" id="art-top-more">
-            <button type="button" class="btn btn-ghost art-more-btn" id="art-btn-more" aria-label="更多" aria-haspopup="true">⋯</button>
-            <div class="art-more-menu" id="art-top-more-menu" hidden role="menu">
-              <button type="button" class="art-more-item" role="menuitem" id="art-btn-source">原素材</button>
-              <button type="button" class="art-more-item" role="menuitem" id="art-btn-compare">版本对比</button>
-            </div>
-          </div>
+        <div class="art-edit-bar-right">
+          <button type="button" class="btn btn-sm" id="art-btn-compare">版本对比</button>
+          <button type="button" class="btn btn-sm btn-primary" id="art-btn-draft">保存</button>
           <div id="top-user"></div>
         </div>
-      </div>
+      </header>
 
-      <div class="content art-edit-content">
+      <div class="art-edit-shell">
         <div class="art-edit-workspace">
           <section class="art-edit-stage" aria-label="正文编辑">
-            <div class="art-draft-bar">
-              <span class="art-draft-bar-label">当前稿</span>
-              <div class="art-draft-chips" id="art-ai-tabs" role="tablist"></div>
-              <span class="muted art-draft-meta" id="art-ai-meta">主稿已载入正文</span>
-            </div>
+            <div class="art-write-surface">
+              <div class="art-draft-block">
+                <div class="art-draft-bar">
+                  <div class="art-draft-chips" id="art-ai-tabs" role="tablist" aria-label="选用草稿"></div>
+                  <button type="button" class="btn btn-sm art-draft-ai" id="art-btn-ai">✦ AI 稿件</button>
+                </div>
 
-            <label class="art-title-label" for="art-title">标题</label>
-            <textarea
-              class="input art-title-input"
-              id="art-title"
-              rows="2"
-              maxlength="500"
-              placeholder="输入标题…"
-            ></textarea>
-
-            <div class="art-composer card">
-              <div class="art-toolbar" role="toolbar" aria-label="正文工具栏">
-                <button type="button" class="btn btn-sm btn-ghost" data-tool="undo">撤销</button>
-                <button type="button" class="btn btn-sm btn-ghost" data-tool="redo">重做</button>
-                <span class="art-toolbar-sep" aria-hidden="true"></span>
-                <button type="button" class="btn btn-sm btn-ghost" data-tool="bold">粗体</button>
-                <button type="button" class="btn btn-sm btn-ghost" data-tool="italic">斜体</button>
-                <button type="button" class="btn btn-sm btn-ghost" data-tool="list">列表</button>
-                <button type="button" class="btn btn-sm btn-ghost" data-tool="link">链接</button>
-                <span class="art-toolbar-sep" aria-hidden="true"></span>
-                <button type="button" class="btn btn-sm btn-ghost" data-tool="image">插图</button>
-                <button type="button" class="btn btn-sm btn-ghost" data-tool="video">插视频</button>
-                <button type="button" class="btn btn-sm btn-ghost" data-mat="1">素材图1</button>
-                <button type="button" class="btn btn-sm btn-ghost" data-mat="2">素材图2</button>
-                <button type="button" class="btn btn-sm btn-ghost" data-mat="3">素材视频</button>
-                <span class="art-toolbar-grow"></span>
-                <span class="hint" id="art-site-hint"></span>
+                <!-- AI 稿件 · 稿签栏下方展开（标题之上） -->
+                <div class="art-ai-panel" id="art-ai-panel" hidden aria-label="AI 稿件">
+                  <div class="art-ai-panel-inner">
+                    <div class="art-ai-panel-row">
+                      <span class="art-ai-sec-label">生成方式</span>
+                      <div class="seg-tabs art-ai-regen-seg" role="tablist">
+                        <button type="button" class="btn btn-sm is-active" data-regen="full">整篇重写</button>
+                        <button type="button" class="btn btn-sm" data-regen="patch">基于当前稿修改</button>
+                      </div>
+                    </div>
+                    <textarea
+                      class="input art-ai-prompt"
+                      id="art-ai-prompt"
+                      rows="3"
+                      placeholder="可选：改语气、压缩篇幅…"
+                    ></textarea>
+                    <div class="art-ai-panel-foot">
+                      <span class="art-ai-panel-status" id="art-ai-status" aria-live="polite"></span>
+                      <button type="button" class="btn btn-primary" id="art-ai-run">生成</button>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div
-                class="art-editor"
-                id="art-editor"
-                contenteditable="true"
-                role="textbox"
-                aria-multiline="true"
-                aria-label="正文"
-              ></div>
-              <div class="art-statusbar">
-                <span id="art-char-count">0 字</span>
-                <span class="muted">素材仅方舟内部取用，不随推送带给对方</span>
+
+              <div class="art-title-block">
+                <textarea
+                  class="art-title-input"
+                  id="art-title"
+                  rows="1"
+                  maxlength="500"
+                  placeholder="标题"
+                  aria-label="标题"
+                ></textarea>
+
+                <div class="art-toolbar" role="toolbar" aria-label="正文工具栏">
+                  <button type="button" class="art-tool" data-tool="undo" title="撤销">↩</button>
+                  <button type="button" class="art-tool" data-tool="redo" title="重做">↪</button>
+                  <span class="art-toolbar-sep" aria-hidden="true"></span>
+                  <button type="button" class="art-tool" data-tool="bold" title="粗体"><b>B</b></button>
+                  <button type="button" class="art-tool" data-tool="italic" title="斜体"><i>I</i></button>
+                  <button type="button" class="art-tool" data-tool="list" title="列表">≡</button>
+                  <button type="button" class="art-tool" data-tool="link" title="链接">🔗</button>
+                  <span class="art-toolbar-sep" aria-hidden="true"></span>
+                  <button type="button" class="art-tool" data-tool="image" title="插图">图</button>
+                  <button type="button" class="art-tool" data-tool="video" title="插视频">视</button>
+                  <button type="button" class="art-tool" data-mat="1" title="插入素材图1">素1</button>
+                  <button type="button" class="art-tool" data-mat="2" title="插入素材图2">素2</button>
+                  <button type="button" class="art-tool" data-mat="3" title="插入素材视频">素视</button>
+                  <span class="art-toolbar-grow"></span>
+                  <span class="art-site-hint" id="art-site-hint"></span>
+                </div>
+              </div>
+
+              <div class="art-composer">
+                <div
+                  class="art-editor"
+                  id="art-editor"
+                  contenteditable="true"
+                  role="textbox"
+                  aria-multiline="true"
+                  aria-label="正文"
+                  data-placeholder="开始写正文…"
+                ></div>
+                <div class="art-statusbar">
+                  <span id="art-char-count">0 字</span>
+                </div>
               </div>
             </div>
           </section>
 
-          <aside class="art-edit-rail" aria-label="发布属性">
-            <div class="art-rail-hd">
-              <span>发布属性</span>
-              <button type="button" class="btn btn-ghost btn-sm" id="art-rail-toggle">收起</button>
-            </div>
-            <div class="art-rail-body" id="art-rail-body">
-              <div class="field">
-                <label>封面</label>
-                <div class="art-cover-box">
-                  <div class="art-cover-preview" id="art-cover-preview" title="点击放大（待接）">封面预览</div>
-                  <div class="art-cover-actions">
-                    <button type="button" class="btn btn-sm" id="art-cover-pick">选择</button>
-                    <button type="button" class="btn btn-sm btn-ghost" id="art-cover-custom">自定义</button>
-                    <button type="button" class="btn btn-sm btn-ghost" id="art-cover-restore">默认</button>
+          <div class="art-edit-side">
+            <aside class="art-edit-rail" aria-label="发布属性">
+              <div class="art-rail-hd">
+                <span>发布属性</span>
+              </div>
+              <div class="art-rail-body" id="art-rail-body">
+                <div class="art-rail-sec">
+                  <div class="art-rail-sec-title">封面</div>
+                  <div class="art-cover-box">
+                    <div class="art-cover-preview" id="art-cover-preview" title="点击放大">
+                      <span>默认封面</span>
+                    </div>
+                    <div class="art-cover-actions">
+                      <button type="button" class="btn btn-sm btn-ghost" id="art-cover-restore">恢复默认</button>
+                      <button type="button" class="btn btn-sm" id="art-cover-pick">选择</button>
+                      <button type="button" class="btn btn-sm btn-ghost" id="art-cover-custom">自定义</button>
+                      <input type="file" id="art-cover-file" accept="image/*" hidden />
+                      <span class="art-cover-status" id="art-cover-status">已有封面（可更换）</span>
+                    </div>
                   </div>
                 </div>
+                <div class="art-rail-sec">
+                  <div class="art-rail-sec-title">分类</div>
+                  <div class="art-cat-toggles" id="art-category-chips" role="group" aria-label="分类"></div>
+                  <p class="hint art-rail-hint">点选添加，再点取消；可多选。</p>
+                </div>
+                <div class="art-rail-sec" id="art-option-groups">
+                  <div class="art-rail-sec-title">选项组 · 地区</div>
+                  <select class="input" id="art-region" aria-label="地区">
+                    <option value="">未选择</option>
+                    <option value="cn">中国大陆</option>
+                    <option value="tw">中国台湾</option>
+                    <option value="hk">中国香港</option>
+                    <option value="sg">新加坡</option>
+                    <option value="other">其他</option>
+                  </select>
+                </div>
+                <div class="art-rail-sec">
+                  <div class="art-rail-sec-title">关键词</div>
+                  <div class="art-tag-field" id="art-keyword-field" data-list="keywords">
+                    <div class="art-tag-field-chips" id="art-keyword-chips"></div>
+                    <input class="art-tag-field-input" id="art-keywords" placeholder="输入后回车添加" aria-label="添加关键词" />
+                  </div>
+                </div>
+                <div class="art-rail-sec">
+                  <div class="art-rail-sec-title">标签</div>
+                  <div class="art-tag-field" id="art-tag-field" data-list="tags">
+                    <div class="art-tag-field-chips" id="art-tag-chips"></div>
+                    <input class="art-tag-field-input" id="art-tags" placeholder="输入后回车添加" aria-label="添加标签" />
+                  </div>
+                </div>
+                <div class="art-rail-push">
+                  <button type="button" class="btn art-rail-push-preview" id="art-btn-preview">预览</button>
+                  <button type="button" class="btn btn-primary art-rail-push-btn" id="art-btn-push">确认推送</button>
+                </div>
               </div>
-              <div class="field">
-                <label>分类</label>
-                <select class="input" id="art-category">
-                  <option value="">选择分类添加</option>
-                  <option value="demo1">今日吃瓜（Demo）</option>
-                  <option value="demo2">社会（Demo）</option>
-                </select>
-                <div class="art-chips" id="art-category-chips"></div>
-                <p class="hint">由内容通道拉取</p>
+            </aside>
+
+            <aside class="art-mat-panel" aria-label="文章素材">
+              <div class="art-mat-panel-hd">
+                <span>文章素材</span>
+                <button type="button" class="btn btn-sm art-mat-id-btn mono" id="art-btn-source" title="查看原素材">
+                  #—
+                </button>
               </div>
-              <div class="field" id="art-option-groups">
-                <label>选项组</label>
-                <p class="hint" style="margin:0">地区等 · Demo 占位</p>
+              <div class="art-mat-panel-body" id="art-mat-panel-body">
+                <p class="art-mat-note">仅方舟内部取用。点图放大，可拖入正文；点 ID 查看原素材。</p>
+                <div class="art-mat-thumbs" id="art-mat-thumbs"></div>
               </div>
-              <div class="field">
-                <label>关键词</label>
-                <input class="input" id="art-keywords" placeholder="逗号分隔" />
-                <div class="art-chips" id="art-keyword-chips"></div>
-              </div>
-              <div class="field">
-                <label>标签</label>
-                <input class="input" id="art-tags" placeholder="逗号分隔" />
-                <div class="art-chips" id="art-tag-chips"></div>
-              </div>
-            </div>
-          </aside>
+            </aside>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- AI 稿件抽屉：默认关闭，不占主编辑区 -->
-  <div class="art-ai-overlay" id="art-ai-overlay" hidden></div>
-  <aside class="art-ai-drawer" id="art-ai-drawer" hidden aria-label="AI 稿件">
-    <div class="art-ai-drawer-hd">
-      <div>
-        <div class="art-ai-drawer-title">AI 稿件</div>
-        <p class="muted" style="margin:4px 0 0;font-size:12.5px">生成后选用一稿进入正文；布局确认后再接线</p>
-      </div>
-      <button type="button" class="btn btn-ghost btn-sm" id="art-ai-close">关闭</button>
-    </div>
-    <div class="art-ai-drawer-body">
-      <label class="art-ai-sec-label">选用草稿</label>
-      <div class="art-ai-tabs art-ai-tabs--stack" id="art-ai-tabs-drawer" role="tablist"></div>
-      <label class="art-ai-sec-label">生成方式</label>
-      <div class="seg-tabs art-ai-regen-seg" role="tablist">
-        <button type="button" class="btn btn-sm is-active" data-regen="full">整篇重写</button>
-        <button type="button" class="btn btn-sm" data-regen="patch">基于当前稿修改</button>
-      </div>
-      <textarea class="input" id="art-ai-prompt" rows="3" placeholder="可选：改语气、压缩篇幅…"></textarea>
-      <button type="button" class="btn btn-primary art-ai-run-full" id="art-ai-run">生成</button>
-    </div>
-  </aside>
+  <!-- 素材缩略图放大 -->
+  <div class="art-mat-zoom" id="art-mat-zoom" hidden>
+    <button type="button" class="art-mat-zoom-close" id="art-mat-zoom-close" aria-label="关闭">×</button>
+    <div class="art-mat-zoom-stage" id="art-mat-zoom-stage"></div>
+  </div>
 
-  <script src="../js/store.js?v=20261028art4"></script>
-  <script src="../js/shell.js?v=20261028art4"></script>
-  <script src="../js/articles-data.js?v=20261028art4"></script>
-  <script src="../js/article-edit-app.js?v=20261028art4"></script>
+  <!-- 原素材 · 复用素材详情壳（仅预览） -->
+  <div class="mat-detail-mask" id="mat-detail-mask" hidden>
+    <div class="mat-detail" role="dialog" aria-modal="true" aria-labelledby="mat-detail-title">
+      <div class="mat-detail-hd">
+        <h2 class="mat-detail-title" id="mat-detail-title">
+          原素材 <span class="mat-detail-progress" id="mat-detail-progress"></span>
+        </h2>
+        <button type="button" class="mat-detail-close" data-mat-close aria-label="关闭">×</button>
+      </div>
+      <div class="mat-detail-tabs">
+        <button type="button" class="mat-tab is-active" data-mat-tab="info">基本信息</button>
+        <button type="button" class="mat-tab" data-mat-tab="dispatch">分发记录</button>
+      </div>
+      <div id="mat-detail-panel"></div>
+      <button type="button" class="mat-nav-side is-prev" id="mat-detail-prev" title="上一条素材" aria-label="上一条素材" hidden>‹</button>
+      <button type="button" class="mat-nav-side is-next" id="mat-detail-next" title="下一条素材" aria-label="下一条素材" hidden>›</button>
+    </div>
+  </div>
+
+  <div class="mat-targets-mask" id="mat-targets-mask" hidden>
+    <div class="mat-targets" role="dialog" aria-modal="true" aria-labelledby="mat-targets-title">
+      <div class="mat-targets-hd">
+        <h3 id="mat-targets-title">分发频道</h3>
+        <button type="button" class="mat-detail-close" data-targets-close aria-label="关闭">×</button>
+      </div>
+      <div class="mat-targets-bd" id="mat-targets-bd"></div>
+      <div class="mat-targets-ft">
+        <button type="button" class="btn btn-ghost" data-targets-close>关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 二次确认（确认推送等） -->
+  <div class="modal-mask" id="art-confirm-mask" hidden>
+    <div class="modal art-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="art-confirm-title">
+      <h2 id="art-confirm-title">确认</h2>
+      <p id="art-confirm-msg"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="art-confirm-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="art-confirm-ok">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 自定义封面 · 左中右三格（对齐现网） -->
+  <div class="modal-mask" id="art-cc-mask" hidden>
+    <div class="modal art-cc-modal" role="dialog" aria-modal="true" aria-labelledby="art-cc-title">
+      <div class="art-cc-head">
+        <h2 id="art-cc-title">自定义封面</h2>
+        <button type="button" class="btn btn-ghost btn-sm" id="art-cc-close">关闭</button>
+      </div>
+      <p class="art-cc-hint" id="art-cc-hint">按项目封面尺寸 960×540 均分为左、中、右三格。点击空格添加图片。三格都有图才能保存。</p>
+      <div id="art-cc-body"></div>
+      <div class="art-cc-foot">
+        <button type="button" class="btn btn-ghost btn-sm" id="art-cc-cancel">取消</button>
+        <button type="button" class="btn btn-primary btn-sm" id="art-cc-save">保存</button>
+      </div>
+      <input type="file" id="art-cc-file" accept=".jpg,.jpeg,.png,.webp,image/*" hidden />
+    </div>
+  </div>
+
+  <!-- 文章预览 -->
+  <div class="modal-mask" id="art-preview-mask" hidden>
+    <div class="modal art-preview-modal" role="dialog" aria-labelledby="art-preview-heading">
+      <div class="art-preview-hd">
+        <div>
+          <h2 id="art-preview-heading">文章预览</h2>
+          <p class="art-preview-meta muted" id="art-preview-meta"></p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="art-preview-close">关闭</button>
+      </div>
+      <h3 class="art-preview-title" id="art-preview-title"></h3>
+      <div class="art-preview-body" id="art-preview-body"></div>
+    </div>
+  </div>
+
+  <!-- 版本对比 -->
+  <div class="modal-mask" id="art-compare-mask" hidden>
+    <div class="modal art-compare-modal" role="dialog" aria-labelledby="art-compare-title">
+      <div class="art-compare-hd">
+        <h2 id="art-compare-title">版本对比</h2>
+        <button type="button" class="btn btn-ghost btn-sm" id="art-compare-close">关闭</button>
+      </div>
+      <p class="muted" id="art-compare-hint">对照当前稿与上一版差异（Demo）。</p>
+      <div class="art-compare-cols">
+        <div class="art-compare-col">
+          <div class="art-compare-col-hd">上一版</div>
+          <div class="art-compare-body" id="art-compare-prev"></div>
+        </div>
+        <div class="art-compare-col">
+          <div class="art-compare-col-hd">当前稿</div>
+          <div class="art-compare-body" id="art-compare-cur"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/store.js?v=20261028artact4"></script>
+  <script src="../js/shell.js?v=20261028artact4"></script>
+  <script src="../js/articles-data.js?v=20261028artact4"></script>
+  <script src="../js/materials-data.js?v=20261028artact1"></script>
+  <script src="../js/materials-media.js?v=20261028artact1"></script>
+  <script src="../js/materials-detail.js?v=20261028artact1"></script>
+  <script src="../js/article-edit-app.js?v=20261028push1"></script>
 </body>
 </html>

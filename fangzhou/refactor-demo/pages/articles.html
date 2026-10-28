@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>文章管理 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261028art7" />
+  <link rel="stylesheet" href="../css/app.css?v=20261028artact1" />
 </head>
 <body>
   <div class="app">
@@ -18,7 +18,7 @@
         <p class="muted" style="margin:0 0 12px;font-size:13px">
           瓜站 / 视频站内容通道文章。短剧不进本列表。操作人：人工记子账号昵称或主号「昵称（主）」；自动记「自动」。可预览行整行点击预览；素材 ID 可点。
         </p>
-        <div class="list-toolbar art-toolbar">
+        <div class="list-toolbar">
           <div class="list-toolbar-row">
             <select class="input" id="art-f-project" aria-label="项目"></select>
             <select class="input" id="art-f-status" aria-label="状态"></select>
@@ -55,10 +55,92 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261028art5"></script>
-  <script src="../js/shell.js?v=20261028art5"></script>
+  <!-- 二次确认（重新编辑等） -->
+  <div class="modal-mask" id="art-confirm-mask" hidden>
+    <div class="modal art-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="art-confirm-title">
+      <h2 id="art-confirm-title">确认</h2>
+      <p id="art-confirm-msg"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="art-confirm-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="art-confirm-ok">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 文章预览 -->
+  <div class="modal-mask" id="art-preview-mask" hidden>
+    <div class="modal art-preview-modal" role="dialog" aria-labelledby="art-preview-heading">
+      <div class="art-preview-hd">
+        <div>
+          <h2 id="art-preview-heading">文章预览</h2>
+          <p class="art-preview-meta muted" id="art-preview-meta"></p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="art-preview-close">关闭</button>
+      </div>
+      <h3 class="art-preview-title" id="art-preview-title"></h3>
+      <div class="art-preview-body" id="art-preview-body"></div>
+    </div>
+  </div>
+
+  <!-- 版本对比 -->
+  <div class="modal-mask" id="art-compare-mask" hidden>
+    <div class="modal art-compare-modal" role="dialog" aria-labelledby="art-compare-title">
+      <div class="art-compare-hd">
+        <h2 id="art-compare-title">版本对比</h2>
+        <button type="button" class="btn btn-ghost btn-sm" id="art-compare-close">关闭</button>
+      </div>
+      <p class="muted">对照当前稿与上一版差异（Demo）。</p>
+      <div class="art-compare-cols">
+        <div class="art-compare-col">
+          <div class="art-compare-col-hd">上一版</div>
+          <div class="art-compare-body" id="art-compare-prev"></div>
+        </div>
+        <div class="art-compare-col">
+          <div class="art-compare-col-hd">当前稿</div>
+          <div class="art-compare-body" id="art-compare-cur"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 原素材 · 仅预览壳 -->
+  <div class="mat-detail-mask" id="mat-detail-mask" hidden>
+    <div class="mat-detail" role="dialog" aria-modal="true" aria-labelledby="mat-detail-title">
+      <div class="mat-detail-hd">
+        <h2 class="mat-detail-title" id="mat-detail-title">
+          原素材 <span class="mat-detail-progress" id="mat-detail-progress"></span>
+        </h2>
+        <button type="button" class="mat-detail-close" data-mat-close aria-label="关闭">×</button>
+      </div>
+      <div class="mat-detail-tabs">
+        <button type="button" class="mat-tab is-active" data-mat-tab="info">基本信息</button>
+        <button type="button" class="mat-tab" data-mat-tab="dispatch">分发记录</button>
+      </div>
+      <div id="mat-detail-panel"></div>
+      <button type="button" class="mat-nav-side is-prev" id="mat-detail-prev" title="上一条素材" aria-label="上一条素材" hidden>‹</button>
+      <button type="button" class="mat-nav-side is-next" id="mat-detail-next" title="下一条素材" aria-label="下一条素材" hidden>›</button>
+    </div>
+  </div>
+  <div class="mat-targets-mask" id="mat-targets-mask" hidden>
+    <div class="mat-targets" role="dialog" aria-modal="true" aria-labelledby="mat-targets-title">
+      <div class="mat-targets-hd">
+        <h3 id="mat-targets-title">分发频道</h3>
+        <button type="button" class="mat-detail-close" data-targets-close aria-label="关闭">×</button>
+      </div>
+      <div class="mat-targets-bd" id="mat-targets-bd"></div>
+      <div class="mat-targets-ft">
+        <button type="button" class="btn btn-ghost" data-targets-close>关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/store.js?v=20261028artact4"></script>
+  <script src="../js/shell.js?v=20261028artact4"></script>
   <script src="../js/pager.js?v=20261027pager"></script>
-  <script src="../js/articles-data.js?v=20261028art5"></script>
-  <script src="../js/articles-app.js?v=20261028art7"></script>
+  <script src="../js/articles-data.js?v=20261028artact5"></script>
+  <script src="../js/materials-data.js?v=20261028artact1"></script>
+  <script src="../js/materials-media.js?v=20261028artact1"></script>
+  <script src="../js/materials-detail.js?v=20261028artact1"></script>
+  <script src="../js/articles-app.js?v=20261028artact6"></script>
 </body>
 </html>
