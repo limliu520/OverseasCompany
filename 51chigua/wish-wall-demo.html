@@ -145,14 +145,26 @@ button { cursor: pointer; }
 }
 .wall-head .titles h1 { margin: 0 0 6px; font-size: 26px; font-weight: 750; }
 .wall-head .titles p { margin: 0; color: var(--muted); font-size: 13px; }
-.wall-head .compose-btn {
-  flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px;
-  border: 0; border-radius: 8px; height: 34px; padding: 0 14px;
-  background: var(--pink); color: #fff; font-size: 13px; font-weight: 700;
-  box-shadow: 0 4px 14px rgba(255,77,141,.28); line-height: 1;
+/* 贴着帖子栏右下角，不贴屏幕右缘 */
+.compose-fab-dock {
+  position: fixed; left: 50%; bottom: 28px; z-index: 36;
+  width: min(calc(var(--max) + 48px), 100%);
+  transform: translateX(-50%);
+  padding: 0 24px;
+  display: flex; justify-content: flex-end;
+  pointer-events: none;
 }
-.wall-head .compose-btn .ico { font-size: 14px; line-height: 1; }
-.wall-head .compose-btn:hover { filter: brightness(1.06); }
+.compose-fab-dock.hidden { display: none !important; }
+.compose-fab {
+  pointer-events: auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 0; border-radius: 999px; height: 44px; padding: 0 18px;
+  background: var(--pink); color: #fff; font-size: 14px; font-weight: 700;
+  box-shadow: 0 8px 24px rgba(255,77,141,.4);
+  line-height: 1;
+}
+.compose-fab .ico { font-size: 16px; line-height: 1; }
+.compose-fab:hover { filter: brightness(1.06); }
 .tabs-row {
   display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;
 }
@@ -412,10 +424,10 @@ button { cursor: pointer; }
 .post-card .dream-cta,
 .post-detail .dream-cta {
   display: flex; flex-direction: column; align-items: center; text-align: center;
-  gap: 8px; margin: 4px 0 0; padding: 16px 14px;
+  gap: 8px; margin: 12px 0 0; padding: 14px 14px 12px;
   border-top: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(255,77,141,.1), rgba(255,77,141,.03));
-  border-radius: 0 0 10px 10px;
+  background: linear-gradient(180deg, rgba(255,77,141,.12), rgba(255,77,141,.04));
+  border-radius: 12px;
 }
 .post-card .dream-cta .dream-lab,
 .post-detail .dream-cta .dream-lab {
@@ -423,14 +435,18 @@ button { cursor: pointer; }
 }
 .post-card .dream-cta .dream-title,
 .post-detail .dream-cta .dream-title {
-  margin: 0; max-width: 36em;
-  font-size: 15px; font-weight: 700; line-height: 1.45; color: #fff;
+  display: inline-block; width: auto; max-width: min(420px, 100%);
+  margin: 0; padding: 10px 16px;
+  border: 0; border-radius: 10px;
+  background: var(--pink); color: #fff;
+  font: inherit; font-size: 13px; font-weight: 700; line-height: 1.4;
+  text-align: center; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255,77,141,.24);
+  word-break: break-word;
 }
-.post-card .dream-cta .dream-btn,
-.post-detail .dream-cta .dream-btn {
-  margin-top: 4px; height: 44px; padding: 0 28px;
-  font-size: 15px; font-weight: 750; border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(255,77,141,.28);
+.post-card .dream-cta .dream-title:hover,
+.post-detail .dream-cta .dream-title:hover {
+  filter: brightness(1.06);
 }
 .post-card .ops-vote {
   margin-top: 14px; padding: 12px 14px; border-radius: 10px;
@@ -524,6 +540,35 @@ button { cursor: pointer; }
   flex: 1; min-width: 0;
 }
 .post-detail .c-compose input:focus { border-color: var(--pink); }
+.compose-meta {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 10px; margin: 8px 0 0; font-size: 12px; color: var(--muted);
+}
+.compose-meta .char-count.bad { color: #ff8e8e; }
+.field label.compose-anon {
+  display: inline-flex; flex-direction: row; align-items: center; gap: 8px;
+  margin: 0; cursor: pointer; user-select: none; line-height: 1.2;
+  color: var(--muted); font-size: 12px;
+}
+.field label.compose-anon input {
+  flex-shrink: 0; width: 14px; height: 14px; margin: 0;
+  accent-color: var(--pink);
+}
+#composeModal .modal {
+  width: min(520px, 100%);
+}
+#composeModal textarea {
+  min-height: 120px; resize: vertical;
+}
+#composeConfirmModal { z-index: 85; }
+.post-card .sub-row .author,
+.post-detail .sub-row .author {
+  color: #c8c8d0;
+}
+.post-card .sub-row .author.anon,
+.post-detail .sub-row .author.anon {
+  color: var(--muted);
+}
 .ai-tags {
   display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 40px;
   padding: 10px 12px; border-radius: 8px; background: #15161d; border: 1px solid var(--line);
@@ -749,7 +794,7 @@ button { cursor: pointer; }
   .cover-card h2 { font-size: 15px; }
   .page-title h1 { font-size: 20px; }
   .wall-head { flex-direction: column; align-items: stretch; }
-  .wall-head .compose-btn { width: 100%; justify-content: center; }
+  .compose-fab-dock { padding: 0 14px; bottom: 20px; }
 }
 </style>
 </head>
@@ -826,7 +871,6 @@ button { cursor: pointer; }
         <h1>求瓜心愿墙</h1>
         <p>想看的瓜还没有？来墙上喊一声。大家一起点赞评论攒热度，热了就有机会被安排成真瓜。</p>
       </div>
-      <button class="compose-btn" data-go="compose"><span class="ico" aria-hidden="true">＋</span>求瓜</button>
     </div>
     <div class="tabs-row">
       <div class="ctrl-row">
@@ -851,28 +895,6 @@ button { cursor: pointer; }
       </div>
     </div>
     <div class="post-list" id="wallFeed"></div>
-  </section>
-
-  <!-- COMPOSE -->
-  <section id="view-compose" class="view hidden">
-    <div class="page-title"><h1>发布吃瓜心愿</h1><p>用户可发求瓜；投票仅运营可发</p></div>
-    <div class="panel">
-      <div class="field">
-        <label>我想看什么瓜</label>
-        <textarea id="wishText" placeholder="例：想看某某艺人近年舆情盘点 / 想看某晚会名场面复盘"></textarea>
-      </div>
-      <div class="field">
-        <label>标签（AI 自动识别，无需手填）</label>
-        <div class="ai-tags" id="wishTagBox">
-          <span class="ai-empty">输入求瓜内容后，AI 会自动识别艺人 / 事件标签</span>
-        </div>
-      </div>
-      <p class="hint">在这里写下你想看的娱乐盘点、艺人内容或旧瓜复盘。标签由 AI 根据文案识别生成，用于聚合同类求瓜。高赞求瓜我们优先安排产出。本板块只征集选题方向，禁止提交未经证实的爆料、造谣、人身攻击等内容，违规将直接驳回。提交后为「待审核」（公开墙不展示）；通过后为「征集投票中」；运营产出后为「已安排」。</p>
-      <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn ghost" data-go="wall">取消</button>
-        <button class="btn primary" id="composeSubmit">发布吃瓜心愿</button>
-      </div>
-    </div>
   </section>
 
   <!-- VOTE DETAIL (legacy shell) -->
@@ -922,7 +944,6 @@ button { cursor: pointer; }
         <h1>我的心愿墙</h1>
         <p>本机的求瓜、站队、评论、点赞都收在这里回看（无通知，靠回访）</p>
       </div>
-      <button class="compose-btn" data-go="compose"><span class="ico" aria-hidden="true">＋</span>求瓜</button>
     </div>
     <div class="tabs-row">
       <div class="tabs" id="mineTabs">
@@ -935,6 +956,12 @@ button { cursor: pointer; }
     <div class="post-list" id="mineFeed"></div>
   </section>
 </main>
+
+<div id="composeFabDock" class="compose-fab-dock hidden" aria-hidden="true">
+  <button type="button" class="compose-fab" data-compose-wish="" title="发布求瓜">
+    <span class="ico" aria-hidden="true">＋</span>求瓜
+  </button>
+</div>
 
 <div id="loginModal" class="modal-mask hidden">
   <div class="modal">
@@ -953,6 +980,33 @@ button { cursor: pointer; }
     <div class="vote-choices" id="voteModalChoices"></div>
     <div class="row">
       <button class="btn ghost" id="voteModalClose">关闭</button>
+    </div>
+  </div>
+</div>
+<div id="composeModal" class="modal-mask hidden">
+  <div class="modal">
+    <h3>发布吃瓜心愿</h3>
+    <div class="field">
+      <label>我想看什么瓜</label>
+      <textarea id="wishText" maxlength="120" placeholder="例：想看某某艺人近年舆情盘点 / 想看近期晚会汇总 / 想看旧瓜复盘"></textarea>
+      <div class="compose-meta">
+        <label class="compose-anon"><input type="checkbox" id="wishAnon" /><span>匿名提交</span></label>
+        <span class="char-count" id="wishCharCount">0 / 120</span>
+      </div>
+    </div>
+    <div class="row" style="margin-top:16px">
+      <button type="button" class="btn ghost" id="composeCancel">取消</button>
+      <button type="button" class="btn primary" id="composeSubmit">发布</button>
+    </div>
+  </div>
+</div>
+<div id="composeConfirmModal" class="modal-mask hidden">
+  <div class="modal">
+    <h3>确认提交？</h3>
+    <p>请确认内容不违规：本板块只征集选题方向，禁止提交未经证实的爆料、造谣、人身攻击或恶意引战。</p>
+    <div class="row">
+      <button class="btn ghost" id="composeConfirmCancel">再想想</button>
+      <button class="btn primary" id="composeConfirmOk">确认提交</button>
     </div>
   </div>
 </div>
@@ -1006,6 +1060,7 @@ button { cursor: pointer; }
     {
       id: "w1", type: "wish", text: "想看沈腾近几年舆情完整时间线盘点",
       tag: "沈腾", likes: 128, status: "collecting", mine: false, time: "2小时前",
+      user: "瓜友阿茶", anonymous: false,
       comments: [
         { user: "瓜友A", text: "求完整时间线，别只蹭热度", time: "1小时前", hot: true, hotBy: "ops" },
         { user: "吃瓜本吃瓜", text: "附议，最好按年份排", time: "40分钟前", hot: true, hotBy: "data" },
@@ -1015,6 +1070,7 @@ button { cursor: pointer; }
     {
       id: "w2", type: "wish", text: "想看沈腾×林允传闻的「已证实 / 未证实」对照表",
       tag: "沈腾", likes: 86, status: "arranged", articleId: "a1", mine: false, time: "昨天",
+      user: "匿名", anonymous: true,
       comments: [
         { user: "路人甲", text: "对照表太需要了", time: "昨天", hot: true, hotBy: "ops" },
         { user: "瓜妹", text: "圆梦了来看一眼", time: "昨天" }
@@ -1023,6 +1079,7 @@ button { cursor: pointer; }
     {
       id: "w3", type: "wish", text: "想看2026晚会翻车名场面合集",
       tag: "晚会", likes: 64, status: "collecting", mine: false, time: "昨天",
+      user: "晚会观众K", anonymous: false,
       comments: [
         { user: "晚会观众", text: "求带时间戳的合集", time: "昨天", hot: true, hotBy: "data" }
       ]
@@ -1030,17 +1087,20 @@ button { cursor: pointer; }
     {
       id: "w_pending", type: "wish", text: "想看某顶流综艺未播出花絮合集",
       tag: "综艺", likes: 0, status: "pending", mine: true, time: "今天",
+      user: "我", anonymous: false,
       comments: []
     },
     {
       id: "w_rejected", type: "wish", text: "求某某未证实黑料完整锤",
       tag: "违规示例", likes: 0, status: "rejected", mine: true, time: "昨天",
+      user: "我", anonymous: false,
       rejectReason: "涉及未经证实爆料，不符合求瓜征集规范",
       comments: []
     },
     {
       id: "w4", type: "wish", text: "想看明星恋情瓜的时间线盘点合集",
       tag: "明星爆料", likes: 45, status: "collecting", mine: false, time: "5小时前",
+      user: "匿名", anonymous: true,
       comments: [
         { user: "瓜嫂", text: "最好按年份排", time: "4小时前" },
         { user: "吃瓜达人", text: "时间线比站队有用", time: "3小时前" }
@@ -1049,12 +1109,14 @@ button { cursor: pointer; }
     {
       id: "w5", type: "wish", text: "想看某顶流账号突然停更背后的时间线",
       tag: "网红", likes: 12, status: "collecting", mine: false, time: "今天",
+      user: "吃瓜小分队", anonymous: false,
       comments: []
     },
     {
       id: "v1", type: "vote", text: "这类盘点你更想先看哪段？",
       tag: "沈腾", a: "出道到爆红", b: "近三年舆情", pa: 41, pb: 59,
       likes: 36, status: "voting",
+      user: "运营", anonymous: false,
       comments: [
         { user: "老粉", text: "近三年争议更多，先看这段", time: "50分钟前", hot: true, hotBy: "ops" },
         { user: "吃瓜群众", text: "出道到爆红也想补课", time: "40分钟前" }
@@ -1066,6 +1128,7 @@ button { cursor: pointer; }
       id: "v2", type: "vote", text: "沈腾林允传闻：你站哪边？",
       tag: "沈腾", a: "尊重隐私，先别审判", b: "希望当事人尽快澄清", pa: 58, pb: 42,
       likes: 90, status: "voting",
+      user: "运营", anonymous: false,
       comments: [
         { user: "路人乙", text: "先别审判比较合理", time: "2小时前", hot: true, hotBy: "data", badge: "god" },
         { user: "瓜友丁", text: "澄清了更好，别拖", time: "1小时前", hot: true, hotBy: "ops" },
@@ -1078,6 +1141,7 @@ button { cursor: pointer; }
       id: "v3", type: "vote", text: "本周你更想先看哪类瓜？",
       tag: "本周征集", a: "明星恋情", b: "晚会翻车", pa: 55, pb: 45,
       likes: 52, status: "ended",
+      user: "运营", anonymous: false,
       comments: [
         { user: "周更党", text: "晚会翻车合集更解压", time: "4小时前", hot: true, hotBy: "data" }
       ],
@@ -1105,8 +1169,7 @@ button { cursor: pointer; }
     postId: "w1",
     voteId: "v1",
     votePostId: "w2",
-    tag: "沈腾",
-    aiTags: []
+    tag: "沈腾"
   };
 
   const $ = (s, el = document) => el.querySelector(s);
@@ -1304,6 +1367,18 @@ button { cursor: pointer; }
     </button>`;
   }
 
+  function authorLabel(p) {
+    if (p.anonymous) return "匿名";
+    if (p.ops || p.type === "vote") return p.user || "运营";
+    return p.user || "瓜友";
+  }
+
+  function authorHtml(p) {
+    const name = authorLabel(p);
+    const anon = !!p.anonymous;
+    return `<span class="author${anon ? " anon" : ""}">${escapeHtml(name)}</span>`;
+  }
+
   function relatedCueInline(p) {
     if (p.type !== "vote") return "";
     let link = "";
@@ -1335,6 +1410,7 @@ button { cursor: pointer; }
               </div>
               <div class="sub-row">
                 <span class="tag ${vst.cls}">${vst.label}</span>
+                ${authorHtml(p)}
                 <span>${p.time}</span>
                 <button type="button" class="hash-tag" data-tag="${escapeAttr(p.tag)}">#${escapeHtml(p.tag)}</button>
               </div>
@@ -1346,17 +1422,18 @@ button { cursor: pointer; }
         </div>
       </div>`;
     }
-    const st = wishStatusMeta(p.status);
-    const canInteract = p.status === "collecting" || p.status === "arranged";
-    const statusLabel = p.status === "collecting" ? "征集中" : st.label;
+    /* pending+mine = 本人预上墙；对外仍按未过审处理，C 端不展示「待审核」 */
+    const previewSelf = p.status === "pending" && p.mine;
+    const st = wishStatusMeta(previewSelf ? "collecting" : p.status);
+    const canInteract = p.status === "collecting" || p.status === "arranged" || previewSelf;
+    const statusLabel = (p.status === "collecting" || previewSelf) ? "征集中" : st.label;
     const dreamArticle = p.articleId ? ARTICLES.find((a) => a.id === p.articleId) : null;
     const footExtra = p.status === "arranged" && p.articleId
       ? `<div class="dream-cta">
           <div class="dream-lab">圆梦内容已上线</div>
-          <p class="dream-title">${escapeHtml(dreamArticle ? dreamArticle.title : "相关内容")}</p>
-          <button type="button" class="btn primary dream-btn" data-detail="${p.articleId}">看圆梦内容</button>
+          <button type="button" class="dream-title" data-detail="${p.articleId}">${escapeHtml(dreamArticle ? dreamArticle.title : "相关内容")}</button>
         </div>`
-      : (!canInteract ? `<div class="foot"><span class="meta">暂未上墙互动</span></div>` : "");
+      : (!canInteract && p.status === "rejected" ? `<div class="foot"><span class="meta">未通过，仅自己可见</span></div>` : "");
     return `<div class="post-card" data-id="${p.id}">
       <div class="band"></div>
       <div class="inner">
@@ -1368,6 +1445,7 @@ button { cursor: pointer; }
             </div>
             <div class="sub-row">
               <span class="tag ${st.cls}">${statusLabel}</span>
+              ${authorHtml(p)}
               <span>${p.time}</span>
               <button type="button" class="hash-tag" data-tag="${escapeAttr(p.tag)}">#${escapeHtml(p.tag)}</button>
             </div>
@@ -1375,7 +1453,6 @@ button { cursor: pointer; }
           ${canInteract ? actLikeBtn(p.id, heat, liked) : ""}
         </div>
         ${p.status === "rejected" && p.rejectReason ? `<p class="hint" style="margin:0 0 10px">驳回原因：${escapeHtml(p.rejectReason)}（仅自己可见，不推送通知）</p>` : ""}
-        ${p.status === "pending" ? `<p class="hint" style="margin:0 0 10px">审核通过后才会出现在公开墙上</p>` : ""}
         ${canInteract ? commentsPreview(p) : ""}
         ${footExtra}
       </div>
@@ -1384,7 +1461,7 @@ button { cursor: pointer; }
 
   function wishStatusMeta(status) {
     const map = {
-      pending: { label: "待审核", cls: "pending" },
+      pending: { label: "征集中", cls: "warn" },
       collecting: { label: "征集投票中", cls: "warn" },
       arranged: { label: "已安排", cls: "ok" },
       rejected: { label: "已驳回", cls: "reject" }
@@ -1469,7 +1546,8 @@ button { cursor: pointer; }
     let list = posts.filter((p) => {
       if (p.type === "vote") return true;
       if (p.type !== "wish") return false;
-      return p.status === "collecting" || p.status === "arranged";
+      /* 公开墙：已征集 / 已安排；本人 pending 预上墙（仅自己可见） */
+      return p.status === "collecting" || p.status === "arranged" || (p.status === "pending" && p.mine);
     });
     if (state.wallFilter === "wish") list = sortPosts(list.filter((p) => p.type === "wish"));
     else if (state.wallFilter === "vote") list = sortPosts(list.filter((p) => p.type === "vote"));
@@ -1533,6 +1611,7 @@ button { cursor: pointer; }
             </div>
             <div class="sub-row">
               <span class="tag ${vst.cls}">${vst.label}</span>
+              ${authorHtml(p)}
               <span>${p.time}</span>
               <button type="button" class="hash-tag" data-tag="${escapeAttr(p.tag)}">#${escapeHtml(p.tag)}</button>
             </div>
@@ -1553,6 +1632,7 @@ button { cursor: pointer; }
             </div>
             <div class="sub-row">
               <span class="tag ${st.cls}">${statusLabel}</span>
+              ${authorHtml(p)}
               <span>${p.time}</span>
               <button type="button" class="hash-tag" data-tag="${escapeAttr(p.tag)}">#${escapeHtml(p.tag)}</button>
             </div>
@@ -1563,8 +1643,7 @@ button { cursor: pointer; }
           const a = ARTICLES.find((x) => x.id === p.articleId);
           return `<div class="dream-cta">
             <div class="dream-lab">圆梦内容已上线</div>
-            <p class="dream-title">${escapeHtml(a ? a.title : "相关内容")}</p>
-            <button type="button" class="btn primary dream-btn" data-detail="${p.articleId}">看圆梦内容</button>
+            <button type="button" class="dream-title" data-detail="${p.articleId}">${escapeHtml(a ? a.title : "相关内容")}</button>
           </div>`;
         })() : ""}`;
     }
@@ -1605,7 +1684,7 @@ button { cursor: pointer; }
       const list = posts.filter((p) => p.mine);
       html = list.length
         ? list.map(postCard).join("")
-        : `<div class="empty"><h3>还没有求过瓜</h3><button class="btn primary" data-go="compose">去求瓜</button></div>`;
+        : `<div class="empty"><h3>还没有求过瓜</h3><button type="button" class="btn primary" data-compose-wish="">去求瓜</button></div>`;
     } else if (tab === "vote") {
       const rows = Object.keys(state.voted).map((vid) => {
         const v = findVote(vid);
@@ -1797,7 +1876,6 @@ button { cursor: pointer; }
       search: "view-search",
       detail: "view-detail",
       wall: "view-wall",
-      compose: "view-compose",
       vote: "view-vote",
       post: "view-post",
       tag: "view-tag",
@@ -1807,6 +1885,12 @@ button { cursor: pointer; }
     Object.values(map).forEach((id) => $("#" + id).classList.add("hidden"));
     const id = map[state.view] || "view-home";
     $("#" + id).classList.remove("hidden");
+    const fabOn = state.view === "wall" || state.view === "mine";
+    const fabDock = $("#composeFabDock");
+    if (fabDock) {
+      fabDock.classList.toggle("hidden", !fabOn);
+      fabDock.setAttribute("aria-hidden", fabOn ? "false" : "true");
+    }
     $$(".nav a").forEach((a) => a.classList.toggle("on", a.dataset.go === state.view || (state.view === "wall" && a.classList.contains("wish-entry"))));
     $$(".demo-rail .chip[data-go]").forEach((c) => {
       const go = c.dataset.go;
@@ -1848,43 +1932,45 @@ button { cursor: pointer; }
     return tags.slice(0, 4);
   }
 
-  function renderAiTags(loading) {
-    const box = $("#wishTagBox");
-    if (loading) {
-      box.innerHTML = '<span class="ai-spin">AI 识别标签中…</span>';
-      return;
-    }
-    if (!state.aiTags.length) {
-      box.innerHTML = '<span class="ai-empty">输入求瓜内容后，AI 会自动识别艺人 / 事件标签</span>';
-      return;
-    }
-    box.innerHTML = state.aiTags.map((t) => `<span class="ai-tag">#${escapeHtml(t)}</span>`).join("")
-      + '<span class="ai-empty" style="margin-left:4px">AI 生成</span>';
+  function updateWishCharCount() {
+    const el = $("#wishText");
+    const count = $("#wishCharCount");
+    if (!el || !count) return;
+    const n = el.value.length;
+    count.textContent = `${n} / 120`;
+    count.classList.toggle("bad", n > 0 && n < 5);
   }
 
-  let tagTimer = null;
-  function scheduleTagRecognize() {
-    clearTimeout(tagTimer);
-    const text = $("#wishText").value.trim();
-    if (text.length < 2) {
-      state.aiTags = [];
-      renderAiTags(false);
-      return;
-    }
-    renderAiTags(true);
-    tagTimer = setTimeout(() => {
-      state.aiTags = recognizeWishTags(text);
-      renderAiTags(false);
-    }, 450);
+  function closeComposeModal() {
+    $("#composeModal").classList.add("hidden");
+    $("#composeConfirmModal").classList.add("hidden");
   }
 
   function openComposeWish(q) {
     if (!requireLogin(() => openComposeWish(q))) return;
-    go("compose");
     $("#wishText").value = q ? `想看关于「${q}」的完整盘点 / 复盘` : "";
-    state.aiTags = [];
-    renderAiTags(false);
-    if ($("#wishText").value.trim()) scheduleTagRecognize();
+    if ($("#wishAnon")) $("#wishAnon").checked = false;
+    updateWishCharCount();
+    $("#composeModal").classList.remove("hidden");
+  }
+
+  function doComposeSubmit() {
+    const text = $("#wishText").value.trim();
+    if (text.length < 5) return toast("请至少写 5 个字");
+    if (text.length > 120) return toast("最多 120 个字");
+    const tags = recognizeWishTags(text);
+    const tag = tags[0] || "未分类";
+    const anonymous = !!($("#wishAnon") && $("#wishAnon").checked);
+    posts.unshift({
+      id: "w" + Date.now(), type: "wish", text, tag, tags,
+      likes: 0, status: "pending",
+      mine: true, time: "刚刚", comments: [],
+      anonymous,
+      user: anonymous ? "匿名" : "我"
+    });
+    closeComposeModal();
+    toast("发布成功");
+    go("wall");
   }
 
   document.addEventListener("click", (e) => {
@@ -1892,7 +1978,10 @@ button { cursor: pointer; }
     if (goEl) {
       e.preventDefault();
       const target = goEl.dataset.go;
-      if (target === "compose" && !requireLogin(() => go("compose"))) return;
+      if (target === "compose") {
+        openComposeWish("");
+        return;
+      }
       go(target);
       return;
     }
@@ -1975,22 +2064,25 @@ button { cursor: pointer; }
     }
   });
 
-  $("#wishText").addEventListener("input", scheduleTagRecognize);
+  $("#wishText").addEventListener("input", updateWishCharCount);
 
+  $("#composeCancel").addEventListener("click", closeComposeModal);
   $("#composeSubmit").addEventListener("click", () => {
     if (!requireLogin(() => $("#composeSubmit").click())) return;
     const text = $("#wishText").value.trim();
     if (text.length < 5) return toast("请至少写 5 个字");
-    if (!state.aiTags.length) state.aiTags = recognizeWishTags(text);
-    const tag = state.aiTags[0] || "未分类";
-    posts.unshift({
-      id: "w" + Date.now(), type: "wish", text, tag, tags: state.aiTags.slice(),
-      likes: 0, status: "pending",
-      mine: true, time: "刚刚", comments: []
-    });
-    toast("提交成功，标签已由 AI 识别；状态为待审核");
-    state.mineTab = "wish";
-    go("mine");
+    if (text.length > 120) return toast("最多 120 个字");
+    $("#composeConfirmModal").classList.remove("hidden");
+  });
+  $("#composeConfirmCancel").addEventListener("click", () => {
+    $("#composeConfirmModal").classList.add("hidden");
+  });
+  $("#composeConfirmOk").addEventListener("click", () => {
+    $("#composeConfirmModal").classList.add("hidden");
+    doComposeSubmit();
+  });
+  $("#composeModal").addEventListener("click", (e) => {
+    if (e.target.id === "composeModal") closeComposeModal();
   });
 
   $("#searchBtn").addEventListener("click", () => {
