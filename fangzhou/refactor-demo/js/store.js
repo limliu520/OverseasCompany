@@ -283,6 +283,8 @@
           title: "@pool_source_alpha",
           botId: "bot_demo_pool",
           role: "collect",
+          healthStatus: "OK",
+          healthError: "",
           note: ""
         },
         {
@@ -290,6 +292,8 @@
           title: "@pool_source_beta",
           botId: "bot_demo_pool",
           role: "collect",
+          healthStatus: "UNKNOWN",
+          healthError: "成员校验超时，结果无法判定",
           note: ""
         },
         {
@@ -297,6 +301,8 @@
           title: "@pool_target_one",
           botId: "bot_demo_pool",
           role: "push",
+          healthStatus: "OK",
+          healthError: "",
           note: ""
         },
         {
@@ -304,6 +310,8 @@
           title: "@pool_target_two",
           botId: "bot_demo_pool",
           role: "push",
+          healthStatus: "BROKEN",
+          healthError: "本采集号已不在频道内（not a member）",
           note: ""
         },
         {
@@ -311,6 +319,8 @@
           title: "@pool_backup_src",
           botId: "bot_demo_pool_b",
           role: "collect",
+          healthStatus: "OK",
+          healthError: "",
           note: ""
         },
         {
@@ -318,6 +328,8 @@
           title: "@pool_backup_out",
           botId: "bot_demo_pool_b",
           role: "push",
+          healthStatus: "",
+          healthError: "",
           note: ""
         }
       ],
@@ -403,6 +415,8 @@
           title: "@demo_channel_a",
           botId: "bot_demo_free",
           role: "collect",
+          healthStatus: "OK",
+          healthError: "",
           note: ""
         },
         {
@@ -410,6 +424,8 @@
           title: "@demo_channel_b",
           botId: "bot_demo_free",
           role: "collect",
+          healthStatus: "BROKEN",
+          healthError: "连续拉取失败：采集号已不在频道内（not a member）",
           note: ""
         }
       ]
@@ -756,6 +772,13 @@
             role: i % 4 === 0 ? "push" : "collect",
             active: true,
             boundAt: Date.now() - (40 - i) * 60000,
+            healthStatus: i % 7 === 0 ? "BROKEN" : i % 5 === 0 ? "UNKNOWN" : i % 11 === 0 ? "" : "OK",
+            healthError:
+              i % 7 === 0
+                ? "本采集号已不在频道内（not a member）"
+                : i % 5 === 0
+                  ? "成员校验超时，结果无法判定"
+                  : "",
             note: "演示填充"
           });
           onBot += 1;
@@ -799,6 +822,8 @@
             role: "",
             active: false,
             boundAt: Date.now(),
+            healthStatus: "OK",
+            healthError: "",
             note: "拉取待分配"
           });
           changed = true;
@@ -835,7 +860,7 @@
         });
       }
     });
-    /* 全项目频道补 active / boundAt；业务项目禁止分发角色 */
+    /* 全项目频道补 active / boundAt / 成员校验态；业务项目禁止分发角色 */
     (state.projects || []).forEach(function (p) {
       var pool = isPublicPool(p);
       (p.boundChannels || []).forEach(function (ch, idx) {
@@ -849,6 +874,47 @@
         }
         if (ch.boundAt == null) {
           ch.boundAt = Date.now() - ((p.boundChannels || []).length - idx) * 1000;
+          changed = true;
+        }
+        /* 频道成员校验（号是否在频道内）；与路由 health 语义不同 */
+        if (!Object.prototype.hasOwnProperty.call(ch, "healthStatus")) {
+          if (ch.id === "ch_demo_b" || ch.id === "ch_pool_t2") {
+            ch.healthStatus = "BROKEN";
+            ch.healthError = "本采集号已不在频道内（not a member）";
+          } else if (ch.id === "ch_demo_a" || ch.id === "ch_pool_src") {
+            ch.healthStatus = "OK";
+            ch.healthError = "";
+          } else if (ch.id === "ch_pool_src_beta") {
+            ch.healthStatus = "UNKNOWN";
+            ch.healthError = "成员校验超时，结果无法判定";
+          } else if (ch.id === "ch_pool_b_out") {
+            ch.healthStatus = "";
+            ch.healthError = "";
+          } else if (String(ch.id || "").indexOf("ch_pool_fill_") === 0) {
+            var fillN =
+              parseInt(String(ch.id).replace("ch_pool_fill_", ""), 10) || 0;
+            ch.healthStatus =
+              fillN % 7 === 0
+                ? "BROKEN"
+                : fillN % 5 === 0
+                  ? "UNKNOWN"
+                  : fillN % 11 === 0
+                    ? ""
+                    : "OK";
+            ch.healthError =
+              ch.healthStatus === "BROKEN"
+                ? "本采集号已不在频道内（not a member）"
+                : ch.healthStatus === "UNKNOWN"
+                  ? "成员校验超时，结果无法判定"
+                  : "";
+          } else {
+            ch.healthStatus = "OK";
+            ch.healthError = "";
+          }
+          changed = true;
+        }
+        if (ch.healthError == null) {
+          ch.healthError = "";
           changed = true;
         }
       });
@@ -1322,6 +1388,8 @@
         role: role,
         active: !!role,
         boundAt: Date.now(),
+        healthStatus: "OK",
+        healthError: "",
         note: "拉取同步"
       });
       if (role === "collect" && !isPool) project.hasCollectSource = true;
@@ -1593,9 +1661,8 @@
     { id: "workbench", name: "工作台" },
     { id: "project_manage", name: "创建/管理项目" },
     { id: "project_config", name: "项目配置" },
-    { id: "collect_web", name: "网站采集" },
-    { id: "collect_tg", name: "TG 采集" },
-    { id: "collect_web", name: "网站采集" },
+    { id: "collect_tg", name: "TG 采集配置" },
+    { id: "collect_web", name: "网站采集配置" },
     { id: "collect_materials", name: "素材管理" },
     { id: "review_material", name: "素材审核" },
     { id: "edit_article", name: "文章管理" },

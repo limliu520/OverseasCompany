@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>文章管理 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261028artact1" />
+  <link rel="stylesheet" href="../css/app.css?v=20261029fabDrag" />
 </head>
 <body>
   <div class="app">
@@ -14,43 +14,45 @@
         <h1>文章管理</h1>
         <div class="topbar-actions" id="top-user"></div>
       </div>
-      <div class="content">
-        <p class="muted" style="margin:0 0 12px;font-size:13px">
-          瓜站 / 视频站内容通道文章。短剧不进本列表。操作人：人工记子账号昵称或主号「昵称（主）」；自动记「自动」。可预览行整行点击预览；素材 ID 可点。
-        </p>
-        <div class="list-toolbar">
-          <div class="list-toolbar-row">
-            <select class="input" id="art-f-project" aria-label="项目"></select>
-            <select class="input" id="art-f-status" aria-label="状态"></select>
-            <input class="input" id="art-f-id" inputmode="numeric" placeholder="文章 ID" aria-label="文章 ID" style="max-width:120px" />
-            <input class="input" id="art-f-title" placeholder="搜索标题…" aria-label="标题" style="max-width:200px" />
-            <input class="input" id="art-f-op" placeholder="操作人" aria-label="操作人" style="max-width:120px" />
-            <div class="list-toolbar-actions">
-              <button type="button" class="btn" id="art-f-search">搜索</button>
-              <button type="button" class="btn btn-ghost" id="art-f-clear">清空筛选</button>
-              <button type="button" class="btn btn-ghost" id="art-f-refresh">刷新</button>
+      <div class="content content--dock-pager">
+        <div class="page-scroll">
+          <p class="muted" style="margin:0 0 12px;font-size:13px">
+            瓜站 / 视频站内容通道文章。短剧不进本列表。操作人：人工记子账号昵称或主号「昵称（主）」；自动记「自动」。可预览行整行点击预览；素材 ID 可点。
+          </p>
+          <div class="list-toolbar">
+            <div class="list-toolbar-row">
+              <select class="input" id="art-f-project" aria-label="项目"></select>
+              <select class="input" id="art-f-status" aria-label="状态"></select>
+              <input class="input" id="art-f-id" inputmode="numeric" placeholder="文章 ID" aria-label="文章 ID" style="max-width:120px" />
+              <input class="input" id="art-f-title" placeholder="搜索标题…" aria-label="标题" style="max-width:200px" />
+              <input class="input" id="art-f-op" placeholder="操作人" aria-label="操作人" style="max-width:120px" />
+              <div class="list-toolbar-actions">
+                <button type="button" class="btn" id="art-f-search">搜索</button>
+                <button type="button" class="btn btn-ghost" id="art-f-clear">清空筛选</button>
+                <button type="button" class="btn btn-ghost" id="art-f-refresh">刷新</button>
+              </div>
             </div>
           </div>
+          <div class="card" style="padding:0;overflow:auto">
+            <table class="fz-table fz-table--art">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th class="th-title">标题</th>
+                  <th>项目</th>
+                  <th>素材 ID</th>
+                  <th>状态</th>
+                  <th>异常</th>
+                  <th>操作人</th>
+                  <th>时间</th>
+                  <th class="th-actions">操作</th>
+                </tr>
+              </thead>
+              <tbody id="art-tbody"></tbody>
+            </table>
+          </div>
         </div>
-        <div class="card" style="padding:0;overflow:auto">
-          <table class="fz-table fz-table--art">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th class="th-title">标题</th>
-                <th>项目</th>
-                <th>素材 ID</th>
-                <th>状态</th>
-                <th>异常</th>
-                <th>操作人</th>
-                <th>时间</th>
-                <th class="th-actions">操作</th>
-              </tr>
-            </thead>
-            <tbody id="art-tbody"></tbody>
-          </table>
-        </div>
-        <div id="art-pager"></div>
+        <div class="pager-dock" id="art-pager"></div>
       </div>
     </div>
   </div>
@@ -135,7 +137,7 @@
   </div>
 
   <script src="../js/store.js?v=20261028artact4"></script>
-  <script src="../js/shell.js?v=20261028artact4"></script>
+  <script src="../js/shell.js?v=20261029fabDrag"></script>
   <script src="../js/pager.js?v=20261027pager"></script>
   <script src="../js/articles-data.js?v=20261028artact5"></script>
   <script src="../js/materials-data.js?v=20261028artact1"></script>

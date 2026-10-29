@@ -107,6 +107,8 @@ window.FZTgCollectModal = (function () {
       role: role,
       active: true,
       boundAt: Date.now(),
+      healthStatus: "OK",
+      healthError: "",
       note: ""
     });
     if (role === "collect") c.hasCollectSource = true;

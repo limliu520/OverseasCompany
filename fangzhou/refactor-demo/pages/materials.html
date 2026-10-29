@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>素材管理 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261028linear2" />
+  <link rel="stylesheet" href="../css/app.css?v=20261029fabDrag" />
 </head>
 <body>
   <div class="app">
@@ -14,11 +14,14 @@
         <h1>素材管理</h1>
         <div class="topbar-actions" id="top-user"></div>
       </div>
-      <div class="content">
-        <div class="seg-tabs collect-status-tabs" id="mat-tabs" role="tablist"></div>
-        <div class="mat-v2-scopes" id="mat-scopes" hidden role="tablist" aria-label="全部素材范围"></div>
-        <div class="list-toolbar" id="mat-toolbar"></div>
-        <div id="mat-root"><p class="muted">加载中…</p></div>
+      <div class="content content--dock-pager">
+        <div class="page-scroll">
+          <div class="seg-tabs collect-status-tabs" id="mat-tabs" role="tablist"></div>
+          <div class="mat-v2-scopes" id="mat-scopes" hidden role="tablist" aria-label="全部素材范围"></div>
+          <div class="list-toolbar" id="mat-toolbar"></div>
+          <div id="mat-root"><p class="muted">加载中…</p></div>
+        </div>
+        <div class="pager-dock" id="mat-pager"></div>
       </div>
     </div>
   </div>
@@ -111,7 +114,7 @@
   </div>
 
   <script src="../js/store.js?v=20261027botName"></script>
-  <script src="../js/shell.js?v=20261027reviewCtr"></script>
+  <script src="../js/shell.js?v=20261029fabDrag"></script>
   <script src="../js/pager.js?v=20261027pager"></script>
   <script src="../js/materials-data.js?v=20261028listreset1"></script>
   <script src="../js/materials-filters.js?v=20261027bulk"></script>
@@ -119,6 +122,6 @@
   <script src="../js/materials-media.js?v=20261027noMsg"></script>
   <script src="../js/materials-detail.js?v=20261027disp1"></script>
   <script src="../js/materials-transfer.js?v=20261028projType"></script>
-  <script src="../js/materials-app.js?v=20261028listreset1"></script>
+  <script src="../js/materials-app.js?v=20261029pagerDock2"></script>
 </body>
 </html>

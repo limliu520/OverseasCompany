@@ -270,10 +270,6 @@ window.FZWebCollectRender = (function () {
         );
       })
       .join("");
-    var pager =
-      pagerOpts && window.FZPager
-        ? window.FZPager.html(pagerOpts)
-        : "";
     return (
       '<div class="table-card table-card--wide"><table class="fz-table fz-table--compact wc-records-table"><thead><tr>' +
       "<th>ID</th><th>采集时间</th><th>目标站名</th><th>标题</th><th>链接</th>" +
@@ -281,9 +277,13 @@ window.FZWebCollectRender = (function () {
       "<th>采集耗时</th><th>处理耗时</th><th>进度</th><th>状态</th><th>操作</th>" +
       "</tr></thead><tbody>" +
       rows +
-      "</tbody></table></div>" +
-      pager
+      "</tbody></table></div>"
     );
+  }
+
+  function recordsPager(pagerOpts) {
+    if (!pagerOpts || !window.FZPager) return "";
+    return window.FZPager.html(pagerOpts);
   }
 
   function progressBody(r) {
@@ -339,6 +339,7 @@ window.FZWebCollectRender = (function () {
     sites: sites,
     filters: filters,
     records: records,
+    recordsPager: recordsPager,
     progressBody: progressBody,
     statusLabel: function (k) {
       return (D.STATUS[k] || {}).label || k;

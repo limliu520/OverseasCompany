@@ -123,7 +123,7 @@
       children: [
         {
           id: "c_tg",
-          label: "TG 采集",
+          label: "TG 采集配置",
           href: "pages/tg-collect.html",
           done: true,
           need: "collect.tg.view",
@@ -132,7 +132,7 @@
         },
         {
           id: "c_web",
-          label: "网站采集",
+          label: "网站采集配置",
           href: "pages/website-collect.html",
           done: true,
           need: "collect.web.view",
@@ -410,7 +410,7 @@
       }
     }
     if (global.FZHelpCenter) mountHelp();
-    else loadScriptOnce("js/help-center.js?v=20261029wb27", mountHelp);
+    else loadScriptOnce("js/help-center.js?v=20261029fabDrag", mountHelp);
   }
 
   global.FZShell = {
@@ -421,6 +421,7 @@
     requireAuth: requireAuth,
     logout: logout,
     boot: boot,
+    loadScriptOnce: loadScriptOnce,
     getNav: function () {
       return NAV;
     }

@@ -13,6 +13,7 @@
   var routeHealth = "";
   var chQuery = "";
   var chRole = "all";
+  var chStatus = "";
   var chPage = 1;
 
   function resetFilters() {
@@ -20,6 +21,7 @@
     routeHealth = "";
     chQuery = "";
     chRole = "all";
+    chStatus = "";
     chPage = 1;
   }
 
@@ -66,6 +68,7 @@
       routeHealth: routeHealth,
       chQuery: chQuery,
       chRole: chRole,
+      chStatus: chStatus,
       chPage: chPage
     });
 
@@ -121,14 +124,20 @@
     }
     var healthBtn = e.target.closest("[data-route-health]");
     if (healthBtn) {
-      var nextH = healthBtn.getAttribute("data-route-health") || "";
-      routeHealth = routeHealth === nextH ? "" : nextH;
+      routeHealth = healthBtn.getAttribute("data-route-health") || "";
       paint();
       return;
     }
     var filterBtn = e.target.closest("[data-ch-filter]");
     if (filterBtn) {
       chRole = filterBtn.getAttribute("data-ch-filter") || "all";
+      chPage = 1;
+      paint();
+      return;
+    }
+    var chStatusBtn = e.target.closest("[data-ch-status]");
+    if (chStatusBtn) {
+      chStatus = chStatusBtn.getAttribute("data-ch-status") || "";
       chPage = 1;
       paint();
       return;

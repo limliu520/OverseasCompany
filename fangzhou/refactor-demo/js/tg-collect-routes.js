@@ -166,44 +166,42 @@ window.FZTgCollectRoutes = (function () {
   }
 
   function healthChips(allEdges, active) {
-    /* 对齐现网路由体检：OK / BROKEN / UNKNOWN / 未检查 */
+    /* 对齐现网路由体检：OK / BROKEN / UNKNOWN / 未检查；控件样式与已挂频道筛选一致 */
     var chips = [
-      { id: "", icon: "全部", label: "全部" },
-      { id: "OK", icon: "✓", label: "正常" },
-      { id: "BROKEN", icon: "✗", label: "异常" },
-      { id: "UNKNOWN", icon: "?", label: "未知" },
-      { id: "UNCHECKED", icon: "○", label: "未检查" }
+      { id: "", label: "全部" },
+      { id: "OK", label: "正常" },
+      { id: "BROKEN", label: "异常" },
+      { id: "UNKNOWN", label: "未知" },
+      { id: "UNCHECKED", label: "未检查" }
     ];
     var seg =
-      '<div class="tg-route-health-seg" role="group" aria-label="路由健康筛选">' +
+      '<div class="tg-filter-seg" role="group" aria-label="路由健康筛选">' +
       chips
         .map(function (c) {
           var on = (active || "") === c.id;
           return (
-            '<button type="button" class="tg-route-health-chip' +
+            '<button type="button" class="btn btn-sm' +
             (on ? " is-active" : "") +
             '" data-route-health="' +
             esc(c.id) +
-            '" aria-label="' +
-            esc(c.label) +
             '">' +
-            c.icon +
+            esc(c.label) +
             "</button>"
           );
         })
         .join("") +
       "</div>";
     var tip =
-      '<span class="field-tip tg-route-health-tip" tabindex="0" aria-label="健康状态说明">' +
+      '<span class="field-tip tg-filter-tip" tabindex="0" aria-label="健康状态说明">' +
       '<span class="field-tip-ico" aria-hidden="true">?</span>' +
       '<span class="field-tip-bubble" role="tooltip">' +
       "全部：不按健康状态过滤。<br>" +
-      "✓ 正常：分发号能读到源频道，可正常转发。<br>" +
-      "✗ 异常：分发号无法读取源频道（如被踢、无权限），转发受影响。<br>" +
-      "? 未知：已体检但无法判定（如临时超时、目标未绑定号），不等于正常。<br>" +
-      "○ 未检查：尚未做过健康体检，或新建后未轮到检查。" +
+      "正常：分发号能读到源频道，可正常转发。<br>" +
+      "异常：分发号无法读取源频道（如被踢、无权限），转发受影响。<br>" +
+      "未知：已体检但无法判定（如临时超时、目标未绑定号），不等于正常。<br>" +
+      "未检查：尚未做过健康体检，或新建后未轮到检查。" +
       "</span></span>";
-    return '<div class="tg-route-health-wrap">' + seg + tip + "</div>";
+    return '<div class="tg-filter-with-tip">' + seg + tip + "</div>";
   }
 
   function panel(ctx, bot, connected, opts) {
@@ -226,7 +224,7 @@ window.FZTgCollectRoutes = (function () {
       ">+ 新建路由</button></div></div>" +
       '<div class="tg-route-toolbar">' +
       '<span class="muted">列表展示</span>' +
-      '<div class="tg-route-view-seg" role="group" aria-label="路由列表视角">' +
+      '<div class="tg-filter-seg" role="group" aria-label="路由列表视角">' +
       '<button type="button" class="btn btn-sm' +
       (view === "by_source" ? " is-active" : "") +
       '" data-route-view="by_source">按采集</button>' +

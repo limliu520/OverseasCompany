@@ -49,11 +49,17 @@
     var slice = P.slice(all, page, pageSize);
     page = slice.page;
     pageSize = slice.pageSize;
-    document.getElementById("wc-records").innerHTML = R.records(slice.items, {
-      total: slice.total,
-      page: slice.page,
-      pageSize: slice.pageSize
-    });
+    document.getElementById("wc-records").innerHTML = R.records(slice.items);
+    var pagerEl = document.getElementById("wc-pager");
+    if (pagerEl) {
+      pagerEl.innerHTML = slice.total
+        ? R.recordsPager({
+            total: slice.total,
+            page: slice.page,
+            pageSize: slice.pageSize
+          })
+        : "";
+    }
     scheduleRefresh(all);
   }
 
@@ -171,7 +177,7 @@
         paintRecords();
       }
     });
-    P.bind(document.getElementById("wc-records"), {
+    P.bind(document.getElementById("wc-pager"), {
       getState: function () {
         return { page: page, pageSize: pageSize };
       },

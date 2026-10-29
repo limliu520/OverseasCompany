@@ -14,16 +14,37 @@ window.FZTgCollectChannels = (function () {
     return c && c.role === "push" ? "push" : c && c.role === "collect" ? "collect" : "";
   }
 
+  function healthOf(c) {
+    return c && c.healthStatus ? c.healthStatus : "";
+  }
+
+  function isEnabled(c) {
+    var r = roleOf(c);
+    return !!r && c.active !== false;
+  }
+
+  function matchStatus(c, status) {
+    if (!status) return true;
+    if (status === "on") return isEnabled(c);
+    if (status === "off") return !!roleOf(c) && c.active === false;
+    if (status === "BROKEN") return healthOf(c) === "BROKEN";
+    if (status === "UNKNOWN") return healthOf(c) === "UNKNOWN";
+    if (status === "UNCHECKED") return !healthOf(c);
+    return true;
+  }
+
   function filterList(chs, opts) {
     var q = String((opts && opts.q) || "")
       .trim()
       .toLowerCase();
     var role = (opts && opts.role) || "all";
+    var status = (opts && opts.status) || "";
     var list = (chs || []).filter(function (c) {
       var r = roleOf(c);
       if (role === "collect" && r !== "collect") return false;
       if (role === "push" && r !== "push") return false;
       if (role === "unassigned" && r) return false;
+      if (!matchStatus(c, status)) return false;
       if (!q) return true;
       return String(c.title || c.id)
         .toLowerCase()
@@ -34,6 +55,81 @@ window.FZTgCollectChannels = (function () {
       return (b.boundAt || 0) - (a.boundAt || 0);
     });
     return list;
+  }
+
+  function filterGroup(label, aria, chips, active, attr) {
+    var seg =
+      '<div class="tg-ch-filter-group">' +
+      '<span class="tg-ch-filter-lab">' +
+      esc(label) +
+      "</span>" +
+      '<div class="tg-filter-seg" role="group" aria-label="' +
+      esc(aria) +
+      '">' +
+      chips
+        .map(function (c) {
+          var on = (active || "") === c.id;
+          return (
+            '<button type="button" class="btn btn-sm' +
+            (on ? " is-active" : "") +
+            '" ' +
+            attr +
+            '="' +
+            esc(c.id) +
+            '">' +
+            esc(c.label) +
+            "</button>"
+          );
+        })
+        .join("") +
+      "</div></div>";
+    return seg;
+  }
+
+  function typeFilter(active, isPool) {
+    if (!isPool) return "";
+    return filterGroup(
+      "类型",
+      "频道类型筛选",
+      [
+        { id: "all", label: "全部" },
+        { id: "unassigned", label: "未分配" },
+        { id: "collect", label: "采集" },
+        { id: "push", label: "分发" }
+      ],
+      active || "all",
+      "data-ch-filter"
+    );
+  }
+
+  function statusFilter(active) {
+    var tip =
+      '<span class="field-tip tg-filter-tip" tabindex="0" aria-label="状态筛选说明">' +
+      '<span class="field-tip-ico" aria-hidden="true">?</span>' +
+      '<span class="field-tip-bubble" role="tooltip">' +
+      "启用 / 停用：已分配用途频道的开关。<br>" +
+      "异常 / 未知 / 未检查：本采集号是否仍在频道内的校验结果。<br>" +
+      "与下方路由筛选不同：路由是「分发号能否读源」。" +
+      "</span></span>";
+    return (
+      '<div class="tg-filter-with-tip tg-ch-status-wrap">' +
+      filterGroup(
+        "状态",
+        "频道状态筛选",
+        [
+          { id: "", label: "全部" },
+          { id: "on", label: "启用" },
+          { id: "off", label: "停用" },
+          { id: "BROKEN", label: "异常" },
+          { id: "UNKNOWN", label: "未知" },
+          { id: "UNCHECKED", label: "未检查" }
+        ],
+        active || "",
+        "data-ch-status"
+      ) +
+      tip +
+      "</div>"
+    );
   }
 
   function roleCell(c, isPool) {
@@ -47,6 +143,38 @@ window.FZTgCollectChannels = (function () {
       '">' +
       (r === "push" ? "分发" : "采集") +
       "</span>"
+    );
+  }
+
+  /** 频道成员校验（号是否仍在频道内）；与路由「分发号能否读源」不同 */
+  function healthBadge(c) {
+    var st = c && c.healthStatus ? c.healthStatus : "";
+    var meta =
+      st === "OK"
+        ? { icon: "✓", cls: "is-ok", tip: "正常：本采集号仍在频道内，可监听 / 拉取" }
+        : st === "BROKEN"
+          ? {
+              icon: "✗",
+              cls: "is-broken",
+              tip: (c && c.healthError) || "异常：本采集号已不在频道内（not a member）"
+            }
+          : st === "UNKNOWN"
+            ? {
+                icon: "?",
+                cls: "is-unknown",
+                tip: (c && c.healthError) || "未知：已体检但结果无法判定"
+              }
+            : { icon: "○", cls: "is-unchecked", tip: "未检查：尚未做过成员校验" };
+    return (
+      '<span class="tg-route-health tg-ch-health ' +
+      meta.cls +
+      '" tabindex="0" aria-label="' +
+      esc(meta.tip) +
+      '">' +
+      meta.icon +
+      '<span class="tg-route-health-reason" role="tooltip">' +
+      esc(meta.tip) +
+      "</span></span>"
     );
   }
 
@@ -90,6 +218,7 @@ window.FZTgCollectChannels = (function () {
               : "") +
             '><span class="tg-ch-grid-main">' +
             roleCell(c, isPool) +
+            healthBadge(c) +
             '<span class="tg-ch-grid-title">' +
             '<span class="tg-ch-grid-title-text">' +
             esc(c.title) +
@@ -169,24 +298,10 @@ window.FZTgCollectChannels = (function () {
       '<div class="tg-ch-toolbar">' +
       '<input type="search" class="input tg-ch-search" id="tg-ch-search" placeholder="搜索频道…" value="' +
       esc(opts.q || "") +
-      '" />';
-    if (isPool) {
-      html +=
-        '<div class="tg-ch-role-seg" role="group">' +
-        '<button type="button" class="btn btn-sm' +
-        (role === "all" ? " is-active" : "") +
-        '" data-ch-filter="all">全部</button>' +
-        '<button type="button" class="btn btn-sm' +
-        (role === "unassigned" ? " is-active" : "") +
-        '" data-ch-filter="unassigned">未分配</button>' +
-        '<button type="button" class="btn btn-sm' +
-        (role === "collect" ? " is-active" : "") +
-        '" data-ch-filter="collect">采集</button>' +
-        '<button type="button" class="btn btn-sm' +
-        (role === "push" ? " is-active" : "") +
-        '" data-ch-filter="push">分发</button></div>';
-    }
-    html += "</div>";
+      '" />' +
+      statusFilter(opts.status || "") +
+      typeFilter(role, !!isPool) +
+      "</div>";
 
     if (!chs.length) {
       html +=

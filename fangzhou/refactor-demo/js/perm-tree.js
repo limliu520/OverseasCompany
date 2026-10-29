@@ -45,8 +45,8 @@
       id: "collect",
       label: "采集中心",
       children: [
-        leaf("collect.tg", "TG 采集", ["view", "create", "edit", "delete"]),
-        leaf("collect.web", "网站采集", ["view", "create", "edit", "delete", "enable"]),
+        leaf("collect.tg", "TG 采集配置", ["view", "create", "edit", "delete"]),
+        leaf("collect.web", "网站采集配置", ["view", "create", "edit", "delete", "enable"]),
         leaf("collect.materials", "素材管理", ["view", "approve", "edit", "delete"])
       ]
     },

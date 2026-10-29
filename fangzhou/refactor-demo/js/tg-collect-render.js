@@ -171,6 +171,7 @@ window.FZTgCollectRender = (function () {
       FZTgCollectChannels.panel(bot, chs, connected, isPool, {
         q: opts.chQuery,
         role: opts.chRole,
+        status: opts.chStatus,
         page: opts.chPage
       });
     if (chPanel) html += chPanel;

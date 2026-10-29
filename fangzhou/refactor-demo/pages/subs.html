@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>子账号与授权 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261028linear2" />
+  <link rel="stylesheet" href="../css/app.css?v=20261029fabDrag" />
 </head>
 <body>
   <div class="app">
@@ -17,20 +17,22 @@
           <div id="top-user"></div>
         </div>
       </div>
-      <div class="content">
-        <div style="display:flex;gap:4px;margin-bottom:14px">
-          <button type="button" class="btn" id="tab-subs" data-tab="subs">子账号</button>
-          <button type="button" class="btn" id="tab-roles" data-tab="roles">岗位</button>
+      <div class="content content--dock-pager">
+        <div class="page-scroll">
+          <div style="display:flex;gap:4px;margin-bottom:14px">
+            <button type="button" class="btn" id="tab-subs" data-tab="subs">子账号</button>
+            <button type="button" class="btn" id="tab-roles" data-tab="roles">岗位</button>
+          </div>
+          <p class="muted" id="tab-desc" style="margin:0 0 14px"></p>
+          <div class="sub-list-bar" id="sub-list-bar" hidden>
+            <label class="sub-list-filter">
+              <span class="muted">按项目</span>
+              <select id="sub-filter-proj" class="input" aria-label="按项目筛选子账号"></select>
+            </label>
+          </div>
+          <div class="fz-card-grid sub-card-grid" id="list-box"></div>
         </div>
-        <p class="muted" id="tab-desc" style="margin:0 0 14px"></p>
-        <div class="sub-list-bar" id="sub-list-bar" hidden>
-          <label class="sub-list-filter">
-            <span class="muted">按项目</span>
-            <select id="sub-filter-proj" class="input" aria-label="按项目筛选子账号"></select>
-          </label>
-        </div>
-        <div class="fz-card-grid sub-card-grid" id="list-box"></div>
-        <div id="list-pager"></div>
+        <div class="pager-dock" id="list-pager"></div>
       </div>
     </div>
   </div>
@@ -119,7 +121,7 @@
 
   <script src="../js/store.js?v=20261027botName"></script>
   <script src="../js/perm-tree.js?v=20261027reviewCtr"></script>
-  <script src="../js/shell.js?v=20261027reviewCtr"></script>
+  <script src="../js/shell.js?v=20261029fabDrag"></script>
   <script src="../js/pager.js?v=20261027pager"></script>
   <script src="../js/project-union.js?v=20261028subWiz"></script>
   <script src="../js/subs-app.js?v=20261028subWiz"></script>

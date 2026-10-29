@@ -3,36 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>网站采集 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261028linear2" />
+  <title>网站采集配置 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css?v=20261029fabDrag" />
 </head>
 <body>
   <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
       <div class="topbar">
-        <h1>网站采集</h1>
+        <h1>网站采集配置</h1>
         <div class="topbar-actions">
           <button type="button" class="btn btn-primary" id="btn-add-site">+ 添加网站</button>
           <div id="top-user"></div>
         </div>
       </div>
-      <div class="content">
-        <p class="proj-page-lead">
-          上方为站点配置（低频）；点选某站后下方看该站采集记录。一站一种类型，瓜/视频/短剧均可，只绑同类型项目且最多 5 个（承接原外站多选）。状态机与「启动采集」开关分开；同一页面不可进两条配置。
-        </p>
+      <div class="content content--dock-pager">
+        <div class="page-scroll">
+          <p class="proj-page-lead">
+            上方为站点配置（低频）；点选某站后下方看该站采集记录。一站一种类型，瓜/视频/短剧均可，只绑同类型项目且最多 5 个（承接原外站多选）。状态机与「启动采集」开关分开；同一页面不可进两条配置。
+          </p>
 
-        <div class="wc-card-head">
-          <span class="wc-card-head-title">采集配置</span>
-          <span class="muted" style="font-size:12px">一排约 5 张；点卡片筛记录，编辑进弹窗</span>
-        </div>
-        <div class="wc-site-grid" id="wc-sites"></div>
+          <div class="wc-card-head">
+            <span class="wc-card-head-title">采集配置</span>
+            <span class="muted" style="font-size:12px">一排约 5 张；点卡片筛记录，编辑进弹窗</span>
+          </div>
+          <div class="wc-site-grid" id="wc-sites"></div>
 
-        <div class="wc-record-head">
-          <h2 class="wc-section-title" id="wc-record-title">采集记录</h2>
-          <div class="list-toolbar-row" id="wc-filters"></div>
+          <div class="wc-record-head">
+            <h2 class="wc-section-title" id="wc-record-title">采集记录</h2>
+            <div class="list-toolbar-row" id="wc-filters"></div>
+          </div>
+          <div id="wc-records"><p class="muted">加载中…</p></div>
         </div>
-        <div id="wc-records"><p class="muted">加载中…</p></div>
+        <div class="pager-dock" id="wc-pager"></div>
       </div>
     </div>
   </div>
@@ -111,12 +114,12 @@
   </div>
 
   <script src="../js/store.js?v=20261027botName"></script>
-  <script src="../js/shell.js?v=20261027reviewCtr"></script>
+  <script src="../js/shell.js?v=20261029fabDrag"></script>
   <script src="../js/pager.js?v=20261027pager"></script>
   <script src="../js/website-collect-data.js?v=20261028listreset1"></script>
-  <script src="../js/website-collect-render.js?v=20261028wcBind"></script>
+  <script src="../js/website-collect-render.js?v=20261029pagerDock2"></script>
   <script src="../js/website-collect-form.js?v=20261027wc-rules"></script>
   <script src="../js/website-collect-modal.js?v=20261027wc-rules"></script>
-  <script src="../js/website-collect-app.js?v=20261028listreset1"></script>
+  <script src="../js/website-collect-app.js?v=20261029pagerDock2"></script>
 </body>
 </html>

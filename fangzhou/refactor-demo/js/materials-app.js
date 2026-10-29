@@ -240,10 +240,12 @@
       : { items: all, total: all.length, page: 1, pageSize: all.length || 20 };
     page = slice.page;
     pageSize = slice.pageSize;
+    var pagerEl = document.getElementById("mat-pager");
     if (!all.length) {
       clearSelected();
       document.getElementById("mat-root").innerHTML =
         '<div class="empty-dash" style="min-height:120px">当前视图暂无素材</div>';
+      if (pagerEl) pagerEl.innerHTML = "";
       return;
     }
     var sortState =
@@ -261,8 +263,12 @@
           return Tbl.rowHtml(esc, tab, LABEL, m, scopeCtx);
         })
         .join("") +
-      "</tbody></table></div>" +
-      (P ? P.html({ total: slice.total, page: slice.page, pageSize: slice.pageSize }) : "");
+      "</tbody></table></div>";
+    if (pagerEl) {
+      pagerEl.innerHTML = P
+        ? P.html({ total: slice.total, page: slice.page, pageSize: slice.pageSize })
+        : "";
+    }
     syncChecks();
   }
   function applyFiltersAndPaint() {
@@ -334,7 +340,7 @@
       bar._t = setTimeout(applyFiltersAndPaint, 250);
     });
     if (window.FZPager) {
-      window.FZPager.bind(document.getElementById("mat-root"), {
+      window.FZPager.bind(document.getElementById("mat-pager"), {
         getState: function () {
           return { page: page, pageSize: pageSize };
         },

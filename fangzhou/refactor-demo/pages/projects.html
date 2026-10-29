@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>项目管理 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261029wb1" />
+  <link rel="stylesheet" href="../css/app.css?v=20261029fabDrag" />
 </head>
 <body>
   <div class="app">
@@ -17,18 +17,20 @@
           <div id="top-user"></div>
         </div>
       </div>
-      <div class="content">
-        <p class="proj-page-lead">
-          创建时配齐配置 → 开发接入；接通后即完成。「项目详情」可改信息与查看对接材料；待接通另有对接入口。
-        </p>
-        <div class="proj-list fz-card-grid" id="project-list"></div>
-        <div id="project-pager"></div>
+      <div class="content content--dock-pager">
+        <div class="page-scroll">
+          <p class="proj-page-lead">
+            创建时配齐配置 → 开发接入；接通后即完成。「项目详情」可改信息与查看对接材料；待接通另有对接入口。
+          </p>
+          <div class="proj-list fz-card-grid" id="project-list"></div>
+        </div>
+        <div class="pager-dock" id="project-pager"></div>
       </div>
     </div>
   </div>
   <script src="../js/perm-tree.js?v=20261029wb1"></script>
   <script src="../js/store.js?v=20261029wb38"></script>
-  <script src="../js/shell.js?v=20261029wb35"></script>
+  <script src="../js/shell.js?v=20261029fabDrag"></script>
   <script src="../js/pager.js?v=20261027pager"></script>
   <script src="../js/project-union.js"></script>
   <script>
