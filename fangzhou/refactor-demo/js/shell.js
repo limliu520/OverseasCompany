@@ -81,14 +81,38 @@
       id: "home",
       label: "工作台",
       ico: "⌂",
-      children: [{ id: "home", label: "概览", href: "pages/home.html", done: true }]
+      children: [
+        {
+          id: "home",
+          label: "概览",
+          href: "pages/home.html",
+          done: true,
+          need: "home.overview.view",
+          tourTip: "工作台汇总待办、异常提醒、反馈工单与快捷入口，日常优先从这里处理。"
+        },
+        {
+          id: "announcements",
+          label: "平台公告",
+          href: "pages/announcements.html",
+          done: true,
+          need: "home.overview.view",
+          tourTip: "平台维护、能力更新与使用说明；工作台右侧可看摘要，完整列表在此。"
+        }
+      ]
     },
     {
       id: "projects",
       label: "项目管理",
       ico: "▣",
       children: [
-        { id: "projects", label: "项目列表", href: "pages/projects.html", done: true }
+        {
+          id: "projects",
+          label: "项目列表",
+          href: "pages/projects.html",
+          done: true,
+          need: "projects.list.view",
+          tourTip: "创建与管理业务项目、查看对接与配置入口。"
+        }
       ]
     },
     {
@@ -100,19 +124,25 @@
           id: "c_tg",
           label: "TG 采集",
           href: "pages/tg-collect.html",
-          done: true
+          done: true,
+          need: "collect.tg.view",
+          tourTip: "管理采集号、挂频道与监听；异常时可从工作台状态提醒跳入。"
         },
         {
           id: "c_web",
           label: "网站采集",
           href: "pages/website-collect.html",
-          done: true
+          done: true,
+          need: "collect.web.view",
+          tourTip: "配置网站采集任务并查看采集记录。"
         },
         {
           id: "c_mat",
           label: "素材管理",
           href: "pages/materials.html",
-          done: true
+          done: true,
+          need: "collect.materials.view",
+          tourTip: "全部素材 / 垃圾 / 待我审核同一套列表，按视图处理。"
         }
       ]
     },
@@ -125,17 +155,21 @@
           id: "e_art",
           label: "文章管理",
           href: "pages/articles.html",
-          done: true
+          done: true,
+          need: "content.article.view",
+          tourTip: "稿件列表与二次编辑、确认推送。"
         },
         {
           id: "i_ai",
           label: "AI 评论",
+          need: "content.ai_cmt.view",
           stub:
             "AI 评论（生成）· 设计中。产品债务：须补「评论预览」（前台地址预览已删）"
         },
         {
           id: "e_pull_wm",
           label: "拉取加水印",
+          need: "content.pull_wm.view",
           stub:
             "拉取加水印 · 设计中（对方领任务加水印后回报；不进项目内容通道并集）"
         }
@@ -149,17 +183,20 @@
         {
           id: "r_cmt",
           label: "评论审核",
+          need: "review.comment.view",
           stub:
             "评论审核 · 设计中。按项目开通；含 AI 评论与社区评论等推过来的评论待审（不再分站内/外站）。产品债务：须补「评论预览」"
         },
         {
           id: "r_user",
           label: "用户审核",
+          need: "review.user.view",
           stub: "用户审核 · 设计中。按项目开通"
         },
         {
           id: "r_post",
           label: "帖子审核",
+          need: "review.post.view",
           stub: "帖子审核 · 设计中。按项目开通"
         }
       ]
@@ -169,7 +206,14 @@
       label: "全局配置",
       ico: "⚙",
       children: [
-        { id: "subs", label: "子账号与授权", href: "pages/subs.html", done: true }
+        {
+          id: "subs",
+          label: "子账号与授权",
+          href: "pages/subs.html",
+          done: true,
+          need: "global.subs.accounts.view",
+          tourTip: "管理子账号、岗位权限；采集号在项目与 TG 采集中配置。"
+        }
       ]
     }
   ];
@@ -189,10 +233,14 @@
     html += '<div class="nav-section">';
 
     NAV.forEach(function (group) {
-      var hasDone = group.children.some(function (c) {
+      var kids = (group.children || []).filter(function (c) {
+        return !c.need || FZStore.hasFeature(s, c.need);
+      });
+      if (!kids.length) return;
+      var hasDone = kids.some(function (c) {
         return !!c.done;
       });
-      var allTodo = group.children.every(function (c) {
+      var allTodo = kids.every(function (c) {
         return !c.done;
       });
       html +=
@@ -206,10 +254,12 @@
         "</span>" +
         group.label +
         "</div>";
-      group.children.forEach(function (c) {
+      kids.forEach(function (c) {
         if (c.stub || !c.done) {
           html +=
-            '<button type="button" class="nav-item nav-sub is-todo" data-stub="' +
+            '<button type="button" class="nav-item nav-sub is-todo" data-nav-id="' +
+            c.id +
+            '" data-stub="' +
             (c.stub || c.label) +
             '">' +
             c.label +
@@ -219,6 +269,8 @@
           html +=
             '<a class="nav-item nav-sub is-done' +
             act +
+            '" data-nav-id="' +
+            c.id +
             '" href="' +
             BASE +
             c.href +
@@ -241,7 +293,9 @@
     html +=
       '<span class="user-meta"><span class="user-name">' +
       (s.displayName || s.username) +
-      '</span><span class="user-role">主账号</span></span>';
+      '</span><span class="user-role">' +
+      (s.accountKind === "sub" ? "子账号" : "主账号") +
+      "</span></span>";
     html += '<span class="user-caret">▴</span>';
     html += "</button>";
     html += '<div class="user-menu" id="user-menu" hidden>';
@@ -313,10 +367,32 @@
     if (topUser) topUser.innerHTML = "";
   }
 
+  function loadScriptOnce(src, cb) {
+    var id = "src:" + src;
+    if (document.querySelector('script[data-fz="' + id + '"]')) {
+      if (cb) cb();
+      return;
+    }
+    var el = document.createElement("script");
+    el.src = BASE + src;
+    el.setAttribute("data-fz", id);
+    el.onload = function () {
+      if (cb) cb();
+    };
+    document.head.appendChild(el);
+  }
+
   function boot(opts) {
     opts = opts || {};
     if (opts.auth !== false && !requireAuth()) return;
     renderSidebar(opts.active || "");
+    function mountHelp() {
+      if (global.FZHelpCenter && typeof FZHelpCenter.mount === "function") {
+        FZHelpCenter.mount();
+      }
+    }
+    if (global.FZHelpCenter) mountHelp();
+    else loadScriptOnce("js/help-center.js?v=20261029wb27", mountHelp);
   }
 
   global.FZShell = {
@@ -326,6 +402,9 @@
     tipHtml: tipHtml,
     requireAuth: requireAuth,
     logout: logout,
-    boot: boot
+    boot: boot,
+    getNav: function () {
+      return NAV;
+    }
   };
 })(window);

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>登录 · 方舟</title>
-  <link rel="stylesheet" href="./css/app.css?v=20261028linear1" />
+  <link rel="stylesheet" href="./css/app.css?v=20261029login2" />
 </head>
 <body>
   <div class="login-page">
@@ -12,42 +12,211 @@
       <div>
         <div style="opacity:.7;font-size:13px;margin-bottom:24px">FANGZHOU · REFACTOR DEMO</div>
         <h2>更轻的业务端，从入驻开始重建</h2>
-        <p>主账号登录后完成谷歌验证、项目配置与子账号授权。本页为静态演示，无需后端。</p>
+        <p>先选演示角色。新号入驻会走密码 + 首次绑定谷歌验证；其他角色用账号密码与验证码直接进入。</p>
       </div>
-      <div style="opacity:.55;font-size:12px">视觉参考 Mixpanel 轻量结构 · 阶段① 账号权限与项目入驻</div>
+      <div style="opacity:.55;font-size:12px">退出登录后回到本页重选角色</div>
     </aside>
     <main class="login-panel">
-      <div class="login-box">
-        <h1>登录方舟</h1>
-        <p class="muted" style="margin:0 0 20px">演示主账号任意账号密码均可进入</p>
-        <form id="login-form">
-          <div class="field">
-            <label>账号</label>
-            <input name="username" value="demo_owner" autocomplete="username" required />
-          </div>
-          <div class="field">
-            <label>密码</label>
-            <input name="password" type="password" value="demo1234" autocomplete="current-password" required />
-          </div>
-          <button class="btn btn-primary" type="submit" style="width:100%;padding:12px;margin-top:8px">登录</button>
-        </form>
-        <p class="hint" style="margin-top:16px">主账号由 Admin 开户（本 Demo 不包含 Admin）。侧栏底部 ↺ 可重置演示数据。</p>
+      <div class="login-box login-box--wide">
+        <!-- 步骤 1：选角色 -->
+        <div id="step-roles">
+          <h1>选择演示角色</h1>
+          <p class="muted" style="margin:0 0 16px">进入后可用左下角退出，回到此处切换。</p>
+          <div class="login-roles" id="login-roles" role="listbox" aria-label="演示角色"></div>
+          <button class="btn btn-primary" type="button" id="btn-next" style="width:100%;padding:12px;margin-top:16px">继续登录</button>
+          <p class="hint" style="margin-top:16px">主账号由 Admin 开户（本 Demo 不包含 Admin）。</p>
+        </div>
+
+        <!-- 步骤 2：凭证 -->
+        <div id="step-creds" hidden>
+          <button type="button" class="btn btn-ghost login-back" id="btn-back">← 重选角色</button>
+          <h1 id="creds-title">登录</h1>
+          <p class="muted" id="creds-lead" style="margin:0 0 16px"></p>
+          <form id="login-form">
+            <div class="field">
+              <label>账号</label>
+              <input name="username" id="f-user" autocomplete="username" required />
+            </div>
+            <div class="field">
+              <label>密码</label>
+              <input name="password" id="f-pass" type="password" autocomplete="current-password" required />
+            </div>
+            <div class="field" id="field-totp">
+              <label>谷歌验证码</label>
+              <input name="totp" id="f-totp" inputmode="numeric" maxlength="6" placeholder="6 位动态码" autocomplete="one-time-code" />
+            </div>
+            <button class="btn btn-primary" type="submit" id="btn-submit" style="width:100%;padding:12px;margin-top:8px">登录</button>
+          </form>
+          <p class="hint" id="creds-hint" style="margin-top:16px"></p>
+        </div>
       </div>
     </main>
   </div>
-  <script src="./js/store.js?v=20261026e"></script>
+  <script src="./js/perm-tree.js?v=20261029wb1"></script>
+  <script src="./js/store.js?v=20261029login2"></script>
   <script>
-    document.getElementById("login-form").addEventListener("submit", function (e) {
-      e.preventDefault();
-      var fd = new FormData(e.target);
-      var s = FZStore.read();
-      s.loggedIn = true;
-      s.username = String(fd.get("username") || "demo_owner");
-      s.displayName = "主账号演示";
-      FZStore.write(s);
-      if (!s.totpBound) location.href = "./totp.html";
-      else location.href = "./pages/home.html";
-    });
+    (function () {
+      var selected = "owner";
+      var roles = [
+        {
+          id: "owner",
+          title: "主账号 · 日常运营",
+          desc: "带演示项目，看满态工作台、待办与异常提醒。",
+          user: "demo_owner",
+          pass: "demo1234"
+        },
+        {
+          id: "owner_empty",
+          title: "主账号 · 新号入驻",
+          desc: "零业务项目：先输密码，再绑定新的谷歌验证二维码。",
+          user: "demo_owner_new",
+          pass: "demo1234",
+          isNew: true
+        },
+        {
+          id: "sub_demo_xiaowang",
+          title: "子账号 · 小王（采集运营）",
+          desc: "偏采集/素材权限，菜单引导步骤更少。",
+          user: "ops_xiaowang",
+          pass: "demo1234"
+        },
+        {
+          id: "sub_demo_lili",
+          title: "子账号 · 李丽（内容编辑）",
+          desc: "素材与文章、部分审核相关权限。",
+          user: "editor_lili",
+          pass: "demo1234"
+        },
+        {
+          id: "sub_demo_chen",
+          title: "子账号 · 陈晨（项目管理）",
+          desc: "项目与全局配置向，内容侧权限较少。",
+          user: "pm_chen",
+          pass: "demo1234"
+        }
+      ];
+
+      function roleById(id) {
+        for (var i = 0; i < roles.length; i++) {
+          if (roles[i].id === id) return roles[i];
+        }
+        return roles[0];
+      }
+
+      var box = document.getElementById("login-roles");
+      var stepRoles = document.getElementById("step-roles");
+      var stepCreds = document.getElementById("step-creds");
+
+      box.innerHTML = roles
+        .map(function (r) {
+          return (
+            '<button type="button" class="login-role' +
+            (r.id === selected ? " is-on" : "") +
+            '" role="option" aria-selected="' +
+            (r.id === selected ? "true" : "false") +
+            '" data-role="' +
+            r.id +
+            '"><strong>' +
+            r.title +
+            "</strong><span>" +
+            r.desc +
+            "</span></button>"
+          );
+        })
+        .join("");
+
+      box.addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-role]");
+        if (!btn) return;
+        selected = btn.getAttribute("data-role");
+        box.querySelectorAll(".login-role").forEach(function (el) {
+          var on = el.getAttribute("data-role") === selected;
+          el.classList.toggle("is-on", on);
+          el.setAttribute("aria-selected", on ? "true" : "false");
+        });
+      });
+
+      function showCreds() {
+        var r = roleById(selected);
+        stepRoles.hidden = true;
+        stepCreds.hidden = false;
+        document.getElementById("f-user").value = r.user;
+        document.getElementById("f-pass").value = r.pass;
+        document.getElementById("f-totp").value = "";
+        var totpField = document.getElementById("field-totp");
+        var title = document.getElementById("creds-title");
+        var lead = document.getElementById("creds-lead");
+        var hint = document.getElementById("creds-hint");
+        var submit = document.getElementById("btn-submit");
+        if (r.isNew) {
+          totpField.hidden = true;
+          document.getElementById("f-totp").required = false;
+          title.textContent = "新号登录";
+          lead.textContent = "输入密码后，将进入首次谷歌验证绑定（新二维码）。";
+          hint.textContent = "演示：密码任意非空即可，下一步扫描绑定二维码。";
+          submit.textContent = "登录并绑定验证器";
+        } else {
+          totpField.hidden = false;
+          document.getElementById("f-totp").required = true;
+          title.textContent = "登录";
+          lead.textContent = "已绑定验证器的账号：填写密码与 6 位动态码后进入。";
+          hint.textContent = "演示：密码与 6 位验证码填任意值即可（验证码须满 6 位）。";
+          submit.textContent = "登录并进入";
+        }
+        document.getElementById("f-pass").focus();
+      }
+
+      document.getElementById("btn-next").addEventListener("click", function () {
+        if (!selected) {
+          alert("请选择演示角色");
+          return;
+        }
+        showCreds();
+      });
+
+      document.getElementById("btn-back").addEventListener("click", function () {
+        stepCreds.hidden = true;
+        stepRoles.hidden = false;
+      });
+
+      document.getElementById("login-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var r = roleById(selected);
+        var user = (document.getElementById("f-user").value || "").trim();
+        var pass = document.getElementById("f-pass").value || "";
+        if (!user) {
+          alert("请输入账号");
+          return;
+        }
+        if (!pass) {
+          alert("请输入密码");
+          return;
+        }
+        if (!r.isNew) {
+          var code = (document.getElementById("f-totp").value || "").trim();
+          if (!/^\d{6}$/.test(code)) {
+            alert("请输入 6 位谷歌验证码");
+            return;
+          }
+        }
+
+        var s = FZStore.read();
+        FZStore.applyLoginProfile(s, selected);
+        s.username = user;
+        if (r.isNew) {
+          /* 新号：强制走绑定页，展示新二维码 */
+          s.totpBound = false;
+          s.totpBindMode = "enroll";
+          FZStore.write(s);
+          location.href = "./totp.html?mode=enroll";
+          return;
+        }
+        s.totpBound = true;
+        s.totpBindMode = "verify";
+        FZStore.write(s);
+        location.href = "./pages/home.html";
+      });
+    })();
   </script>
 </body>
 </html>

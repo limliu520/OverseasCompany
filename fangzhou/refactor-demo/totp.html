@@ -4,23 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>绑定谷歌验证 · 方舟</title>
-  <link rel="stylesheet" href="./css/app.css?v=20261028linear1" />
+  <link rel="stylesheet" href="./css/app.css?v=20261029login2" />
 </head>
 <body>
   <div class="login-page">
     <aside class="login-visual">
       <div>
         <div style="opacity:.7;font-size:13px;margin-bottom:24px">SECURITY</div>
-        <h2>首次登录绑定谷歌身份验证</h2>
-        <p>所有账号第一次登录都需要完成绑定，之后每次登录按验证器动态码进入（本 Demo 简化为确认绑定）。</p>
+        <h2 id="visual-title">首次登录绑定谷歌身份验证</h2>
+        <p id="visual-desc">新号第一次进入需扫码绑定；绑定后日常登录只需填写动态码。</p>
       </div>
-      <div style="opacity:.55;font-size:12px">主账号 / 子账号规则相同</div>
+      <div style="opacity:.55;font-size:12px">演示二维码 · 非真实密钥</div>
     </aside>
     <main class="login-panel">
       <div class="login-box">
-        <h1>绑定验证器</h1>
-        <p class="muted" style="margin:0 0 8px">使用 Google Authenticator 等 App 扫描下方二维码</p>
-        <div class="qr-box" aria-hidden="true"></div>
+        <h1 id="page-title">绑定验证器</h1>
+        <p class="muted" id="page-lead" style="margin:0 0 8px">使用 Google Authenticator 等 App 扫描下方二维码</p>
+        <div class="qr-box qr-box--enroll" id="qr-box" aria-hidden="true">
+          <span class="qr-box-badge" id="qr-badge">新密钥</span>
+        </div>
+        <p class="hint" id="secret-hint" style="text-align:center;margin:8px 0 0">演示密钥：FZ-NEW-<span id="secret-tail">····</span></p>
         <div class="field">
           <label>输入验证器中的 6 位验证码</label>
           <input id="code" inputmode="numeric" maxlength="6" placeholder="000000" />
@@ -30,17 +33,44 @@
       </div>
     </main>
   </div>
-  <script src="./js/store.js?v=20261026e"></script>
+  <script src="./js/perm-tree.js?v=20261029wb1"></script>
+  <script src="./js/store.js?v=20261029login2"></script>
   <script>
-    var s = FZStore.read();
-    if (!s.loggedIn) location.href = "./login.html";
-    if (s.totpBound) location.href = "./pages/home.html";
-    document.getElementById("btn-bind").addEventListener("click", function () {
-      var st = FZStore.read();
-      st.totpBound = true;
-      FZStore.write(st);
-      location.href = "./pages/home.html";
-    });
+    (function () {
+      var s = FZStore.read();
+      if (!s.loggedIn) {
+        location.href = "./login.html";
+        return;
+      }
+      /* 仅 enroll / 未绑定时停在本页；已绑定且非强制 enroll 则回工作台 */
+      var params = new URLSearchParams(location.search);
+      var enroll =
+        params.get("mode") === "enroll" ||
+        s.totpBindMode === "enroll" ||
+        !s.totpBound;
+      if (s.totpBound && !enroll) {
+        location.href = "./pages/home.html";
+        return;
+      }
+
+      var tail = String(Date.now()).slice(-4);
+      document.getElementById("secret-tail").textContent = tail;
+      document.getElementById("qr-badge").textContent = "新密钥 · " + tail;
+
+      document.getElementById("btn-bind").addEventListener("click", function () {
+        var code = (document.getElementById("code").value || "").trim();
+        if (code && !/^\d{6}$/.test(code)) {
+          alert("验证码须为 6 位数字，或留空直接完成演示绑定");
+          return;
+        }
+        var st = FZStore.read();
+        st.totpBound = true;
+        st.totpBindMode = "verify";
+        st.totpDemoSecret = "FZ-NEW-" + tail;
+        FZStore.write(st);
+        location.href = "./pages/home.html";
+      });
+    })();
   </script>
 </body>
 </html>

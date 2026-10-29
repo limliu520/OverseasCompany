@@ -652,11 +652,16 @@
         FZStore.attachBotToProject(st, project, bot);
       });
 
-      var wasEmpty = !st.projects.length;
+      var wasEmpty = FZStore.businessProjects(st).length === 0;
       if (wasEmpty) {
         st.projects = FZStore.seedAfterFirstCreate(st, project);
         st.firstProjectDone = true;
         st.zeroPromptDismissed = true;
+        try {
+          sessionStorage.removeItem(
+            "fz_tour_auto_" + FZStore.accountKey(st)
+          );
+        } catch (eTour) {}
       } else {
         st.projects.unshift(project);
       }

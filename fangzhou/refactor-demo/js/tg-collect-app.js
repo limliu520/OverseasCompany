@@ -224,6 +224,28 @@
     });
     document.getElementById("tg-workspace").addEventListener("click", onWorkspaceClick);
     paint();
+    /* 工作台快捷：?action=add_bot|add_channel|add_route */
+    var act = q.get("action");
+    if (act === "add_bot") {
+      setTimeout(function () {
+        var btn = document.getElementById("tg-add-bot");
+        if (btn) btn.click();
+      }, 80);
+    } else if (act === "add_channel" || act === "add_route") {
+      setTimeout(function () {
+        var sel =
+          act === "add_channel" ? "[data-add-ch]" : "[data-add-route]";
+        var el = document.querySelector(sel);
+        if (el) el.click();
+        else
+          FZShell.toast(
+            act === "add_channel"
+              ? "请先选中采集号后再添加频道"
+              : "请先选中采集号后再增加路由",
+            "err"
+          );
+      }, 120);
+    }
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

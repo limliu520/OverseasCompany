@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>项目管理 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261028linear2" />
+  <link rel="stylesheet" href="../css/app.css?v=20261029wb1" />
 </head>
 <body>
   <div class="app">
@@ -26,8 +26,9 @@
       </div>
     </div>
   </div>
-  <script src="../js/store.js?v=20261027botName"></script>
-  <script src="../js/shell.js?v=20261027reviewCtr"></script>
+  <script src="../js/perm-tree.js?v=20261029wb1"></script>
+  <script src="../js/store.js?v=20261029wb1"></script>
+  <script src="../js/shell.js?v=20261029wb1"></script>
   <script src="../js/pager.js?v=20261027pager"></script>
   <script src="../js/project-union.js"></script>
   <script>
@@ -130,8 +131,16 @@
             return !p.isPublicPool;
           });
       if (!projects.length) {
+        var canCreate =
+          !FZStore.hasFeature || FZStore.hasFeature(s, "projects.list.create");
         list.innerHTML =
-          '<div class="card card-pad muted">还没有项目。<a href="./project-setup.html?new=1">创建第一个项目</a></div>';
+          '<div class="wb-empty-card wb-empty-card--lg">' +
+          "<strong>创建你的第一个项目</strong>" +
+          "<p>配齐基本信息与媒体配置后创建，再交给开发对接内容通道。接通后配置自动生效。</p>" +
+          (canCreate
+            ? '<a class="btn btn-primary" href="./project-setup.html?new=1">新建项目</a>'
+            : '<p class="muted" style="margin:0">当前角色无新建权限，请联系主账号。</p>') +
+          "</div>";
         pagerBox.innerHTML = "";
         return;
       }

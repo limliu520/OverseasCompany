@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>全部公告 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css?v=20261029wb13" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <div class="topbar">
+        <h1>全部公告</h1>
+        <div class="topbar-actions" id="top-user"></div>
+      </div>
+      <div class="content">
+        <p class="proj-page-lead">平台更新、维护与使用说明。点击条目查看详情。</p>
+        <div class="ann-list card card-pad" id="ann-list"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/perm-tree.js?v=20261029wb1"></script>
+  <script src="../js/store.js?v=20261029wb15"></script>
+  <script src="../js/shell.js?v=20261029wb17"></script>
+  <script src="../js/announcements-data.js?v=20261029wb13"></script>
+  <script>
+    FZShell.boot({ active: "announcements" });
+    var box = document.getElementById("ann-list");
+    var items = FZAnnouncements.all();
+    box.innerHTML = items
+      .map(function (a) {
+        return (
+          '<a class="ann-row" href="./announcement-detail.html?id=' +
+          encodeURIComponent(a.id) +
+          '">' +
+          '<div class="ann-row-top">' +
+          "<strong>" +
+          FZShell.escHtml(a.title) +
+          "</strong>" +
+          '<span class="muted">' +
+          FZShell.escHtml(a.time) +
+          "</span></div>" +
+          "<p>" +
+          FZShell.escHtml(a.body) +
+          "</p></a>"
+        );
+      })
+      .join("");
+  </script>
+</body>
+</html>

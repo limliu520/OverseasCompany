@@ -87,6 +87,13 @@
     document.getElementById("btn-add-site").onclick = function () {
       M.open(null, "create", sites, onModalDone);
     };
+    try {
+      if (new URLSearchParams(location.search).get("new") === "1") {
+        setTimeout(function () {
+          M.open(null, "create", sites, onModalDone);
+        }, 0);
+      }
+    } catch (eNew) {}
     M.bind();
     document.getElementById("wc-sites").addEventListener("click", function (e) {
       var detail = e.target.closest("[data-detail]");

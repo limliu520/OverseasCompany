@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>公告详情 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css?v=20261029wb13" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <div class="topbar">
+        <h1>公告详情</h1>
+        <div class="topbar-actions">
+          <a class="btn" href="./announcements.html">全部公告</a>
+          <div id="top-user"></div>
+        </div>
+      </div>
+      <div class="content">
+        <article class="ann-detail card card-pad" id="ann-detail">
+          <p class="muted">加载中…</p>
+        </article>
+      </div>
+    </div>
+  </div>
+  <script src="../js/perm-tree.js?v=20261029wb1"></script>
+  <script src="../js/store.js?v=20261029wb15"></script>
+  <script src="../js/shell.js?v=20261029wb17"></script>
+  <script src="../js/announcements-data.js?v=20261029wb13"></script>
+  <script>
+    FZShell.boot({ active: "announcements" });
+    var id = new URLSearchParams(location.search).get("id") || "";
+    var a = FZAnnouncements.byId(id);
+    var box = document.getElementById("ann-detail");
+    if (!a) {
+      box.innerHTML =
+        '<p class="muted">未找到该公告。</p>' +
+        '<p><a class="btn btn-primary" href="./announcements.html">返回全部公告</a></p>';
+    } else {
+      document.title = a.title + " · 方舟";
+      var paras = String(a.content || a.body || "")
+        .split(/\n\n+/)
+        .map(function (p) {
+          return "<p>" + FZShell.escHtml(p).replace(/\n/g, "<br>") + "</p>";
+        })
+        .join("");
+      box.innerHTML =
+        '<p class="ann-detail-back"><a href="./announcements.html">← 全部公告</a></p>' +
+        "<h2>" +
+        FZShell.escHtml(a.title) +
+        "</h2>" +
+        '<p class="ann-detail-meta muted">' +
+        FZShell.escHtml(a.time) +
+        "</p>" +
+        '<div class="ann-detail-body">' +
+        paras +
+        "</div>";
+    }
+  </script>
+</body>
+</html>

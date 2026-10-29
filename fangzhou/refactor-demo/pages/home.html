@@ -4,170 +4,184 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>工作台 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261028linear2" />
+  <link rel="stylesheet" href="../css/app.css?v=20261029wb29" />
 </head>
 <body>
   <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
       <div class="topbar">
-        <h1 id="greet">你好</h1>
+        <h1 id="greet">工作台</h1>
         <div class="topbar-actions" id="top-user"></div>
       </div>
-      <div class="content">
-        <h2 style="font-size:14px;margin:0 0 12px;color:var(--muted)">今日待办</h2>
-        <div class="todo-list" id="todo-list" style="margin-bottom:22px"></div>
-
-        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:14px">
-          <div class="card card-pad">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <strong>最近项目</strong>
-              <a class="btn btn-ghost" href="./projects.html">全部</a>
+      <div class="content wb-page" id="wb-root">
+        <!-- 上：数据概览左 + 平台公告右 -->
+        <div class="wb-row-2 wb-row-2--hero">
+          <section class="wb-band card card-pad wb-stats-band">
+            <div class="wb-mod-head">
+              <h2>数据概览</h2>
             </div>
-            <div id="recent-projects"></div>
-          </div>
-          <div class="card card-pad">
-            <strong style="display:block;margin-bottom:8px">业务待办（占位）</strong>
-            <p class="muted" style="margin:0 0 8px;font-size:13px">待审素材等将深链到「采集中心 → 素材管理 · 待审核素材」。</p>
-            <div class="empty-dash" style="min-height:88px">工作台待办 · 采集已接素材管理骨架</div>
-          </div>
+            <div class="wb-stats-body">
+              <div class="wb-stats" id="wb-stats"></div>
+              <div class="wb-stats-extra" id="wb-stats-extra"></div>
+            </div>
+          </section>
+          <section class="wb-band card card-pad wb-announce-band">
+            <div class="wb-mod-head">
+              <h2>平台公告</h2>
+              <a class="wb-sec-more" href="./announcements.html">全部公告</a>
+            </div>
+            <div class="wb-announce" id="wb-announce"></div>
+          </section>
         </div>
+
+        <div class="wb-row-2 wb-row-2--todo">
+          <section class="wb-band card card-pad">
+            <div class="wb-mod-head">
+              <h2>项目待办</h2>
+            </div>
+            <div class="wb-dense" id="wb-todos"></div>
+          </section>
+
+          <section class="wb-band card card-pad wb-alert-band">
+            <div class="wb-mod-head">
+              <h2>状态与异常提醒</h2>
+            </div>
+            <div class="wb-dense" id="wb-alerts"></div>
+          </section>
+        </div>
+
+        <section class="wb-band card card-pad wb-work-band">
+          <div class="wb-mod-head wb-mod-head--tabs">
+            <div class="wb-tabs" role="tablist" aria-label="待处理列表">
+              <button type="button" class="wb-tab is-on" role="tab" aria-selected="true" data-wb-tab="mats" id="wb-tab-mats">
+                待审素材 <em class="wb-tab-n" id="wb-tab-mats-n"></em>
+              </button>
+              <button type="button" class="wb-tab" role="tab" aria-selected="false" data-wb-tab="arts" id="wb-tab-arts">
+                待处理稿件 <em class="wb-tab-n" id="wb-tab-arts-n"></em>
+              </button>
+            </div>
+            <a class="wb-sec-more" id="wb-work-more" href="./materials.html">素材管理</a>
+          </div>
+          <div class="wb-table-wrap" id="wb-mats" data-wb-pane="mats"></div>
+          <div class="wb-table-wrap" id="wb-arts" data-wb-pane="arts" hidden></div>
+        </section>
       </div>
     </div>
   </div>
 
   <div class="modal-mask" id="zero-modal" hidden>
     <div class="modal">
-      <h2>欢迎使用方舟</h2>
-      <p>当前还没有项目。可以现在创建，也可以稍后在「项目管理 → 新建项目」里再加。</p>
+      <h2>欢迎使用方舟系统</h2>
+      <p>创建你的第一个项目吧。配齐后交给开发对接，接通即可开始采编。</p>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="btn-later">稍后</button>
-        <button type="button" class="btn btn-primary" id="btn-go-setup">去添加项目</button>
+        <button type="button" class="btn btn-primary" id="btn-go-setup">去创建项目</button>
       </div>
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261027botName"></script>
-  <script src="../js/shell.js?v=20261027reviewCtr"></script>
+  <!-- 工作台内直接审核：复用素材详情弹窗 -->
+  <div class="mat-detail-mask" id="mat-detail-mask" hidden>
+    <div class="mat-detail" role="dialog" aria-modal="true" aria-labelledby="mat-detail-title">
+      <div class="mat-detail-hd">
+        <h2 class="mat-detail-title" id="mat-detail-title">
+          素材详情 <span class="mat-detail-progress" id="mat-detail-progress"></span>
+        </h2>
+        <button type="button" class="mat-detail-close" data-mat-close aria-label="关闭">×</button>
+      </div>
+      <div class="mat-detail-tabs">
+        <button type="button" class="mat-tab is-active" data-mat-tab="info">基本信息</button>
+        <button type="button" class="mat-tab" data-mat-tab="dispatch">分发记录</button>
+      </div>
+      <div id="mat-detail-panel"></div>
+      <button type="button" class="mat-nav-side is-prev" id="mat-detail-prev" title="上一条素材" aria-label="上一条素材">‹</button>
+      <button type="button" class="mat-nav-side is-next" id="mat-detail-next" title="下一条素材" aria-label="下一条素材">›</button>
+    </div>
+  </div>
+  <div class="mat-xfer-mask" id="mat-xfer-mask" hidden>
+    <div class="mat-xfer" role="dialog" aria-modal="true">
+      <div class="mat-xfer-hd">
+        <h3>转编辑</h3>
+        <button type="button" class="mat-detail-close" data-xfer-close aria-label="关闭">×</button>
+      </div>
+      <div class="mat-xfer-bd">
+        <input type="hidden" id="mat-xfer-mid" />
+        <p class="mat-xfer-lead muted">选择项目后，素材将占用该项目内容通道，并派发媒体处理。</p>
+        <div class="mat-form-row">
+          <label for="mat-xfer-project">选择项目 *</label>
+          <select id="mat-xfer-project"></select>
+          <div class="mat-xfer-hint" id="mat-xfer-hint"></div>
+        </div>
+        <div class="mat-form-row">
+          <label for="mat-xfer-cover">封面拼图数</label>
+          <select id="mat-xfer-cover">
+            <option value="1">1 格</option>
+            <option value="2">2 格</option>
+            <option value="3" selected>3 格</option>
+          </select>
+          <div class="mat-xfer-hint">生成封面时的拼图格数，默认 3 格。</div>
+        </div>
+      </div>
+      <div class="mat-xfer-ft">
+        <button type="button" class="btn btn-ghost" data-xfer-close">取消</button>
+        <button type="button" class="btn btn-primary" id="mat-xfer-submit" disabled>确认转编辑</button>
+      </div>
+    </div>
+  </div>
+  <div class="mat-targets-mask" id="mat-targets-mask" hidden>
+    <div class="mat-targets" role="dialog" aria-modal="true" aria-labelledby="mat-targets-title">
+      <div class="mat-targets-hd">
+        <h3 id="mat-targets-title">分发频道</h3>
+        <button type="button" class="mat-detail-close" data-targets-close aria-label="关闭">×</button>
+      </div>
+      <div class="mat-targets-bd" id="mat-targets-bd"></div>
+      <div class="mat-targets-ft">
+        <button type="button" class="btn btn-ghost" data-targets-close">关闭</button>
+      </div>
+    </div>
+  </div>
+  <div class="mat-reject-mask" id="mat-reject-mask" hidden>
+    <div class="mat-reject" role="dialog" aria-modal="true">
+      <div class="mat-reject-hd">
+        <h3 id="mat-reject-title">驳回素材</h3>
+        <button type="button" class="mat-detail-close" data-reject-close aria-label="关闭">×</button>
+      </div>
+      <div class="mat-reject-bd">
+        <input type="hidden" id="mat-reject-mid" />
+        <input type="hidden" id="mat-reject-mode" value="reject" />
+        <div class="mat-form-row">
+          <label for="mat-reject-reason" id="mat-reject-label">驳回理由 *</label>
+          <textarea id="mat-reject-reason" placeholder="请输入驳回理由（将反馈给自学习机制优化筛选规则）"></textarea>
+        </div>
+      </div>
+      <div class="mat-reject-ft">
+        <button type="button" class="btn btn-ghost" data-reject-close">取消</button>
+        <button type="button" class="btn btn-danger" id="mat-reject-submit">确认驳回</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/perm-tree.js?v=20261029wb1"></script>
+  <script src="../js/store.js?v=20261029wb15"></script>
+  <script src="../js/project-union.js?v=20261029wb4"></script>
+  <script src="../js/materials-data.js?v=20261029wb4"></script>
+  <script src="../js/materials-media.js?v=20261029wb16"></script>
+  <script src="../js/materials-detail.js?v=20261029wb16"></script>
+  <script src="../js/materials-transfer.js?v=20261029wb16"></script>
+  <script src="../js/articles-data.js?v=20261029wb4"></script>
+  <script src="../js/shell.js?v=20261029wb27"></script>
+  <script src="../js/announcements-data.js?v=20261029wb13"></script>
+  <script src="../js/menu-tour.js?v=20261029wb4"></script>
+  <script src="../js/home-app.js?v=20261029wb28"></script>
   <script>
     FZShell.boot({ active: "home" });
-    var s = FZStore.read();
     var hour = new Date().getHours();
     var hello = hour < 12 ? "早上好" : hour < 18 ? "下午好" : "晚上好";
-    document.getElementById("greet").textContent = hello + " 👋";
-
-    var zero = !s.projects.length;
-    if (zero && !s.zeroPromptDismissed) {
-      document.getElementById("zero-modal").hidden = false;
-    }
-
-    document.getElementById("btn-go-setup").addEventListener("click", function () {
-      location.href = "./project-setup.html?new=1";
-    });
-    function dismissZero() {
-      var st = FZStore.read();
-      st.zeroPromptDismissed = true;
-      FZStore.write(st);
-      document.getElementById("zero-modal").hidden = true;
-    }
-    document.getElementById("btn-later").addEventListener("click", function () {
-      dismissZero();
-      FZShell.toast("已稍后。可从「项目管理 → 新建项目」添加");
-      renderTodos();
-    });
-    document.getElementById("zero-modal").addEventListener("click", function (e) {
-      if (e.target === e.currentTarget) {
-        dismissZero();
-        FZShell.toast("已稍后。可从「项目管理 → 新建项目」添加");
-        renderTodos();
-      }
-    });
-
-    function renderTodos() {
-      s = FZStore.read();
-      var items = [];
-      if (!s.projects.length) {
-        items.push({
-          cls: "todo-dot",
-          title: "创建第一个项目",
-          desc: "配齐信息后创建，再交给开发接入；接通后配置自动生效。",
-          action: '<a class="btn btn-primary" href="./project-setup.html?new=1">去创建</a>'
-        });
-      }
-      s.projects.forEach(function (p) {
-        if (p.status === "pending_activate") {
-          items.push({
-            cls: "todo-dot warn",
-            title: "内容通道待接通 · " + p.name,
-            desc: "配置已配齐。查看对接材料；正式环境可由系统自动变已接通。Demo 可点「模拟接通」。",
-            action:
-              '<a class="btn btn-primary" href="./project-connect.html?id=' +
-              encodeURIComponent(p.id) +
-              '">查看对接</a>'
-          });
-        } else if (p.status === "need_collect") {
-          items.push({
-            cls: "todo-dot muted",
-            title: "自动进编辑缺采集源 · " + p.name,
-            desc: "通道已通且开了「自动转入编辑」，但演示上尚未绑采集源。",
-            action:
-              '<a class="btn" href="./project-edit.html?id=' +
-              encodeURIComponent(p.id) +
-              '&tab=flow">去查看</a>'
-          });
-        }
-      });
-      if (!items.length) {
-        items.push({
-          cls: "todo-dot muted",
-          title: "暂无入驻类待办",
-          desc: "日常采编待办将出现在这里。",
-          action: ""
-        });
-      }
-      document.getElementById("todo-list").innerHTML = items
-        .map(function (it) {
-          return (
-            '<div class="todo-item"><span class="' +
-            it.cls +
-            '"></span><div class="todo-body"><p class="todo-title">' +
-            it.title +
-            '</p><p class="todo-desc">' +
-            it.desc +
-            "</p></div>" +
-            it.action +
-            "</div>"
-          );
-        })
-        .join("");
-    }
-
-    renderTodos();
-
-    var box = document.getElementById("recent-projects");
-    if (!s.projects.length) {
-      box.innerHTML =
-        '<p class="muted" style="margin:0;font-size:13px">暂无项目。</p>';
-    } else {
-      box.innerHTML = s.projects
-        .slice(0, 4)
-        .map(function (p) {
-          var st = FZStore.projectStatusLabel(p);
-          return (
-            '<div class="list-row" style="padding:10px 0">' +
-            '<div class="grow"><a href="./project-edit.html?id=' +
-            encodeURIComponent(p.id) +
-            '" style="color:inherit;text-decoration:none">' +
-            p.name +
-            '</a></div><span class="tag ' +
-            st.cls +
-            '">' +
-            st.text +
-            "</span></div>"
-          );
-        })
-        .join("");
-    }
+    var s = FZStore.read();
+    document.getElementById("greet").textContent =
+      hello + "，" + (s.displayName || s.username || "");
+    FZHomeApp.boot();
   </script>
 </body>
 </html>

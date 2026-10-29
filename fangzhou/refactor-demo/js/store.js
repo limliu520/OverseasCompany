@@ -372,7 +372,7 @@
     },
     {
       id: "proj_demo_ready",
-      name: "演示项目 · 已完成",
+      name: "演示瓜站",
       status: "ready",
       siteType: "chigua",
       creds: issueProjectCreds("seed_ready"),
@@ -416,7 +416,7 @@
     },
     {
       id: "proj_demo_pending",
-      name: "演示项目 · 待接通",
+      name: "演示短剧站",
       status: "pending_activate",
       siteType: "short_drama",
       creds: issueProjectCreds("seed_pending"),
@@ -446,7 +446,7 @@
     },
     {
       id: "proj_demo_collect",
-      name: "演示项目 · 缺采集源",
+      name: "演示视频站",
       status: "need_collect",
       siteType: "video",
       creds: issueProjectCreds("seed_collect"),
@@ -478,14 +478,40 @@
     totpBound: false,
     username: "demo_owner",
     displayName: "主账号演示",
+    /** owner | sub */
+    accountKind: "owner",
+    /** owner / owner_empty / 子账号 id */
+    accountId: "owner",
+    features: null,
     firstProjectDone: true,
     zeroPromptDismissed: false,
+    /** { [accountId]: true } 菜单二级引导完成 */
+    menuTourDoneByAccount: {},
+    /** 快速反馈工单 */
+    tickets: [],
+    /** 额外状态提醒种子（采集号断线由工作台从 userbots 推导；此处只补频道级样例） */
+    statusAlerts: [
+      {
+        id: "alert_ch_listen",
+        need: "collect.tg.view",
+        projectName: "演示瓜站",
+        kindLabel: "频道异常",
+        objectName: "@demo_channel_b",
+        objectExtra: "采集频道",
+        botName: "星火采",
+        reason: "连续拉取失败 3 次，请检查号是否仍在频道内。",
+        severity: "danger",
+        href: "./tg-collect.html"
+      }
+    ],
     /** Userbot 按项目归属；extChannels 仅兼容旧数据 */
     extChannels: [],
     userbots: JSON.parse(JSON.stringify(DEMO_USERBOTS)),
     projects: JSON.parse(JSON.stringify(DEMO_PROJECTS)),
     roles: JSON.parse(JSON.stringify(DEMO_ROLES)),
-    subs: JSON.parse(JSON.stringify(DEMO_SUBS))
+    subs: JSON.parse(JSON.stringify(DEMO_SUBS)),
+    /** 备份：新号登录前的业务项目快照 */
+    _projectsBackup: null
   };
 
   function clone(obj) {
@@ -495,6 +521,42 @@
   /** 合并缺失的演示资产（不清空用户自建） */
   function ensureDemoAssets(state) {
     var changed = false;
+    if (!state.tickets) {
+      state.tickets = [];
+      changed = true;
+    }
+    if (!state.menuTourDoneByAccount) {
+      state.menuTourDoneByAccount = {};
+      changed = true;
+    }
+    if (
+      !state.statusAlerts ||
+      !state.statusAlerts.length ||
+      (state.statusAlerts[0] && !state.statusAlerts[0].projectName)
+    ) {
+      state.statusAlerts = clone(DEFAULT.statusAlerts);
+      changed = true;
+    } else {
+      (state.statusAlerts || []).forEach(function (a) {
+        var map = {
+          "演示项目 · 已完成": "演示瓜站",
+          "演示项目 · 待接通": "演示短剧站",
+          "演示项目 · 缺采集源": "演示视频站"
+        };
+        if (a.projectName && map[a.projectName]) {
+          a.projectName = map[a.projectName];
+          changed = true;
+        }
+        if (a.kindLabel === "频道监听异常") {
+          a.kindLabel = "频道异常";
+          changed = true;
+        }
+        if (!a.severity) {
+          a.severity = "danger";
+          changed = true;
+        }
+      });
+    }
     if (!state.extChannels) {
       state.extChannels = [];
       changed = true;
@@ -567,6 +629,25 @@
       state.projects = [];
       changed = true;
     }
+    /* 任何项目名尾部不得附带状态文案；状态只在 status 字段 / 列表「状态」列 */
+    (state.projects || []).forEach(function (p) {
+      var n = String(p.name || "");
+      var cleaned = n;
+      if (/^演示项目\s*·\s*(已完成|待接通|缺采集源)$/.test(n)) {
+        cleaned =
+          {
+            proj_demo_ready: "演示瓜站",
+            proj_demo_pending: "演示短剧站",
+            proj_demo_collect: "演示视频站"
+          }[p.id] || "演示项目";
+      } else if (/\s*·\s*(已完成|待接通|缺采集源)$/.test(n)) {
+        cleaned = n.replace(/\s*·\s*(已完成|待接通|缺采集源)$/, "");
+      }
+      if (cleaned && cleaned !== n) {
+        p.name = cleaned;
+        changed = true;
+      }
+    });
     DEMO_PROJECTS.forEach(function (seed) {
       var hit = state.projects.find(function (p) {
         return p.id === seed.id;
@@ -575,6 +656,16 @@
         state.projects.push(clone(seed));
         changed = true;
         return;
+      }
+      /* 演示种子名曾把状态写进名称；纠正为纯项目名（状态只走 status 列） */
+      if (!seed.isPublicPool && hit.name !== seed.name) {
+        var dirtyName =
+          /演示项目\s*·\s*(已完成|待接通|缺采集源)/.test(String(hit.name || "")) ||
+          /\s*·\s*(已完成|待接通|缺采集源)$/.test(String(hit.name || ""));
+        if (dirtyName) {
+          hit.name = seed.name;
+          changed = true;
+        }
       }
       /* 公共池：补演示号/频道/路由（不覆盖用户已改过的非空配置） */
       if (seed.isPublicPool) {
@@ -1335,6 +1426,124 @@
     });
   }
 
+  function flattenOwnerFeatures() {
+    var out = [];
+    var tree = (global.FZPerm && global.FZPerm.TREE) || [];
+    function walk(nodes) {
+      (nodes || []).forEach(function (n) {
+        if (n.children && n.children.length) walk(n.children);
+        else if (n.actions && n.actions.length) {
+          n.actions.forEach(function (a) {
+            out.push(n.id + "." + a);
+          });
+        }
+      });
+    }
+    walk(tree);
+    if (!out.length) {
+      out = ["home.overview.view", "projects.list.view", "projects.list.create"];
+    }
+    return out;
+  }
+
+  function hasFeature(state, featureId) {
+    if (!featureId) return true;
+    /* 未标记子账号的一律按主账号（全量或 features 列表） */
+    if (!state || state.accountKind !== "sub") {
+      var feats = state && state.features;
+      if (!feats || !feats.length) return true;
+      return feats.indexOf(featureId) !== -1;
+    }
+    return (state.features || []).indexOf(featureId) !== -1;
+  }
+
+  function accountKey(state) {
+    return (state && state.accountId) || "owner";
+  }
+
+  function isMenuTourDone(state) {
+    var map = state.menuTourDoneByAccount || {};
+    return !!map[accountKey(state)];
+  }
+
+  function setMenuTourDone(state, done) {
+    if (!state.menuTourDoneByAccount) state.menuTourDoneByAccount = {};
+    state.menuTourDoneByAccount[accountKey(state)] = !!done;
+  }
+
+  /**
+   * 登录页选角色后写入会话。
+   * profile: owner | owner_empty | sub id
+   */
+  function applyLoginProfile(state, profile) {
+    profile = profile || "owner";
+    state.loggedIn = true;
+    state.tickets = state.tickets || [];
+    state.statusAlerts = state.statusAlerts || clone(DEFAULT.statusAlerts);
+    state.menuTourDoneByAccount = state.menuTourDoneByAccount || {};
+
+    if (profile === "owner" || profile === "owner_empty") {
+      state.accountKind = "owner";
+      state.accountId = profile;
+      state.username = "demo_owner";
+      state.displayName = profile === "owner_empty" ? "主账号 · 新号" : "主账号演示";
+      state.features = flattenOwnerFeatures();
+      if (profile === "owner_empty") {
+        if (!state._projectsBackup) {
+          state._projectsBackup = clone(state.projects || []);
+        }
+        state.projects = (state.projects || []).filter(function (p) {
+          return isPublicPool(p);
+        });
+        if (!state.projects.length) {
+          var pool = DEMO_PROJECTS.find(function (p) {
+            return isPublicPool(p);
+          });
+          state.projects = pool ? [clone(pool)] : [];
+        }
+        state.firstProjectDone = false;
+        state.zeroPromptDismissed = false;
+        /* 新号入驻：始终重新绑定谷歌验证 */
+        state.totpBound = false;
+        state.totpBindMode = "enroll";
+      } else {
+        if (state._projectsBackup && state._projectsBackup.length) {
+          state.projects = clone(state._projectsBackup);
+          state._projectsBackup = null;
+        } else {
+          ensureDemoAssets(state);
+        }
+        state.firstProjectDone = businessProjects(state).length > 0;
+      }
+      return state;
+    }
+
+    var sub = (state.subs || []).find(function (u) {
+      return u.id === profile;
+    });
+    if (!sub) {
+      return applyLoginProfile(state, "owner");
+    }
+    state.accountKind = "sub";
+    state.accountId = sub.id;
+    state.username = sub.username;
+    state.displayName = sub.displayName;
+    state.features = (sub.features || []).slice();
+    state.zeroPromptDismissed = true;
+    if (state._projectsBackup && state._projectsBackup.length) {
+      state.projects = clone(state._projectsBackup);
+      state._projectsBackup = null;
+    }
+    ensureDemoAssets(state);
+    state.firstProjectDone = businessProjects(state).length > 0;
+    return state;
+  }
+
+  function addTicket(state, ticket) {
+    if (!state.tickets) state.tickets = [];
+    state.tickets.unshift(ticket);
+  }
+
   function upsertProject(state, project) {
     var i = state.projects.findIndex(function (p) {
       return p.id === project.id;
@@ -1403,6 +1612,13 @@
     upsertProject: upsertProject,
     isPublicPool: isPublicPool,
     businessProjects: businessProjects,
+    flattenOwnerFeatures: flattenOwnerFeatures,
+    hasFeature: hasFeature,
+    accountKey: accountKey,
+    isMenuTourDone: isMenuTourDone,
+    setMenuTourDone: setMenuTourDone,
+    applyLoginProfile: applyLoginProfile,
+    addTicket: addTicket,
     reset: function () {
       localStorage.removeItem(KEY);
       /* 文章列表独立缓存，重置时一并清掉，避免失败/已推送等种子态回不来 */
