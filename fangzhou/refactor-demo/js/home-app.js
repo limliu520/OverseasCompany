@@ -186,7 +186,12 @@
     return acc;
   }
 
+  function isNewEmpty() {
+    return !!(FZStore.isEmptyOnboarding && FZStore.isEmptyOnboarding(FZStore.read()));
+  }
+
   function pendingMats() {
+    if (isNewEmpty()) return [];
     if (!can("collect.materials.view") && !can("collect.materials.approve")) {
       return [];
     }
@@ -196,6 +201,7 @@
   }
 
   function workArts() {
+    if (isNewEmpty()) return [];
     if (!can("content.article.view") || !global.FZArticles) return [];
     return FZArticles.list().filter(function (a) {
       return (
@@ -315,90 +321,141 @@
   }
 
   function renderStats(s) {
+    /* 模块人人可见；指标按权限裁剪，无权限的数字不出现（不整块隐藏） */
     var box = document.getElementById("wb-stats");
     var extra = document.getElementById("wb-stats-extra");
     if (!box) return;
-    var projects = FZStore.businessProjects(s);
-    var show =
-      can("collect.tg.view") ||
-      can("collect.web.view") ||
-      can("collect.materials.view") ||
-      can("content.article.view") ||
-      can("projects.list.view");
-    if (!show) {
-      box.innerHTML = empty("当前角色无可查看的数据统计");
-      if (extra) extra.innerHTML = "";
+    var emptyAcct = !!(FZStore.isEmptyOnboarding && FZStore.isEmptyOnboarding(s));
+    var projects = emptyAcct ? [] : FZStore.businessProjects(s);
+    var canTg = can("collect.tg.view");
+    var canWeb = can("collect.web.view");
+    var canMat =
+      can("collect.materials.view") || can("collect.materials.approve");
+    var canArt = can("content.article.view");
+    var acc = emptyAcct
+      ? {
+          tgYesterday: 0,
+          webYesterday: 0,
+          matIn: 0,
+          matPass: 0,
+          toArticle: 0,
+          pushed: 0
+        }
+      : sumStats(projects);
+    var mats = canMat ? pendingMats().length : 0;
+    var arts = canArt ? workArts().length : 0;
+    var cards = [
+      { n: acc.tgYesterday, l: "昨日 TG 采集", need: canTg },
+      { n: acc.webYesterday, l: "昨日网站采集", need: canWeb },
+      { n: acc.matIn, l: "昨日收到素材", need: canMat },
+      { n: acc.matPass, l: "昨日素材通过", need: canMat },
+      { n: acc.toArticle, l: "昨日进入文章", need: canArt },
+      { n: acc.pushed, l: "昨日已推业务端", need: canArt },
+      { n: mats, l: "当前待审素材", need: canMat, warn: mats > 0, live: true },
+      { n: arts, l: "当前待处理稿件", need: canArt, warn: arts > 0, live: true }
+    ].filter(function (c) {
+      return !!c.need;
+    });
+    if (!cards.length) {
+      box.innerHTML = empty("当前权限下暂无可汇总指标");
+    } else {
+      box.innerHTML = cards
+        .map(function (c) {
+          return (
+            '<div class="wb-stat' +
+            (c.warn ? " is-warn" : "") +
+            (c.live ? " is-live" : "") +
+            '"><div class="wb-stat-n">' +
+            c.n +
+            '</div><div class="wb-stat-l">' +
+            esc(c.l) +
+            "</div></div>"
+          );
+        })
+        .join("");
+    }
+    if (!extra) return;
+    if (emptyAcct) {
+      extra.innerHTML =
+        '<div class="wb-stat-panel wb-stat-panel--empty">' +
+        '<p class="muted wb-empty" style="margin:0">创建首个业务项目后，这里会汇总采集与转化数据。</p></div>';
+      extra.classList.add("is-sparse");
       return;
     }
-    var acc = sumStats(projects);
-    var mats = pendingMats().length;
-    var arts = workArts().length;
-    var cards = [
-      { n: acc.tgYesterday, l: "昨日 TG 采集", need: "collect.tg.view" },
-      { n: acc.webYesterday, l: "昨日网站采集", need: "collect.web.view" },
-      { n: acc.matIn, l: "昨日收到素材", need: "collect.materials.view" },
-      { n: acc.matPass, l: "昨日素材通过", need: "collect.materials.view" },
-      { n: acc.toArticle, l: "昨日进入文章", need: "content.article.view" },
-      { n: acc.pushed, l: "昨日已推业务端", need: "content.article.view" },
-      {
-        n: mats,
-        l: "当前待审素材",
-        need: "collect.materials.view",
-        warn: mats > 0,
-        live: true
-      },
-      {
-        n: arts,
-        l: "当前待处理稿件",
-        need: "content.article.view",
-        warn: arts > 0,
-        live: true
-      }
-    ].filter(function (c) {
-      return !c.need || can(c.need);
-    });
-    box.innerHTML = cards
-      .map(function (c) {
-        return (
-          '<div class="wb-stat' +
-          (c.warn ? " is-warn" : "") +
-          (c.live ? " is-live" : "") +
-          '"><div class="wb-stat-n">' +
-          c.n +
-          '</div><div class="wb-stat-l">' +
-          esc(c.l) +
+    var panels = [];
+    if (canTg || canWeb) {
+      panels.push(
+        '<div class="wb-stat-panel">' +
+          '<div class="wb-stat-panel-h">近 7 日采集' +
+          '<span class="wb-spark-leg"><i class="is-a"></i>TG <i class="is-b"></i>网站</span></div>' +
+          sparkBars(DEMO_WEEK.tg, DEMO_WEEK.web, DEMO_WEEK.labels) +
+          "</div>"
+      );
+    }
+    if (canTg || canWeb || can("projects.list.view")) {
+      panels.push(
+        '<div class="wb-stat-panel">' +
+          '<div class="wb-stat-panel-h">昨日项目贡献 · Top3</div>' +
+          '<div class="wb-hbars">' +
+          projectBars(projects) +
           "</div></div>"
-        );
-      })
-      .join("");
-    if (!extra) return;
-    var funnel =
-      '<div class="wb-funnel">' +
-      '<div class="wb-funnel-i"><span>素材通过率</span><em>' +
-      pct(acc.matPass, acc.matIn) +
-      "</em></div>" +
-      '<div class="wb-funnel-i"><span>进文转化</span><em>' +
-      pct(acc.toArticle, acc.matPass) +
-      "</em></div>" +
-      '<div class="wb-funnel-i"><span>推送完成率</span><em>' +
-      pct(acc.pushed, acc.toArticle) +
-      "</em></div>" +
-      "</div>";
-    extra.innerHTML =
-      '<div class="wb-stat-panel">' +
-      '<div class="wb-stat-panel-h">近 7 日采集' +
-      '<span class="wb-spark-leg"><i class="is-a"></i>TG <i class="is-b"></i>网站</span></div>' +
-      sparkBars(DEMO_WEEK.tg, DEMO_WEEK.web, DEMO_WEEK.labels) +
-      "</div>" +
-      '<div class="wb-stat-panel">' +
-      '<div class="wb-stat-panel-h">昨日项目贡献 · Top3</div>' +
-      '<div class="wb-hbars">' +
-      projectBars(projects) +
-      "</div></div>" +
-      '<div class="wb-stat-panel">' +
-      '<div class="wb-stat-panel-h">链路转化</div>' +
-      funnel +
-      "</div>";
+      );
+    }
+    if (canMat || canArt) {
+      panels.push(
+        '<div class="wb-stat-panel">' +
+          '<div class="wb-stat-panel-h">链路转化</div>' +
+          '<div class="wb-funnel">' +
+          (canMat
+            ? '<div class="wb-funnel-i"><span>素材通过率</span><em>' +
+              pct(acc.matPass, acc.matIn) +
+              "</em></div>"
+            : "") +
+          (canArt
+            ? '<div class="wb-funnel-i"><span>进文转化</span><em>' +
+              pct(acc.toArticle, acc.matPass) +
+              "</em></div>" +
+              '<div class="wb-funnel-i"><span>推送完成率</span><em>' +
+              pct(acc.pushed, acc.toArticle) +
+              "</em></div>"
+            : "") +
+          "</div></div>"
+      );
+    }
+    extra.innerHTML = panels.join("");
+    extra.classList.toggle("is-sparse", panels.length < 3);
+  }
+
+  function canSeeTodos() {
+    return can("projects.list.view") || can("projects.list.create");
+  }
+
+  function canSeeMats() {
+    return can("collect.materials.view") || can("collect.materials.approve");
+  }
+
+  function canSeeArts() {
+    return can("content.article.view");
+  }
+
+  function adaptWorkbenchLayout() {
+    var row = document.getElementById("wb-row-todo");
+    var todosBand = document.getElementById("wb-band-todos");
+    var workBand = document.getElementById("wb-band-work");
+    var showTodos = canSeeTodos();
+    var showMats = canSeeMats();
+    var showArts = canSeeArts();
+    if (row) row.classList.toggle("is-alerts-only", !showTodos);
+    if (todosBand) todosBand.hidden = !showTodos;
+    if (workBand) workBand.hidden = !showMats && !showArts;
+    var tabMats = document.getElementById("wb-tab-mats");
+    var tabArts = document.getElementById("wb-tab-arts");
+    if (tabMats) tabMats.hidden = !showMats;
+    if (tabArts) tabArts.hidden = !showArts;
+    if (showMats || showArts) {
+      if (showMats) setWorkTab("mats");
+      else setWorkTab("arts");
+    }
   }
 
   function renderQuick() {
@@ -642,6 +699,7 @@
 
   function buildAlerts(s) {
     var list = [];
+    if (FZStore.isEmptyOnboarding && FZStore.isEmptyOnboarding(s)) return list;
     var projects = FZStore.businessProjects(s);
 
     (s.statusAlerts || []).forEach(function (a) {
@@ -924,24 +982,18 @@
   }
 
   function maybeBlankWorkbench(s) {
-    /* 几乎只有工作台查看、无业务块时 */
-    var hasBiz =
-      can("projects.list.view") ||
-      can("collect.tg.view") ||
-      can("collect.web.view") ||
-      can("collect.materials.view") ||
-      can("content.article.view");
+    /* 有工作台概览即可；公共三块始终可看，不因缺采编权限整页清空 */
     var root = document.getElementById("wb-root");
     if (!root) return false;
-    if (hasBiz) {
+    if (can("home.overview.view")) {
       root.classList.remove("is-blank");
       return false;
     }
     root.classList.add("is-blank");
     root.innerHTML =
       '<div class="card card-pad wb-blank">' +
-      "<strong>当前账号无可运营模块</strong>" +
-      "<p class=\"muted\">仅授权类权限时，工作台不展示采编待办。请联系主账号调整岗位权限。</p>" +
+      "<strong>当前账号无工作台权限</strong>" +
+      "<p class=\"muted\">请联系主账号开通「工作台 · 概览」后再访问。</p>" +
       "</div>";
     return true;
   }
@@ -950,32 +1002,25 @@
     var s = FZStore.read();
     if (maybeBlankWorkbench(s)) return;
     bindWorkTabs();
+    adaptWorkbenchLayout();
     renderStats(s);
     renderAnnounce();
-    renderTodos(s);
+    if (canSeeTodos()) renderTodos(s);
     renderAlerts(s);
-    renderMats();
-    renderArts();
-    /* 无素材权限但有文章权限时，默认落到稿件 Tab */
-    var tabMats = document.getElementById("wb-tab-mats");
-    var tabArts = document.getElementById("wb-tab-arts");
-    if (tabMats && tabArts) {
-      var canMat =
-        can("collect.materials.view") || can("collect.materials.approve");
-      var canArt = can("content.article.view");
-      tabMats.hidden = !canMat;
-      tabArts.hidden = !canArt;
-      if (!canMat && canArt) setWorkTab("arts");
-      else if (canMat) setWorkTab("mats");
-    }
+    if (canSeeMats()) renderMats();
+    if (canSeeArts()) renderArts();
   }
 
   function bootWelcomeAndTour() {
     var s = FZStore.read();
-    var zero = !FZStore.businessProjects(s).length;
+    var zero =
+      !FZStore.businessProjects(s).length ||
+      !!(FZStore.isEmptyOnboarding && FZStore.isEmptyOnboarding(s));
     var modal = document.getElementById("zero-modal");
     if (modal && zero && !s.zeroPromptDismissed && can("projects.list.create")) {
       modal.hidden = false;
+    } else if (modal && !zero) {
+      modal.hidden = true;
     }
     var go = document.getElementById("btn-go-setup");
     var later = document.getElementById("btn-later");
@@ -997,7 +1042,12 @@
         if (e.target === modal) dismissZero();
       });
     }
-    if (!zero && !FZStore.isMenuTourDone(s) && global.FZMenuTour) {
+    if (
+      !zero &&
+      !(FZStore.isEmptyOnboarding && FZStore.isEmptyOnboarding(s)) &&
+      !FZStore.isMenuTourDone(s) &&
+      global.FZMenuTour
+    ) {
       var steps = FZMenuTour.visibleSteps();
       if (steps.length) {
         var autoKey = "fz_tour_auto_" + FZStore.accountKey(s);

@@ -42,6 +42,14 @@
     padding: 16px; margin: 16px 0;
   }
   #view-prd .id { font-size: 12px; color: #8d2f86; }
+  /* 修订标注：新增红字；废止保留删除线 */
+  #view-prd .add { color: #c62828; }
+  #view-prd del,
+  #view-prd .del { text-decoration: line-through; color: #8a8a8a; }
+  #view-prd .rev-note {
+    margin: 8px 0 12px; padding: 8px 12px; border-radius: 8px;
+    background: #fff5f5; border: 1px solid #ffc9c9; color: #c62828; font-size: 13px;
+  }
   #view-prd .toc {
     background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
     padding: 14px 18px; margin: 16px 0 8px;
@@ -203,7 +211,8 @@
 <div class="pane" id="view-prd">
   <div class="wrap">
     <h1>方舟 · 水印与片头片尾优化 PRD</h1>
-    <div class="meta">版本 v1.3 · 2026-10-27 · 方舟后台 · 项目管理 → 编辑项目 · 截图可点击放大 · Demo 红色标出本期新增</div>
+    <div class="meta">版本 v1.4 · 2026-10-29 · 方舟后台 · 项目管理 → 编辑项目 · 截图可点击放大 · Demo 红色标出本期新增</div>
+    <p class="rev-note">v1.4 修订（研发对齐）：存量开关初始化、移动速度默认规则、开水印无素材整单不存、片头片尾启用判定与四空拦截、方向校验与大小限制。正文中 <span class="add">红色</span> 为新增/改写；<del>删除线</del> 为废止口径，勿再实现。</p>
 
     <h2>文档索引</h2>
     <nav class="toc" aria-label="文档索引">
@@ -246,7 +255,7 @@
           <td>FZ-WM-01</td>
           <td>编辑项目 · 水印</td>
           <td>水印启用开关</td>
-          <td>图片水印、固定、四角循环、移动各有独立开关；开=启用，关=未启用；关时保留素材与参数。</td>
+          <td>图片水印、固定、四角循环、移动各有独立开关；开=启用，关=未启用；关时保留素材与参数。<span class="add">存量无启用字段时：有素材视为开、无素材视为关。开着无素材整单不保存。</span></td>
           <td>每类型最多 1 套配置；可多类型同时开。</td>
         </tr>
         <tr>
@@ -267,14 +276,14 @@
           <td>FZ-WM-04</td>
           <td>编辑项目 · 移动水印</td>
           <td>移动速度</td>
-          <td>配置一圈（一个来回）所需秒数；默认 10；数值越小越快。</td>
+          <td>配置一圈（一个来回）所需秒数；<del>默认 10</del><span class="add">默认空；上传素材后按素材时长回填（如视频 5 秒则填 5）；数值越小越快。存量留空走旧逻辑。</span></td>
           <td>仅移动水印。</td>
         </tr>
         <tr>
           <td>FZ-IO-01</td>
           <td>编辑项目 · 片头片尾</td>
           <td>片头片尾拼接</td>
-          <td>水印区下方独立模块；片头 / 片尾拼在正文前 / 后；不叠水印。因服务不支持横竖互转，片头、片尾各须横屏 + 竖屏两套（两端都开则共四套）；时长暂不限。</td>
+          <td>水印区下方独立模块；片头 / 片尾拼在正文前 / 后；不叠水印。因服务不支持横竖互转，提供横屏 / 竖屏四个上传位。<del>片头、片尾各须横屏 + 竖屏两套才算启用</del><span class="add">总开关开着时，某一端只传一向即算该端启用；总开关开着时四个位至少上传一个素材才能保存；上传校验宽高方向；单文件 ≤200MB。</span></td>
           <td>不是水印类型。</td>
         </tr>
       </tbody>
@@ -325,8 +334,10 @@
         <ul>
           <li>每类型最多保留 1 套素材与参数；可多类型同时启用。</li>
           <li>关闭开关：下方配置区隐藏，不清除已上传素材、位置、宽度比例及翻转 / 间歇 / 速度等参数。</li>
-          <li>启用但未上传素材：保存时 Toast「请先上传水印素材」，该类型不视为有效启用；其它已有效类型仍可保存。</li>
-          <li>不再用「仅有上传即默认启用」作为唯一信号；以开关为准。</li>
+          <li class="del">启用但未上传素材：保存时 Toast「请先上传水印素材」，该类型不视为有效启用；其它已有效类型仍可保存。</li>
+          <li class="add">启用但未上传素材（含移除后）：整单项目不保存，Toast「请先上传 XXX水印素材」（XXX 为类型名，如移动水印）。须先上传或关掉该开关。不自动忽略该类型，也不自动把开关改回关闭。</li>
+          <li class="add">存量迁移（老数据无启用字段）：有对应素材 → 视为已启用；无素材 → 关闭。编辑回填与转编辑均按此规则，避免原有水印突然失效。</li>
+          <li>日常编辑以开关为准；上传入口仅在开关打开后展示。</li>
           <li>交互通则：所有开关（含模块总开关、镜像翻转、间歇展示）均控制其下方内容是否展示；关闭则隐藏，打开再展示。</li>
         </ul>
         <h3>页面交互</h3>
@@ -337,9 +348,10 @@
         <h3>异常</h3>
         <ul>
           <li>全部水印关闭：允许保存；成片不叠本项目添加水印（去源水印若有其它链路逻辑不在本期改）。</li>
+          <li class="add">任一水印开关开着且无素材：整单不保存，见上 Toast。</li>
         </ul>
         <h3>数据流转</h3>
-        <p>各类型增加 enabled 布尔；压片请求只带 enabled=true 且素材齐全的类型。</p>
+        <p>各类型增加 enabled 布尔；压片请求只带 enabled=true 且素材齐全的类型。<span class="add">存量无字段时按「有素材=开」推导。</span></p>
       </div>
     </div>
 
@@ -406,7 +418,7 @@
     <div class="pair" id="fz-wm-04">
       <figure>
         <img src="prd-screens/demo-wm-speed.png" alt="移动水印速度配置" />
-        <figcaption>Demo：移动水印「一圈耗时（秒）」，默认 10；旁注说明改小变快、改大变慢。</figcaption>
+        <figcaption>Demo：移动水印「一圈耗时（秒）」；<del>默认 10</del><span class="add">默认空，上传素材后按素材时长回填</span>。</figcaption>
       </figure>
       <div>
         <div class="id">FZ-WM-04</div>
@@ -416,20 +428,24 @@
         <h3>业务规则</h3>
         <ul>
           <li>仅「移动水印」展示。</li>
-          <li>主字段为秒数；默认 10。</li>
-          <li>允许范围 1～120；超出时 Toast「请输入 1～120 之间的秒数」。</li>
-          <li>Demo 可附「相对默认」只读提示（如当前为默认的 0.5x / 2x），不以倍率为主输入。</li>
+          <li class="del">主字段为秒数；默认 10。</li>
+          <li class="add">主字段为秒数；默认空。上传移动水印素材后，按素材时长自动填入（例：水印视频 5 秒 → 填 5；PNG 可按旧逻辑默认 5）。运营可再改为 1～120。</li>
+          <li class="add">存量：一圈耗时留空则不传速度参数，水印服务继续旧逻辑（视频跟素材时长 / PNG 5 秒一圈）。不统一改成固定 10 秒。</li>
+          <li>允许范围 1～120（有值时）；超出时 Toast「请输入 1～120 之间的秒数」。</li>
+          <li class="del">Demo 可附「相对默认」只读提示（如当前为默认的 0.5x / 2x），不以倍率为主输入。</li>
         </ul>
         <h3>页面交互</h3>
         <ul>
-          <li>数字输入框，标签「一圈耗时（秒）」；说明「默认 10 秒；改成 5 更快，改成 20 更慢」。</li>
+          <li class="del">数字输入框，标签「一圈耗时（秒）」；说明「默认 10 秒；改成 5 更快，改成 20 更慢」。</li>
+          <li class="add">数字输入框，标签「一圈耗时（秒）」；说明「默认为空；上传素材后按素材时长填入；改小更快、改大更慢」。</li>
         </ul>
         <h3>异常</h3>
         <ul>
-          <li>空值保存：回退为 10。</li>
+          <li class="del">空值保存：回退为 10。</li>
+          <li class="add">空值保存：允许，表示走服务端旧速度逻辑（存量兼容）。</li>
         </ul>
         <h3>数据流转</h3>
-        <p>写入移动水印配置；压片时作为轨迹周期传给水印服务。</p>
+        <p>写入移动水印配置；<span class="add">有值时</span>作为轨迹周期传给水印服务；<span class="add">空则不传该参数。</span></p>
       </div>
     </div>
 
@@ -443,20 +459,25 @@
         <h2>片头片尾（独立模块）</h2>
         <h3>功能逻辑</h3>
         <p>在编辑项目中、全部水印块下方，新增「片头片尾」模块。片头拼在正文视频之前，片尾拼在之后。只做拼接，不在片头片尾时段叠加本项目水印。</p>
-        <p>视频服务不支持把横屏片头/片尾自动变成竖屏（或反之）。运营须按成片方向分别上传横屏、竖屏素材。成片为横屏时用横屏套，为竖屏时用竖屏套。</p>
+        <p>视频服务不支持把横屏片头/片尾自动变成竖屏（或反之）。运营须按成片方向分别上传到横屏 / 竖屏槽位。成片为横屏时用横屏套，为竖屏时用竖屏套。</p>
         <h3>业务规则</h3>
         <ul>
           <li>上传位固定四个：片头横屏、片头竖屏、片尾横屏、片尾竖屏。</li>
-          <li>片头、片尾仍可只配一端或都不配：不配片头则两个片头位都留空；不配片尾则两个片尾位都留空。</li>
-          <li>一旦要启用片头：片头横屏与片头竖屏都必须已上传，缺一不可。片尾同理。</li>
-          <li>不允许「只上传横屏、指望服务转成竖屏」；保存时若某一端只传了一向，Toast 说明缺哪一向。</li>
-          <li>素材必须为视频（MP4 / MOV）；时长暂不设上限。</li>
+          <li>只有一个模块总开关，没有「启用片头 / 启用片尾」独立开关。<span class="add">新项目默认关闭。</span></li>
+          <li class="del">片头、片尾仍可只配一端或都不配：不配片头则两个片头位都留空；不配片尾则两个片尾位都留空。</li>
+          <li class="del">一旦要启用片头：片头横屏与片头竖屏都必须已上传，缺一不可。片尾同理。</li>
+          <li class="del">不允许「只上传横屏、指望服务转成竖屏」；保存时若某一端只传了一向，Toast 说明缺哪一向。</li>
+          <li class="add">总开关开着：某一端只要上传了横屏或竖屏任一向，即视为该端已启用（不要求必须横竖都齐）。</li>
+          <li class="add">总开关开着：四个上传位至少要有一个素材才能保存；四空则整单不保存。</li>
+          <li class="add">总开关关着：四个文件可照常保存，但不拼接。</li>
+          <li class="add">上传时校验实际画面方向：宽 ≥ 高（含相等）→ 横屏；宽 &lt; 高 → 竖屏。传到错误槽位拒绝写入。</li>
+          <li>素材必须为视频（MP4 / MOV）；时长暂不设上限。<span class="add">单文件 ≤ 200MB（沿用视频水印）；生产 Cloudflare 实际常 ≤ 100MB，超限需压缩。</span></li>
           <li>不是水印类型；无位置、无宽度比例、无镜像 / 间歇 / 速度。</li>
-          <li>模块总开关：关则不拼接，并隐藏下方四个上传位（保留已上传文件）。</li>
+          <li>模块总开关关闭时隐藏下方四个上传位（保留已上传文件）。</li>
         </ul>
         <h3>页面交互</h3>
         <ul>
-          <li>标题「片头片尾」+ 说明：须分别上传横屏、竖屏；服务不支持横竖互转；不是叠层水印。</li>
+          <li>标题「片头片尾」+ 说明：须按槽位上传横屏 / 竖屏；服务不支持横竖互转；不是叠层水印。</li>
           <li>总开关关闭时只留标题行；打开后展示 2×2 上传区。</li>
           <li>每位：上传、预览、移除；已加载显示文件名。</li>
         </ul>
@@ -464,11 +485,14 @@
         <ul>
           <li>上传非视频：Toast「请上传 MP4 或 MOV 视频」；不写入。</li>
           <li>上传失败：Toast「上传失败，请重试」。</li>
-          <li>片头横屏或竖屏缺一（另一向已有）：Toast「片头需同时上传横屏和竖屏视频」，本次保存不生效。</li>
-          <li>片尾横屏或竖屏缺一（另一向已有）：Toast「片尾需同时上传横屏和竖屏视频」，本次保存不生效。</li>
+          <li class="del">片头横屏或竖屏缺一（另一向已有）：Toast「片头需同时上传横屏和竖屏视频」，本次保存不生效。</li>
+          <li class="del">片尾横屏或竖屏缺一（另一向已有）：Toast「片尾需同时上传横屏和竖屏视频」，本次保存不生效。</li>
+          <li class="add">总开关开着且四个素材均为空：Toast「片头片尾已开启，请至少上传一个片头或片尾视频」，本次保存不生效。</li>
+          <li class="add">方向不符：Toast「这个位置需要横屏视频」或「这个位置需要竖屏视频」；不写入该文件。</li>
+          <li class="add">超过大小上限：按现网视频水印上传失败提示处理。</li>
         </ul>
         <h3>数据流转</h3>
-        <p>四个文件地址随项目保存。成片时按正文视频方向选取对应朝向的片头/片尾再拼接；片头片尾内容本身不再走添加水印。</p>
+        <p>四个文件地址随项目保存。成片时按正文视频方向选取对应朝向的片头/片尾再拼接；<span class="add">该方向无素材则该端该片不拼接。</span>片头片尾内容本身不再走添加水印。</p>
       </div>
     </div>
 
@@ -491,7 +515,9 @@
             <ul>
               <li>图片 / 固定 / 四角循环 / 移动均有启用开关。</li>
               <li>关开关后下方配置隐藏，该类型不参与压片，素材与参数仍在。</li>
-              <li>开开关且无素材时保存有明确 Toast。</li>
+              <li class="del">开开关且无素材时保存有明确 Toast。</li>
+              <li class="add">开开关且无素材：整单不保存，Toast「请先上传 XXX水印素材」。</li>
+              <li class="add">存量无启用字段：有素材=开，无素材=关。</li>
             </ul>
           </td>
         </tr>
@@ -516,7 +542,8 @@
           <td>FZ-WM-04</td>
           <td>
             <ul>
-              <li>移动水印可配一圈耗时秒数，默认 10；5 比 10 快，20 比 10 慢。</li>
+              <li class="del">移动水印可配一圈耗时秒数，默认 10；5 比 10 快，20 比 10 慢。</li>
+              <li class="add">一圈耗时默认空；上传素材后按素材时长回填；存量空值走旧逻辑；有值时 1～120。</li>
             </ul>
           </td>
         </tr>
@@ -525,7 +552,8 @@
           <td>
             <ul>
               <li>位于全部水印块下方；四个上传位：片头横/竖、片尾横/竖。</li>
-              <li>启用片头或片尾时，该端横屏与竖屏必须都有；缺一则 Toast 拦截。</li>
+              <li class="del">启用片头或片尾时，该端横屏与竖屏必须都有；缺一则 Toast 拦截。</li>
+              <li class="add">总开关开着时只传一向即算该端启用；四空不让存；方向宽高校验；≤200MB。</li>
               <li>说明为拼接而非水印；文案标明服务不支持横竖互转。</li>
             </ul>
           </td>
@@ -665,10 +693,10 @@
               </div>
               <div class="field new">
                 <label>一圈耗时（秒） <span class="tag-new">新增</span></label>
-                <input type="number" id="motion-sec" min="1" max="120" value="10" />
+                <input type="number" id="motion-sec" min="1" max="120" value="" placeholder="空=旧逻辑" />
               </div>
             </div>
-            <p class="muted">默认 10 秒一圈；改成 5 更快，改成 20 更慢。当前相对默认：<span id="speed-hint">1.0x</span></p>
+            <p class="muted"><span class="tag-new">修订</span> 默认为空；上传素材后按素材时长回填（Demo 点上传示意填 5）。改小更快、改大更慢。当前：<span id="speed-hint">空（旧逻辑）</span></p>
             <div class="fx" data-fx="motion"></div>
           </div>
         </div>
@@ -678,12 +706,12 @@
           <div class="block-head">
             <div>
               <h3>片头片尾</h3>
-              <p class="sub">完整视频拼在正文前/后，不是叠层水印。服务不支持横竖互转，须分别上传横屏、竖屏（两端都开共四套）</p>
+              <p class="sub">完整视频拼在正文前/后，不是叠层水印。服务不支持横竖互转；按槽位上传横/竖屏</p>
             </div>
             <button type="button" class="switch on new-sw" data-enable="io" aria-label="片头片尾启用" title="新增：模块开关"><i></i></button>
           </div>
           <div class="block-body" data-body="io">
-            <p class="muted"><span class="tag-new">新增</span> 四个上传位：片头横屏 / 片头竖屏 / 片尾横屏 / 片尾竖屏。某一端启用时该端两向都必须有。</p>
+            <p class="muted"><span class="tag-new">修订</span> 四个上传位。总开关开着：只传一向即算该端启用；至少上传一个素材才能保存；上传校验宽≥高横屏、宽&lt;高竖屏。</p>
             <div class="io-grid">
               <div class="block" style="margin:0;background:#111827">
                 <h3 style="margin:0 0 8px;font-size:13px">片头 · 横屏</h3>
@@ -853,13 +881,40 @@
 
   var sec = document.getElementById("motion-sec");
   var hint = document.getElementById("speed-hint");
+  var motionHasFile = true;
   function updSpeed() {
-    var v = parseFloat(sec.value);
-    if (!v || v <= 0) { hint.textContent = "—"; return; }
-    hint.textContent = (10 / v).toFixed(1) + "x";
+    var raw = sec.value.trim();
+    if (!raw) { hint.textContent = "空（旧逻辑）"; return; }
+    var v = parseFloat(raw);
+    if (!(v >= 1 && v <= 120)) { hint.textContent = "无效"; return; }
+    hint.textContent = v + " 秒/圈";
   }
   sec.addEventListener("input", updSpeed);
   updSpeed();
+
+  var motionPreview = document.querySelector('[data-wm="motion"] .preview');
+  var motionPick = document.querySelector('[data-wm="motion"] .btn:not(.danger)');
+  var motionRemove = document.querySelector('[data-wm="motion"] .btn.danger');
+  if (motionPick) {
+    motionPick.addEventListener("click", function () {
+      motionHasFile = true;
+      if (motionPreview) motionPreview.textContent = "已加载";
+      if (!sec.value.trim()) {
+        sec.value = "5";
+        updSpeed();
+        toast("已按素材时长回填一圈耗时 5 秒（Demo）");
+      } else {
+        toast("已选择示例素材（Demo）");
+      }
+    });
+  }
+  if (motionRemove) {
+    motionRemove.addEventListener("click", function () {
+      motionHasFile = false;
+      if (motionPreview) motionPreview.textContent = "未上传";
+      toast("已移除移动水印素材（Demo）");
+    });
+  }
 
   var ioNames = {
     "intro-h": "intro-landscape.mp4",
@@ -906,22 +961,33 @@
     });
     if (!interOk) { toast("显示/隐藏时长至少 0.5 秒"); return; }
 
+    var labels = { image: "图片水印", fixed: "固定水印", cycle: "四角循环水印", motion: "移动水印" };
+    var blocked = null;
+    ["image", "fixed", "cycle", "motion"].forEach(function (key) {
+      var sw = document.querySelector('[data-enable="' + key + '"]');
+      if (!sw || !sw.classList.contains("on")) return;
+      if (key === "motion" && !motionHasFile) blocked = labels[key];
+      if (key === "cycle") {
+        var prev = document.querySelector('[data-wm="cycle"] .preview');
+        if (prev && prev.textContent.indexOf("未上传") !== -1) blocked = labels[key];
+      }
+    });
+    if (blocked) {
+      toast("请先上传" + blocked + "素材");
+      return;
+    }
+
     var motionOn = document.querySelector('[data-enable="motion"]').classList.contains("on");
-    if (motionOn) {
+    if (motionOn && sec.value.trim()) {
       var ms = parseFloat(sec.value);
       if (!(ms >= 1 && ms <= 120)) { toast("请输入 1～120 之间的秒数"); return; }
     }
 
     var ioOn = document.querySelector('[data-enable="io"]').classList.contains("on");
     if (ioOn) {
-      var introAny = !!(ioFiles["intro-h"] || ioFiles["intro-v"]);
-      var outroAny = !!(ioFiles["outro-h"] || ioFiles["outro-v"]);
-      if (introAny && !(ioFiles["intro-h"] && ioFiles["intro-v"])) {
-        toast("片头需同时上传横屏和竖屏视频");
-        return;
-      }
-      if (outroAny && !(ioFiles["outro-h"] && ioFiles["outro-v"])) {
-        toast("片尾需同时上传横屏和竖屏视频");
+      var anyIo = !!(ioFiles["intro-h"] || ioFiles["intro-v"] || ioFiles["outro-h"] || ioFiles["outro-v"]);
+      if (!anyIo) {
+        toast("片头片尾已开启，请至少上传一个片头或片尾视频");
         return;
       }
     }

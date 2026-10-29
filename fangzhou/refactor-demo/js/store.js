@@ -629,6 +629,20 @@
       state.projects = [];
       changed = true;
     }
+    /*
+     * 新号空态：禁止补演示业务项目；但绝不在 ensure 里删用户已建项目
+     * （清空演示项只在 applyLoginProfile(owner_empty) 时做一次）
+     */
+    var emptyOnboard = isEmptyOnboarding(state);
+    if (emptyOnboard && !(state.projects || []).some(isPublicPool)) {
+      var poolSeed0 = DEMO_PROJECTS.find(function (p) {
+        return isPublicPool(p);
+      });
+      if (poolSeed0) {
+        state.projects = (state.projects || []).concat([clone(poolSeed0)]);
+        changed = true;
+      }
+    }
     /* 任何项目名尾部不得附带状态文案；状态只在 status 字段 / 列表「状态」列 */
     (state.projects || []).forEach(function (p) {
       var n = String(p.name || "");
@@ -649,6 +663,7 @@
       }
     });
     DEMO_PROJECTS.forEach(function (seed) {
+      if (emptyOnboard && !seed.isPublicPool) return;
       var hit = state.projects.find(function (p) {
         return p.id === seed.id;
       });
@@ -842,7 +857,8 @@
         changed = true;
       }
     });
-    if (state.projects.length && !state.firstProjectDone) {
+    /* 仅有业务项目时才视为已完成首项；公共池不算入驻完成 */
+    if (businessProjects(state).length && !state.firstProjectDone) {
       state.firstProjectDone = true;
       changed = true;
     }
@@ -1396,10 +1412,20 @@
   }
 
   /**
-   * 新建项目写入列表：演示三态项目由 ensureDemoAssets 常驻维护，
-   * 此处只把新建项放到最前，不再依赖「首建才补对照态」。
+   * 新号首建：退出空态、补齐演示对照项目，并把新建项放最前。
    */
   function seedAfterFirstCreate(state, first) {
+    state.firstProjectDone = true;
+    if (state.accountId === "owner_empty") {
+      state.accountId = "owner";
+      if (!state.displayName || /新号/.test(String(state.displayName))) {
+        state.displayName = "主账号演示";
+      }
+    }
+    if (!state.statusAlerts || !state.statusAlerts.length) {
+      state.statusAlerts = clone(DEFAULT.statusAlerts);
+    }
+    /* 先毕业再 ensure，否则空态逻辑会把业务项目（含刚建的）滤掉 */
     ensureDemoAssets(state);
     var rest = (state.projects || []).filter(function (p) {
       return p.id !== first.id;
@@ -1424,6 +1450,15 @@
     return (state.projects || []).filter(function (p) {
       return !isPublicPool(p);
     });
+  }
+
+  /** 主账号新号入驻：尚无业务项目时工作台空态 + 引导创建；首建后即毕业 */
+  function isEmptyOnboarding(state) {
+    if (!state) return false;
+    if (state.firstProjectDone) return false;
+    if (businessProjects(state).length) return false;
+    if (state.accountId === "owner_empty") return true;
+    return state.accountKind === "owner";
   }
 
   function flattenOwnerFeatures() {
@@ -1503,6 +1538,8 @@
         }
         state.firstProjectDone = false;
         state.zeroPromptDismissed = false;
+        state.statusAlerts = [];
+        state.tickets = [];
         /* 新号入驻：始终重新绑定谷歌验证 */
         state.totpBound = false;
         state.totpBindMode = "enroll";
@@ -1612,6 +1649,7 @@
     upsertProject: upsertProject,
     isPublicPool: isPublicPool,
     businessProjects: businessProjects,
+    isEmptyOnboarding: isEmptyOnboarding,
     flattenOwnerFeatures: flattenOwnerFeatures,
     hasFeature: hasFeature,
     accountKey: accountKey,
@@ -1626,6 +1664,18 @@
         localStorage.removeItem("fz_articles_demo_v1");
         localStorage.removeItem("fz_articles_demo_v2");
       } catch (err) {}
+      /* 菜单引导本会话防重复标记；不清理则重置后引导不会再自动弹出 */
+      try {
+        var kill = [];
+        var i;
+        for (i = 0; i < sessionStorage.length; i++) {
+          var k = sessionStorage.key(i);
+          if (k && k.indexOf("fz_tour_auto_") === 0) kill.push(k);
+        }
+        kill.forEach(function (k) {
+          sessionStorage.removeItem(k);
+        });
+      } catch (err2) {}
       if (global.FZArticles && typeof FZArticles.reset === "function") {
         FZArticles.reset();
       }

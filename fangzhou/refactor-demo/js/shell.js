@@ -88,7 +88,7 @@
           href: "pages/home.html",
           done: true,
           need: "home.overview.view",
-          tourTip: "工作台汇总待办、异常提醒、反馈工单与快捷入口，日常优先从这里处理。"
+          tourSkip: true
         },
         {
           id: "announcements",
@@ -96,7 +96,7 @@
           href: "pages/announcements.html",
           done: true,
           need: "home.overview.view",
-          tourTip: "平台维护、能力更新与使用说明；工作台右侧可看摘要，完整列表在此。"
+          tourSkip: true
         }
       ]
     },
@@ -111,7 +111,8 @@
           href: "pages/projects.html",
           done: true,
           need: "projects.list.view",
-          tourTip: "创建与管理业务项目、查看对接与配置入口。"
+          tourTip:
+            "这里管理所有业务项目：一个项目对应一套文章内容通道。新建时配齐基本信息与对接材料；待接通项目可点「对接」交给开发。日常改水印、模板、自动流等，从「项目详情」进入。"
         }
       ]
     },
@@ -126,7 +127,8 @@
           href: "pages/tg-collect.html",
           done: true,
           need: "collect.tg.view",
-          tourTip: "管理采集号、挂频道与监听；异常时可从工作台状态提醒跳入。"
+          tourTip:
+            "配置 Telegram 采集：添加采集号、绑定源频道，公共池还可配「源→目标」路由。号掉线、频道 not a member、路由体检失败时，可从工作台「状态与异常提醒」跳回这里处理。"
         },
         {
           id: "c_web",
@@ -134,7 +136,8 @@
           href: "pages/website-collect.html",
           done: true,
           need: "collect.web.view",
-          tourTip: "配置网站采集任务并查看采集记录。"
+          tourTip:
+            "配置网站采集任务：添加站点、填写采集规则，查看接入中 / 已接入记录。接入中的站点不可改配置；需要停用或调整时，等接入完成后再编辑。"
         },
         {
           id: "c_mat",
@@ -142,7 +145,8 @@
           href: "pages/materials.html",
           done: true,
           need: "collect.materials.view",
-          tourTip: "全部素材 / 垃圾 / 待我审核同一套列表，按视图处理。"
+          tourTip:
+            "处理采进来的素材。顶部切换「待审核 / 全部 / 垃圾」视图：待审可在详情里通过、驳回或转编辑；全部素材按项目或公共池筛选；垃圾可恢复。工作台「当前待审素材」点审核也会打开同一套详情弹窗。"
         }
       ]
     },
@@ -157,7 +161,8 @@
           href: "pages/articles.html",
           done: true,
           need: "content.article.view",
-          tourTip: "稿件列表与二次编辑、确认推送。"
+          tourTip:
+            "管理进入内容通道的稿件：查看待编、失败、已推等状态。点开可二次编辑正文与封面，确认后推送给业务方。工作台「当前待处理稿件」会汇总需要你动手的条目。"
         },
         {
           id: "i_ai",
@@ -212,7 +217,8 @@
           href: "pages/subs.html",
           done: true,
           need: "global.subs.accounts.view",
-          tourTip: "管理子账号、岗位权限；采集号在项目与 TG 采集中配置。"
+          tourTip:
+            "给协作同学开子账号、挂岗位并勾选功能权限（工作台、采集、文章等）。岗位在本页 Tab 里维护。采集号不在这里配，请到对应项目或「TG 采集」里绑定。"
         }
       ]
     }
@@ -355,6 +361,18 @@
                 FZArticles.reset();
               }
               FZStore.reset();
+              /* 双保险：清掉本会话引导防重入标记，重置后登录应再出菜单引导 */
+              try {
+                var kill = [];
+                var si;
+                for (si = 0; si < sessionStorage.length; si++) {
+                  var sk = sessionStorage.key(si);
+                  if (sk && sk.indexOf("fz_tour_auto_") === 0) kill.push(sk);
+                }
+                kill.forEach(function (k) {
+                  sessionStorage.removeItem(k);
+                });
+              } catch (eClr) {}
               location.href = BASE + "login.html";
             }
           } else if (act === "pwd") toast("修改密码 · 设计中");

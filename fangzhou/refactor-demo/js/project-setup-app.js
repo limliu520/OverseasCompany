@@ -793,8 +793,19 @@
   });
 
   document.getElementById("success-go").addEventListener("click", function () {
-    FZShell.toast("正在打开开发对接…", "ok");
-    location.href = "./project-connect.html?id=" + encodeURIComponent(createdProjectId);
+    var id = createdProjectId;
+    if (!id) {
+      var st = FZStore.read();
+      var biz = FZStore.businessProjects(st);
+      id = biz[0] && biz[0].id;
+    }
+    if (!id || !FZStore.findProject(FZStore.read(), id)) {
+      FZShell.toast("未找到刚创建的项目，请从项目列表进入对接", "err");
+      location.href = "./projects.html";
+      return;
+    }
+    location.href =
+      "./project-connect.html?id=" + encodeURIComponent(id);
   });
   document.getElementById("success-later").addEventListener("click", function () {
     FZShell.toast("可稍后在待办或项目列表进入对接", "ok");
