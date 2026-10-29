@@ -77,12 +77,41 @@ button { cursor: pointer; }
 }
 .logo span { color: var(--pink); }
 .nav { display: flex; flex-wrap: wrap; gap: 4px 14px; flex: 1; align-items: center; }
-.nav a {
+.nav a, .nav .nav-parent > .nav-label {
   color: #d8d8e0; font-size: 13px; padding: 4px 0;
-  border-bottom: 2px solid transparent;
+  border-bottom: 2px solid transparent; background: none; border-top: 0; border-left: 0; border-right: 0;
+  font: inherit; cursor: pointer;
 }
-.nav a:hover, .nav a.on { color: #fff; border-bottom-color: var(--pink); }
-.nav a.wish-entry { color: var(--pink); font-weight: 650; }
+.nav a:hover, .nav a.on,
+.nav .nav-parent:hover > .nav-label,
+.nav .nav-parent.on > .nav-label,
+.nav .nav-parent.open > .nav-label {
+  color: #fff; border-bottom-color: var(--pink);
+}
+.nav-parent {
+  position: relative; display: inline-flex; align-items: center;
+}
+.nav-parent > .nav-label::after {
+  content: ""; display: inline-block; margin-left: 5px;
+  border: 4px solid transparent; border-top-color: currentColor;
+  transform: translateY(2px);
+}
+.nav-sub {
+  display: none; position: absolute; left: 0; top: calc(100% + 8px); z-index: 45;
+  min-width: 148px; padding: 6px; border-radius: 10px;
+  background: #22232d; border: 1px solid var(--line);
+  box-shadow: 0 10px 28px rgba(0,0,0,.35);
+}
+.nav-parent:hover > .nav-sub,
+.nav-parent.open > .nav-sub,
+.nav-parent:focus-within > .nav-sub { display: block; }
+.nav-sub a {
+  display: block; padding: 8px 12px; border-bottom: 0 !important;
+  border-radius: 8px; color: #d8d8e0; white-space: nowrap;
+}
+.nav-sub a:hover, .nav-sub a.on {
+  background: var(--pink-dim); color: var(--pink);
+}
 .tools { display: flex; gap: 10px; align-items: center; margin-left: auto; }
 .icon-btn {
   width: 34px; height: 34px; border-radius: 50%;
@@ -229,8 +258,40 @@ button { cursor: pointer; }
   background: #15161d; color: var(--text); outline: none; font: inherit;
 }
 .compose-nick-field input:focus { border-color: var(--pink); }
-/* 站外模块用瀑布流无限下滑，不再用分页器 */
-.pager { display: none !important; }
+.pager {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 8px; margin: 22px 0 8px; padding: 8px 0 4px;
+  color: var(--muted); font-size: 13px;
+}
+.pager .pg-btn {
+  min-width: 36px; height: 34px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: #22232d; color: #c8c8d0;
+  font: inherit; font-size: 13px; cursor: pointer;
+}
+.pager .pg-btn:hover:not(:disabled):not(.on) {
+  border-color: #4a4b58; color: #fff;
+}
+.pager .pg-btn.on {
+  background: var(--pink); border-color: var(--pink); color: #fff; font-weight: 700;
+}
+.pager .pg-btn.accent {
+  background: var(--pink); border-color: var(--pink); color: #fff; font-weight: 650;
+}
+.pager .pg-btn:disabled {
+  opacity: .45; cursor: not-allowed; color: #7a7a88;
+}
+.pager .pg-ellipsis { color: #c8c8d0; letter-spacing: 2px; padding: 0 2px; }
+.pager .pg-total { margin-left: 4px; white-space: nowrap; }
+.pager .pg-jump {
+  display: inline-flex; align-items: center; gap: 6px; margin-left: 6px; white-space: nowrap;
+}
+.pager .pg-jump input {
+  width: 44px; height: 34px; text-align: center;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: #22232d; color: var(--text); font: inherit; outline: none;
+}
+.pager .pg-jump input:focus { border-color: var(--pink); }
 /* 有偿投稿：帖头点赞左侧小入口（后台按帖手动开） */
 .post-card .card-head-side,
 .post-detail .card-head-side {
@@ -338,10 +399,6 @@ button { cursor: pointer; }
 .site-shell-note {
   margin: 0 0 12px; padding: 8px 12px; border-radius: 8px;
   border: 1px dashed var(--line); color: var(--muted); font-size: 12px;
-}
-body.wall-focus .top .nav a:not(.wish-entry) { display: none; }
-body.wall-focus .top .nav .wish-entry {
-  color: var(--pink); font-weight: 650;
 }
 .post-card {
   background: var(--bg-card); border: 1px solid var(--line);
@@ -1253,11 +1310,15 @@ textarea.afield,
     <nav class="nav">
       <a href="#home" data-go="home">首页</a>
       <a href="#home">今日吃瓜</a>
-      <a href="#wall" class="wish-entry" data-go="wall">求瓜心愿墙</a>
       <a href="#home">吃瓜热门</a>
       <a href="#home">娱乐天地</a>
       <a href="#home">黑料事件</a>
-      <a href="#home">官方信息</a>
+      <div class="nav-parent" id="navOfficial">
+        <button type="button" class="nav-label" id="navOfficialBtn" aria-expanded="false" aria-haspopup="true">官方信息</button>
+        <div class="nav-sub" role="menu">
+          <a href="#wall" class="wish-entry" data-go="wall" role="menuitem">求瓜心愿墙</a>
+        </div>
+      </div>
     </nav>
     <div class="tools">
       <button class="icon-btn" title="搜索" data-go="search" aria-label="搜索">⌕</button>
@@ -1304,7 +1365,6 @@ textarea.afield,
         <p>想看的瓜还没有？来墙上喊一声。大家一起点赞评论攒热度，热了就有机会被安排成真瓜。</p>
       </div>
     </div>
-    <p class="site-shell-note">站外独立模块示意：真实入口由运营配置跳转链接（一级菜单 / 右下角浮窗等）。本页顶栏其它站内菜单仅作壳，墙内以浮窗「求瓜」为主入口。</p>
     <div class="wall-search">
       <input id="wallSearchInput" type="search" placeholder="搜艺人、事件或关键词" />
       <button type="button" class="btn" id="wallSearchBtn">搜索</button>
@@ -1329,7 +1389,8 @@ textarea.afield,
         </div>
       </div>
     </div>
-    <div class="post-list waterfall" id="wallFeed"></div>
+    <div class="post-list" id="wallFeed"></div>
+    <div class="pager" id="wallPager" hidden></div>
   </section>
 
   <!-- VOTE DETAIL (legacy shell) -->
@@ -1750,8 +1811,8 @@ textarea.afield,
     wallFilter: "all",
     wallSort: "hot",
     wallQuery: "",
-    wallShown: 0,
-    wallBatch: 6,
+    wallPage: 1,
+    wallPageSize: 4,
     wishCategory: "",
     wishKind: "melon",
     liked: { w3: true },
@@ -2120,7 +2181,7 @@ textarea.afield,
         </div>
         ${mediaGridHtml(p.images)}
         ${p.status === "rejected" && p.rejectReason ? `<p class="hint" style="margin:0 0 10px">驳回原因：${escapeHtml(p.rejectReason)}（仅自己可见，不推送通知）</p>` : ""}
-        ${canInteract ? commentsPreview(p) : ""}
+        ${canInteract && p.status !== "arranged" ? commentsPreview(p) : ""}
         ${footExtra}
       </div>
     </div>`;
@@ -2348,8 +2409,43 @@ textarea.afield,
     return list;
   }
 
-  function renderWall(opts) {
-    const reset = !opts || opts.reset !== false;
+  function pagerPages(cur, total) {
+    if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+    const out = [1];
+    if (cur <= 3) out.push(2, 3, "…", total);
+    else if (cur >= total - 2) out.push("…", total - 2, total - 1, total);
+    else out.push("…", cur - 1, cur, cur + 1, "…", total);
+    return out.filter((x, i, arr) => x !== "…" || arr[i - 1] !== "…");
+  }
+
+  function renderWallPager(total, page) {
+    const box = $("#wallPager");
+    if (!box) return;
+    if (total < 1) {
+      box.hidden = true;
+      box.innerHTML = "";
+      return;
+    }
+    box.hidden = false;
+    const pages = pagerPages(page, total);
+    const nums = pages.map((n) => {
+      if (n === "…") return `<span class="pg-ellipsis">…</span>`;
+      return `<button type="button" class="pg-btn${n === page ? " on" : ""}" data-wall-page="${n}">${n}</button>`;
+    }).join("");
+    box.innerHTML = `
+      <button type="button" class="pg-btn" data-wall-page="prev" ${page <= 1 ? "disabled" : ""}>上一页</button>
+      ${nums}
+      <button type="button" class="pg-btn accent" data-wall-page="next" ${page >= total ? "disabled" : ""}>下一页</button>
+      <span class="pg-total">共 ${total} 页</span>
+      <span class="pg-jump">
+        前往
+        <input id="wallPageJump" type="number" min="1" max="${total}" value="${page}" />
+        页
+        <button type="button" class="pg-btn" data-wall-page="jump">跳转</button>
+      </span>`;
+  }
+
+  function renderWall() {
     $$("#wallSort .tab").forEach((t) => {
       t.classList.toggle("on", t.dataset.sort === state.wallSort);
     });
@@ -2360,11 +2456,11 @@ textarea.afield,
     const q = (state.wallQuery || "").trim();
     const clearBtn = $("#wallSearchClear");
     if (clearBtn) clearBtn.classList.toggle("hidden", !q);
-    if (reset) state.wallShown = Math.min(state.wallBatch || 6, list.length);
-    else state.wallShown = Math.min(state.wallShown || 0, list.length);
+    const pageSize = state.wallPageSize || 4;
+    const totalPages = Math.max(1, Math.ceil(list.length / pageSize) || 1);
 
     if (!list.length) {
-      state.wallShown = 0;
+      state.wallPage = 1;
       if (q) {
         $("#wallFeed").innerHTML = `${wallSearchBannerHtml(q, 0)}
           <div class="empty">
@@ -2378,27 +2474,16 @@ textarea.afield,
       } else {
         $("#wallFeed").innerHTML = `<div class="empty"><h3>暂无内容</h3></div>`;
       }
+      renderWallPager(0, 1);
       return;
     }
-    const shown = list.slice(0, state.wallShown);
+    if (state.wallPage > totalPages) state.wallPage = totalPages;
+    if (state.wallPage < 1) state.wallPage = 1;
+    const start = (state.wallPage - 1) * pageSize;
+    const pageList = list.slice(start, start + pageSize);
     const banner = q ? wallSearchBannerHtml(q, list.length) : "";
-    const more = state.wallShown < list.length
-      ? `<div class="wall-more" id="wallMoreSentinel">下滑加载更多 · 已显示 ${state.wallShown} / ${list.length}</div>`
-      : `<div class="wall-more done">已经到底啦 · 共 ${list.length} 条</div>`;
-    $("#wallFeed").innerHTML = banner + shown.map(postCard).join("") + more;
-  }
-
-  function maybeLoadMoreWall() {
-    if (state.view !== "wall") return;
-    const list = getWallList();
-    if (state.wallShown >= list.length) return;
-    const sentinel = $("#wallMoreSentinel");
-    if (!sentinel) return;
-    const rect = sentinel.getBoundingClientRect();
-    if (rect.top < window.innerHeight + 120) {
-      state.wallShown = Math.min(state.wallShown + (state.wallBatch || 6), list.length);
-      renderWall({ reset: false });
-    }
+    $("#wallFeed").innerHTML = banner + pageList.map(postCard).join("");
+    renderWallPager(totalPages, state.wallPage);
   }
 
   function findVote(voteId) {
@@ -2683,9 +2768,10 @@ textarea.afield,
       fabDock.classList.toggle("hidden", !fabOn);
       fabDock.setAttribute("aria-hidden", fabOn ? "false" : "true");
     }
-    document.body.classList.toggle("wall-focus", state.view === "wall" || state.view === "post" || state.view === "tag");
     document.body.classList.toggle("admin-mode", state.view === "admin");
-    $$(".nav a").forEach((a) => a.classList.toggle("on", a.dataset.go === state.view || (state.view === "wall" && a.classList.contains("wish-entry"))));
+    $$(".nav a").forEach((a) => a.classList.toggle("on", a.dataset.go === state.view));
+    const navOfficial = $("#navOfficial");
+    if (navOfficial) navOfficial.classList.toggle("on", state.view === "wall" || state.view === "post" || state.view === "tag");
     $$(".demo-rail .chip[data-go]").forEach((c) => {
       const go = c.dataset.go;
       let on = false;
@@ -2698,7 +2784,7 @@ textarea.afield,
     if (state.view === "home") renderHome();
     if (state.view === "search") renderSearch();
     if (state.view === "detail") renderDetail();
-    if (state.view === "wall") renderWall({ reset: true });
+    if (state.view === "wall") renderWall();
     if (state.view === "vote") renderVote();
     if (state.view === "post") renderPostDetail();
     if (state.view === "tag") renderTag();
@@ -2896,6 +2982,8 @@ textarea.afield,
     if (goEl) {
       e.preventDefault();
       const target = goEl.dataset.go;
+      const navOfficial = $("#navOfficial");
+      if (navOfficial) navOfficial.classList.remove("open");
       if (target === "compose") {
         openComposeWish("");
         return;
@@ -3103,8 +3191,9 @@ textarea.afield,
 
   function runWallSearch() {
     state.wallQuery = ($("#wallSearchInput").value || "").trim();
+    state.wallPage = 1;
     if (state.view !== "wall") go("wall");
-    else renderWall({ reset: true });
+    else renderWall();
   }
   $("#wallSearchBtn").addEventListener("click", runWallSearch);
   $("#wallSearchInput").addEventListener("keydown", (e) => {
@@ -3112,8 +3201,9 @@ textarea.afield,
   });
   function clearWallSearch() {
     state.wallQuery = "";
+    state.wallPage = 1;
     $("#wallSearchInput").value = "";
-    renderWall({ reset: true });
+    renderWall();
   }
   $("#wallSearchClear").addEventListener("click", clearWallSearch);
   document.addEventListener("click", (e) => {
@@ -3124,8 +3214,43 @@ textarea.afield,
       state.wishCategory = state.wishCategory === v ? "" : v;
       renderComposeChips();
     }
+    const navOfficial = $("#navOfficial");
+    if (navOfficial && !e.target.closest("#navOfficial")) navOfficial.classList.remove("open");
   });
-  window.addEventListener("scroll", () => { maybeLoadMoreWall(); }, { passive: true });
+  if ($("#navOfficialBtn")) {
+    $("#navOfficialBtn").addEventListener("click", (e) => {
+      e.preventDefault();
+      const p = $("#navOfficial");
+      if (!p) return;
+      const open = p.classList.toggle("open");
+      $("#navOfficialBtn").setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  }
+  if ($("#wallPager")) {
+    $("#wallPager").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-wall-page]");
+      if (!btn || btn.disabled) return;
+      const act = btn.dataset.wallPage;
+      let page = state.wallPage || 1;
+      if (act === "prev") page -= 1;
+      else if (act === "next") page += 1;
+      else if (act === "jump") {
+        const raw = ($("#wallPageJump") && $("#wallPageJump").value) || "";
+        page = parseInt(raw, 10);
+        if (!page || page < 1) return toast("请输入有效页码");
+      } else page = parseInt(act, 10);
+      if (!page || page < 1) return;
+      state.wallPage = page;
+      renderWall();
+      window.scrollTo({ top: ($("#view-wall") && $("#view-wall").offsetTop) || 0, behavior: "smooth" });
+    });
+    $("#wallPager").addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" || e.target.id !== "wallPageJump") return;
+      e.preventDefault();
+      const jumpBtn = $("#wallPager [data-wall-page=\"jump\"]");
+      if (jumpBtn) jumpBtn.click();
+    });
+  }
   $("#composeConfirmCancel").addEventListener("click", () => {
     $("#composeConfirmModal").classList.add("hidden");
   });
@@ -3165,14 +3290,16 @@ textarea.afield,
     const tab = e.target.closest(".tab[data-sort]");
     if (!tab) return;
     state.wallSort = tab.dataset.sort;
-    renderWall({ reset: true });
+    state.wallPage = 1;
+    renderWall();
   });
 
   $("#wallFilter").addEventListener("click", (e) => {
     const tab = e.target.closest(".tab[data-filter]");
     if (!tab) return;
     state.wallFilter = tab.dataset.filter;
-    renderWall({ reset: true });
+    state.wallPage = 1;
+    renderWall();
   });
 
   /* ===== 同页运营后台 ===== */
