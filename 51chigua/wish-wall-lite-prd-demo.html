@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>51吃瓜 · 求瓜心愿墙 lite PRD</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto Sans SC", sans-serif; }
+  .bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10000; height: 52px;
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 20px; background: #fff; border-bottom: 1px solid #e4e2de;
+  }
+  .bar .brand { font-size: 13px; color: #5e5e66; margin-right: 8px; }
+  .tabs { display: flex; gap: 6px; align-items: center; }
+  .tab {
+    border: 1px solid transparent; background: transparent; color: #5e5e66;
+    border-radius: 8px; padding: 6px 14px; font: inherit; cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; pointer-events: auto;
+  }
+  .tab.on { color: #1c1c1f; background: #f6f5f3; border-color: #e4e2de; }
+  .pane { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; overflow: auto; z-index: 1; }
+  #view-prd { background: #f6f5f3; }
+  #view-prd .prd-shell {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1120px);
+    gap: 20px;
+    max-width: 1340px;
+    margin: 0 auto;
+    padding: 20px 20px 48px;
+    align-items: start;
+  }
+  #view-prd .prd-nav {
+    position: sticky;
+    top: 12px;
+    max-height: calc(100vh - 76px);
+    overflow: auto;
+    background: #fff;
+    border: 1px solid #e4e2de;
+    border-radius: 12px;
+    padding: 12px 10px;
+  }
+  #view-prd .prd-nav .nav-title {
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    color: #c45c12;
+    margin: 0 0 8px;
+    padding: 0 6px 8px;
+    border-bottom: 1px solid #efe8ef;
+  }
+  #view-prd .prd-nav a {
+    display: block;
+    padding: 7px 8px;
+    margin: 2px 0;
+    border-radius: 8px;
+    color: #3a3a42;
+    text-decoration: none;
+    font-size: 13px;
+    line-height: 1.35;
+    border: 1px solid transparent;
+  }
+  #view-prd .prd-nav a:hover { background: #f6f5f3; }
+  #view-prd .prd-nav a.on {
+    background: #f8efe6;
+    border-color: #ead7c4;
+    color: #9a4510;
+    font-weight: 600;
+  }
+  #view-prd .wrap { max-width: 1120px; margin: 0; padding: 8px 0 0; }
+  #view-prd .pair, #view-prd h2[id] { scroll-margin-top: 16px; }
+  #view-prd h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
+  #view-prd h2 { font-size: 18px; margin: 28px 0 10px; }
+  #view-prd h3 { font-size: 15px; margin: 0 0 8px; }
+  #view-prd h4 { font-size: 13px; margin: 12px 0 6px; color: #5e5e66; font-weight: 650; }
+  #view-prd .meta { color: #5e5e66; font-size: 13px; margin-bottom: 12px; }
+  #view-prd p { margin: 0 0 10px; }
+  #view-prd ul, #view-prd ol { margin: 0 0 10px; padding-left: 18px; }
+  #view-prd li { margin: 4px 0; }
+  #view-prd table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin: 8px 0 16px; }
+  #view-prd th, #view-prd td { border: 1px solid #e4e2de; padding: 8px 10px; text-align: left; vertical-align: top; }
+  #view-prd th { background: #f3f0f2; }
+  #view-prd .id { font-size: 12px; color: #c45c12; letter-spacing: 0.02em; margin-bottom: 4px; }
+  #view-prd .note { color: #5e5e66; font-size: 13px; }
+  #view-prd .pair {
+    display: grid; grid-template-columns: minmax(280px, 42%) 1fr; gap: 20px;
+    background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+    padding: 16px; margin: 16px 0;
+  }
+  #view-prd .shots { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  #view-prd figure { margin: 0; }
+  #view-prd .pair img {
+    width: 100%; height: auto; display: block;
+    border-radius: 8px; border: 1px solid #e4e2de; cursor: zoom-in;
+  }
+  #view-prd figcaption { color: #5e5e66; font-size: 12px; margin-top: 6px; }
+  @media (max-width: 1100px) {
+    #view-prd .prd-shell { grid-template-columns: 1fr; padding: 16px; }
+    #view-prd .prd-nav {
+      position: sticky; top: 0; z-index: 5; max-height: none;
+      display: flex; flex-wrap: wrap; gap: 4px; padding: 10px;
+    }
+    #view-prd .prd-nav .nav-title { width: 100%; margin-bottom: 4px; padding-bottom: 6px; }
+    #view-prd .prd-nav a { margin: 0; }
+  }
+  @media (max-width: 800px) { #view-prd .pair { grid-template-columns: 1fr; } }
+  .lightbox {
+    position: fixed; inset: 0; z-index: 20000; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(0, 0, 0, 0.82); cursor: zoom-out;
+  }
+  .lightbox.is-open { display: flex; }
+  .lightbox img {
+    max-width: min(96vw, 1400px); max-height: 92vh; width: auto; height: auto;
+    border-radius: 8px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); cursor: default;
+  }
+</style>
+</head>
+<body>
+<div class="bar">
+  <span class="brand">求瓜心愿墙 · lite</span>
+  <div class="tabs" id="modeTabs">
+    <span class="tab on">PRD</span>
+    <a class="tab" href="wish-wall-lite-demo.html" target="_top" rel="noopener">Demo</a>
+  </div>
+</div>
+
+<div class="pane" id="view-prd">
+<div class="prd-shell">
+<nav class="prd-nav" id="prdNav" aria-label="需求快捷定位">
+  <div class="nav-title">需求定位</div>
+  <a href="#sec-purpose" data-nav="sec-purpose">版本目的</a>
+  <a href="#sec-matrix" data-nav="sec-matrix">功能矩阵</a>
+  <a href="#ww-01" data-nav="ww-01">WW-01 心愿墙列表</a>
+  <a href="#ww-02" data-nav="ww-02">WW-02 墙内搜索</a>
+  <a href="#ww-03" data-nav="ww-03">WW-03 发布求瓜</a>
+  <a href="#ww-04" data-nav="ww-04">WW-04 待审本机</a>
+  <a href="#ww-05" data-nav="ww-05">WW-05 点赞</a>
+  <a href="#ww-06" data-nav="ww-06">WW-06 评论卡片</a>
+  <a href="#ww-07" data-nav="ww-07">WW-07 全部评论</a>
+  <a href="#ww-08" data-nav="ww-08">WW-08 圆梦文章</a>
+  <a href="#ww-09" data-nav="ww-09">WW-09 搜无导流</a>
+  <a href="#ww-10" data-nav="ww-10">WW-10 详情求瓜</a>
+  <a href="#ww-11" data-nav="ww-11">WW-11 有偿投稿</a>
+  <a href="#ww-12" data-nav="ww-12">WW-12 帖子管理</a>
+  <a href="#ww-13" data-nav="ww-13">WW-13 评论管理</a>
+  <a href="#ww-14" data-nav="ww-14">WW-14 运营配置</a>
+  <a href="#sec-accept" data-nav="sec-accept">验收</a>
+</nav>
+  <div class="wrap">
+    <h1>51吃瓜 · 求瓜心愿墙（lite）</h1>
+    <p class="meta">版本 1.0 · 2026-10-30 · 适用端：51吃瓜 Web 心愿墙模块（lite，无图）。截图可点击放大。顶栏「Demo」打开封板可点原型。</p>
+
+    <h2 id="sec-purpose">版本目的 / 需求背景</h2>
+    <p>站内没有用户想看的瓜时，缺少一个轻量、可攒热度的征集入口。本期上线「求瓜心愿墙」lite：用户不登录即可发心愿、点赞、评论；运营在后台审帖、关联圆梦文章、配置求瓜类型与有偿投稿规则。</p>
+    <p>要解决的问题：搜不到内容时能被引导进墙；墙上能发、能筛、能搜已有心愿；热度起来后运营可安排成文并回挂；需要时露出有偿投稿说明。</p>
+    <p>本期做：心愿墙主列表（分页、排序、状态筛选、墙内搜索）、发布求瓜、评论与全部评论页、文章详情跳转、读文后引导继续求瓜、全局搜无结果导流、运营后台（帖子 / 评论 / 配置）、有偿投稿开关。</p>
+    <p>本期不做：图片上传与展示、井号标签页、站队 / 投票、Agent、登录账号体系、「我的」页、完整版能力。图片若以后要做，另开需求。</p>
+    <p>业务对象：吃瓜用户与内容运营。预期：用户能发出心愿并被看见；运营能完成审核到圆梦闭环。</p>
+
+    <h2 id="sec-matrix">需求功能矩阵</h2>
+    <table>
+      <thead>
+        <tr><th>功能ID</th><th>模块</th><th>名称</th><th>描述</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>WW-01</td><td>主页</td><td>心愿墙列表</td><td>分页展示求瓜帖；支持最热 / 最新；状态筛：全部 / 征集中 / 已安排 / 已结束。</td></tr>
+        <tr><td>WW-02</td><td>主页</td><td>墙内搜索</td><td>按正文、求瓜类型、评论命中；有结果带结果条；无结果引导去求瓜。</td></tr>
+        <tr><td>WW-03</td><td>发布</td><td>发布求瓜</td><td>不登录；必选求瓜类型（选项来自后台配置）；正文；匿名或昵称；合规确认后进待审。</td></tr>
+        <tr><td>WW-04</td><td>发布</td><td>待审本机可见</td><td>发布成功后仅本人在「全部」置顶看见；进状态筛选不出现；刷新列表或页面后不再展示。</td></tr>
+        <tr><td>WW-05</td><td>互动</td><td>点赞</td><td>征集中 / 已安排 / 已结束均可点赞（卡片与全部评论页）。</td></tr>
+        <tr><td>WW-06</td><td>互动</td><td>评论（卡片区）</td><td>卡片不出发表框。征集中展示预览（最多 2 条）+「查看全部评论」；已安排仅入口条且在圆梦上方；已结束脚注不展开列表；待审无评论区。</td></tr>
+        <tr><td>WW-07</td><td>帖子详情</td><td>全部评论页</td><td>发评唯一入口。从「查看全部评论」/「去抢首评」进入；仅征集中底部出发表框；页标题为帖正文；可返回心愿墙。</td></tr>
+        <tr><td>WW-08</td><td>圆梦</td><td>已安排与文章</td><td>关联文章后状态为已安排；卡片展示圆梦入口；用户可跳转文章详情阅读标题与正文并可返回。</td></tr>
+        <tr><td>WW-09</td><td>导流</td><td>全局搜无结果</td><td>无文章结果时展示现样式模块；主按钮「去心愿墙」；无次按钮。</td></tr>
+        <tr><td>WW-10</td><td>导流</td><td>文章详情引导继续求瓜</td><td>正文下「下载 / 分享」操作条右侧增加黑底单按钮「去求瓜」，点进心愿墙；不做彩底导流卡。</td></tr>
+        <tr><td>WW-11</td><td>有偿</td><td>有偿投稿</td><td>仅征集中可露出；按帖手动开/关，或征集满 N 天自动开（过审进征集起算）；已安排不展示；弹层说明用站内既有配置。</td></tr>
+        <tr><td>WW-12</td><td>后台</td><td>帖子管理</td><td>状态筛选 Tab、搜索、排序；审核 / 关联 / 结束 / 下架 / 有偿 / 置顶等按封板 Demo。</td></tr>
+        <tr><td>WW-13</td><td>后台</td><td>评论管理</td><td>按帖筛选、搜索；「设为神评」；点赞过阈上墙由前台卡片预览计算。</td></tr>
+        <tr><td>WW-14</td><td>后台</td><td>运营配置</td><td>浮窗示意、有偿自动规则、求瓜类型增删改排序、最短字数与合规文案。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>按功能说明</h2>
+
+    <div class="pair" id="ww-01">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-01-wall.png" alt="求瓜心愿墙主列表·全部" />
+          <figcaption>默认「全部」+「最热」：混排征集中/已安排等，含分页与「＋求瓜」。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/ww-01-wall-collecting.png" alt="状态筛·征集中" />
+          <figcaption>状态「征集中」：仅征集中帖；卡片展开评论预览。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/ww-01-wall-ended.png" alt="状态筛·已结束" />
+          <figcaption>状态「已结束」：结束脚注，无发评预览。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/ww-01-wall-empty.png" alt="列表空态" />
+          <figcaption>过滤后无帖：空态「暂无内容」。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-01</div>
+        <h3>心愿墙列表</h3>
+        <h4>功能逻辑</h4>
+        <p>进入心愿墙后：先按可见性 + 状态 Tab 过滤（「全部」保留征集中/已安排/已结束，并可插入 WW-04 本机待审），再按「最热 / 最新」排序，最后分页。若墙内有搜索词，过滤后改按 WW-02 命中分排序，不再用「最热 / 最新」。</p>
+        <h4>业务规则</h4>
+        <h4>可见性</h4>
+        <ul>
+          <li>公开可见状态仅三种：征集中、已安排、已结束。</li>
+          <li>待审、已驳回、已下架不对他人展示；待审仅 WW-04 场景本人可见。</li>
+          <li>有「求瓜类型」时卡片展示类型徽标。</li>
+        </ul>
+        <h4>排序：最热</h4>
+        <ul>
+          <li>默认 Tab 为「最热」。</li>
+          <li>热度分公式（求瓜帖）：点赞数 + 评论条数 × 2。分数高的排前。</li>
+          <li>同分时以创建时间倒序作为次键（越新越前）。</li>
+          <li>点赞成功后点赞数 +1，热度分即时重算（正式）；同一用户对同一帖只能成功点赞一次（WW-05）。</li>
+        </ul>
+        <h4>排序：最新</h4>
+        <ul>
+          <li>按帖子创建时间倒序：越新越靠前。</li>
+          <li>正式字段用创建时间戳；Demo 用相对时间文案映射近似同一效果，验收以「新帖在前」为准。</li>
+        </ul>
+        <h4>状态筛选</h4>
+        <ul>
+          <li>「全部」：征集中 + 已安排 + 已结束（外加 WW-04 本机会话待审）。</li>
+          <li>「征集中 / 已安排 / 已结束」：只保留对应状态；本机待审不进入这三态。</li>
+          <li>切换排序或筛选时回到第 1 页。</li>
+        </ul>
+        <h4>分页与置顶</h4>
+        <ul>
+          <li>每页条数：封板 Demo 为 4；正式可配置，默认按 Demo 验收为 4。</li>
+          <li>页码条：上一页 / 数字页 / 下一页 / 跳转；超出总页时钳到合法页。</li>
+          <li>后台「置顶」本期只影响后台帖子列表排序，不改变前台墙排序。前台仅 WW-04 本机待审在「全部」插到最前。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>点「最热」「最新」切换排序并高亮当前项；点状态 Tab 切换筛选并高亮。</li>
+          <li>浮层「＋求瓜」打开 WW-03。</li>
+          <li>卡片上的点赞、有偿、评论、圆梦见 WW-05～WW-08、WW-11。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>过滤后为空：展示「暂无内容」。</li>
+          <li>墙内搜索无结果：见 WW-02。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>列表读求瓜帖的状态、点赞数、评论数、创建时间；热度分按上式现算或缓存，排序与分页在接口侧或前端完成，结果须与封板 Demo 一致。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="ww-02">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-02-wall-search.png" alt="墙内搜索有结果" />
+          <figcaption>有结果：结果条展示关键词与条数，可「清除搜索，返回全部」。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/ww-02-wall-search-empty.png" alt="墙内搜索无结果" />
+          <figcaption>无结果：说明文案 +「去求瓜」+「清除搜索」；结果条共 0 条。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-02</div>
+        <h3>墙内搜索</h3>
+        <h4>功能逻辑</h4>
+        <p>在心愿墙顶搜索框检索。只搜当前墙可见帖集合（先走 WW-01 可见性与状态筛选），不走全站文章搜索。有关键词时，结果排序改按命中分，不再使用「最热 / 最新」。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>占位符：「搜搜有没有人提过你想看的瓜」。</li>
+          <li>命中字段与分值（取该帖最高一档，不累加）：正文包含关键词 → 100；求瓜类型包含 → 50；任一条评论正文包含 → 10。不匹配井号标签（本期无标签）。</li>
+          <li>只保留命中分 &gt; 0 的帖；排序：命中分降序，同分再按热度分（同 WW-01 公式）降序。</li>
+          <li>匹配大小写不敏感；关键词 trim 后为空则视为未搜索，保持原列表。</li>
+          <li>有结果：结果条「当前为搜索结果 · 关键词「X」· 共 N 条」，可「清除搜索，返回全部」。</li>
+          <li>无结果：说明未找到；主按钮「去求瓜」可把当前词带进发布框预填；可清除搜索。</li>
+          <li>待审他人帖、已下架、已驳回不可被搜到。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>点「搜索」或回车触发；搜索后停在第 1 页。</li>
+          <li>「清除」清空关键词，恢复当前筛选下的非搜索列表与排序 Tab。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>关键词为空点搜索：列表不变，不报错。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>对可见帖做字段匹配与打分；结果集再按 WW-01 分页。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="ww-03">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-03-compose.png" alt="发布吃瓜心愿弹层" />
+          <figcaption>发布弹层：求瓜类型、正文、匿名 / 昵称、取消与发布。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/ww-03-compose-confirm.png" alt="发布合规确认" />
+          <figcaption>点「发布」后合规确认：「再想想」回编辑；「确认提交」才入库。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-03</div>
+        <h3>发布求瓜</h3>
+        <h4>功能逻辑</h4>
+        <p>打开发布弹层后只能发「求瓜」。必须先选运营配置的求瓜类型，再写正文、选匿名或昵称；校验通过后弹合规确认，确认后创建待审帖并走 WW-04。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>不登录可发。</li>
+          <li>求瓜类型：选项完全来自 WW-14 后台配置（默认时间线 / 对照表 / 合集 / 复盘）；单选且必选，不允许空着提交。</li>
+          <li>打开弹层时默认选中配置列表第一项；用户可改选其它项，不可点取消成「未选」。</li>
+          <li>正文字数：≥ 运营配置最短字数（默认 5），≤ 120；计数按 trim 后长度。</li>
+          <li>非匿名必须填昵称（建议最长 12）；匿名展示名固定为「匿名」，不存用户填的昵称。</li>
+          <li>合规文案来自 WW-14；取消确认回到编辑态；确认后才真正提交。</li>
+          <li>新帖初始：状态待审、写入已选类型、点赞 0、评论空、创建时间为当前。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>入口：浮层「＋求瓜」、墙内搜无结果「去求瓜」等；无结果带词时预填「想看关于「词」的完整盘点 / 复盘」类文案。</li>
+          <li>类型 chips 单选高亮（始终有一项选中）；勾选匿名则隐藏昵称框。</li>
+          <li>成功 Toast「发布成功」；切到墙「全部」、第 1 页，见 WW-04。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>未选类型（含配置异常导致无选中）：Toast「请选择求瓜类型」，不打开合规确认、不关弹层。</li>
+          <li>后台类型列表为空：Toast「暂无求瓜类型，请联系运营配置后再发」，不可提交。</li>
+          <li>字数不足：Toast「请至少写 N 个字」（N 为配置），不关弹层。</li>
+          <li>超过 120：Toast「最多 120 个字」。</li>
+          <li>非匿名未填昵称：Toast「请填写昵称」。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>写入待审帖（正文、类型、匿名/昵称、创建时间）；同步进后台待审队列；前台本机可见策略见 WW-04。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="ww-04">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-04-pending-session.png" alt="本机待审置顶" />
+          <figcaption>发布成功 Toast 后：「全部」第 1 页顶端出现本机待审帖（态「待审核」、无赞无评），他人不可见。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-04</div>
+        <h3>待审本机可见</h3>
+        <h4>功能逻辑</h4>
+        <p>发布成功后，本会话在前台「全部」列表最上方插入该待审帖，仅用于本人确认「已提交」。状态展示为「待审核」，不可点赞、不可评论、不展开评论区。切到「征集中 / 已安排 / 已结束」看不到。刷新列表或刷新页面后，前台不再展示该待审帖，但仍在后台待审队列。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>仅「全部」+ 本机会话发布标记同时满足时可见；他人不可见、不可搜到。</li>
+          <li>不做「我的」、不做登录认人；会话标记丢失即前台消失。</li>
+          <li>多条本机会话待审时，都排在公开帖之前（相对顺序按发布时间，新的可在最前）。</li>
+          <li>待审预览不是公开征集：没有评论、没有点赞；脚注说明「审核中，仅自己可见；通过后才会公开」。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>发布成功后强制：筛选「全部」、第 1 页、该帖在列表顶端。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>刷新后前台消失：符合预期，无错误提示。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>帖进后台待审；前台额外带本机会话可见标记，刷新清除标记但不删库内待审记录。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="ww-05">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-01-wall.png" alt="卡片点赞与已点赞" />
+          <figcaption>未赞显示点数+「点赞」；已赞为「已点赞」禁用（图中可见两种态）。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-05</div>
+        <h3>点赞</h3>
+        <h4>功能逻辑</h4>
+        <p>对可见求瓜帖点赞。成功后点赞数 +1，展示数与热度分（WW-01）同步更新。仅征集中、已安排、已结束可赞；WW-04 本机待审预览不可赞。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>不登录可赞；认人口径与 Demo 一致（本机标记即可），正式可用设备 / 账号防重复。</li>
+          <li>同一用户对同一帖只能成功一次；已赞后按钮文案「已点赞」、禁用，不可取消赞。</li>
+          <li>卡片与全部评论页上的帖级点赞共用同一计数与已赞态。</li>
+          <li>评论点赞独立计数，不计入帖热度分（见 WW-06）。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>未赞：展示当前点赞数 +「点赞」；已赞：数 +「已点赞」且不可点。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>重复点击已赞：无请求、无 Toast、无计数变化。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>写帖子 likes；列表「最热」读取该值参与公式。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="ww-06">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-06-collecting-preview.png" alt="征集中评论预览" />
+          <figcaption>征集中卡片预览：神评 / 点赞≥10 入池，最多 2 条 +「查看全部评论」。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/ww-08-arranged.png" alt="已安排仅评论入口" />
+          <figcaption>已安排：不展开列表；「评论 N + 查看全部」在圆梦区块上方。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/ww-01-wall-ended.png" alt="已结束无评论预览" />
+          <figcaption>已结束：结束脚注，不展开评论预览、不发评。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-06</div>
+        <h3>评论（列表与限制）</h3>
+        <h4>功能逻辑</h4>
+        <p>卡片评论区只做展示与跳转，从不出现发表框。发评统一在 WW-07 全部评论页完成。按帖状态决定卡片形态：征集中展示预览列表；已安排只留入口条且位于圆梦区块上方；已结束用脚注文案，不展开评论列表。本机待审预览（WW-04）不出现评论区。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>卡片禁止发表：任意状态下卡片均不出昵称框 / 正文框 /「发送」。</li>
+          <li>卡片「评论 N」：N = 该帖评论总条数。</li>
+          <li>卡片预览入池（仅卡片区按热，二选一即可）：① 运营神评（WW-13「设为神评」）；② 评论点赞数 ≥ 10（含当前用户已赞）。不入池的不出现在卡片预览。</li>
+          <li>卡片预览入池后排序：神评优先于点赞热门；同档按点赞数降序。取前 2 条；不足 2 条有几条展示几条。</li>
+          <li>预览左侧标记：神评文案标；点赞过阈显示 🔥。</li>
+          <li>评论不展示相对时间（卡片预览与全部评论页均不显示 time 文案）。</li>
+          <li>零评论：空态「还没人评，来说两句」+「去抢首评」（进全部评论页）。有评论但无一入池：只保留「评论 N + 查看全部评论」头栏，不渲染预览正文、不出现抢首评。</li>
+          <li>已安排：不渲染预览正文，仅「评论 N」+「查看全部评论」，且该条在「圆梦内容已上线」上方。</li>
+          <li>无评论图片。</li>
+          <li>评论点赞：预览区可点；每用户每条评论一次；不计入帖热度公式。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>「查看全部评论」/「去抢首评」进入 WW-07。</li>
+          <li>预览区可对单条评论点赞（未赞可点，已赞禁用）。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>本块无独立发评校验；发评异常见 WW-07。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>评论挂帖；N 与热度分的评论项读评论表。卡片预览入池读「神评标记」与实时点赞数；神评由 WW-13 写入。卡片只读展示，不写评论。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="ww-07">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-07-comments.png" alt="全部评论页·征集中" />
+          <figcaption>征集中：页标题=帖正文；底部有发评框。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/ww-07-comments-arranged.png" alt="全部评论页·已安排" />
+          <figcaption>已安排 / 已结束：无发评框；可保留圆梦入口与点赞。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-07</div>
+        <h3>全部评论页（帖子详情）</h3>
+        <h4>功能逻辑</h4>
+        <p>二级页展示该帖全部评论与帖级操作，是发评的唯一入口。页眉主标题 = 帖正文。列表排序与卡片预览不同：神评优先，其余按创建时间倒序（不按点赞重排）。仅征集中在底部出发表框；已安排 / 已结束不出发表框（仍可浏览评论、点赞、圆梦入口）。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>可发评状态：仅征集中。已安排、已结束：全部评论页不出发表框。</li>
+          <li>列表排序：神评优先；非神评按创建时间倒序。不做评论置顶；不按点赞排序（按赞只用于 WW-06 卡片预览）。</li>
+          <li>发评：须昵称 + 非空正文；成功后评论数 +1，可影响帖热度分（评论条数 ×2）。</li>
+          <li>标题区可含有偿入口、帖点赞（规则同 WW-05 / WW-11）。</li>
+          <li>已安排且有关联文章时，保留圆梦跳转入口。</li>
+          <li>单条评论可展示神评标；可评论点赞。</li>
+          <li>空评论：可评时「还没人评，来说两句」；不可评时「暂无评论」。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>「← 求瓜心愿墙」返回墙列表（保持进入前的筛选 / 页码由实现决定，Demo 回墙默认列表）。</li>
+          <li>征集中：底部昵称 + 正文 +「发送」；发送成功后列表即时追加新评、清空正文框。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>正文为空点发送：Toast「先写点评论内容」；不提交。</li>
+          <li>昵称为空点发送：Toast「先填个昵称」；不提交。</li>
+          <li>帖不存在或已下架不可见：空态「帖子不存在」+ 返回按钮。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>按帖 ID 拉帖与全量评论；发评写评论表并回写帖评论数。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="ww-08">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-08-arranged.png" alt="已安排圆梦卡片" />
+          <figcaption>已安排筛选：卡片「圆梦内容已上线」与可点文章标题。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/ww-08-10-article.png" alt="圆梦文章详情" />
+          <figcaption>点圆梦标题进入文章详情：可读正文，可返回。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-08</div>
+        <h3>已安排与文章（圆梦）</h3>
+        <h4>功能逻辑</h4>
+        <p>运营给征集中帖绑定一篇站内文章后，帖状态变为已安排。前台卡片出现「圆梦内容已上线」+ 文章标题；点击进入文章详情读正文。导流继续求瓜见 WW-10。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>写入 articleId 的同时状态改为已安排；已安排与已结束互斥，不能并存。</li>
+          <li>取消关联：清 articleId，状态回到征集中。</li>
+          <li>改为已结束：必须清 articleId（见 WW-12）。</li>
+          <li>一张帖同时只关联一篇文章；更换关联即换 articleId，状态仍为已安排。</li>
+          <li>从心愿进文章：纯跳转打开文章详情，不展示「来自心愿」标签，不带心愿正文摘要。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>点圆梦标题 → 打开对应文章详情（与站内其它入口进详情同一套文章页）；文章页可返回。</li>
+          <li>Demo 顶栏「详情」直达示意文，用于验收阅读与 WW-10。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>文章删除或不存在：圆梦点击空态或 Toast 后可回墙；不挡其它入口。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>帖保存 status=arranged 与 articleId；正文按文章 ID 读内容服务。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="ww-09">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-09-search-empty.png" alt="全局搜索无结果导流" />
+          <figcaption>全站搜无文章结果：唯一主按钮「去心愿墙」（与墙内搜无结果不同页）。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-09</div>
+        <h3>全局搜无结果导流</h3>
+        <h4>功能逻辑</h4>
+        <p>用户在全站搜索无文章结果时，展示与封板 Demo 相同的空态模块，引导去心愿墙。这是心愿墙的额外入口，不是墙内搜索。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>主文案：保持 Demo「没有找到你想看的文章哦」及心愿墙说明。</li>
+          <li>主按钮：「去心愿墙」；无次按钮。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>点主按钮进入心愿墙主页。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>无。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>无写墙数据；仅跳转。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="ww-10">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-08-10-article.png" alt="文章详情操作条求瓜入口" />
+          <figcaption>正文下操作条：下载、分享、黑底「去求瓜」同一行；其下为热门吃瓜区。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-10</div>
+        <h3>文章详情引导继续求瓜</h3>
+        <h4>功能逻辑</h4>
+        <p>文章详情在正文下方已有「下载 APP」「分享好友」操作条。求瓜入口落在该条右侧，与下载、分享同一行。入口收成单个按钮，黑底非彩底；不再使用正文下方的粉色导流卡（标签 + 说明 + 主按钮）。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>位置：下载、分享按钮的右侧，同一操作条内。</li>
+          <li>形态：整条求瓜入口合成一个按钮，文案「去求瓜」；背景黑色（或近黑），不用粉色 / 渐变彩底。</li>
+          <li>点击进入心愿墙主列表（WW-01）；不强制打开发布弹层。</li>
+          <li>不依赖登录。</li>
+          <li>下载、分享本身为站内既有能力；本需求只规定求瓜按钮的位置与样式，不改下载 / 分享业务。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>点「去求瓜」→ 进入心愿墙主列表；用户可再点发布求瓜（WW-03）。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>跳转失败：Toast「暂时进不了心愿墙，请稍后重试」；正文与下载 / 分享不受影响。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>仅跳转进墙，本步不写求瓜数据。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="ww-11">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-11-paid.png" alt="有偿投稿说明弹层" />
+          <figcaption>开启后入口可见；弹层为站内投稿说明；「知道了」/遮罩关闭。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/ww-12-admin-posts.png" alt="后台有偿徽章" />
+          <figcaption>后台有偿列徽章四分档（已开启·手动/自动、未开启·手动、未开启）。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-11</div>
+        <h3>有偿投稿</h3>
+        <h4>功能逻辑</h4>
+        <p>仅当「有偿开启判定」为真时，征集中帖在卡片与全部评论页露出「有偿投稿」。已安排表示圆梦已挂出，不再接受有偿投稿，不展示入口。点击打开说明弹层；联系方式读站内既有配置，心愿墙后台不配链接。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>前置：帖状态必须是征集中；已安排、已结束及其它状态一律不展示入口（后台徽章为「—」）。</li>
+          <li>帖级字段 paidGuide：未设置 = 走自动；true = 手动开；false = 手动关。</li>
+          <li>判定顺序：若已是手动 true/false，只认手动结果，不再走自动。仅未设置时：全局「自动开启」关 → 不展示；开则「过审进入征集起算的天数 ≥ N」才展示。N 来自 WW-14（默认 3，范围 1～365）。</li>
+          <li>一旦运营点过「开启有偿 / 关闭有偿」，该帖永久离开自动：字段只在 true ↔ false 间切换，不能改回「未设置 / 走自动」。手动关后即使已满 N 天也不展示，只能再点「开启有偿」。</li>
+          <li>后台徽章文案：已开启·手动 / 已开启·自动 / 未开启·手动 / 未开启（后两字仅未设置且未达自动条件时）。</li>
+          <li>操作列按当前展示结果取反写入 true 或 false（首次点击即从自动变为手动覆盖）。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>点「有偿投稿」开弹层；「知道了」或点遮罩关闭。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>链接失效：属站内配置，心愿墙只展示配置值。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>读帖 paidGuide + 过审进征集时间 + 全局 autoEnable/autoDays；前台只读判定结果决定显隐。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="ww-12">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-12-admin-posts.png" alt="帖子管理·全部" />
+          <figcaption>全部：状态 Tab、搜索、排序、有偿徽章与按态操作列。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/ww-12-admin-pending.png" alt="帖子管理·待审核" />
+          <figcaption>待审核：操作仅为通过 / 驳回（驳回须填原因）。</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/ww-12-admin-rejected.png" alt="帖子管理·已驳回" />
+          <figcaption>已驳回：展示驳回原因；无前台展示。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-12</div>
+        <h3>运营后台 · 帖子管理</h3>
+        <h4>功能逻辑</h4>
+        <p>后台列出全部求瓜帖（含待审 / 驳回 / 下架）。先按状态 Tab 与搜索过滤，再排序，再按状态机展示操作。不拆角色权限。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>搜索：正文或作者包含关键词（大小写不敏感）。</li>
+          <li>排序：置顶帖永远优先；其下「热度 ↓」与前台 WW-01 同一公式（点赞数 + 评论条数 × 2）降序；热度列展示该分值（可悬停看赞/评明细）。「时间 ↓」在置顶优先后按创建时间倒序。</li>
+          <li>待审核：通过 → 征集中，并记录进征集时间（有偿自动天数锚点）；驳回必须填原因 → 已驳回。</li>
+          <li>征集中：可关联文章（→ 已安排）、标记已结束、下架、有偿开关、置顶。</li>
+          <li>已安排：可更换关联、取消关联（→ 征集中）、改为已结束（须清关联）、下架、置顶；不可再开关有偿（前台亦不展示有偿入口）。</li>
+          <li>已结束：可恢复征集、下架；不可直接关联文章（须先恢复征集）。</li>
+          <li>已下架：仅「重新上架」恢复下架前状态；不提供结束 / 安排入口。</li>
+          <li>已安排与已结束互斥；置顶与否不改变状态机，只影响后台列表顺序。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>点帖文进入评论管理并筛到该帖。</li>
+          <li>有偿列只读徽章；开/关在操作列。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>驳回无原因：Toast「请填写驳回原因」，状态不变。</li>
+          <li>当前状态不允许的操作：Toast 说明限制，零副作用。</li>
+          <li>无数据：表空态「暂无符合条件的帖子」。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>写 status、articleId、pinned、paidGuide、进征集时间等字段。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="ww-13">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-13-admin-comments.png" alt="运营后台评论管理" />
+          <figcaption>评论管理：按帖筛选、搜索；操作「设为神评」；标签列只读。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-13</div>
+        <h3>运营后台 · 评论管理</h3>
+        <h4>功能逻辑</h4>
+        <p>汇总各帖评论，按帖筛选 / 关键词搜索后列表操作。运营维护「神评」标记。点赞过阈是否上卡片预览由前台按 WW-06 实时计算。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>列表排序：神评优先，其次按评论创建时间倒序（与 WW-07 全部评论页一致；不按点赞排序）。</li>
+          <li>设为神评 / 取消神评：写入神评标记；神评进入卡片预览池并显示「神评」标（见 WW-06）。</li>
+          <li>表格「标签」列只读，方便扫一眼该评在前台卡片预览的资格，不可点击修改：
+            <ul>
+              <li>已设神评 →「神评」</li>
+              <li>未设神评，但点赞数 ≥ 10 →「热门≥10」（表示按 WW-06 也会进卡片预览，来源是点赞而非运营标记）</li>
+              <li>以上都不是 →「—」</li>
+            </ul>
+          </li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>筛选「全部帖子」或单帖；搜索评论正文。</li>
+          <li>按钮文案随状态在「设为神评 / 取消神评」间切换。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>无评论：表空态「暂无评论」。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>写评论神评标记；前台卡片预览读神评标记 + 点赞数门槛；列表排序读神评 + 创建时间。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="ww-14">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/ww-14-admin-config.png" alt="运营配置" />
+          <figcaption>运营配置：浮窗示意、有偿自动、求瓜类型、最短字数与合规文案。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">WW-14</div>
+        <h3>运营后台 · 运营配置</h3>
+        <h4>功能逻辑</h4>
+        <p>保存全局运营参数；立即影响前台发布校验、求瓜类型 chips、有偿自动判定。浮窗文案仅为入口示意，真实入口链路由站内配置。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>求瓜类型：有序列表，可增 / 删 / 改名 / 上下移；前台发布 chips 按此顺序且必选其一。</li>
+          <li>至少保留 1 个类型：删到只剩 1 个时不可再删（Toast「至少保留一个求瓜类型」）；禁止保存成空列表。</li>
+          <li>有偿自动：总开关 + 天数 N；开启后按 WW-11 公式用「过审进征集天数 ≥ N」判定；默认开、N=3。</li>
+          <li>最短字数：默认 5；发布校验读取该值。</li>
+          <li>合规确认文案：发布二次确认展示该文本。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>点「保存配置」成功 Toast；未保存的编辑不生效。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>天数空或非法：保存时回落默认 3。</li>
+          <li>类型名为空：不允许添加 / 保存该行（或忽略空行，与 Demo 一致）。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>读写运营配置；类型数组给 WW-03；autoEnable/autoDays 给 WW-11。</p>
+      </div>
+    </div>
+
+    <h2 id="sec-accept">验收</h2>
+    <table>
+      <thead><tr><th>功能ID</th><th>验收标准</th></tr></thead>
+      <tbody>
+        <tr><td>WW-01</td><td>□ 最热=点赞+评论×2 降序；最新=创建时间倒序；每页 4；四态筛选；后台置顶不影响前台序</td></tr>
+        <tr><td>WW-02</td><td>□ 命中分正文100/求瓜类型50/评论10；同分按热度；有结果条/无结果可去求瓜</td></tr>
+        <tr><td>WW-03</td><td>□ 不登录可发；求瓜类型后台配置且必选；合规确认</td></tr>
+        <tr><td>WW-04</td><td>□ 发后「全部」置顶可见；筛状态不可见；刷新后前台不再见</td></tr>
+        <tr><td>WW-05</td><td>□ 仅征集中/已安排/已结束可赞；待审不可赞；点赞+1 进热度；不可重复赞、不可取消</td></tr>
+        <tr><td>WW-06</td><td>□ 卡片无发表框；预览仅神评或点赞≥10，最多 2，神评优先再按赞；无最新/无时间；待审无评论区；已安排仅入口在圆梦上方</td></tr>
+        <tr><td>WW-07</td><td>□ 发评仅在全部评论页；列表神评优先再时间倒序（不按赞）；仅征集中有发表框；可返回墙</td></tr>
+        <tr><td>WW-08</td><td>□ 关联后已安排；圆梦可进文章且正文可读、可返回</td></tr>
+        <tr><td>WW-09</td><td>□ 全局无结果仅主按钮去心愿墙</td></tr>
+        <tr><td>WW-10</td><td>□ 正文下操作条右侧黑底「去求瓜」；与下载/分享同行；无彩底导流卡；可进墙</td></tr>
+        <tr><td>WW-11</td><td>□ 仅征集中可显有偿；已安排不显；手动覆盖优先；自动=满 N 天；徽章非征集中为 —</td></tr>
+        <tr><td>WW-12</td><td>□ 置顶优先；热度列/排序=赞+评论×2（同前台）；状态机与操作列与封板一致；通过审核记下进征集时间</td></tr>
+        <tr><td>WW-13</td><td>□ 可设为神评；列表神评优先再时间倒序；神评进卡片预览池</td></tr>
+        <tr><td>WW-14</td><td>□ 类型与有偿规则可保存并影响前台</td></tr>
+      </tbody>
+    </table>
+
+    <p class="note">交互真源：同目录封板 <code>wish-wall-lite-demo.html</code>。顶栏「Demo」会打开可点原型页（可再点 PRD 回来）。</p>
+  </div>
+</div>
+</div>
+
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <img src="" alt="" />
+</div>
+
+<script>
+(function () {
+  const lb = document.getElementById("lightbox");
+  const lbImg = lb.querySelector("img");
+  const prd = document.getElementById("view-prd");
+  const nav = document.getElementById("prdNav");
+  const navLinks = nav ? nav.querySelectorAll("a[data-nav]") : [];
+
+  prd.addEventListener("click", (e) => {
+    const img = e.target.closest("#view-prd .pair img, #view-prd figure img");
+    if (!img) return;
+    lbImg.src = img.src;
+    lbImg.alt = img.alt || "";
+    lb.classList.add("is-open");
+    lb.setAttribute("aria-hidden", "false");
+  });
+  function closeLb() {
+    lb.classList.remove("is-open");
+    lb.setAttribute("aria-hidden", "true");
+    lbImg.removeAttribute("src");
+  }
+  lb.addEventListener("click", closeLb);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && lb.classList.contains("is-open")) closeLb();
+  });
+
+  function setNavOn(id) {
+    navLinks.forEach((a) => {
+      a.classList.toggle("on", !!id && a.getAttribute("data-nav") === id);
+    });
+  }
+  function scrollPrdTo(id, smooth) {
+    const el = document.getElementById(id);
+    if (!el || !prd) return;
+    const top = el.getBoundingClientRect().top - prd.getBoundingClientRect().top + prd.scrollTop - 12;
+    prd.scrollTo({ top: Math.max(0, top), behavior: smooth ? "smooth" : "auto" });
+    setNavOn(id);
+  }
+  function isNavHash(h) {
+    return /^#(sec-purpose|sec-matrix|sec-accept|ww-\d{2})$/.test(h || "");
+  }
+  if (nav) {
+    nav.addEventListener("click", (e) => {
+      const a = e.target.closest("a[data-nav]");
+      if (!a) return;
+      e.preventDefault();
+      const id = a.getAttribute("data-nav");
+      history.replaceState(null, "", "#" + id);
+      scrollPrdTo(id, true);
+    });
+  }
+  let spyTimer = null;
+  function updateSpy() {
+    if (!navLinks.length) return;
+    const prdTop = prd.getBoundingClientRect().top;
+    let best = null;
+    let bestDist = Infinity;
+    navLinks.forEach((a) => {
+      const id = a.getAttribute("data-nav");
+      const el = document.getElementById(id);
+      if (!el) return;
+      const rel = el.getBoundingClientRect().top - prdTop;
+      const d = Math.abs(rel - 20);
+      if (rel <= 80 && d < bestDist) {
+        bestDist = d;
+        best = id;
+      }
+    });
+    if (!best) {
+      const firstId = navLinks[0].getAttribute("data-nav");
+      const first = document.getElementById(firstId);
+      if (!(first && first.getBoundingClientRect().top - prdTop > 80)) best = firstId;
+    }
+    if (best) {
+      setNavOn(best);
+      const h = "#" + best;
+      if (location.hash !== h) history.replaceState(null, "", h);
+    }
+  }
+  prd.addEventListener("scroll", () => {
+    clearTimeout(spyTimer);
+    spyTimer = setTimeout(updateSpy, 60);
+  }, { passive: true });
+  if (isNavHash(location.hash)) {
+    requestAnimationFrame(() => scrollPrdTo(location.hash.slice(1), false));
+  } else {
+    updateSpy();
+  }
+})();
+</script>
+</body>
+</html>

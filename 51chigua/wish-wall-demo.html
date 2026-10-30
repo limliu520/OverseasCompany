@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>51吃瓜 · 求瓜 / 互动模块 Demo</title>
+<title>51吃瓜 · 求瓜心愿墙（完整版）Demo</title>
 <style>
 :root {
   --bg: #191a22;
@@ -45,9 +45,12 @@ button { cursor: pointer; }
 }
 .demo-rail strong { color: var(--pink); font-weight: 650; }
 .demo-rail .chip {
+  display: inline-flex; align-items: center;
   border: 1px solid var(--line); background: var(--bg-elev);
   border-radius: 999px; padding: 4px 10px; color: var(--text);
+  cursor: pointer; text-decoration: none;
 }
+.demo-rail a.chip:hover { border-color: var(--pink); color: var(--pink); }
 .demo-rail .chip.on { border-color: var(--pink); color: var(--pink); background: var(--pink-dim); }
 .demo-rail .chip.main { font-weight: 650; }
 .demo-rail .rail-sep {
@@ -74,12 +77,41 @@ button { cursor: pointer; }
 }
 .logo span { color: var(--pink); }
 .nav { display: flex; flex-wrap: wrap; gap: 4px 14px; flex: 1; align-items: center; }
-.nav a {
+.nav a, .nav .nav-parent > .nav-label {
   color: #d8d8e0; font-size: 13px; padding: 4px 0;
-  border-bottom: 2px solid transparent;
+  border-bottom: 2px solid transparent; background: none; border-top: 0; border-left: 0; border-right: 0;
+  font: inherit; cursor: pointer;
 }
-.nav a:hover, .nav a.on { color: #fff; border-bottom-color: var(--pink); }
-.nav a.wish-entry { color: var(--pink); font-weight: 650; }
+.nav a:hover, .nav a.on,
+.nav .nav-parent:hover > .nav-label,
+.nav .nav-parent.on > .nav-label,
+.nav .nav-parent.open > .nav-label {
+  color: #fff; border-bottom-color: var(--pink);
+}
+.nav-parent {
+  position: relative; display: inline-flex; align-items: center;
+}
+.nav-parent > .nav-label::after {
+  content: ""; display: inline-block; margin-left: 5px;
+  border: 4px solid transparent; border-top-color: currentColor;
+  transform: translateY(2px);
+}
+.nav-sub {
+  display: none; position: absolute; left: 0; top: calc(100% + 8px); z-index: 45;
+  min-width: 148px; padding: 6px; border-radius: 10px;
+  background: #22232d; border: 1px solid var(--line);
+  box-shadow: 0 10px 28px rgba(0,0,0,.35);
+}
+.nav-parent:hover > .nav-sub,
+.nav-parent.open > .nav-sub,
+.nav-parent:focus-within > .nav-sub { display: block; }
+.nav-sub a {
+  display: block; padding: 8px 12px; border-bottom: 0 !important;
+  border-radius: 8px; color: #d8d8e0; white-space: nowrap;
+}
+.nav-sub a:hover, .nav-sub a.on {
+  background: var(--pink-dim); color: var(--pink);
+}
 .tools { display: flex; gap: 10px; align-items: center; margin-left: auto; }
 .icon-btn {
   width: 34px; height: 34px; border-radius: 50%;
@@ -278,6 +310,24 @@ button { cursor: pointer; }
 .post-detail .paid-guide-btn:hover {
   background: rgba(255,77,141,.28); color: #fff; border-color: var(--pink);
 }
+#paidGuideModal .modal { width: min(520px, 100%); }
+.paid-guide-body {
+  margin: 0 0 16px; color: var(--text); font-size: 14px; line-height: 1.65;
+}
+.paid-guide-body .pg-title {
+  margin: 0 0 12px; font-size: 15px; font-weight: 700; line-height: 1.5;
+}
+.paid-guide-body ol {
+  margin: 0; padding-left: 1.35em;
+}
+.paid-guide-body li { margin: 0 0 10px; }
+.paid-guide-body li:last-child { margin-bottom: 0; }
+.paid-guide-body a.tg-link {
+  color: var(--pink); text-decoration: underline;
+  text-decoration-style: dotted; text-underline-offset: 3px;
+  cursor: pointer; word-break: break-all;
+}
+.paid-guide-body a.tg-link:hover { filter: brightness(1.1); }
 .kind-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
 .kind-tabs .kind {
   border: 1px solid var(--line); background: #15161d; color: var(--muted);
@@ -315,6 +365,41 @@ button { cursor: pointer; }
   flex-shrink: 0; height: 30px; padding: 0 12px; font-size: 12px;
 }
 .post-list { display: flex; flex-direction: column; gap: 14px; }
+/* 站外：单列信息流 + 无限下滑（不再分页；不做多列瀑布） */
+.post-list.waterfall {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.post-list.waterfall .post-card {
+  margin: 0;
+  width: 100%;
+}
+.wall-more {
+  text-align: center; padding: 8px 0 4px; color: var(--muted); font-size: 13px;
+}
+.wall-more.done { opacity: .7; }
+.compose-guide {
+  margin: 0 0 12px; padding: 0;
+  border: 0; background: none;
+  color: var(--muted); font-size: 12px; line-height: 1.55;
+  pointer-events: none; cursor: default;
+}
+.compose-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.compose-chips .chip-ex,
+.compose-chips .chip-cat {
+  border: 1px solid var(--line); background: #15161d; color: var(--muted);
+  border-radius: 999px; padding: 6px 12px; font-size: 12px; cursor: pointer;
+}
+.compose-chips .chip-ex:hover,
+.compose-chips .chip-cat:hover { border-color: #4a4b58; color: #fff; }
+.compose-chips .chip-cat.on {
+  border-color: var(--pink); color: var(--pink); background: var(--pink-dim);
+}
+.site-shell-note {
+  margin: 0 0 12px; padding: 8px 12px; border-radius: 8px;
+  border: 1px dashed var(--line); color: var(--muted); font-size: 12px;
+}
 .post-card {
   background: var(--bg-card); border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -337,6 +422,7 @@ button { cursor: pointer; }
 .post-card .card-head,
 .post-detail .card-head {
   display: flex; align-items: stretch; gap: 12px; margin: 0 0 12px;
+  min-width: 0;
 }
 .post-card .card-head-main,
 .post-detail .card-head-main {
@@ -349,7 +435,7 @@ button { cursor: pointer; }
 .post-card .title-row h3 {
   flex: 1; margin: 0; min-width: 0;
   font-size: 18px; font-weight: 700;
-  line-height: 1.45; overflow: visible; word-break: break-word;
+  line-height: 1.45; overflow-wrap: anywhere; word-break: break-word;
 }
 .post-detail .title-row h1 {
   flex: 1; margin: 0; min-width: 0;
@@ -416,12 +502,6 @@ button { cursor: pointer; }
 .post-detail .sub-row .tag.pending { color: #9a9aac; }
 .post-card .sub-row .tag.reject,
 .post-detail .sub-row .tag.reject { color: #d88a8a; }
-.hash-tag {
-  display: inline; padding: 0; margin: 0; border: 0; background: none;
-  color: #5b9dff; font: inherit; font-size: 12px; cursor: pointer;
-  text-decoration: none;
-}
-.hash-tag:hover { text-decoration: underline; color: #7eb0ff; }
 .post-card .vote-panel .vp-label .vp-cue,
 .post-detail .vote-panel .vp-label .vp-cue {
   font-weight: 550; color: #a8a9c8; letter-spacing: 0;
@@ -893,6 +973,14 @@ button { cursor: pointer; }
   display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
 }
 .cta-bar p { margin: 0; font-size: 13px; }
+.search-empty {
+  padding: 48px 0 8px;
+}
+.search-empty .se-msg {
+  margin: 0 0 24px; text-align: center;
+  color: var(--muted); font-size: 15px; line-height: 1.5;
+}
+.search-empty .related-block.wish { margin: 0; }
 .article h1 { font-size: 24px; margin: 0 0 10px; line-height: 1.35; }
 .article .lead { color: var(--muted); margin-bottom: 16px; }
 .article .cover {
@@ -919,6 +1007,7 @@ button { cursor: pointer; }
   background: linear-gradient(180deg, rgba(91,91,255,.12), rgba(91,91,255,.04));
 }
 .related-block.wish {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
   border-color: rgba(255,77,141,.35);
   background: linear-gradient(180deg, rgba(255,77,141,.1), rgba(255,77,141,.03));
 }
@@ -934,6 +1023,11 @@ button { cursor: pointer; }
   margin: 0 0 12px; font-size: 12px; color: var(--muted); line-height: 1.45;
 }
 .related-block .rb-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.related-block.wish .rb-main { flex: 1; min-width: 0; }
+.related-block.wish .rb-title { margin: 0; }
+.related-block.wish .rb-actions {
+  flex-shrink: 0; margin: 0; justify-content: flex-end;
+}
 
 .vote-opts { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
 .vote-opt {
@@ -1071,21 +1165,174 @@ button { cursor: pointer; }
   .wall-toolbar .wall-extra { margin-left: 0; width: 100%; }
   .wall-toolbar .wall-extra .tab-link { width: 100%; text-align: center; }
 }
+
+/* ===== 同页运营后台 ===== */
+body.admin-mode .top { display: none !important; }
+body.admin-mode .compose-fab-dock { display: none !important; }
+body.admin-mode main.wrap { max-width: 1200px; }
+.admin-chrome {
+  display: none; margin: 0 0 16px; padding: 12px 0 0;
+  border-bottom: 1px solid var(--line);
+}
+body.admin-mode .admin-chrome { display: block; }
+.admin-chrome .admin-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px;
+  margin-bottom: 12px;
+}
+.admin-chrome .admin-bar .ttl { font-size: 18px; font-weight: 750; }
+.admin-chrome .admin-bar .ttl span { color: var(--pink); }
+.admin-chrome .admin-bar .ttl em {
+  font-style: normal; color: var(--muted); font-size: 13px; font-weight: 500; margin-left: 8px;
+}
+.admin-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.admin-tabs .atab {
+  border: 0; background: transparent; color: var(--muted);
+  padding: 8px 14px; border-radius: 8px; font-weight: 650; cursor: pointer;
+}
+.admin-tabs .atab.on { background: var(--pink-dim); color: var(--pink); }
+.admin-panel { display: none; }
+.admin-panel.on { display: block; }
+.admin-toolbar {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  margin-bottom: 14px; padding: 12px 14px;
+  background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.afield,
+.admin-toolbar .afield,
+.admin-card .afield,
+.admin-sort-row input,
+#adminModal textarea,
+#adminRejectReason {
+  height: 34px; padding: 0 10px; min-width: 120px; box-sizing: border-box;
+  background: #15161d !important; border: 1px solid var(--line); border-radius: 8px;
+  color: var(--text) !important; caret-color: var(--text);
+  -webkit-text-fill-color: var(--text);
+  color-scheme: dark;
+}
+textarea.afield,
+#adminModal textarea,
+#adminRejectReason {
+  height: auto; min-height: 72px; padding: 10px; line-height: 1.5; resize: vertical;
+}
+.afield:focus,
+.admin-sort-row input:focus,
+#adminModal textarea:focus {
+  outline: none; border-color: var(--pink);
+}
+.afield::placeholder { color: #7a7a88; -webkit-text-fill-color: #7a7a88; }
+.afield.grow { flex: 1; min-width: 160px; }
+#adminPostSearch {
+  flex: 0 1 200px; width: 200px; max-width: 220px; min-width: 140px;
+}
+.admin-stabs {
+  display: flex; flex-wrap: wrap; gap: 6px; flex: 1; min-width: 0;
+}
+.admin-stabs .stab {
+  height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line);
+  background: #15161d; color: var(--muted); font-size: 12px; font-weight: 650; cursor: pointer;
+}
+.admin-stabs .stab:hover { color: var(--text); border-color: #3a3b48; }
+.admin-stabs .stab.on {
+  background: var(--pink-dim); color: var(--pink); border-color: transparent;
+}
+.afield:-webkit-autofill,
+.afield:-webkit-autofill:hover,
+.afield:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text) !important;
+  box-shadow: 0 0 0 1000px #15161d inset !important;
+  transition: background-color 99999s ease-out;
+}
+.admin-table-wrap {
+  overflow: auto; border: 1px solid var(--line);
+  border-radius: var(--radius); background: var(--bg-elev);
+}
+.admin-table-wrap table { width: 100%; border-collapse: collapse; min-width: 860px; }
+.admin-table-wrap th, .admin-table-wrap td {
+  text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top;
+}
+.admin-table-wrap th {
+  font-size: 12px; color: var(--muted); font-weight: 600; background: #1a1b24; position: sticky; top: 0;
+}
+.admin-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.admin-actions .btn.sm { height: 28px; padding: 0 8px; font-size: 12px; }
+.badge-st {
+  display: inline-flex; align-items: center; height: 22px; padding: 0 8px;
+  border-radius: 4px; font-size: 11px; font-weight: 650;
+  white-space: nowrap;
+}
+.admin-table-wrap td:nth-child(4) { white-space: nowrap; }
+.badge-st.pending { background: rgba(154,154,168,.2); color: #c8c8d0; }
+.badge-st.collecting { background: rgba(107,109,255,.2); color: #a8aaff; }
+.badge-st.arranged { background: rgba(61,214,140,.18); color: var(--ok); }
+.badge-st.ended { background: rgba(154,154,168,.16); color: #888; }
+.badge-st.rejected { background: rgba(255,107,107,.18); color: #ff8e8e; }
+.badge-st.hidden { background: rgba(154,154,168,.2); color: #9a9aa8; }
+.badge-st.hot { background: rgba(245,165,36,.2); color: var(--warn); }
+.badge-st.god { background: var(--pink-dim); color: var(--pink); }
+.badge-st.paid-on { background: rgba(61,214,140,.18); color: var(--ok); }
+.badge-st.paid-off { background: rgba(154,154,168,.16); color: #888; }
+.admin-card {
+  background: var(--bg-elev); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 16px 18px; margin-bottom: 14px;
+}
+.admin-card h3 { margin: 0 0 6px; font-size: 15px; }
+.admin-card .hint { margin: 0 0 12px; color: var(--muted); font-size: 12px; }
+.admin-sort-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  padding: 10px 12px; background: #15161d; border: 1px solid var(--line); border-radius: 8px;
+}
+.admin-sort-row input {
+  flex: 1; height: 30px; padding: 0 8px; background: var(--bg-card);
+  border: 1px solid var(--line); border-radius: 6px; color: var(--text);
+}
+.admin-chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.admin-chip-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 999px; background: #15161d;
+  border: 1px solid var(--line); font-size: 13px;
+}
+.admin-chip-item button { border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.pin-mark { color: var(--pink); font-size: 12px; margin-left: 4px; }
+.admin-post-link {
+  display: block; width: 100%; text-align: left; padding: 0; margin: 0;
+  border: 0; background: none; color: #f0f0f0; font: inherit; font-weight: 650;
+  cursor: pointer; line-height: 1.45;
+}
+.admin-post-link:hover { color: var(--pink); }
+.admin-post-link .c-count {
+  display: inline-block; margin-left: 8px; font-weight: 500; font-size: 12px; color: var(--muted);
+}
+.admin-post-link:hover .c-count { color: var(--pink); }
+.admin-media {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+}
+.admin-media img {
+  width: 56px; height: 56px; object-fit: cover; border-radius: 6px;
+  border: 1px solid var(--line); cursor: zoom-in; background: #15161d;
+}
+.admin-media img:hover { border-color: var(--pink); }
+#adminModal.modal-mask { z-index: 90; }
+.article-opt {
+  display: block; width: 100%; text-align: left; margin-bottom: 8px;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+  background: #15161d; cursor: pointer; color: var(--text);
+}
+.article-opt:hover, .article-opt.on { border-color: var(--pink); background: var(--pink-dim); }
+.article-opt small { display: block; color: var(--muted); margin-top: 2px; font-size: 12px; }
+
 </style>
 </head>
 <body>
 <div class="demo-rail">
-  <strong>Demo</strong>
-  <span>讨论稿 · 非研发终稿</span>
+  <strong>Demo · 完整版</strong>
+  <span>含图片上传 / 后台看图 / 图片开关 · 与 lite 同步的运营后台</span>
   <button class="chip main" data-go="wall">求瓜心愿墙</button>
-  <span class="rail-sep" aria-hidden="true"></span>
   <div class="rail-entries">
-    <button class="chip" data-go="search">搜索(有结果)</button>
     <button class="chip" data-go="search-empty">搜索(无结果)</button>
     <button class="chip" data-go="detail">详情</button>
+    <span class="rail-sep" aria-hidden="true"></span>
+    <button type="button" class="chip" data-go="admin">运营后台</button>
   </div>
-  <span style="margin-left:auto" id="loginState"></span>
-  <button class="chip" id="toggleLogin">切换登录（演示用）</button>
 </div>
 
 <header class="top">
@@ -1094,11 +1341,15 @@ button { cursor: pointer; }
     <nav class="nav">
       <a href="#home" data-go="home">首页</a>
       <a href="#home">今日吃瓜</a>
-      <a href="#wall" class="wish-entry" data-go="wall">求瓜心愿墙</a>
       <a href="#home">吃瓜热门</a>
       <a href="#home">娱乐天地</a>
       <a href="#home">黑料事件</a>
-      <a href="#home">官方信息</a>
+      <div class="nav-parent" id="navOfficial">
+        <button type="button" class="nav-label" id="navOfficialBtn" aria-expanded="false" aria-haspopup="true">官方信息</button>
+        <div class="nav-sub" role="menu">
+          <a href="#wall" class="wish-entry" data-go="wall" role="menuitem">求瓜心愿墙</a>
+        </div>
+      </div>
     </nav>
     <div class="tools">
       <button class="icon-btn" title="搜索" data-go="search" aria-label="搜索">⌕</button>
@@ -1121,7 +1372,7 @@ button { cursor: pointer; }
   <section id="view-search" class="view hidden">
     <div class="page-title">
       <h1>搜索</h1>
-      <p>有结果也可求瓜；无结果直接去求瓜</p>
+      <p>搜艺人 / 事件 / 关键词</p>
     </div>
     <div class="panel" style="margin-bottom:16px">
       <div class="field" style="margin:0;display:flex;gap:8px">
@@ -1163,14 +1414,13 @@ button { cursor: pointer; }
         <span class="ctrl-label">筛选</span>
         <div class="tabs" id="wallFilter">
           <button class="tab on" data-filter="all">全部</button>
-          <button class="tab" data-filter="wish">求瓜帖</button>
-          <button class="tab" data-filter="side">站队帖</button>
-          <button class="tab" data-filter="poll">投票帖</button>
-          <button class="tab" data-filter="done">已安排</button>
+          <button class="tab" data-filter="wish">求瓜</button>
+          <button class="tab" data-filter="side">站队</button>
+          <button class="tab" data-filter="poll">投票</button>
+          <button class="tab" data-filter="collecting">征集中</button>
+          <button class="tab" data-filter="arranged">已安排</button>
+          <button class="tab" data-filter="ended">已结束</button>
         </div>
-      </div>
-      <div class="wall-extra">
-        <button class="tab-link" data-go="mine">我的心愿墙</button>
       </div>
     </div>
     <div class="post-list" id="wallFeed"></div>
@@ -1217,24 +1467,125 @@ button { cursor: pointer; }
     </div>
   </section>
 
-  <!-- MINE -->
-  <section id="view-mine" class="view hidden">
-    <div class="wall-head">
-      <div class="titles">
-        <h1>我的心愿墙</h1>
-        <p>本机的求瓜、站队、评论、点赞都收在这里回看（无通知，靠回访）</p>
+  <!-- ADMIN (同页后台样式) -->
+  <section id="view-admin" class="view hidden">
+    <div class="admin-chrome">
+      <div class="admin-bar">
+        <div class="ttl">51<span>吃瓜</span><em>求瓜心愿墙 · 运营后台</em></div>
+        <button type="button" class="btn" data-go="wall">← 返回心愿墙</button>
+      </div>
+      <div class="admin-tabs" id="adminTabs">
+        <button type="button" class="atab on" data-admin-tab="posts">帖子管理</button>
+        <button type="button" class="atab" data-admin-tab="comments">评论管理</button>
+        <button type="button" class="atab" data-admin-tab="config">运营配置</button>
       </div>
     </div>
-    <div class="tabs-row">
-      <div class="tabs" id="mineTabs">
-        <button class="tab on" data-mine="wish">我的求瓜</button>
-        <button class="tab" data-mine="vote">我投过的</button>
-        <button class="tab" data-mine="comment">我评论过的</button>
-        <button class="tab" data-mine="like">我点赞的</button>
+
+    <div class="admin-panel on" id="adminPanelPosts">
+      <div class="admin-toolbar">
+        <input class="afield" id="adminPostSearch" type="search" placeholder="搜索正文 / 作者" />
+        <div class="admin-stabs" id="adminPostStatusTabs" role="tablist" aria-label="帖子状态筛选">
+          <button type="button" class="stab on" data-admin-status="all">全部</button>
+          <button type="button" class="stab" data-admin-status="pending">待审核</button>
+          <button type="button" class="stab" data-admin-status="collecting">征集中</button>
+          <button type="button" class="stab" data-admin-status="arranged">已安排</button>
+          <button type="button" class="stab" data-admin-status="ended">已结束</button>
+          <button type="button" class="stab" data-admin-status="hidden">已下架</button>
+          <button type="button" class="stab" data-admin-status="rejected">已驳回</button>
+        </div>
+        <select class="afield" id="adminPostSort">
+          <option value="heat">热度 ↓</option>
+          <option value="time">时间 ↓</option>
+        </select>
+      </div>
+      <div class="admin-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:26%">正文</th>
+              <th style="width:9%">作者</th>
+              <th style="width:8%">状态</th>
+              <th style="width:11%">有偿投稿</th>
+              <th style="width:6%">热度</th>
+              <th style="width:9%">时间</th>
+              <th style="width:5%">置顶</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="adminPostTbody"></tbody>
+        </table>
       </div>
     </div>
-    <div class="post-list" id="mineFeed"></div>
+
+    <div class="admin-panel" id="adminPanelComments">
+      <div class="admin-toolbar">
+        <select class="afield" id="adminCommentPost" style="min-width:220px">
+          <option value="all">全部帖子</option>
+        </select>
+        <input class="afield grow" id="adminCommentSearch" type="search" placeholder="搜索评论" />
+      </div>
+      <div class="admin-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:22%">所属帖</th>
+              <th style="width:36%">评论</th>
+              <th style="width:8%">赞</th>
+              <th style="width:12%">标签</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="adminCommentTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="admin-panel" id="adminPanelConfig">
+      <div class="admin-card">
+        <h3>入口相关</h3>
+        <p class="hint">真实入口由站内配置链接；此处仅示意浮窗文案。</p>
+        <label class="hint">浮窗文案</label>
+        <input class="afield" id="cfgFloatText" style="width:100%;margin:6px 0 10px" />
+        <label style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px">
+          <input type="checkbox" id="cfgFloatJump" /> 浮窗可跳转心愿墙（示意）
+        </label>
+      </div>
+      <div class="admin-card">
+        <h3>有偿投稿</h3>
+        <p class="hint">控制前台「有偿投稿」入口显隐；弹框内投稿联系方式沿用站内既有配置，此处不配链接。</p>
+        <label style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;margin-bottom:10px">
+          <input type="checkbox" id="cfgPaidAutoEnable" /> 开启「帖子征集」自动开启规则
+        </label>
+        <label class="hint">征集满多少天自动开启有偿投稿
+          <input class="afield" id="cfgPaidAutoDays" type="number" min="1" max="365" style="width:88px;margin-left:8px;display:inline-block" />
+          <span style="margin-left:6px">天</span>
+        </label>
+        <p class="hint" style="margin-top:10px">说明：未手动关闭的帖子，在征集中/已安排且满设定天数后，前台自动露出「有偿投稿」。列表操作栏可手动开/关覆盖自动规则。</p>
+      </div>
+      <div class="admin-card">
+        <h3>发布弹窗 · 二级分类</h3>
+        <p class="hint">前台发布可选；运营可增删改排序。</p>
+        <div id="adminTagList"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <input class="afield grow" id="adminNewTag" placeholder="新分类名称" />
+          <button type="button" class="btn" id="adminAddTag">添加</button>
+        </div>
+      </div>
+      <div class="admin-card">
+        <h3>其它发布规则</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:10px">
+          <label class="hint">最短字数 <input class="afield" id="cfgMinLen" type="number" min="1" style="width:80px;margin-left:6px" /></label>
+          <label style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px">
+            <input type="checkbox" id="cfgAllowImage" /> 允许图片上传
+          </label>
+        </div>
+        <label class="hint">确认提交合规文案</label>
+        <textarea id="cfgCompliance" class="afield" style="width:100%;min-height:72px;height:auto;padding:10px;margin-top:6px"></textarea>
+      </div>
+      <button type="button" class="btn primary" id="adminSaveConfig">保存配置</button>
+    </div>
   </section>
+
 </main>
 
 <div id="composeFabDock" class="compose-fab-dock hidden" aria-hidden="true">
@@ -1243,16 +1594,6 @@ button { cursor: pointer; }
   </button>
 </div>
 
-<div id="loginModal" class="modal-mask hidden">
-  <div class="modal">
-    <h3>登录（可选）</h3>
-    <p>发求瓜、站队、投票、评论均不需要登录。此处仅演示账号态。</p>
-    <div class="row">
-      <button class="btn ghost" id="loginCancel">取消</button>
-      <button class="btn primary" id="loginOk">确认登录</button>
-    </div>
-  </div>
-</div>
 <div id="voteModal" class="modal-mask hidden">
   <div class="modal" style="width:min(440px,100%)">
     <h3 id="voteModalTitle">投票</h3>
@@ -1266,18 +1607,14 @@ button { cursor: pointer; }
 <div id="composeModal" class="modal-mask hidden">
   <div class="modal" style="width:min(520px,100%)">
     <h3>发布吃瓜心愿</h3>
-    <div class="field">
-      <label>类型</label>
-      <div class="kind-tabs" id="wishKindTabs">
-        <button type="button" class="kind on" data-kind="melon">求瓜</button>
-        <button type="button" class="kind" data-kind="resource">求资源</button>
-        <button type="button" class="kind" data-kind="feature">求功能</button>
-      </div>
-      <p class="hint" id="wishKindHint">求瓜：公开征集选题方向，上墙攒热度。</p>
+    <p class="compose-guide">说清楚「想看什么方向」即可上墙攒热度。禁止贴未经证实的爆料、造谣或人身攻击。</p>
+    <div class="field" style="margin-top:0">
+      <label>求瓜类型</label>
+      <div class="compose-chips" id="composeCatChips" aria-label="求瓜类型"></div>
     </div>
     <div class="field">
       <label id="wishTextLabel">我想看什么瓜</label>
-      <textarea id="wishText" maxlength="120" placeholder="例：想看某某艺人近年舆情盘点 / 想看近期晚会汇总 / 想看旧瓜复盘"></textarea>
+      <textarea id="wishText" maxlength="120" placeholder="例：想看某某艺人近年舆情时间线盘点"></textarea>
       <div class="compose-meta">
         <label class="compose-anon"><input type="checkbox" id="wishAnon" /><span>匿名提交</span></label>
         <span class="char-count" id="wishCharCount">0 / 120</span>
@@ -1288,7 +1625,7 @@ button { cursor: pointer; }
       </div>
       <div class="attach-row">
         <button type="button" class="attach-btn" id="wishImgBtn">＋ 添加图片</button>
-        <span class="attach-hint">最多 3 张（选填）</span>
+        <span class="attach-hint">最多 3 张（选填；一期可关）</span>
         <input type="file" id="wishImgInput" accept="image/*" multiple class="hidden" />
         <div class="attach-previews" id="wishImgPreviews"></div>
       </div>
@@ -1310,6 +1647,22 @@ button { cursor: pointer; }
     </div>
   </div>
 </div>
+<div id="paidGuideModal" class="modal-mask hidden">
+  <div class="modal" role="dialog" aria-labelledby="paidGuideTitle">
+    <div class="paid-guide-body">
+      <p class="pg-title" id="paidGuideTitle">吃瓜投稿方法（投稿过审后，有现金奖励）：</p>
+      <ol>
+        <li>投稿资料（建议包含标题、图片说明、视频资料、以及相关的文案），直接在电报发给他 <a class="tg-link" href="https://t.me/gushu555" id="paidTgLink" data-paid-tg="">https://t.me/gushu555</a></li>
+        <li>决定采纳后，瓜哥给予单个投稿资料10元～500元的投稿奖励，根据实际投稿内容的品质决定具体金额</li>
+        <li>提供收款方式给 @gushu555</li>
+      </ol>
+    </div>
+    <div class="row">
+      <button type="button" class="btn primary" id="paidGuideClose">知道了</button>
+    </div>
+  </div>
+</div>
+<div id="adminModal" class="modal-mask hidden"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1371,7 +1724,7 @@ button { cursor: pointer; }
       id: "w1", type: "wish", wishKind: "melon", text: "想看沈腾近几年舆情完整时间线盘点",
       tag: "沈腾", tags: ["沈腾", "时间线", "舆情"], likes: 128, status: "collecting", mine: false, time: "2小时前",
       user: "瓜友阿茶", anonymous: false,
-      paidGuide: true,
+      paidGuide: true, ageDays: 5,
       images: [IMG.a],
       comments: [
         { id: "cw1a", user: "瓜友A", text: "求完整时间线，别只蹭热度", time: "1小时前", likes: 26, hot: true, hotBy: "ops", images: [IMG.b] },
@@ -1382,7 +1735,7 @@ button { cursor: pointer; }
     {
       id: "w2", type: "wish", wishKind: "melon", text: "想看沈腾×林允传闻的「已证实 / 未证实」对照表",
       tag: "沈腾", tags: ["沈腾", "林允", "对照表"], likes: 86, status: "arranged", articleId: "a1", mine: false, time: "昨天",
-      user: "匿名", anonymous: true,
+      user: "匿名", anonymous: true, ageDays: 4,
       images: [IMG.a, IMG.c],
       comments: [
         { id: "cw2a", user: "路人甲", text: "对照表太需要了", time: "昨天", likes: 14, hot: true, hotBy: "ops" },
@@ -1392,7 +1745,7 @@ button { cursor: pointer; }
     {
       id: "w3", type: "wish", wishKind: "melon", text: "想看2026晚会翻车名场面合集",
       tag: "晚会", tags: ["晚会", "翻车", "名场面"], likes: 64, status: "collecting", mine: false, time: "昨天",
-      user: "晚会观众K", anonymous: false,
+      user: "晚会观众K", anonymous: false, ageDays: 1,
       comments: [
         { id: "cw3a", user: "晚会观众", text: "求带时间戳的合集", time: "昨天", likes: 9, hot: true, hotBy: "data" }
       ]
@@ -1404,19 +1757,13 @@ button { cursor: pointer; }
       comments: []
     },
     {
-      id: "w_resource", type: "wish", wishKind: "resource", text: "求沈腾林允同游清晰原图合集（可打码）",
+      id: "w_resource", type: "wish", wishKind: "melon", text: "想看沈腾林允同游细节盘点合集",
       tag: "沈腾", tags: ["沈腾", "林允", "原图"], likes: 22, status: "collecting", mine: false, time: "4小时前",
-      user: "资源党", anonymous: false,
-      paidGuide: true,
+      user: "吃瓜党", anonymous: false,
+      paidGuide: true, ageDays: 6,
       comments: [
-        { id: "cr1", user: "路人丁", text: "原图太需要了", time: "3小时前", likes: 2 }
+        { id: "cr1", user: "路人丁", text: "细节盘点太需要了", time: "3小时前", likes: 2 }
       ]
-    },
-    {
-      id: "w_feature", type: "wish", wishKind: "feature", text: "希望心愿墙支持按艺人订阅更新提醒",
-      tag: "产品反馈", likes: 0, status: "pending", mine: true, time: "今天",
-      user: "我", anonymous: false,
-      comments: []
     },
     {
       id: "w_rejected", type: "wish", wishKind: "melon", text: "求某某未证实黑料完整锤",
@@ -1428,7 +1775,7 @@ button { cursor: pointer; }
     {
       id: "w4", type: "wish", wishKind: "melon", text: "想看明星恋情瓜的时间线盘点合集",
       tag: "明星爆料", tags: ["明星爆料", "恋情", "盘点"], likes: 45, status: "collecting", mine: false, time: "5小时前",
-      user: "匿名", anonymous: true,
+      user: "匿名", anonymous: true, ageDays: 3,
       comments: [
         { id: "cw4a", user: "瓜嫂", text: "最好按年份排", time: "4小时前", likes: 4 },
         { id: "cw4b", user: "吃瓜达人", text: "时间线比站队有用", time: "3小时前", likes: 2 }
@@ -1441,13 +1788,44 @@ button { cursor: pointer; }
       comments: []
     },
     {
+      id: "w6", type: "wish", wishKind: "melon", text: "想看过气综艺名场面复盘合集",
+      tag: "综艺", tags: ["综艺", "复盘", "合集"], likes: 31, status: "ended", mine: false, time: "上周",
+      user: "复盘党", anonymous: false, category: "复盘",
+      comments: [
+        { id: "cw6a", user: "路人", text: "这帖征集已结束", time: "上周", likes: 1 }
+      ]
+    },
+    {
+      id: "w7", type: "wish", wishKind: "melon", text: "想看某品牌代言翻车对照表",
+      tag: "品牌", tags: ["品牌", "翻车", "对照表"], likes: 19, status: "ended", mine: false, time: "3天前",
+      user: "匿名", anonymous: true, category: "对照表",
+      comments: []
+    },
+    {
+      id: "w8", type: "wish", wishKind: "melon", text: "想看去年跨年晚会穿搭吐槽合集",
+      tag: "晚会", tags: ["晚会", "穿搭", "合集"], likes: 27, status: "collecting", mine: false, time: "6小时前",
+      user: "穿搭观察", anonymous: false, category: "合集",
+      comments: []
+    },
+    {
+      id: "w9", type: "wish", wishKind: "melon", text: "想看顶流分手传闻时间线（只要公开信息）",
+      tag: "恋情", tags: ["恋情", "时间线"], likes: 54, status: "collecting", mine: false, time: "8小时前",
+      user: "时间线收集者", anonymous: false, category: "时间线",
+      comments: []
+    },
+    {
+      id: "w10", type: "wish", wishKind: "melon", text: "想看短剧改编争议双方说法对照",
+      tag: "短剧", tags: ["短剧", "对照表"], likes: 16, status: "arranged", articleId: "a1", mine: false, time: "2天前",
+      user: "剧评人", anonymous: false, category: "对照表", ageDays: 2,
+      comments: []
+    },
+    {
       id: "v1", type: "side", text: "这类盘点你更想先看哪段？",
       tag: "沈腾", tags: ["沈腾", "盘点"], a: "出道到爆红", b: "近三年舆情", pa: 41, pb: 59,
       likes: 36, status: "voting",
       user: "运营", anonymous: false,
       comments: [
-        { id: "cv1a", user: "老粉", text: "近三年争议更多，先看这段", time: "50分钟前", likes: 11, hot: true, hotBy: "ops" },
-        { id: "cv1b", user: "吃瓜群众", text: "出道到爆红也想补课", time: "40分钟前", likes: 4 }
+        { id: "cv1a", user: "老粉", text: "近三年争议更多，先看这段", time: "50分钟前", likes: 11, hot: true, hotBy: "ops" }
       ],
       mine: false, time: "1小时前",
       relatedWishId: "w1", ops: true
@@ -1458,9 +1836,7 @@ button { cursor: pointer; }
       likes: 90, status: "voting",
       user: "运营", anonymous: false,
       comments: [
-        { id: "cv2a", user: "路人乙", text: "先别审判比较合理", time: "2小时前", likes: 42, hot: true, hotBy: "data", badge: "god" },
-        { id: "cv2b", user: "瓜友丁", text: "澄清了更好，别拖", time: "1小时前", likes: 15, hot: true, hotBy: "ops" },
-        { id: "cv2c", user: "匿名瓜", text: "两边都别撕", time: "50分钟前", likes: 7 }
+        { id: "cv2a", user: "路人乙", text: "先别审判比较合理", time: "2小时前", likes: 42, hot: true, hotBy: "data" }
       ],
       mine: false, time: "3小时前",
       relatedWishId: "w2", relatedArticleId: "a1", ops: true
@@ -1478,8 +1854,7 @@ button { cursor: pointer; }
       likes: 48, status: "voting",
       user: "运营", anonymous: false, ops: true,
       comments: [
-        { id: "cp1a", user: "周更党", text: "晚会翻车合集更解压", time: "4小时前", likes: 8, hot: true, hotBy: "data" },
-        { id: "cp1b", user: "瓜嫂", text: "选项够全，投了恋情", time: "2小时前", likes: 3 }
+        { id: "cp1a", user: "周更党", text: "晚会翻车合集更解压", time: "4小时前", likes: 8, hot: true, hotBy: "data" }
       ],
       mine: false, time: "5小时前"
     },
@@ -1503,8 +1878,22 @@ button { cursor: pointer; }
     }
   ];
 
-  /* 有偿投稿：后台按帖手动开启；TG 占位 */
-  const PAID_TG = "https://t.me/chigua_paid_placeholder";
+  /* 有偿投稿弹框内 TG：示意站内既有配置，后台本页不改 */
+  const PAID_TG = "https://t.me/gushu555";
+
+  /* 运营可配：求瓜类型（后台可调） */
+  let OPS_CATEGORIES = ["时间线", "对照表", "合集", "复盘"];
+  const opsConfig = {
+    floatText: "求瓜",
+    floatJump: true,
+    paidAutoEnable: true,
+    paidAutoDays: 3,
+    minLen: 5,
+    allowImage: true,
+    compliance: "请确认内容不违规：本板块只征集选题方向，禁止提交未经证实的爆料、造谣、人身攻击或恶意引战。"
+  };
+  let adminTab = "posts";
+  let adminPostStatusFilter = "all";
 
   const state = {
     view: "home",
@@ -1516,6 +1905,7 @@ button { cursor: pointer; }
     wallQuery: "",
     wallPage: 1,
     wallPageSize: 4,
+    wishCategory: "",
     wishKind: "melon",
     liked: { w3: true },
     commentLiked: { cw1b: true },
@@ -1544,20 +1934,6 @@ button { cursor: pointer; }
     t.classList.add("show");
     clearTimeout(toast._t);
     toast._t = setTimeout(() => t.classList.remove("show"), 2200);
-  }
-
-  function requireLogin(action) {
-    if (state.loggedIn) return true;
-    state.pendingAction = action;
-    $("#loginModal").classList.remove("hidden");
-    return false;
-  }
-
-  function setLogin(on) {
-    state.loggedIn = on;
-    $("#loginState").textContent = on ? "已登录" : "未登录";
-    $("#avatarBtn").textContent = on ? "我" : "游";
-    $$(".demo-rail .chip").forEach((c) => {});
   }
 
   function go(view, payload) {
@@ -1607,20 +1983,23 @@ button { cursor: pointer; }
     const box = $("#searchResult");
     if (state.searchMode === "empty") {
       box.innerHTML = `
-        <div class="empty">
-          <h3>没找到「${escapeHtml(q)}」相关内容</h3>
-          <p>可以把想看的方向发到求瓜，热门的我们优先安排。</p>
-          <button class="btn primary" data-compose-wish="${escapeAttr(q)}">去求瓜</button>
+        <div class="search-empty">
+          <p class="se-msg">没有找到你想看的文章哦</p>
+          <div class="related-block wish">
+            <div class="rb-main">
+              <div class="rb-lab">求瓜心愿墙</div>
+              <p class="rb-title">搜不到也没关系，去墙上喊一声想看的瓜</p>
+            </div>
+            <div class="rb-actions">
+              <button type="button" class="btn primary" data-search-to-wish="${escapeAttr(q)}">心愿墙求瓜</button>
+            </div>
+          </div>
         </div>`;
       return;
     }
     const hits = ARTICLES.filter((a) => a.title.includes(q) || q === "沈腾" || q.length < 2);
     const list = (hits.length ? hits : ARTICLES).map(coverCard).join("");
     box.innerHTML = `
-      <div class="cta-bar">
-        <p>结果里没有你想看的？也可以直接求瓜。</p>
-        <button class="btn primary" data-compose-wish="${escapeAttr(q)}">去求瓜</button>
-      </div>
       <p class="hint">找到 ${hits.length || ARTICLES.length} 条与「${escapeHtml(q)}」相关</p>
       <div class="card-list">${list}</div>`;
   }
@@ -1640,11 +2019,12 @@ button { cursor: pointer; }
         </div>`
       : "";
     const wishBlock = `<div class="related-block wish">
-        <div class="rb-lab">求瓜心愿墙</div>
-        <p class="rb-title">还想看别的瓜？去墙上喊一声</p>
-        <p class="rb-desc">点赞评论攒热度，热了就有机会被安排成真瓜</p>
+        <div class="rb-main">
+          <div class="rb-lab">求瓜心愿墙</div>
+          <p class="rb-title">还想看别的瓜？去墙上喊一声</p>
+        </div>
         <div class="rb-actions">
-          <button type="button" class="btn primary" data-go="wall">去心愿墙</button>
+          <button type="button" class="btn primary" data-go="wall">去心愿墙求瓜</button>
         </div>
       </div>`;
     $("#detailBody").innerHTML = `
@@ -1657,7 +2037,6 @@ button { cursor: pointer; }
       <div class="cover" style="${a.thumbStyle || ""}"></div>
       <div class="content">${a.body.map((p) => `<p>${escapeHtml(p)}</p>`).join("")}</div>
       <div class="related">
-        <h3>接着玩</h3>
         ${voteBlock}
         ${wishBlock}
       </div>`;
@@ -1693,6 +2072,13 @@ button { cursor: pointer; }
     return `<div class="${cls || "media-grid"}">${list.map((src) =>
       `<img src="${escapeAttr(src)}" alt="配图" data-lightbox="${escapeAttr(src)}" />`
     ).join("")}</div>`;
+  }
+  function adminMediaHtml(images) {
+    const list = images || [];
+    if (!list.length) return "";
+    return '<div class="admin-media">' + list.map((src) =>
+      '<img src="' + escapeAttr(src) + '" alt="配图" title="点击放大" data-lightbox="' + escapeAttr(src) + '" />'
+    ).join("") + "</div>";
   }
 
   function commentItemHtml(c) {
@@ -1806,8 +2192,7 @@ button { cursor: pointer; }
                 <span class="tag ${vst.cls}">${vst.label}</span>
                 ${authorHtml(p)}
                 <span>${p.time}</span>
-                ${hashTagsHtml(p)}
-              </div>
+                              </div>
             </div>
             ${actLikeBtn(p.id, heat, liked)}
           </div>
@@ -1831,8 +2216,7 @@ button { cursor: pointer; }
                 <span class="tag ${vst.cls}">${vst.label}</span>
                 ${authorHtml(p)}
                 <span>${p.time}</span>
-                ${hashTagsHtml(p)}
-              </div>
+                              </div>
             </div>
             ${actLikeBtn(p.id, heat, liked)}
           </div>
@@ -1850,12 +2234,15 @@ button { cursor: pointer; }
       : ((p.status === "collecting" || previewSelf) ? "征集中" : st.label);
     const kindMeta = wishKindMeta(p.wishKind);
     const dreamArticle = p.articleId ? ARTICLES.find((a) => a.id === p.articleId) : null;
+    const catBadge = p.category ? `<span class="tag">${escapeHtml(p.category)}</span>` : "";
     const footExtra = p.status === "arranged" && p.articleId
       ? `<div class="dream-cta">
           <div class="dream-lab">圆梦内容已上线</div>
           <button type="button" class="dream-title" data-detail="${p.articleId}">${escapeHtml(dreamArticle ? dreamArticle.title : "相关内容")}</button>
         </div>`
-      : (!canInteract && p.status === "rejected" ? `<div class="foot"><span class="meta">未通过，仅自己可见</span></div>` : "");
+      : (p.status === "ended"
+        ? `<div class="foot"><span class="meta">征集已结束，不再接收新互动</span></div>`
+        : (!canInteract && p.status === "rejected" ? `<div class="foot"><span class="meta">未通过，仅自己可见</span></div>` : ""));
     return `<div class="post-card" data-id="${p.id}">
       <div class="band"></div>
       <div class="inner">
@@ -1867,10 +2254,10 @@ button { cursor: pointer; }
             </div>
             <div class="sub-row">
               <span class="tag ${st.cls}">${statusLabel}</span>
+              ${catBadge}
               ${authorHtml(p)}
               <span>${p.time}</span>
-              ${hashTagsHtml(p)}
-            </div>
+                          </div>
           </div>
           <div class="card-head-side">
             ${paidGuideHtml(p)}
@@ -1879,15 +2266,46 @@ button { cursor: pointer; }
         </div>
         ${mediaGridHtml(p.images)}
         ${p.status === "rejected" && p.rejectReason ? `<p class="hint" style="margin:0 0 10px">驳回原因：${escapeHtml(p.rejectReason)}（仅自己可见，不推送通知）</p>` : ""}
-        ${canInteract ? commentsPreview(p) : ""}
+        ${canInteract && p.status !== "arranged" ? commentsPreview(p) : ""}
         ${footExtra}
       </div>
     </div>`;
   }
 
+  function postAgeDays(p) {
+    if (!p) return 0;
+    if (typeof p.ageDays === "number" && p.ageDays >= 0) return p.ageDays;
+    const t = String(p.time || "");
+    if (t.includes("小时") || t === "今天") return 0;
+    if (t === "昨天") return 1;
+    const m = t.match(/(\d+)\s*天前/);
+    if (m) return Number(m[1]) || 0;
+    if (t === "上周") return 7;
+    return 0;
+  }
+  /** paidGuide: true/false=手动覆盖；undefined=走自动规则 */
+  function isPaidGuideOn(p) {
+    if (!p || p.type !== "wish") return false;
+    if (p.status !== "collecting" && p.status !== "arranged") return false;
+    if (p.paidGuide === true) return true;
+    if (p.paidGuide === false) return false;
+    if (!opsConfig.paidAutoEnable) return false;
+    const days = Math.max(1, Number(opsConfig.paidAutoDays) || 3);
+    return postAgeDays(p) >= days;
+  }
+  /** 有偿状态标签文案（单行徽章，含手动/自动） */
+  function paidGuideBadgeLabel(p) {
+    if (!p) return "—";
+    if (p.status !== "collecting" && p.status !== "arranged") return "—";
+    const on = isPaidGuideOn(p);
+    if (p.paidGuide === true) return on ? "已开启·手动" : "未开启";
+    if (p.paidGuide === false) return "未开启·手动";
+    if (on) return "已开启·自动";
+    return "未开启";
+  }
   function paidGuideHtml(p) {
-    if (!p || !p.paidGuide) return "";
-    return `<button type="button" class="paid-guide-btn" data-paid-guide="${escapeAttr(p.id)}" title="有偿投稿">我要投稿</button>`;
+    if (!isPaidGuideOn(p)) return "";
+    return `<button type="button" class="paid-guide-btn" data-paid-guide="${escapeAttr(p.id)}" title="有偿投稿">有偿投稿</button>`;
   }
 
   function postTagsList(p) {
@@ -1901,11 +2319,6 @@ button { cursor: pointer; }
     }).slice(0, 4);
   }
 
-  function hashTagsHtml(p) {
-    return postTagsList(p).map((t) =>
-      `<button type="button" class="hash-tag" data-tag="${escapeAttr(t)}">#${escapeHtml(t)}</button>`
-    ).join("");
-  }
 
   function wishKindMeta(kind) {
     const map = {
@@ -1919,8 +2332,10 @@ button { cursor: pointer; }
   function wishStatusMeta(status) {
     const map = {
       pending: { label: "征集中", cls: "warn" },
-      collecting: { label: "征集投票中", cls: "warn" },
+      collecting: { label: "征集中", cls: "warn" },
       arranged: { label: "已安排", cls: "ok" },
+      ended: { label: "已结束", cls: "pending" },
+      hidden: { label: "已下架", cls: "pending" },
       rejected: { label: "已驳回", cls: "reject" }
     };
     return map[status] || map.collecting;
@@ -1929,7 +2344,8 @@ button { cursor: pointer; }
   function isPublicWish(p) {
     if (p.type !== "wish") return false;
     if (p.wishKind === "feature") return false;
-    return p.status === "collecting" || p.status === "arranged" || (p.status === "pending" && p.mine);
+    return p.status === "collecting" || p.status === "arranged" || p.status === "ended"
+      || (p.status === "pending" && p.mine);
   }
 
   /** 搜索分：正文 100 > 标签 50 > 评论 10；同档再按热度/时间 */
@@ -2079,16 +2495,45 @@ button { cursor: pointer; }
     return out;
   }
 
+  function wallSearchBannerHtml(q, total) {
+    return `<div class="wall-search-banner" role="status">
+      <p class="wsb-text">当前为搜索结果 · 关键词「${escapeHtml(q)}」· 共 ${total} 条</p>
+      <div class="wsb-actions">
+        <button type="button" class="btn ghost" id="wallSearchClear2">清除搜索，返回全部</button>
+      </div>
+    </div>`;
+  }
+
+  function getWallList() {
+    const f = state.wallFilter;
+    let list = posts.filter((p) => {
+      if (p.status === "hidden" || p.status === "rejected") return false;
+      if (p.type === "side" || p.type === "poll") return true;
+      return isPublicWish(p);
+    });
+    if (f === "wish") list = sortPosts(list.filter((p) => p.type === "wish"));
+    else if (f === "side") list = sortPosts(list.filter((p) => p.type === "side"));
+    else if (f === "poll") list = sortPosts(list.filter((p) => p.type === "poll"));
+    else if (f === "collecting") {
+      list = sortPosts(list.filter((p) => p.type === "wish" && (p.status === "collecting" || (p.status === "pending" && p.mine))));
+    } else if (f === "arranged") {
+      list = sortPosts(list.filter((p) => p.type === "wish" && p.status === "arranged"));
+    } else if (f === "ended") {
+      list = sortPosts(list.filter((p) => p.type === "wish" && p.status === "ended"));
+    } else {
+      list = mixFeed(list);
+    }
+    const q = (state.wallQuery || "").trim();
+    if (q) list = applyWallSearch(list);
+    return list;
+  }
+
   function pagerPages(cur, total) {
     if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
     const out = [1];
-    if (cur <= 3) {
-      out.push(2, 3, "…", total);
-    } else if (cur >= total - 2) {
-      out.push("…", total - 2, total - 1, total);
-    } else {
-      out.push("…", cur - 1, cur, cur + 1, "…", total);
-    }
+    if (cur <= 3) out.push(2, 3, "…", total);
+    else if (cur >= total - 2) out.push("…", total - 2, total - 1, total);
+    else out.push("…", cur - 1, cur, cur + 1, "…", total);
     return out.filter((x, i, arr) => x !== "…" || arr[i - 1] !== "…");
   }
 
@@ -2119,15 +2564,6 @@ button { cursor: pointer; }
       </span>`;
   }
 
-  function wallSearchBannerHtml(q, total) {
-    return `<div class="wall-search-banner" role="status">
-      <p class="wsb-text">当前为搜索结果 · 关键词「${escapeHtml(q)}」· 共 ${total} 条</p>
-      <div class="wsb-actions">
-        <button type="button" class="btn ghost" id="wallSearchClear2">清除搜索，返回全部</button>
-      </div>
-    </div>`;
-  }
-
   function renderWall() {
     $$("#wallSort .tab").forEach((t) => {
       t.classList.toggle("on", t.dataset.sort === state.wallSort);
@@ -2135,30 +2571,13 @@ button { cursor: pointer; }
     $$("#wallFilter .tab").forEach((t) => {
       t.classList.toggle("on", t.dataset.filter === state.wallFilter);
     });
-    let list = posts.filter((p) => {
-      if (p.type === "side" || p.type === "poll") return true;
-      return isPublicWish(p);
-    });
-    if (state.wallFilter === "wish") list = sortPosts(list.filter((p) => p.type === "wish"));
-    else if (state.wallFilter === "side") list = sortPosts(list.filter((p) => p.type === "side"));
-    else if (state.wallFilter === "poll") list = sortPosts(list.filter((p) => p.type === "poll"));
-    else if (state.wallFilter === "done") list = sortPosts(list.filter((p) => p.type === "wish" && p.status === "arranged"));
-    else list = mixFeed(list);
+    const list = getWallList();
     const q = (state.wallQuery || "").trim();
-    if (q) list = applyWallSearch(list);
-    else if (state.wallFilter === "all") {
-      /* Demo：沈腾林允站队帖固定在第 3 位 */
-      const pin = "v2";
-      const i = list.findIndex((p) => p.id === pin);
-      if (i >= 0) {
-        const [card] = list.splice(i, 1);
-        list.splice(Math.min(2, list.length), 0, card);
-      }
-    }
     const clearBtn = $("#wallSearchClear");
     if (clearBtn) clearBtn.classList.toggle("hidden", !q);
     const pageSize = state.wallPageSize || 4;
     const totalPages = Math.max(1, Math.ceil(list.length / pageSize) || 1);
+
     if (!list.length) {
       state.wallPage = 1;
       if (q) {
@@ -2243,8 +2662,7 @@ button { cursor: pointer; }
               <span class="tag ${vst.cls}">${vst.label}</span>
               ${authorHtml(p)}
               <span>${p.time}</span>
-              ${hashTagsHtml(p)}
-            </div>
+                          </div>
           </div>
           ${actLikeBtn(p.id, heat, liked)}
         </div>
@@ -2263,8 +2681,7 @@ button { cursor: pointer; }
               <span class="tag ${vst.cls}">${vst.label}</span>
               ${authorHtml(p)}
               <span>${p.time}</span>
-              ${hashTagsHtml(p)}
-            </div>
+                          </div>
           </div>
           ${actLikeBtn(p.id, heat, liked)}
         </div>
@@ -2284,8 +2701,7 @@ button { cursor: pointer; }
               <span class="tag ${st.cls}">${p.wishKind === "feature" ? "仅后台可见" : statusLabel}</span>
               ${authorHtml(p)}
               <span>${p.time}</span>
-              ${hashTagsHtml(p)}
-            </div>
+                          </div>
           </div>
           <div class="card-head-side">
             ${paidGuideHtml(p)}
@@ -2313,52 +2729,6 @@ button { cursor: pointer; }
       return p.status === "collecting" || p.status === "arranged" || (p.status === "pending" && p.mine && p.wishKind !== "feature");
     });
     $("#tagFeed").innerHTML = list.map(postCard).join("") || '<div class="empty"><h3>该标签下暂无内容</h3></div>';
-  }
-
-  function renderMine() {
-    $$("#mineTabs .tab").forEach((t) => {
-      t.classList.toggle("on", t.dataset.mine === state.mineTab);
-    });
-    const tab = state.mineTab;
-    let html = "";
-    if (tab === "wish") {
-      const list = posts.filter((p) => p.mine);
-      html = list.length
-        ? list.map(postCard).join("")
-        : `<div class="empty"><h3>还没有求过瓜</h3><button type="button" class="btn primary" data-compose-wish="">去求瓜</button></div>`;
-    } else if (tab === "vote") {
-      const list = Object.keys(state.voted).map((vid) => findVote(vid)).filter(Boolean);
-      html = list.length
-        ? list.map(postCard).join("")
-        : `<div class="empty"><h3>还没站队或投票</h3><p style="margin:0 0 12px">去信息流里找运营发起的站队帖 / 投票帖吧</p><button class="btn primary" data-go="wall">去逛</button></div>`;
-    } else if (tab === "comment") {
-      const rows = (state.myComments || []).map((c) => {
-        const p = posts.find((x) => x.id === c.postId);
-        if (!p) return "";
-        const where = p.type === "side" ? "站队" : p.type === "poll" ? "投票" : "求瓜";
-        const origin = p.text || "";
-        return `<div class="mine-c-card">
-          <div class="mine-c-row">
-            <p class="mine-c-text">${escapeHtml(c.text)}</p>
-            <span class="mine-c-meta">${escapeHtml(c.time)} · 评论于${where}</span>
-          </div>
-          ${mediaGridHtml(c.images, "c-media")}
-          <div class="mine-c-foot">
-            <p class="mine-c-origin" title="${escapeAttr(origin)}">原帖：${escapeHtml(origin)}</p>
-            <button type="button" class="btn" data-post-detail="${escapeAttr(p.id)}">看原帖</button>
-          </div>
-        </div>`;
-      }).filter(Boolean);
-      html = rows.length
-        ? rows.join("")
-        : `<div class="empty"><h3>还没有评论</h3><button class="btn primary" data-go="wall">去逛求瓜</button></div>`;
-    } else if (tab === "like") {
-      const list = Object.keys(state.liked).map((id) => posts.find((x) => x.id === id)).filter(Boolean);
-      html = list.length
-        ? list.map(postCard).join("")
-        : `<div class="empty"><h3>还没有点赞</h3><button class="btn primary" data-go="wall">去逛求瓜</button></div>`;
-    }
-    $("#mineFeed").innerHTML = html;
   }
 
   function renderAi() {
@@ -2503,18 +2873,21 @@ button { cursor: pointer; }
       post: "view-post",
       tag: "view-tag",
       ai: "view-ai",
-      mine: "view-mine"
+      admin: "view-admin"
     };
     Object.values(map).forEach((id) => $("#" + id).classList.add("hidden"));
     const id = map[state.view] || "view-home";
     $("#" + id).classList.remove("hidden");
-    const fabOn = state.view === "wall" || state.view === "mine";
+    const fabOn = state.view === "wall";
     const fabDock = $("#composeFabDock");
     if (fabDock) {
       fabDock.classList.toggle("hidden", !fabOn);
       fabDock.setAttribute("aria-hidden", fabOn ? "false" : "true");
     }
-    $$(".nav a").forEach((a) => a.classList.toggle("on", a.dataset.go === state.view || (state.view === "wall" && a.classList.contains("wish-entry"))));
+    document.body.classList.toggle("admin-mode", state.view === "admin");
+    $$(".nav a").forEach((a) => a.classList.toggle("on", a.dataset.go === state.view));
+    const navOfficial = $("#navOfficial");
+    if (navOfficial) navOfficial.classList.toggle("on", state.view === "wall" || state.view === "post" || state.view === "tag");
     $$(".demo-rail .chip[data-go]").forEach((c) => {
       const go = c.dataset.go;
       let on = false;
@@ -2531,8 +2904,8 @@ button { cursor: pointer; }
     if (state.view === "vote") renderVote();
     if (state.view === "post") renderPostDetail();
     if (state.view === "tag") renderTag();
-    if (state.view === "mine") renderMine();
     if (state.view === "ai") renderAi();
+    if (state.view === "admin") renderAdmin();
   }
 
   function escapeHtml(s) {
@@ -2632,9 +3005,17 @@ button { cursor: pointer; }
     }
   }
 
+  function renderComposeChips() {
+    const cats = $("#composeCatChips");
+    if (cats) {
+      cats.innerHTML = OPS_CATEGORIES.map((c) =>
+        `<button type="button" class="chip-cat${state.wishCategory === c ? " on" : ""}" data-compose-cat="${escapeAttr(c)}">${escapeHtml(c)}</button>`
+      ).join("");
+    }
+  }
+
   function openComposeWish(q) {
-    state.wishKind = "melon";
-    syncWishKindUi();
+    state.wishCategory = "";
     $("#wishText").value = q ? `想看关于「${q}」的完整盘点 / 复盘` : "";
     if ($("#wishAnon")) $("#wishAnon").checked = false;
     if ($("#wishNick")) $("#wishNick").value = state.nickname || "";
@@ -2642,12 +3023,16 @@ button { cursor: pointer; }
     state.composeImages = [];
     renderWishImgPreviews();
     updateWishCharCount();
+    renderComposeChips();
+    const attach = document.querySelector("#composeModal .attach-row");
+    if (attach) attach.classList.toggle("hidden", opsConfig && opsConfig.allowImage === false);
     $("#composeModal").classList.remove("hidden");
   }
 
   function doComposeSubmit() {
     const text = $("#wishText").value.trim();
-    if (text.length < 5) return toast("请至少写 5 个字");
+    const minLen = (opsConfig && opsConfig.minLen) || 5;
+    if (text.length < minLen) return toast("请至少写 " + minLen + " 个字");
     if (text.length > 120) return toast("最多 120 个字");
     const anonymous = !!($("#wishAnon") && $("#wishAnon").checked);
     let user = "匿名";
@@ -2658,41 +3043,66 @@ button { cursor: pointer; }
       state.nickname = nick;
       try { localStorage.setItem("ww_nick", nick); } catch (err) {}
     }
-    const wishKind = state.wishKind || "melon";
+    const wishKind = "melon";
     const tags = recognizeWishTags(text);
-    const tag = wishKind === "feature" ? "产品反馈" : (tags[0] || "未分类");
+    const tag = tags[0] || "未分类";
     const images = state.composeImages.slice(0, 3);
+    const category = state.wishCategory || "";
     posts.unshift({
       id: "w" + Date.now(), type: "wish", wishKind, text, tag, tags,
       likes: 0, status: "pending",
       mine: true, time: "刚刚", comments: [],
       images,
       anonymous,
-      user
+      user,
+      category
     });
     state.composeImages = [];
+    state.wishCategory = "";
     closeComposeModal();
-    if (wishKind === "feature") {
-      toast("已提交功能反馈，仅后台可见");
-      state.mineTab = "wish";
-      go("mine");
-      return;
-    }
     toast("发布成功");
     go("wall");
   }
 
+  function openPaidGuideModal() {
+    const a = $("#paidTgLink");
+    if (a) {
+      a.href = PAID_TG;
+      a.textContent = PAID_TG;
+    }
+    $("#paidGuideModal").classList.remove("hidden");
+  }
+  function closePaidGuideModal() {
+    $("#paidGuideModal").classList.add("hidden");
+  }
+
   document.addEventListener("click", (e) => {
+    const toWish = e.target.closest("[data-search-to-wish]");
+    if (toWish) {
+      e.preventDefault();
+      const q = toWish.dataset.searchToWish || "";
+      go("wall");
+      openComposeWish(q);
+      return;
+    }
     const paid = e.target.closest("[data-paid-guide]");
     if (paid) {
       e.preventDefault();
-      toast("这里会跳转 Telegram 投稿（Demo 占位，未真实跳转）");
+      openPaidGuideModal();
+      return;
+    }
+    const tg = e.target.closest("#paidTgLink, a.tg-link[data-paid-tg]");
+    if (tg && $("#paidGuideModal") && !$("#paidGuideModal").classList.contains("hidden")) {
+      e.preventDefault();
+      toast("Demo：此处标记为可跳转 Telegram，未真实打开");
       return;
     }
     const goEl = e.target.closest("[data-go]");
     if (goEl) {
       e.preventDefault();
       const target = goEl.dataset.go;
+      const navOfficial = $("#navOfficial");
+      if (navOfficial) navOfficial.classList.remove("open");
       if (target === "compose") {
         openComposeWish("");
         return;
@@ -2704,12 +3114,6 @@ button { cursor: pointer; }
     if (detail) {
       e.preventDefault();
       go("detail", { detailId: detail.dataset.detail });
-      return;
-    }
-    const tag = e.target.closest("[data-tag]");
-    if (tag) {
-      e.preventDefault();
-      go("tag", { tag: tag.dataset.tag });
       return;
     }
     const like = e.target.closest("[data-like]");
@@ -2917,30 +3321,49 @@ button { cursor: pointer; }
   $("#wallSearchClear").addEventListener("click", clearWallSearch);
   document.addEventListener("click", (e) => {
     if (e.target.id === "wallSearchClear2" || e.target.id === "wallSearchClear3") clearWallSearch();
+    const cat = e.target.closest("[data-compose-cat]");
+    if (cat) {
+      const v = cat.dataset.composeCat || "";
+      state.wishCategory = state.wishCategory === v ? "" : v;
+      renderComposeChips();
+    }
+    const navOfficial = $("#navOfficial");
+    if (navOfficial && !e.target.closest("#navOfficial")) navOfficial.classList.remove("open");
   });
-  $("#wallPager").addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-wall-page]");
-    if (!btn || btn.disabled) return;
-    const act = btn.dataset.wallPage;
-    let page = state.wallPage || 1;
-    if (act === "prev") page -= 1;
-    else if (act === "next") page += 1;
-    else if (act === "jump") {
-      const raw = ($("#wallPageJump") && $("#wallPageJump").value) || "";
-      page = parseInt(raw, 10);
-      if (!page || page < 1) return toast("请输入有效页码");
-    } else page = parseInt(act, 10);
-    if (!page || page < 1) return;
-    state.wallPage = page;
-    renderWall();
-    window.scrollTo({ top: ($("#view-wall") && $("#view-wall").offsetTop) || 0, behavior: "smooth" });
-  });
-  $("#wallPager").addEventListener("keydown", (e) => {
-    if (e.key !== "Enter" || e.target.id !== "wallPageJump") return;
-    e.preventDefault();
-    const jumpBtn = $("#wallPager [data-wall-page=\"jump\"]");
-    if (jumpBtn) jumpBtn.click();
-  });
+  if ($("#navOfficialBtn")) {
+    $("#navOfficialBtn").addEventListener("click", (e) => {
+      e.preventDefault();
+      const p = $("#navOfficial");
+      if (!p) return;
+      const open = p.classList.toggle("open");
+      $("#navOfficialBtn").setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  }
+  if ($("#wallPager")) {
+    $("#wallPager").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-wall-page]");
+      if (!btn || btn.disabled) return;
+      const act = btn.dataset.wallPage;
+      let page = state.wallPage || 1;
+      if (act === "prev") page -= 1;
+      else if (act === "next") page += 1;
+      else if (act === "jump") {
+        const raw = ($("#wallPageJump") && $("#wallPageJump").value) || "";
+        page = parseInt(raw, 10);
+        if (!page || page < 1) return toast("请输入有效页码");
+      } else page = parseInt(act, 10);
+      if (!page || page < 1) return;
+      state.wallPage = page;
+      renderWall();
+      window.scrollTo({ top: ($("#view-wall") && $("#view-wall").offsetTop) || 0, behavior: "smooth" });
+    });
+    $("#wallPager").addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" || e.target.id !== "wallPageJump") return;
+      e.preventDefault();
+      const jumpBtn = $("#wallPager [data-wall-page=\"jump\"]");
+      if (jumpBtn) jumpBtn.click();
+    });
+  }
   $("#composeConfirmCancel").addEventListener("click", () => {
     $("#composeConfirmModal").classList.add("hidden");
   });
@@ -2992,34 +3415,498 @@ button { cursor: pointer; }
     renderWall();
   });
 
-  $("#mineTabs").addEventListener("click", (e) => {
-    const tab = e.target.closest(".tab[data-mine]");
-    if (!tab) return;
-    state.mineTab = tab.dataset.mine;
-    renderMine();
-  });
+  /* ===== 同页运营后台 ===== */
+  function adminStatusLabel(s) {
+    return ({ pending: "待审核", collecting: "征集中", arranged: "已安排", ended: "已结束", hidden: "已下架", rejected: "已驳回" })[s] || s;
+  }
+  function switchAdminTab(tab) {
+    adminTab = tab || "posts";
+    $$("#adminTabs .atab").forEach((b) => b.classList.toggle("on", b.dataset.adminTab === adminTab));
+    const postsP = $("#adminPanelPosts");
+    const commentsP = $("#adminPanelComments");
+    const configP = $("#adminPanelConfig");
+    if (postsP) postsP.classList.toggle("on", adminTab === "posts");
+    if (commentsP) commentsP.classList.toggle("on", adminTab === "comments");
+    if (configP) configP.classList.toggle("on", adminTab === "config");
+    if (adminTab === "posts") renderAdminPosts();
+    if (adminTab === "comments") renderAdminComments();
+    if (adminTab === "config") renderAdminConfig();
+  }
+  function renderAdmin() {
+    switchAdminTab(adminTab || "posts");
+  }
+  function filteredAdminPosts() {
+    const q = (($("#adminPostSearch") && $("#adminPostSearch").value) || "").trim().toLowerCase();
+    const st = adminPostStatusFilter || "all";
+    const sort = ($("#adminPostSort") && $("#adminPostSort").value) || "heat";
+    let list = posts.filter((p) => p.type === "wish");
+    if (st !== "all") list = list.filter((p) => p.status === st);
+    if (q) {
+      list = list.filter((p) =>
+        (p.text || "").toLowerCase().includes(q) || String(p.user || "").toLowerCase().includes(q)
+      );
+    }
+    list = list.slice().sort((a, b) => {
+      if (!!b.pinned !== !!a.pinned) return b.pinned ? 1 : -1;
+      if (sort === "time") return 0;
+      return (b.likes || 0) - (a.likes || 0);
+    });
+    return list;
+  }
+  function renderAdminPosts() {
+    const tb = $("#adminPostTbody");
+    if (!tb) return;
+    const list = filteredAdminPosts();
+    if (!list.length) {
+      tb.innerHTML = '<tr><td colspan="8" class="empty">暂无符合条件的帖子</td></tr>';
+      return;
+    }
+    tb.innerHTML = list.map((p) => {
+      const art = p.articleId ? ARTICLES.find((a) => a.id === p.articleId) : null;
+      const artHtml = art
+        ? '<div class="hint" style="margin-top:6px">圆梦：' + escapeHtml(art.title) + "</div>"
+        : "";
+      const rejectHtml = p.status === "rejected" && p.rejectReason
+        ? '<div class="hint" style="margin-top:4px">原因：' + escapeHtml(p.rejectReason) + "</div>"
+        : "";
+      /* 状态按钮关系：
+         - 已下架：只可重新上架（结束/安排入口隐藏）
+         - 已安排 ↔ 已结束：同属收口态，二选一；已结束须先恢复征集才能再关联
+         - 征集中：可关联→已安排，或标记已结束，或下架 */
+      const ops = [];
+      if (p.status === "pending") {
+        ops.push('<button type="button" class="btn sm" data-admin-act="approve" data-id="' + p.id + '">通过审核</button>');
+        ops.push('<button type="button" class="btn sm" data-admin-act="reject" data-id="' + p.id + '">驳回</button>');
+      }
+      if (p.status === "collecting") {
+        ops.push('<button type="button" class="btn sm" data-admin-act="link" data-id="' + p.id + '">关联文章</button>');
+        ops.push('<button type="button" class="btn sm" data-admin-act="ended" data-id="' + p.id + '">标记已结束</button>');
+        ops.push('<button type="button" class="btn sm" data-admin-act="hide" data-id="' + p.id + '">下架隐藏</button>');
+      }
+      if (p.status === "arranged") {
+        ops.push('<button type="button" class="btn sm" data-admin-act="link" data-id="' + p.id + '">更换关联</button>');
+        ops.push('<button type="button" class="btn sm" data-admin-act="unlink" data-id="' + p.id + '">取消关联</button>');
+        ops.push('<button type="button" class="btn sm" data-admin-act="ended" data-id="' + p.id + '">改为已结束</button>');
+        ops.push('<button type="button" class="btn sm" data-admin-act="hide" data-id="' + p.id + '">下架隐藏</button>');
+      }
+      if (p.status === "ended") {
+        ops.push('<button type="button" class="btn sm" data-admin-act="reopen" data-id="' + p.id + '">恢复征集</button>');
+        ops.push('<button type="button" class="btn sm" data-admin-act="hide" data-id="' + p.id + '">下架隐藏</button>');
+      }
+      if (p.status === "hidden") {
+        ops.push('<button type="button" class="btn sm" data-admin-act="restore" data-id="' + p.id + '">重新上架</button>');
+      }
+      const paidOn = isPaidGuideOn(p);
+      const canTogglePaid = p.status === "collecting" || p.status === "arranged";
+      if (canTogglePaid) {
+        ops.push('<button type="button" class="btn sm" data-admin-act="paid" data-id="' + p.id + '">' + (paidOn ? "关闭有偿" : "开启有偿") + "</button>");
+      }
+      ops.push('<button type="button" class="btn sm" data-admin-act="pin" data-id="' + p.id + '">' + (p.pinned ? "取消置顶" : "置顶") + "</button>");
+      const paidCell = '<span class="badge-st ' + (paidOn ? "paid-on" : "paid-off") + '">' +
+        escapeHtml(paidGuideBadgeLabel(p)) + "</span>";
+      const cCount = (p.comments || []).length;
+      const imgsHtml = adminMediaHtml(p.images);
+      return "<tr>" +
+        '<td><button type="button" class="admin-post-link" data-admin-open-comments="' + p.id + '" title="查看该帖全部评论">' +
+        escapeHtml(p.text) + (p.pinned ? '<span class="pin-mark">置顶</span>' : "") +
+        '<span class="c-count">评论 ' + cCount + "</span></button>" +
+        imgsHtml + artHtml + rejectHtml + "</td>" +
+        "<td>" + escapeHtml(p.user || "—") + "</td>" +
+        '<td><span class="badge-st ' + p.status + '">' + adminStatusLabel(p.status) + "</span></td>" +
+        "<td>" + paidCell + "</td>" +
+        "<td>" + (p.likes || 0) + "</td>" +
+        '<td class="hint">' + escapeHtml(p.time || "") + "</td>" +
+        "<td>" + (p.pinned ? "是" : "否") + "</td>" +
+        '<td><div class="admin-actions">' + ops.join("") + "</div></td>" +
+        "</tr>";
+    }).join("");
+  }
+  function openAdminPostComments(postId) {
+    fillAdminCommentPostFilter();
+    const sel = $("#adminCommentPost");
+    if (sel) sel.value = postId;
+    const search = $("#adminCommentSearch");
+    if (search) search.value = "";
+    switchAdminTab("comments");
+    const p = posts.find((x) => x.id === postId);
+    const n = p && p.comments ? p.comments.length : 0;
+    toast(n ? ("已打开该帖评论 · 共 " + n + " 条") : "该帖暂无评论");
+  }
+  function flatAdminComments() {
+    const rows = [];
+    posts.filter((p) => p.type === "wish").forEach((p) => {
+      (p.comments || []).forEach((c) => {
+        rows.push({
+          id: c.id,
+          postId: p.id,
+          postText: p.text,
+          text: c.text,
+          likes: c.likes || 0,
+          pinned: !!c.pinned,
+          raw: c
+        });
+      });
+    });
+    return rows;
+  }
+  function fillAdminCommentPostFilter() {
+    const sel = $("#adminCommentPost");
+    if (!sel) return;
+    const cur = sel.value || "all";
+    sel.innerHTML = '<option value="all">全部帖子</option>' + posts.filter((p) => p.type === "wish").map((p) =>
+      '<option value="' + p.id + '">' + escapeHtml((p.text || "").slice(0, 24)) + "</option>"
+    ).join("");
+    sel.value = cur;
+    if (!sel.value) sel.value = "all";
+  }
+  function renderAdminComments() {
+    fillAdminCommentPostFilter();
+    const tb = $("#adminCommentTbody");
+    if (!tb) return;
+    const q = (($("#adminCommentSearch") && $("#adminCommentSearch").value) || "").trim().toLowerCase();
+    const pid = ($("#adminCommentPost") && $("#adminCommentPost").value) || "all";
+    let list = flatAdminComments();
+    if (pid !== "all") list = list.filter((c) => c.postId === pid);
+    if (q) list = list.filter((c) => (c.text || "").toLowerCase().includes(q));
+    list.sort((a, b) => (b.pinned - a.pinned) || (b.likes - a.likes));
+    if (!list.length) {
+      tb.innerHTML = '<tr><td colspan="5" class="empty">暂无评论</td></tr>';
+      return;
+    }
+    tb.innerHTML = list.map((c) => {
+      let tagHtml = '<span class="hint">—</span>';
+      if (c.raw.hot && c.raw.hotBy !== "ops") tagHtml = '<span class="badge-st hot">热评</span>';
+      if (c.raw.hotBy === "ops") tagHtml = '<span class="badge-st god">神评</span>';
+      return "<tr>" +
+        "<td>" + escapeHtml((c.postText || "").slice(0, 28)) + (c.pinned ? '<span class="pin-mark">置顶</span>' : "") + "</td>" +
+        "<td>" + escapeHtml(c.text) + adminMediaHtml(c.raw.images) + "</td>" +
+        "<td>" + c.likes + "</td>" +
+        "<td>" + tagHtml + "</td>" +
+        '<td><div class="admin-actions">' +
+        '<button type="button" class="btn sm" data-admin-cact="pin" data-id="' + c.id + '">' + (c.pinned ? "取消置顶" : "评论置顶") + "</button>" +
+        '<button type="button" class="btn sm" data-admin-cact="hot" data-id="' + c.id + '">' + (c.raw.hot && c.raw.hotBy !== "ops" ? "取消热评" : "打热评") + "</button>" +
+        '<button type="button" class="btn sm" data-admin-cact="god" data-id="' + c.id + '">' + (c.raw.hotBy === "ops" ? "取消神评" : "打神评") + "</button>" +
+        "</div></td></tr>";
+    }).join("");
+  }
+  function renderAdminConfig() {
+    if ($("#cfgFloatText")) $("#cfgFloatText").value = opsConfig.floatText;
+    if ($("#cfgFloatJump")) $("#cfgFloatJump").checked = !!opsConfig.floatJump;
+    if ($("#cfgPaidAutoEnable")) $("#cfgPaidAutoEnable").checked = !!opsConfig.paidAutoEnable;
+    if ($("#cfgPaidAutoDays")) $("#cfgPaidAutoDays").value = Math.max(1, Number(opsConfig.paidAutoDays) || 3);
+    if ($("#cfgMinLen")) $("#cfgMinLen").value = opsConfig.minLen;
+    if ($("#cfgAllowImage")) $("#cfgAllowImage").checked = !!opsConfig.allowImage;
+    if ($("#cfgCompliance")) $("#cfgCompliance").value = opsConfig.compliance;
+    const tagList = $("#adminTagList");
+    if (tagList) {
+      tagList.innerHTML = OPS_CATEGORIES.map((name, i) =>
+        '<div class="admin-sort-row" data-idx="' + i + '">' +
+        '<button type="button" class="btn sm" data-admin-tag="up" ' + (i === 0 ? "disabled" : "") + '>↑</button>' +
+        '<button type="button" class="btn sm" data-admin-tag="down" ' + (i === OPS_CATEGORIES.length - 1 ? "disabled" : "") + '>↓</button>' +
+        '<input type="text" value="' + escapeAttr(name) + '" data-admin-tag="name" />' +
+        '<button type="button" class="btn sm" data-admin-tag="del">删除</button>' +
+        "</div>"
+      ).join("") || '<div class="empty">暂无分类</div>';
+    }
+  }
+  function closeAdminModal() {
+    const m = $("#adminModal");
+    if (!m) return;
+    m.classList.add("hidden");
+    m.innerHTML = "";
+  }
+  function openAdminReject(p) {
+    const m = $("#adminModal");
+    m.classList.remove("hidden");
+    m.innerHTML = '<div class="modal"><h3>驳回帖子</h3>' +
+      '<p class="hint">' + escapeHtml(p.text) + "</p>" +
+      '<textarea id="adminRejectReason" maxlength="120" placeholder="填写驳回原因（必填）" style="width:100%;min-height:72px;margin:8px 0 14px;padding:10px;border-radius:10px;border:1px solid var(--line);background:#15161d;color:var(--text)"></textarea>' +
+      '<div class="row"><button type="button" class="btn ghost" id="adminModalCancel">取消</button>' +
+      '<button type="button" class="btn primary" id="adminModalOk">确认驳回</button></div></div>';
+    $("#adminModalCancel").onclick = closeAdminModal;
+    m.onclick = (e) => { if (e.target.id === "adminModal") closeAdminModal(); };
+    $("#adminModalOk").onclick = () => {
+      const reason = ($("#adminRejectReason").value || "").trim();
+      if (!reason) return toast("请填写驳回原因");
+      p.status = "rejected";
+      p.rejectReason = reason;
+      p.pinned = false;
+      closeAdminModal();
+      toast("已驳回");
+      renderAdminPosts();
+    };
+  }
+  function unlinkAdminPost(p, silent) {
+    p.articleId = null;
+    if (p.status === "arranged") p.status = "collecting";
+    if (!silent) toast("已取消关联，回到征集中");
+  }
+  function openAdminLink(p) {
+    if (p.status === "ended") {
+      toast("已结束的帖子请先「恢复征集」，再关联文章");
+      return;
+    }
+    if (p.status === "hidden") {
+      toast("已下架的帖子请先「重新上架」");
+      return;
+    }
+    if (p.status !== "collecting" && p.status !== "arranged") {
+      toast("仅征集中可关联，或已安排可更换关联");
+      return;
+    }
+    const m = $("#adminModal");
+    m.classList.remove("hidden");
+    const opts = ARTICLES.map((a) =>
+      '<button type="button" class="article-opt' + (p.articleId === a.id ? " on" : "") + '" data-admin-aid="' + a.id + '">' +
+      escapeHtml(a.title) + "<small>圆梦仅挂标题与跳转</small></button>"
+    ).join("");
+    m.innerHTML = '<div class="modal" style="width:min(480px,100%)"><h3>' + (p.status === "arranged" ? "更换关联文章" : "关联文章 = 已安排") + "</h3>" +
+      '<p class="hint">选一篇圆梦文章后，帖子状态变为「已安排」（与「已结束」二选一）；墙上只挂标题与跳转。</p>' +
+      '<div style="margin:10px 0">' + opts + "</div>" +
+      (p.articleId ? '<button type="button" class="btn sm" id="adminUnlink">取消关联（回征集中）</button>' : "") +
+      '<div class="row" style="margin-top:12px"><button type="button" class="btn ghost" id="adminModalCancel">关闭</button></div></div>';
+    $("#adminModalCancel").onclick = closeAdminModal;
+    m.onclick = (e) => { if (e.target.id === "adminModal") closeAdminModal(); };
+    $$("#adminModal [data-admin-aid]").forEach((btn) => {
+      btn.onclick = () => {
+        const wasArranged = p.status === "arranged";
+        p.articleId = btn.dataset.adminAid;
+        p.status = "arranged";
+        closeAdminModal();
+        toast(wasArranged ? "已更换关联文章" : "已关联文章，状态变为已安排");
+        renderAdminPosts();
+        if (typeof render === "function") render();
+      };
+    });
+    const un = $("#adminUnlink");
+    if (un) {
+      un.onclick = () => {
+        unlinkAdminPost(p);
+        closeAdminModal();
+        renderAdminPosts();
+        if (typeof render === "function") render();
+      };
+    }
+  }
 
-  $("#toggleLogin").addEventListener("click", () => {
-    setLogin(!state.loggedIn);
-    toast(state.loggedIn ? "已登录" : "已退出");
-    render();
+  if ($("#adminTabs")) {
+    $("#adminTabs").addEventListener("click", (e) => {
+      const t = e.target.closest("[data-admin-tab]");
+      if (!t) return;
+      switchAdminTab(t.dataset.adminTab);
+    });
+  }
+  ["adminPostSearch", "adminPostSort"].forEach((id) => {
+    const el = $("#" + id);
+    if (!el) return;
+    el.addEventListener(id === "adminPostSearch" ? "input" : "change", renderAdminPosts);
   });
-  $("#avatarBtn").addEventListener("click", () => {
-    go("mine");
+  if ($("#adminPostStatusTabs")) {
+    $("#adminPostStatusTabs").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-admin-status]");
+      if (!btn) return;
+      adminPostStatusFilter = btn.dataset.adminStatus || "all";
+      $$("#adminPostStatusTabs .stab").forEach((b) => b.classList.toggle("on", b === btn));
+      renderAdminPosts();
+    });
+  }
+  ["adminCommentSearch", "adminCommentPost"].forEach((id) => {
+    const el = $("#" + id);
+    if (!el) return;
+    el.addEventListener(id === "adminCommentSearch" ? "input" : "change", renderAdminComments);
   });
-  $("#loginCancel").addEventListener("click", () => {
-    $("#loginModal").classList.add("hidden");
-    state.pendingAction = null;
-  });
-  $("#loginOk").addEventListener("click", () => {
-    setLogin(true);
-    $("#loginModal").classList.add("hidden");
-    toast("登录成功");
-    const act = state.pendingAction;
-    state.pendingAction = null;
-    if (typeof act === "function") act();
-    else render();
-  });
+  if ($("#adminPostTbody")) {
+    $("#adminPostTbody").addEventListener("click", (e) => {
+      if (e.target.closest("[data-lightbox]")) return;
+      const openC = e.target.closest("[data-admin-open-comments]");
+      if (openC) {
+        openAdminPostComments(openC.dataset.adminOpenComments);
+        return;
+      }
+      const btn = e.target.closest("[data-admin-act]");
+      if (!btn) return;
+      const p = posts.find((x) => x.id === btn.dataset.id);
+      if (!p) return;
+      const act = btn.dataset.adminAct;
+      if (act === "approve") { p.status = "collecting"; toast("已通过，进入征集中"); renderAdminPosts(); return; }
+      if (act === "reject") { openAdminReject(p); return; }
+      if (act === "pin") { p.pinned = !p.pinned; toast(p.pinned ? "已置顶" : "已取消置顶"); renderAdminPosts(); return; }
+      if (act === "paid") {
+        if (p.status !== "collecting" && p.status !== "arranged") {
+          toast("仅征集中/已安排的帖子可开关有偿投稿");
+          return;
+        }
+        const on = isPaidGuideOn(p);
+        p.paidGuide = !on;
+        toast(p.paidGuide ? "已手动开启有偿投稿" : "已手动关闭有偿投稿");
+        renderAdminPosts();
+        if (typeof render === "function") render();
+        return;
+      }
+      if (act === "ended") {
+        if (p.status !== "collecting" && p.status !== "arranged") {
+          toast("仅征集中/已安排可标记结束");
+          return;
+        }
+        /* 已安排 ↔ 已结束二选一：改为已结束时清除关联 */
+        const fromArranged = p.status === "arranged";
+        p.articleId = null;
+        p.status = "ended";
+        toast(fromArranged ? "已改为已结束（已安排互斥，关联已清除）" : "已标记已结束");
+        renderAdminPosts();
+        if (typeof render === "function") render();
+        return;
+      }
+      if (act === "unlink") {
+        if (p.status !== "arranged") {
+          toast("仅已安排的帖子可取消关联");
+          return;
+        }
+        unlinkAdminPost(p);
+        renderAdminPosts();
+        if (typeof render === "function") render();
+        return;
+      }
+      if (act === "reopen") {
+        if (p.status !== "ended") {
+          toast("仅已结束的帖子可恢复征集");
+          return;
+        }
+        p.articleId = null;
+        p.status = "collecting";
+        toast("已恢复为征集中，可再关联文章或标记结束");
+        renderAdminPosts();
+        if (typeof render === "function") render();
+        return;
+      }
+      if (act === "hide") {
+        if (p.status !== "collecting" && p.status !== "arranged" && p.status !== "ended") {
+          toast("当前状态不可下架");
+          return;
+        }
+        p._statusBeforeHide = p.status;
+        p.status = "hidden";
+        p.pinned = false;
+        toast("已下架，前台心愿墙不再展示");
+        renderAdminPosts();
+        if (typeof render === "function") render();
+        return;
+      }
+      if (act === "restore") {
+        if (p.status !== "hidden") {
+          toast("仅已下架的帖子可重新上架");
+          return;
+        }
+        const prev = p._statusBeforeHide;
+        delete p._statusBeforeHide;
+        if (prev === "arranged" && p.articleId) {
+          p.status = "arranged";
+          toast("已重新上架为已安排");
+        } else if (prev === "ended") {
+          p.status = "ended";
+          p.articleId = null;
+          toast("已重新上架为已结束（可再点「恢复征集」）");
+        } else {
+          p.status = "collecting";
+          if (prev !== "arranged") p.articleId = null;
+          toast("已重新上架为征集中");
+        }
+        renderAdminPosts();
+        if (typeof render === "function") render();
+        return;
+      }
+      if (act === "link") openAdminLink(p);
+    });
+  }
+  if ($("#adminCommentTbody")) {
+    $("#adminCommentTbody").addEventListener("click", (e) => {
+      if (e.target.closest("[data-lightbox]")) return;
+      const btn = e.target.closest("[data-admin-cact]");
+      if (!btn) return;
+      let raw = null;
+      posts.forEach((p) => (p.comments || []).forEach((c) => { if (c.id === btn.dataset.id) raw = c; }));
+      if (!raw) return;
+      const act = btn.dataset.adminCact;
+      if (act === "pin") {
+        raw.pinned = !raw.pinned;
+        toast(raw.pinned ? "评论已置顶" : "已取消置顶");
+      } else if (act === "hot") {
+        if (raw.hot && raw.hotBy !== "ops") { raw.hot = false; raw.hotBy = null; toast("已取消热评"); }
+        else { raw.hot = true; raw.hotBy = "data"; toast("已标记热评"); }
+      } else if (act === "god") {
+        if (raw.hotBy === "ops") { raw.hot = false; raw.hotBy = null; toast("已取消神评"); }
+        else { raw.hot = true; raw.hotBy = "ops"; toast("已标记神评"); }
+      }
+      renderAdminComments();
+    });
+  }
+  if ($("#adminTagList")) {
+    $("#adminTagList").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-admin-tag]");
+      if (!btn || btn.dataset.adminTag === "name") return;
+      const row = btn.closest("[data-idx]");
+      const idx = Number(row.dataset.idx);
+      const act = btn.dataset.adminTag;
+      if (act === "del") { OPS_CATEGORIES.splice(idx, 1); toast("已删除分类"); renderAdminConfig(); return; }
+      if (act === "up" && idx > 0) {
+        const t = OPS_CATEGORIES[idx - 1];
+        OPS_CATEGORIES[idx - 1] = OPS_CATEGORIES[idx];
+        OPS_CATEGORIES[idx] = t;
+        renderAdminConfig();
+        return;
+      }
+      if (act === "down" && idx < OPS_CATEGORIES.length - 1) {
+        const t = OPS_CATEGORIES[idx + 1];
+        OPS_CATEGORIES[idx + 1] = OPS_CATEGORIES[idx];
+        OPS_CATEGORIES[idx] = t;
+        renderAdminConfig();
+      }
+    });
+    $("#adminTagList").addEventListener("change", (e) => {
+      if (e.target.dataset.adminTag !== "name") return;
+      const idx = Number(e.target.closest("[data-idx]").dataset.idx);
+      OPS_CATEGORIES[idx] = e.target.value.trim() || OPS_CATEGORIES[idx];
+    });
+  }
+  if ($("#adminAddTag")) {
+    $("#adminAddTag").addEventListener("click", () => {
+      const name = (($("#adminNewTag") && $("#adminNewTag").value) || "").trim();
+      if (!name) return toast("请输入分类名称");
+      OPS_CATEGORIES.push(name);
+      $("#adminNewTag").value = "";
+      toast("已添加分类");
+      renderAdminConfig();
+    });
+  }
+  if ($("#adminSaveConfig")) {
+    $("#adminSaveConfig").addEventListener("click", () => {
+      $$("#adminTagList [data-idx]").forEach((row) => {
+        const input = row.querySelector("[data-admin-tag=name]");
+        const idx = Number(row.dataset.idx);
+        if (input) OPS_CATEGORIES[idx] = input.value.trim() || OPS_CATEGORIES[idx];
+      });
+      opsConfig.floatText = ($("#cfgFloatText").value || "").trim() || opsConfig.floatText;
+      opsConfig.floatJump = !!$("#cfgFloatJump").checked;
+      opsConfig.paidAutoEnable = !!($("#cfgPaidAutoEnable") && $("#cfgPaidAutoEnable").checked);
+      opsConfig.paidAutoDays = Math.max(1, Math.min(365, Number($("#cfgPaidAutoDays") && $("#cfgPaidAutoDays").value) || 3));
+      opsConfig.minLen = Math.max(1, Number($("#cfgMinLen").value) || 5);
+      opsConfig.allowImage = !!$("#cfgAllowImage").checked;
+      opsConfig.compliance = ($("#cfgCompliance").value || "").trim() || opsConfig.compliance;
+      const confP = $("#composeConfirmModal p");
+      if (confP) confP.textContent = opsConfig.compliance;
+      renderAdminPosts();
+      if (typeof render === "function") render();
+      toast("已保存（Demo 仅本页；有偿自动规则与发布分类已同步）");
+    });
+  }
+
+  if ($("#paidGuideClose")) $("#paidGuideClose").addEventListener("click", closePaidGuideModal);
+  if ($("#paidGuideModal")) {
+    $("#paidGuideModal").addEventListener("click", (e) => {
+      if (e.target.id === "paidGuideModal") closePaidGuideModal();
+    });
+  }
+
   $("#voteModalClose").addEventListener("click", () => {
     $("#voteModal").classList.add("hidden");
   });
@@ -3027,8 +3914,7 @@ button { cursor: pointer; }
     if (e.target.id === "voteModal") $("#voteModal").classList.add("hidden");
   });
 
-  setLogin(false);
-  go("wall");
+  go(location.hash === "#admin" ? "admin" : "wall");
 })();
 </script>
 </body>
