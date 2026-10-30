@@ -792,6 +792,11 @@ button { cursor: pointer; }
   min-width: auto; padding: 0; font-size: 11px; font-weight: 750;
   color: var(--pink); letter-spacing: .02em;
 }
+.post-card .hot-comments .c-mark.pending,
+.post-detail .c-mark.pending {
+  min-width: auto; padding: 0; font-size: 11px; font-weight: 750;
+  color: #9a9aac; letter-spacing: .02em;
+}
 .post-card .hot-comments .c-body,
 .post-detail .c-item .c-body { flex: 1; min-width: 0; display: block; }
 .post-card .hot-comments .c-user,
@@ -1272,7 +1277,10 @@ textarea.afield,
 .badge-st.arranged { background: rgba(61,214,140,.18); color: var(--ok); }
 .badge-st.ended { background: rgba(154,154,168,.16); color: #888; }
 .badge-st.rejected { background: rgba(255,107,107,.18); color: #ff8e8e; }
-.badge-st.hidden { background: rgba(154,154,168,.2); color: #9a9aa8; }
+.badge-st.hidden,
+.badge-st.c-off { background: rgba(154,154,168,.2); color: #9a9aa8; }
+/* 避免与全局 .hidden{display:none} 冲突：帖子已下架用 st-hidden */
+.badge-st.st-hidden { background: rgba(154,154,168,.2); color: #9a9aa8; display: inline-flex; }
 .badge-st.hot { background: rgba(245,165,36,.2); color: var(--warn); }
 .badge-st.god { background: var(--pink-dim); color: var(--pink); }
 .badge-st.paid-on { background: rgba(61,214,140,.18); color: var(--ok); }
@@ -1524,15 +1532,22 @@ textarea.afield,
         <select class="afield" id="adminCommentPost" style="min-width:220px">
           <option value="all">全部帖子</option>
         </select>
+        <select class="afield" id="adminCommentStatus" style="min-width:120px">
+          <option value="all">全部状态</option>
+          <option value="pending">待审核</option>
+          <option value="online">已上线</option>
+          <option value="hidden">已下架</option>
+        </select>
         <input class="afield grow" id="adminCommentSearch" type="search" placeholder="搜索评论" />
       </div>
       <div class="admin-table-wrap">
         <table>
           <thead>
             <tr>
-              <th style="width:22%">所属帖</th>
-              <th style="width:36%">评论</th>
-              <th style="width:8%">赞</th>
+              <th style="width:18%">所属帖</th>
+              <th style="width:28%">评论</th>
+              <th style="width:7%">赞</th>
+              <th style="width:10%">状态</th>
               <th style="width:12%">标签</th>
               <th>操作</th>
             </tr>
@@ -1543,15 +1558,6 @@ textarea.afield,
     </div>
 
     <div class="admin-panel" id="adminPanelConfig">
-      <div class="admin-card">
-        <h3>入口相关</h3>
-        <p class="hint">真实入口由站内配置链接；此处仅示意浮窗文案。</p>
-        <label class="hint">浮窗文案</label>
-        <input class="afield" id="cfgFloatText" style="width:100%;margin:6px 0 10px" />
-        <label style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px">
-          <input type="checkbox" id="cfgFloatJump" /> 浮窗可跳转心愿墙（示意）
-        </label>
-      </div>
       <div class="admin-card">
         <h3>有偿投稿</h3>
         <p class="hint">控制前台「有偿投稿」入口显隐；弹框内投稿联系方式沿用站内既有配置，此处不配链接。</p>
@@ -1707,9 +1713,11 @@ textarea.afield,
       user: "瓜友阿茶", anonymous: false,
       paidGuide: true, ageDays: 5,
       comments: [
-        { id: "cw1a", user: "瓜友A", text: "求完整时间线，别只蹭热度", time: "1小时前", likes: 26, hotBy: "ops", createdAt: 1761800000000 },
-        { id: "cw1b", user: "吃瓜本吃瓜", text: "附议，最好按年份排", time: "40分钟前", likes: 18, createdAt: 1761801600000 },
-        { id: "cw1c", user: "路人丙", text: "出道初期那段也想看", time: "30分钟前", likes: 3, createdAt: 1761802200000 }
+        { id: "cw1a", user: "瓜友A", text: "求完整时间线，别只蹭热度", time: "1小时前", likes: 26, hotBy: "ops", createdAt: 1761800000000, status: "online" },
+        { id: "cw1b", user: "吃瓜本吃瓜", text: "附议，最好按年份排", time: "40分钟前", likes: 18, createdAt: 1761801600000, status: "online" },
+        { id: "cw1c", user: "路人丙", text: "出道初期那段也想看", time: "30分钟前", likes: 3, createdAt: 1761802200000, status: "online" },
+        { id: "cw1p", user: "新瓜友", text: "再补一段综艺同期对比（待审示意）", time: "刚刚", likes: 0, createdAt: 1761804000000, status: "pending" },
+        { id: "cw1h", user: "已撤评用户", text: "这条已被下架示意", time: "昨天", likes: 1, createdAt: 1761708000000, status: "hidden" }
       ]
     },
     {
@@ -1807,8 +1815,6 @@ textarea.afield,
   /* 运营可配：求瓜类型（后台可调） */
   let OPS_CATEGORIES = ["时间线", "对照表", "合集", "复盘"];
   const opsConfig = {
-    floatText: "求瓜",
-    floatJump: true,
     paidAutoEnable: true,
     paidAutoDays: 3,
     minLen: 5,
@@ -1961,6 +1967,26 @@ textarea.afield,
   /* 卡片预览入池门槛：点赞数 ≥ 此值才可凭热度上墙；神评不受此限 */
   const COMMENT_PREVIEW_LIKE_MIN = 10;
 
+  /** 评论状态：online 已上线 / pending 待审核 / hidden 已下架；缺省视为已上线 */
+  function commentStatus(c) {
+    if (!c) return "online";
+    if (c.status === "pending" || c.status === "hidden" || c.status === "online") return c.status;
+    return "online";
+  }
+  function isCommentOnline(c) { return commentStatus(c) === "online"; }
+  function isCommentPending(c) { return commentStatus(c) === "pending"; }
+  function isCommentHidden(c) { return commentStatus(c) === "hidden"; }
+  function publicComments(p) {
+    return (p.comments || []).filter(isCommentOnline);
+  }
+  function publicCommentCount(p) {
+    return publicComments(p).length;
+  }
+  /** 前台可见：已上线 ∪ 本人待审（c.mine） */
+  function visibleComments(p) {
+    return (p.comments || []).filter((c) => isCommentOnline(c) || (isCommentPending(c) && !!c.mine));
+  }
+
   function commentLikeCount(c) {
     return (c.likes || 0) + (state.commentLiked[c.id] ? 1 : 0);
   }
@@ -1983,10 +2009,10 @@ textarea.afield,
       return commentCreatedAt(b) - commentCreatedAt(a);
     });
   }
-  /** 卡片预览（仅此处按热）：神评 ∪ 点赞过阈；神评优先，再按赞降序，最多 2 */
+  /** 卡片预览（仅此处按热）：仅已上线；神评 ∪ 点赞过阈；神评优先，再按赞降序，最多 2 */
   function commentPreviewList(list) {
     return (list || [])
-      .filter((c) => isGodComment(c) || isLikeRisen(c))
+      .filter((c) => isCommentOnline(c) && (isGodComment(c) || isLikeRisen(c)))
       .sort((a, b) => {
         const po = (isGodComment(b) ? 1 : 0) - (isGodComment(a) ? 1 : 0);
         if (po) return po;
@@ -1994,8 +2020,9 @@ textarea.afield,
       })
       .slice(0, 2);
   }
-  /* 左侧标记：神评 / 热门（热门仅预览语境有意义；列表页神评优先） */
+  /* 左侧标记：待审核 / 神评 / 热门 */
   function commentMark(c) {
+    if (isCommentPending(c)) return `<span class="c-mark pending" title="待审核">待审核</span>`;
     if (isGodComment(c)) return `<span class="c-mark god" title="神评">神评</span>`;
     if (isLikeRisen(c)) return `<span class="c-mark" title="热门" aria-label="热门">🔥</span>`;
     return "";
@@ -2010,6 +2037,7 @@ textarea.afield,
   }
 
   function commentLikeBtn(c) {
+    if (!isCommentOnline(c)) return "";
     const liked = !!state.commentLiked[c.id];
     const show = commentLikeCount(c);
     return `<button type="button" class="c-like${liked ? " on" : ""}" data-c-like="${escapeAttr(c.id)}" ${liked ? "disabled" : ""} title="${liked ? "已点赞" : "点赞评论"}">
@@ -2028,11 +2056,11 @@ textarea.afield,
     </div>`;
   }
 
-  /* 信息流：卡片预览只出神评 / 点赞过阈（按热）；列表页另按神评+时间 */
+  /* 信息流：卡片预览只出已上线的神评 / 点赞过阈；N = 已上线条数 */
   function commentsPreview(p) {
-    const list = p.comments || [];
-    const cCount = list.length;
-    const preview = commentPreviewList(list);
+    const online = publicComments(p);
+    const cCount = online.length;
+    const preview = commentPreviewList(online);
     let body = "";
     if (!cCount) {
       body = `<div class="hc-empty">
@@ -2050,9 +2078,9 @@ textarea.afield,
       ${body}
     </div>`;
   }
-  /** 已安排：不展开评论列表，只保留数量 + 进全部评论 */
+  /** 已安排：不展开评论列表，只保留已上线数量 + 进全部评论 */
   function commentsEntryOnly(p) {
-    const cCount = (p.comments || []).length;
+    const cCount = publicCommentCount(p);
     return `<div class="hot-comments" data-cstate="entry">
       <div class="hc-head">
         <div class="hc-label">评论<span class="hc-num">${cCount}</span></div>
@@ -2062,7 +2090,7 @@ textarea.afield,
   }
 
   function fullCommentsBlock(p) {
-    const list = p.comments || [];
+    const list = visibleComments(p);
     const ordered = sortCommentsByGodThenTime(list);
     const canComment = p.status === "collecting";
     const items = ordered.length
@@ -2307,7 +2335,7 @@ textarea.afield,
     let score = 0;
     if (String(p.text || "").toLowerCase().includes(raw)) score = Math.max(score, 100);
     if (String(p.category || "").toLowerCase().includes(raw)) score = Math.max(score, 50);
-    const comments = (p.comments || []).map((c) => c.text || "").join(" ").toLowerCase();
+    const comments = publicComments(p).map((c) => c.text || "").join(" ").toLowerCase();
     if (comments.includes(raw)) score = Math.max(score, 10);
     return score;
   }
@@ -2419,9 +2447,10 @@ textarea.afield,
   }
 
   function heatScore(p) {
-    if (p.type === "side") return (p.likes || 0) + ((p.pa || 0) + (p.pb || 0)) + (p.comments || []).length * 2;
-    if (p.type === "poll") return (p.likes || 0) + pollTotal(p) + (p.comments || []).length * 2;
-    return (p.likes || 0) + (p.comments || []).length * 2;
+    const cN = publicCommentCount(p);
+    if (p.type === "side") return (p.likes || 0) + ((p.pa || 0) + (p.pb || 0)) + cN * 2;
+    if (p.type === "poll") return (p.likes || 0) + pollTotal(p) + cN * 2;
+    return (p.likes || 0) + cN * 2;
   }
 
   function sortPosts(list) {
@@ -3031,7 +3060,9 @@ textarea.afield,
     const cLike = e.target.closest("[data-c-like]");
     if (cLike) {
       const cid = cLike.dataset.cLike;
-      if (!findComment(cid)) return;
+      const raw = findComment(cid);
+      if (!raw) return;
+      if (!isCommentOnline(raw)) return toast("仅已上线评论可点赞");
       if (state.commentLiked[cid]) return;
       state.commentLiked[cid] = true;
       toast("已点赞评论");
@@ -3057,11 +3088,22 @@ textarea.afield,
       try { localStorage.setItem("ww_nick", nick); } catch (err) {}
       const p = posts.find((x) => x.id === id);
       if (!p) return;
+      if (p.status !== "collecting") return toast("当前状态不可评论");
       if (!p.comments) p.comments = [];
       const now = Date.now();
-      p.comments.push({ id: "c" + now, user: nick, text, time: "刚刚", likes: 0, createdAt: now });
+      p.comments.push({
+        id: "c" + now,
+        user: nick,
+        text,
+        time: "刚刚",
+        likes: 0,
+        createdAt: now,
+        status: "pending",
+        mine: true
+      });
       state.myComments.unshift({ postId: id, text, time: "刚刚" });
-      toast("评论已发布");
+      toast("评论提交成功");
+      if (input) input.value = "";
       if (state.view !== "post") go("post", { postId: id });
       else render();
       return;
@@ -3345,16 +3387,17 @@ textarea.afield,
       ops.push('<button type="button" class="btn sm" data-admin-act="pin" data-id="' + p.id + '">' + (p.pinned ? "取消置顶" : "置顶") + "</button>");
       const paidCell = '<span class="badge-st ' + (paidOn ? "paid-on" : "paid-off") + '">' +
         escapeHtml(paidGuideBadgeLabel(p)) + "</span>";
-      const cCount = (p.comments || []).length;
+      const cCount = publicCommentCount(p);
+      const cAll = (p.comments || []).length;
       return "<tr>" +
         '<td><button type="button" class="admin-post-link" data-admin-open-comments="' + p.id + '" title="查看该帖全部评论">' +
         escapeHtml(p.text) + (p.pinned ? '<span class="pin-mark">置顶</span>' : "") +
-        '<span class="c-count">评论 ' + cCount + "</span></button>" +
+        '<span class="c-count">评论 ' + cCount + (cAll !== cCount ? " / 全 " + cAll : "") + "</span></button>" +
         artHtml + rejectHtml + "</td>" +
         "<td>" + escapeHtml(p.user || "—") + "</td>" +
-        '<td><span class="badge-st ' + p.status + '">' + adminStatusLabel(p.status) + "</span></td>" +
+        '<td><span class="badge-st ' + (p.status === "hidden" ? "st-hidden" : p.status) + '">' + adminStatusLabel(p.status) + "</span></td>" +
         "<td>" + paidCell + "</td>" +
-        "<td title=\"点赞 " + (p.likes || 0) + " · 评论 " + cCount + "\">" + heatScore(p) + "</td>" +
+        "<td title=\"点赞 " + (p.likes || 0) + " · 已上线评论 " + cCount + "\">" + heatScore(p) + "</td>" +
         '<td class="hint">' + escapeHtml(p.time || "") + "</td>" +
         "<td>" + (p.pinned ? "是" : "否") + "</td>" +
         '<td><div class="admin-actions">' + ops.join("") + "</div></td>" +
@@ -3399,14 +3442,21 @@ textarea.afield,
     sel.value = cur;
     if (!sel.value) sel.value = "all";
   }
+  function adminCommentStatusLabel(st) {
+    if (st === "pending") return "待审核";
+    if (st === "hidden") return "已下架";
+    return "已上线";
+  }
   function renderAdminComments() {
     fillAdminCommentPostFilter();
     const tb = $("#adminCommentTbody");
     if (!tb) return;
     const q = (($("#adminCommentSearch") && $("#adminCommentSearch").value) || "").trim().toLowerCase();
     const pid = ($("#adminCommentPost") && $("#adminCommentPost").value) || "all";
+    const stFilter = ($("#adminCommentStatus") && $("#adminCommentStatus").value) || "all";
     let list = flatAdminComments();
     if (pid !== "all") list = list.filter((c) => c.postId === pid);
+    if (stFilter !== "all") list = list.filter((c) => commentStatus(c.raw) === stFilter);
     if (q) list = list.filter((c) => (c.text || "").toLowerCase().includes(q));
     list.sort((a, b) => {
       const g = (isGodComment(b.raw) ? 1 : 0) - (isGodComment(a.raw) ? 1 : 0);
@@ -3414,26 +3464,35 @@ textarea.afield,
       return commentCreatedAt(b.raw) - commentCreatedAt(a.raw);
     });
     if (!list.length) {
-      tb.innerHTML = '<tr><td colspan="5" class="empty">暂无评论</td></tr>';
+      tb.innerHTML = '<tr><td colspan="6" class="empty">暂无评论</td></tr>';
       return;
     }
     tb.innerHTML = list.map((c) => {
+      const st = commentStatus(c.raw);
       let tagHtml = '<span class="hint">—</span>';
-      if (isGodComment(c.raw)) tagHtml = '<span class="badge-st god">神评</span>';
-      else if (isLikeRisen(c.raw)) tagHtml = '<span class="badge-st hot">热门≥' + COMMENT_PREVIEW_LIKE_MIN + '</span>';
+      if (isCommentOnline(c.raw) && isGodComment(c.raw)) tagHtml = '<span class="badge-st god">神评</span>';
+      else if (isCommentOnline(c.raw) && isLikeRisen(c.raw)) tagHtml = '<span class="badge-st hot">热门≥' + COMMENT_PREVIEW_LIKE_MIN + '</span>';
+      const stCls = st === "online" ? "collecting" : st === "pending" ? "pending" : "c-off";
+      const stBadge = '<span class="badge-st ' + stCls + '">' + adminCommentStatusLabel(st) + "</span>";
+      const acts = [];
+      if (st === "pending" || st === "hidden") {
+        acts.push('<button type="button" class="btn sm" data-admin-cact="online" data-id="' + c.id + '">上线</button>');
+      }
+      if (st === "online" || st === "pending") {
+        acts.push('<button type="button" class="btn sm" data-admin-cact="offline" data-id="' + c.id + '">下架</button>');
+      }
+      acts.push('<button type="button" class="btn sm" data-admin-cact="god" data-id="' + c.id + '">' +
+        (isGodComment(c.raw) ? "取消神评" : "设为神评") + "</button>");
       return "<tr>" +
         "<td>" + escapeHtml((c.postText || "").slice(0, 28)) + "</td>" +
         "<td>" + escapeHtml(c.text) + "</td>" +
         "<td>" + c.likes + "</td>" +
+        "<td>" + stBadge + "</td>" +
         "<td>" + tagHtml + "</td>" +
-        '<td><div class="admin-actions">' +
-        '<button type="button" class="btn sm" data-admin-cact="god" data-id="' + c.id + '">' + (isGodComment(c.raw) ? "取消神评" : "设为神评") + "</button>" +
-        "</div></td></tr>";
+        '<td><div class="admin-actions">' + acts.join("") + "</div></td></tr>";
     }).join("");
   }
   function renderAdminConfig() {
-    if ($("#cfgFloatText")) $("#cfgFloatText").value = opsConfig.floatText;
-    if ($("#cfgFloatJump")) $("#cfgFloatJump").checked = !!opsConfig.floatJump;
     if ($("#cfgPaidAutoEnable")) $("#cfgPaidAutoEnable").checked = !!opsConfig.paidAutoEnable;
     if ($("#cfgPaidAutoDays")) $("#cfgPaidAutoDays").value = Math.max(1, Number(opsConfig.paidAutoDays) || 3);
     if ($("#cfgMinLen")) $("#cfgMinLen").value = opsConfig.minLen;
@@ -3551,7 +3610,7 @@ textarea.afield,
       renderAdminPosts();
     });
   }
-  ["adminCommentSearch", "adminCommentPost"].forEach((id) => {
+  ["adminCommentSearch", "adminCommentPost", "adminCommentStatus"].forEach((id) => {
     const el = $("#" + id);
     if (!el) return;
     el.addEventListener(id === "adminCommentSearch" ? "input" : "change", renderAdminComments);
@@ -3666,7 +3725,20 @@ textarea.afield,
       posts.forEach((p) => (p.comments || []).forEach((c) => { if (c.id === btn.dataset.id) raw = c; }));
       if (!raw) return;
       const act = btn.dataset.adminCact;
-      if (act === "god" || act === "pick") {
+      if (act === "online") {
+        if (commentStatus(raw) === "online") return toast("已是上线状态");
+        raw.status = "online";
+        toast("已上线");
+      } else if (act === "offline") {
+        if (commentStatus(raw) === "hidden") return toast("已是下架状态");
+        raw.status = "hidden";
+        raw.hotBy = null;
+        raw.picked = false;
+        raw.god = false;
+        raw.hot = false;
+        toast("已下架");
+      } else if (act === "god" || act === "pick") {
+        if (!isCommentOnline(raw)) return toast("请先上线该评论");
         if (isGodComment(raw)) {
           raw.hotBy = null;
           raw.picked = false;
@@ -3744,8 +3816,6 @@ textarea.afield,
       if (state.wishCategory && !OPS_CATEGORIES.includes(state.wishCategory)) {
         state.wishCategory = OPS_CATEGORIES[0];
       }
-      opsConfig.floatText = ($("#cfgFloatText").value || "").trim() || opsConfig.floatText;
-      opsConfig.floatJump = !!$("#cfgFloatJump").checked;
       opsConfig.paidAutoEnable = !!($("#cfgPaidAutoEnable") && $("#cfgPaidAutoEnable").checked);
       opsConfig.paidAutoDays = Math.max(1, Math.min(365, Number($("#cfgPaidAutoDays") && $("#cfgPaidAutoDays").value) || 3));
       opsConfig.minLen = Math.max(1, Number($("#cfgMinLen").value) || 5);
