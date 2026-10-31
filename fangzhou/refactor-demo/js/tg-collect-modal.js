@@ -117,6 +117,9 @@ window.FZTgCollectModal = (function () {
     document.getElementById("tg-ch-modal").hidden = true;
     FZShell.toast("已加入「" + parsed.title + "」", "ok");
     if (onDone) onDone();
+    if (window.FZTgNovice && role === "collect") {
+      FZTgNovice.notify("channel");
+    }
   }
 
   function openRoute(botId) {
@@ -238,6 +241,7 @@ window.FZTgCollectModal = (function () {
       "ok"
     );
     if (onDone) onDone();
+    if (window.FZTgNovice) FZTgNovice.notify("route");
   }
 
   var confirmOkFn = null;

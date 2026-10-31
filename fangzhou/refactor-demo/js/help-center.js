@@ -264,7 +264,7 @@
       var fab = document.getElementById("fz-help-fab");
       if (!fab) return;
       var FAB_KEY = "fz_help_fab_bottom";
-      var LONG_MS = 380;
+      var LONG_MS = 40;
       var pressTimer = null;
       var dragging = false;
       var suppressClick = false;

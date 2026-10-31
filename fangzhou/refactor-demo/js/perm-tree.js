@@ -21,12 +21,19 @@
     return { id: id, label: label, actions: acts };
   }
 
-  /** 与 shell NAV 同构；有三级菜单的挂 children，否则 actions 直接挂在二级 */
+  /**
+   * 与 shell NAV 同构（2026-10 重构侧栏）：
+   * 工作台含概览+平台公告；采集号在 TG 采集配置，无独立 Userbot 菜单；
+   * 子账号与授权页内 Tab = L3 子账号 / 岗位。
+   */
   var PERM_TREE = [
     {
       id: "home",
       label: "工作台",
-      children: [leaf("home.overview", "概览", ["view"])]
+      children: [
+        leaf("home.overview", "概览", ["view"]),
+        leaf("home.announcements", "平台公告", ["view"])
+      ]
     },
     {
       id: "projects",
@@ -46,17 +53,39 @@
       label: "采集中心",
       children: [
         leaf("collect.tg", "TG 采集配置", ["view", "create", "edit", "delete"]),
-        leaf("collect.web", "网站采集配置", ["view", "create", "edit", "delete", "enable"]),
-        leaf("collect.materials", "素材管理", ["view", "approve", "edit", "delete"])
+        leaf("collect.web", "网站采集配置", [
+          "view",
+          "create",
+          "edit",
+          "delete",
+          "enable"
+        ]),
+        leaf("collect.materials", "素材管理", [
+          "view",
+          "approve",
+          "edit",
+          "delete"
+        ])
       ]
     },
     {
       id: "content",
       label: "内容中心",
       children: [
-        leaf("content.article", "文章管理", ["view", "create", "edit", "delete", "publish"]),
+        leaf("content.article", "文章管理", [
+          "view",
+          "create",
+          "edit",
+          "delete",
+          "publish"
+        ]),
         leaf("content.ai_cmt", "AI 评论", ["view", "create", "edit", "enable"]),
-        leaf("content.pull_wm", "拉取加水印", ["view", "create", "edit", "enable"])
+        leaf("content.pull_wm", "拉取加水印", [
+          "view",
+          "create",
+          "edit",
+          "enable"
+        ])
       ]
     },
     {
@@ -83,18 +112,26 @@
               "enable",
               "reset"
             ]),
-            leaf("global.subs.roles", "岗位", ["view", "create", "edit", "delete"])
+            leaf("global.subs.roles", "岗位", [
+              "view",
+              "create",
+              "edit",
+              "delete"
+            ])
           ]
-        },
-        leaf("global.userbot", "Userbot", ["view", "create", "edit", "enable"])
+        }
       ]
     }
   ];
 
   /** 旧扁平功能 → 新权限 id（演示迁移） */
   var LEGACY_MAP = {
-    workbench: ["home.overview.view"],
-    project_manage: ["projects.list.view", "projects.list.create", "projects.list.edit"],
+    workbench: ["home.overview.view", "home.announcements.view"],
+    project_manage: [
+      "projects.list.view",
+      "projects.list.create",
+      "projects.list.edit"
+    ],
     project_config: ["projects.list.view", "projects.list.config"],
     collect_web: [
       "collect.web.view",
@@ -128,11 +165,16 @@
       "review.user.view",
       "review.post.view"
     ],
+    /* 独立 Userbot 菜单已废，采集号权限并入 TG 采集配置 */
     userbot_cfg: [
-      "global.userbot.view",
-      "global.userbot.create",
-      "global.userbot.edit"
+      "collect.tg.view",
+      "collect.tg.create",
+      "collect.tg.edit"
     ],
+    "global.userbot.view": ["collect.tg.view"],
+    "global.userbot.create": ["collect.tg.create"],
+    "global.userbot.edit": ["collect.tg.edit"],
+    "global.userbot.enable": ["collect.tg.edit"],
     sub_manage: [
       "global.subs.accounts.view",
       "global.subs.accounts.create",
@@ -164,6 +206,11 @@
         out.push(id);
       }
     });
+    /* 旧数据仅有概览时，补平台公告查看（同属工作台） */
+    if (seen["home.overview.view"] && !seen["home.announcements.view"]) {
+      seen["home.announcements.view"] = 1;
+      out.push("home.announcements.view");
+    }
     return out;
   }
 
@@ -304,7 +351,7 @@
       '<div class="perm-tree">' +
       '<div class="perm-tree-head">' +
       "<div><strong>菜单与功能权限</strong>" +
-      '<p class="hint" style="margin:4px 0 0">按侧栏层级勾选：一级 / 二级 / 三级菜单；末级为页面内操作（查看、新增、编辑、删除等）。勾选上级可全选其下。</p></div>' +
+      '<p class="hint" style="margin:4px 0 0">按侧栏层级勾选：一级 / 二级 / 三级菜单；末级为页面内操作（查看、新增、编辑、删除等）。勾选上级可全选其下。采集号并入「TG 采集配置」，无独立 Userbot。</p></div>' +
       '<button type="button" class="btn btn-ghost" data-perm-clear>清空</button>' +
       "</div>";
     PERM_TREE.forEach(function (n) {

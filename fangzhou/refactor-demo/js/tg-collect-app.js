@@ -1,7 +1,7 @@
 /* TG 采集：项目 | 公共池 · 左号右详情（真实写 store） */
-(function () {
-  var R = window.FZTgCollectRender;
-  var M = window.FZTgCollectModal;
+(function (global) {
+  var R = global.FZTgCollectRender;
+  var M = global.FZTgCollectModal;
   var q = new URLSearchParams(location.search);
   var contextId = q.get("project") || q.get("ctx") || FZStore.PUBLIC_POOL_ID;
   var selectedBotId = q.get("bot") || "";
@@ -29,6 +29,17 @@
     var u = "./tg-collect.html?project=" + encodeURIComponent(contextId);
     if (selectedBotId) u += "&bot=" + encodeURIComponent(selectedBotId);
     if (routeView === "by_target") u += "&routeView=by_target";
+    /* 读当前地址栏，避免退出教程后仍用进页时缓存的 ?novice= 写回 */
+    var liveNovice = "";
+    try {
+      liveNovice = new URLSearchParams(location.search).get("novice") || "";
+    } catch (err) {}
+    if (
+      liveNovice &&
+      !(global.FZTgNovice && FZTgNovice.dismissed && FZTgNovice.dismissed())
+    ) {
+      u += "&novice=" + encodeURIComponent(liveNovice);
+    }
     history.replaceState(null, "", u);
   }
 
@@ -109,6 +120,9 @@
       }
     }
     syncUrl();
+    if (global.FZTgNovice && typeof FZTgNovice.onPaint === "function") {
+      FZTgNovice.onPaint();
+    }
   }
 
   function onWorkspaceClick(e) {
@@ -186,6 +200,7 @@
           selectedBotId = bot.id;
           FZShell.toast("采集号已添加并连接会话", "ok");
           paint();
+          if (global.FZTgNovice) FZTgNovice.notify("bot");
         }
       });
       return;
@@ -225,14 +240,21 @@
       var card = e.target.closest("[data-pick-ctx]");
       if (!card) return;
       var next = card.getAttribute("data-pick-ctx") || FZStore.PUBLIC_POOL_ID;
-      if (next === contextId) return;
+      if (next === contextId) {
+        if (global.FZTgNovice) FZTgNovice.onCtxPicked(next);
+        return;
+      }
       contextId = next;
       selectedBotId = "";
       resetFilters();
       paint();
+      if (global.FZTgNovice) FZTgNovice.onCtxPicked(next);
     });
     document.getElementById("tg-workspace").addEventListener("click", onWorkspaceClick);
     paint();
+    if (global.FZTgNovice && typeof FZTgNovice.start === "function") {
+      FZTgNovice.start();
+    }
     /* 工作台快捷：?action=add_bot|add_channel|add_route */
     var act = q.get("action");
     if (act === "add_bot") {
@@ -259,4 +281,4 @@
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
-})();
+})(window);

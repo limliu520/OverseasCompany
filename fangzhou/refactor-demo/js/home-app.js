@@ -998,11 +998,19 @@
     return true;
   }
 
+  function renderNovice() {
+    var mount = document.getElementById("wb-novice");
+    if (!mount || !global.FZNovice) return;
+    FZNovice.bindWorkbench(mount);
+    FZNovice.renderWorkbench(mount);
+  }
+
   function render() {
     var s = FZStore.read();
     if (maybeBlankWorkbench(s)) return;
     bindWorkTabs();
     adaptWorkbenchLayout();
+    renderNovice();
     renderStats(s);
     renderAnnounce();
     if (canSeeTodos()) renderTodos(s);
@@ -1026,7 +1034,7 @@
     var later = document.getElementById("btn-later");
     if (go) {
       go.onclick = function () {
-        location.href = "./project-setup.html?new=1";
+        location.href = "./project-setup.html?new=1&novice=create_project";
       };
     }
     function dismissZero() {
@@ -1042,25 +1050,7 @@
         if (e.target === modal) dismissZero();
       });
     }
-    if (
-      !zero &&
-      !(FZStore.isEmptyOnboarding && FZStore.isEmptyOnboarding(s)) &&
-      !FZStore.isMenuTourDone(s) &&
-      global.FZMenuTour
-    ) {
-      var steps = FZMenuTour.visibleSteps();
-      if (steps.length) {
-        var autoKey = "fz_tour_auto_" + FZStore.accountKey(s);
-        try {
-          if (!sessionStorage.getItem(autoKey)) {
-            sessionStorage.setItem(autoKey, "1");
-            setTimeout(function () {
-              FZMenuTour.start({});
-            }, 400);
-          }
-        } catch (e) {}
-      }
-    }
+    /* 侧栏菜单引导不再自动弹出；仅「帮助与反馈 → 重看侧栏菜单引导」可开 */
   }
 
   global.FZHomeRefreshTickets = function () {

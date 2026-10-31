@@ -43,8 +43,11 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261029wb38"></script>
-  <script src="../js/shell.js?v=20261029fabDrag"></script>
+  <script src="../js/store.js?v=20261031demoPerm"></script>
+  <script src="../js/shell.js?v=20261031fabDragFast"></script>
+  <script src="../js/novice-guide.js?v=20261031tour7"></script>
+  <script src="../js/novice-tour-kit.js?v=20261031tour7c"></script>
+  <script src="../js/novice-tours.js?v=20261031tour7c"></script>
   <script src="../js/article-defaults.js?v=20261028wmFx2"></script>
   <script src="../js/media-config.js?v=20261028ioLR1"></script>
   <script src="../js/pick-cards.js"></script>
@@ -822,11 +825,18 @@
       FZProjectUnion.bindSiteTypeCards(document.getElementById("basic-modal"));
     }
 
+    function notifyBasicDone() {
+      if (window.FZNoviceTours) FZNoviceTours.notify("edit_project", "basic_done");
+    }
     document.getElementById("basic-cancel").addEventListener("click", function () {
       document.getElementById("basic-modal").hidden = true;
+      notifyBasicDone();
     });
     document.getElementById("basic-modal").addEventListener("click", function (e) {
-      if (e.target === e.currentTarget) document.getElementById("basic-modal").hidden = true;
+      if (e.target === e.currentTarget) {
+        document.getElementById("basic-modal").hidden = true;
+        notifyBasicDone();
+      }
     });
 
     document.getElementById("basic-save").addEventListener("click", function () {
@@ -867,6 +877,7 @@
         if (prev !== nextType) FZProjectUnion.applyTypeDefaults(p, nextType);
       }, prevType !== nextType ? "基本信息已保存（类型已变更）" : "基本信息已保存");
       document.getElementById("basic-modal").hidden = true;
+      notifyBasicDone();
     });
 
     /* 捕获文章保存时至少启用一套模板 */

@@ -17,7 +17,13 @@
   function setTab(next) {
     tab = next;
     page = 1;
-    history.replaceState(null, "", "./subs.html" + (tab === "roles" ? "?tab=roles" : ""));
+    var q = [];
+    if (tab === "roles") q.push("tab=roles");
+    try {
+      var nov = new URLSearchParams(location.search).get("novice");
+      if (nov) q.push("novice=" + encodeURIComponent(nov));
+    } catch (err) {}
+    history.replaceState(null, "", "./subs.html" + (q.length ? "?" + q.join("&") : ""));
     document.getElementById("tab-subs").className =
       "btn" + (tab === "subs" ? " btn-primary" : "");
     document.getElementById("tab-roles").className =
@@ -572,16 +578,21 @@
     else openSubModal(null);
   });
 
+  function notifySubWizardDone() {
+    if (window.FZNoviceTours) FZNoviceTours.notify("subs", "sub_wizard_done");
+  }
   document.getElementById("sub-cancel").addEventListener("click", function () {
     document.getElementById("sub-modal").hidden = true;
     editingSubId = null;
     subStep = 1;
+    notifySubWizardDone();
   });
   document.getElementById("sub-modal").addEventListener("click", function (e) {
     if (e.target === e.currentTarget) {
       document.getElementById("sub-modal").hidden = true;
       editingSubId = null;
       subStep = 1;
+      notifySubWizardDone();
     }
   });
   document.getElementById("sub-prev").addEventListener("click", function () {
@@ -653,6 +664,7 @@
       subStep = 1;
       renderList();
       FZShell.toast("子账号已更新", "ok");
+      notifySubWizardDone();
       return;
     }
     st.subs.push({
@@ -671,6 +683,7 @@
     subStep = 1;
     renderList();
     FZShell.toast("子账号已创建，权限立即生效（演示）", "ok");
+    notifySubWizardDone();
   });
 
   document.getElementById("role-cancel").addEventListener("click", function () {

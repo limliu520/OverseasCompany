@@ -381,6 +381,7 @@
       mask.hidden = false;
       mask.classList.toggle("is-preview-only", state.previewOnly);
     }
+    if (window.FZNoviceTours) FZNoviceTours.notify("materials", "detail_open");
     var title = document.getElementById("mat-detail-title");
     if (title) {
       title.innerHTML =

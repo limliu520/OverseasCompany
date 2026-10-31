@@ -28,11 +28,14 @@
       </div>
     </div>
   </div>
-  <script src="../js/perm-tree.js?v=20261029wb1"></script>
-  <script src="../js/store.js?v=20261029wb38"></script>
-  <script src="../js/shell.js?v=20261029fabDrag"></script>
+  <script src="../js/perm-tree.js?v=20261031permNav"></script>
+  <script src="../js/store.js?v=20261031demoPerm"></script>
+  <script src="../js/shell.js?v=20261031permNav"></script>
   <script src="../js/pager.js?v=20261027pager"></script>
   <script src="../js/project-union.js"></script>
+  <script src="../js/novice-guide.js?v=20261031tour7"></script>
+  <script src="../js/novice-tour-kit.js?v=20261031tour7c"></script>
+  <script src="../js/novice-tours.js?v=20261031tour7c"></script>
   <script>
     FZShell.boot({ active: "projects" });
     var MARK = { chigua: "瓜", video: "视", short_drama: "剧" };
@@ -66,9 +69,15 @@
       var appId = (p.creds && p.creds.appId) || "";
       var coverW = p.coverWidth;
       var coverH = p.coverHeight;
+      var noviceQ = "";
+      try {
+        var nq = new URLSearchParams(location.search).get("novice");
+        if (nq) noviceQ = "&novice=" + encodeURIComponent(nq);
+      } catch (err) {}
       var actions =
         '<a class="btn" href="./project-edit.html?id=' +
         encodeURIComponent(p.id) +
+        noviceQ +
         '">项目详情</a>';
       if (p.status === "pending_activate") {
         actions +=
@@ -103,6 +112,7 @@
         '<div class="proj-card-head-main">' +
         '<h2 class="proj-title"><a href="./project-edit.html?id=' +
         encodeURIComponent(p.id) +
+        noviceQ +
         '">' +
         p.name +
         "</a></h2>" +

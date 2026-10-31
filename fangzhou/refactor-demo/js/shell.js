@@ -95,7 +95,7 @@
           label: "平台公告",
           href: "pages/announcements.html",
           done: true,
-          need: "home.overview.view",
+          need: "home.announcements.view",
           tourSkip: true
         }
       ]
@@ -410,7 +410,14 @@
       }
     }
     if (global.FZHelpCenter) mountHelp();
-    else loadScriptOnce("js/help-center.js?v=20261029fabDrag", mountHelp);
+    else loadScriptOnce("js/help-center.js?v=20261031fabDragFast", mountHelp);
+    function mountNovice() {
+      if (global.FZNovice && typeof FZNovice.consumeQuery === "function") {
+        FZNovice.consumeQuery();
+      }
+    }
+    if (global.FZNovice) mountNovice();
+    else loadScriptOnce("js/novice-guide.js?v=20261031novice1", mountNovice);
   }
 
   global.FZShell = {

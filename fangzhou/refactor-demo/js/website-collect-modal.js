@@ -125,6 +125,7 @@ window.FZWebCollectModal = (function () {
       });
       FZShell.toast("已提交申请，状态为「接入中」", "ok");
       document.getElementById("wc-site-modal").hidden = true;
+      if (window.FZNoviceTours) FZNoviceTours.notify("web_collect", "site_saved");
       if (onDone) onDone(sitesRef);
       return;
     }
@@ -147,6 +148,7 @@ window.FZWebCollectModal = (function () {
     } else {
       FZShell.toast("已保存编辑", "ok");
     }
+    if (window.FZNoviceTours) FZNoviceTours.notify("web_collect", "site_saved");
     if (onDone) onDone(sitesRef);
     open(editingId, "view", sitesRef, onDone);
   }

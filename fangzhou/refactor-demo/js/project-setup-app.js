@@ -559,6 +559,7 @@
       '</ul><p style="margin:10px 0 0;font-size:12.5px;color:var(--muted)">下一步：把对接材料交给开发，接通后上述能力按你的配置自动生效，运营一般不必再回来配一轮。</p>';
     document.getElementById("success-modal").hidden = false;
     FZShell.toast("项目创建成功", "ok");
+    if (window.FZNoviceTours) FZNoviceTours.notify("create_project", "created");
   }
 
   function jumpToStep(id) {

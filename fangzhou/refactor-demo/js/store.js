@@ -158,6 +158,7 @@
       name: "采集运营",
       features: [
         "home.overview.view",
+        "home.announcements.view",
         "collect.web.view",
         "collect.web.create",
         "collect.web.edit",
@@ -173,6 +174,7 @@
       name: "内容编辑",
       features: [
         "home.overview.view",
+        "home.announcements.view",
         "collect.materials.view",
         "collect.materials.approve",
         "content.article.view",
@@ -191,17 +193,18 @@
       name: "项目管理",
       features: [
         "home.overview.view",
+        "home.announcements.view",
         "projects.list.view",
         "projects.list.create",
         "projects.list.edit",
         "projects.list.config",
         "projects.list.connect",
+        "collect.tg.view",
+        "collect.tg.create",
+        "collect.tg.edit",
         "content.article.view",
         "content.article.publish",
         "content.pull_wm.view",
-        "global.userbot.view",
-        "global.userbot.create",
-        "global.userbot.edit",
         "global.subs.accounts.view",
         "global.subs.accounts.create",
         "global.subs.accounts.edit",
@@ -246,7 +249,11 @@
       username: "ops_retired",
       displayName: "已停用 · 旧号",
       cmsId: "cms_partner_old",
-      features: ["home.overview.view", "collect.tg.view"],
+      features: [
+        "home.overview.view",
+        "home.announcements.view",
+        "collect.tg.view"
+      ],
       roleName: "",
       disabled: true
     }
@@ -503,6 +510,10 @@
     zeroPromptDismissed: false,
     /** { [accountId]: true } 菜单二级引导完成 */
     menuTourDoneByAccount: {},
+    /** { [accountId]: { stepId: true } } 工作台新手教程完成步 */
+    noviceDoneByAccount: {},
+    /** { [accountId]: true } 新手教程全部完成后收起 */
+    noviceCollapsedByAccount: {},
     /** 快速反馈工单 */
     tickets: [],
     /** 额外状态提醒种子（采集号断线由工作台从 userbots 推导；此处只补频道级样例） */
@@ -543,6 +554,14 @@
     }
     if (!state.menuTourDoneByAccount) {
       state.menuTourDoneByAccount = {};
+      changed = true;
+    }
+    if (!state.noviceDoneByAccount) {
+      state.noviceDoneByAccount = {};
+      changed = true;
+    }
+    if (!state.noviceCollapsedByAccount) {
+      state.noviceCollapsedByAccount = {};
       changed = true;
     }
     if (
@@ -940,7 +959,12 @@
       if (!hit) {
         state.roles.push(clone(seed));
         changed = true;
-      } else if (needsPermMigrate(hit.features)) {
+      } else if (
+        needsPermMigrate(hit.features) ||
+        featuresMissingFromSeed(hit.features, seed.features)
+      ) {
+        /* 演示岗位以种子为准，权限树改了要覆盖本地旧缓存 */
+        hit.name = seed.name;
         hit.features = seed.features.slice();
         changed = true;
       }
@@ -967,8 +991,13 @@
           hit.projects = projectIds.slice();
           changed = true;
         }
-        if (needsPermMigrate(hit.features)) {
+        if (
+          needsPermMigrate(hit.features) ||
+          featuresMissingFromSeed(hit.features, seed.features)
+        ) {
           hit.features = seed.features.slice();
+          hit.roleName = seed.roleName;
+          hit.disabled = !!seed.disabled;
           changed = true;
         }
       }
@@ -987,7 +1016,55 @@
       }
     });
 
+    if (syncSessionFeatures(state)) changed = true;
+
     return changed;
+  }
+
+  function featuresMissingFromSeed(current, seed) {
+    var seen = {};
+    (current || []).forEach(function (id) {
+      seen[id] = 1;
+    });
+    return (seed || []).some(function (id) {
+      return id && !seen[id];
+    });
+  }
+
+  /** 会话权限跟上权限树（补平台公告等新增叶子；演示子账号跟种子/子账号记录） */
+  function syncSessionFeatures(state) {
+    if (!state) return false;
+    if (state.accountKind === "sub") {
+      var prev = (state.features || []).slice().sort().join("\0");
+      var sub = (state.subs || []).find(function (u) {
+        return u.id === state.accountId;
+      });
+      if (sub && sub.features && sub.features.length) {
+        state.features = migratePermIds(sub.features.slice());
+      } else {
+        state.features = migratePermIds(state.features || []);
+      }
+      return (state.features || []).slice().sort().join("\0") !== prev;
+    }
+    var full = flattenOwnerFeatures();
+    if (!full.length) return false;
+    if (!state.features || !state.features.length) {
+      state.features = full.slice();
+      return true;
+    }
+    var seen = {};
+    var added = false;
+    state.features.forEach(function (id) {
+      seen[id] = 1;
+    });
+    full.forEach(function (id) {
+      if (!seen[id]) {
+        state.features.push(id);
+        seen[id] = 1;
+        added = true;
+      }
+    });
+    return added;
   }
 
   function needsPermMigrate(features) {
@@ -1484,11 +1561,20 @@
    */
   function seedAfterFirstCreate(state, first) {
     state.firstProjectDone = true;
+    /* 新手教程「创建项目」与首建毕业对齐 */
+    if (!state.noviceDoneByAccount) state.noviceDoneByAccount = {};
+    var nk = accountKey(state);
+    if (!state.noviceDoneByAccount[nk]) state.noviceDoneByAccount[nk] = {};
+    state.noviceDoneByAccount[nk].create_project = true;
     if (state.accountId === "owner_empty") {
       state.accountId = "owner";
       if (!state.displayName || /新号/.test(String(state.displayName))) {
         state.displayName = "主账号演示";
       }
+      /* accountId 变更后补写到新 key */
+      nk = accountKey(state);
+      if (!state.noviceDoneByAccount[nk]) state.noviceDoneByAccount[nk] = {};
+      state.noviceDoneByAccount[nk].create_project = true;
     }
     if (!state.statusAlerts || !state.statusAlerts.length) {
       state.statusAlerts = clone(DEFAULT.statusAlerts);
@@ -1584,6 +1670,8 @@
     state.tickets = state.tickets || [];
     state.statusAlerts = state.statusAlerts || clone(DEFAULT.statusAlerts);
     state.menuTourDoneByAccount = state.menuTourDoneByAccount || {};
+    state.noviceDoneByAccount = state.noviceDoneByAccount || {};
+    state.noviceCollapsedByAccount = state.noviceCollapsedByAccount || {};
 
     if (profile === "owner" || profile === "owner_empty") {
       state.accountKind = "owner";
@@ -1623,6 +1711,7 @@
       return state;
     }
 
+    ensureDemoAssets(state);
     var sub = (state.subs || []).find(function (u) {
       return u.id === profile;
     });
@@ -1633,7 +1722,7 @@
     state.accountId = sub.id;
     state.username = sub.username;
     state.displayName = sub.displayName;
-    state.features = (sub.features || []).slice();
+    state.features = migratePermIds((sub.features || []).slice());
     state.zeroPromptDismissed = true;
     if (state._projectsBackup && state._projectsBackup.length) {
       state.projects = clone(state._projectsBackup);

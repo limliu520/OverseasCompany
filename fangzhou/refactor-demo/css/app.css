@@ -6739,6 +6739,79 @@ select.input {
   flex-direction: column;
   gap: 12px;
 }
+.wb-novice-mount:empty,
+.wb-novice-mount[hidden] { display: none !important; }
+.wb-novice-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.wb-novice-head h2 { margin: 0 0 4px; font-size: 14px; font-weight: 650; }
+.wb-novice-sum { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
+.wb-novice-track {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.wb-novice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.wb-novice-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 14px rgba(24, 24, 27, 0.06);
+}
+.wb-novice-card.is-focus {
+  border-color: var(--accent);
+  background: var(--accent-soft, #eef0ff);
+}
+.wb-novice-card.is-done {
+  opacity: 0.88;
+}
+.wb-novice-idx {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--accent-soft, #eef0ff);
+  color: var(--accent);
+}
+.wb-novice-card.is-done .wb-novice-idx {
+  background: var(--ok-bg, #e8f6ee);
+  color: var(--ok, #1a7f4b);
+}
+.wb-novice-txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.wb-novice-txt strong { font-size: 13px; font-weight: 650; }
+.wb-novice-txt span { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.wb-novice-go {
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--accent);
+  white-space: nowrap;
+}
 .wb-band { min-width: 0; }
 .wb-mod h2,
 .wb-band h2 { margin: 0; font-size: 14px; font-weight: 650; }
@@ -7380,6 +7453,116 @@ a.wb-an-item:hover { background: #f4f3ff; }
 .wb-empty-card strong { display: block; margin-bottom: 6px; font-size: 15px; }
 .wb-empty-card p { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
 .wb-empty-card--lg { padding: 36px 28px; text-align: center; max-width: 520px; margin: 12px auto; }
+
+/* TG 采集新手教程试做 */
+.fz-tg-novice {
+  position: fixed;
+  left: calc(var(--sidebar-w, 232px) + 16px);
+  right: 16px;
+  bottom: 16px;
+  z-index: 80;
+  pointer-events: none;
+}
+.fz-tg-novice-bar {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #1f1f28;
+  color: #f4f4f6;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+  max-width: 760px;
+}
+.fz-tg-novice-lead {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  max-width: 148px;
+}
+.fz-tg-novice-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--accent, #5b5bd6);
+  color: #fff;
+}
+.fz-tg-novice-fake {
+  margin: 0;
+  padding: 5px 7px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.35;
+  color: #1a1a22;
+  background: #ffe566;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.fz-tg-novice-main { flex: 1; min-width: 0; }
+.fz-tg-novice-step {
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 650;
+}
+.fz-tg-novice-tip {
+  margin: 0 0 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(244, 244, 246, 0.92);
+}
+.fz-tg-novice-aside {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: rgba(244, 244, 246, 0.55);
+}
+.fz-tg-novice-side {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+}
+.fz-tg-novice-exit {
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  white-space: nowrap;
+}
+.fz-tg-novice-exit:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+.fz-tg-novice-spot {
+  position: fixed;
+  z-index: 75;
+  border: 2px solid var(--accent, #5b5bd6);
+  border-radius: 14px;
+  box-shadow: 0 0 0 9999px rgba(15, 15, 20, 0.42), 0 0 0 4px rgba(91, 91, 214, 0.35);
+  pointer-events: none;
+  transition: left 0.15s ease, top 0.15s ease, width 0.15s ease, height 0.15s ease;
+}
+/* 弹窗低于 spot：靠 spot「挖洞」露出；打开后 JS 会把洞对准 .modal */
+.fz-tg-novice-done-modal { text-align: center; max-width: 420px; }
+.fz-tg-novice-done-ico {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 12px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  background: var(--ok-bg, #e8f6ee);
+  color: var(--ok, #1a7f4b);
+}
+body.is-tg-novice .content,
+body.is-novice-tour .content {
+  padding-bottom: 132px;
+}
 
 .fz-help-fab {
   position: fixed;
