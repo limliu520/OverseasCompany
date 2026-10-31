@@ -13,8 +13,10 @@
     id: "create_project",
     title: "创建项目",
     doneSummary:
-      "你已走完创建项目主流程：看步骤条 → 逐步填写 → 看到创建成功。后续可在项目详情继续配水印与通道。",
-    modalMaskIds: ["success-modal"],
+      "你已走完创建项目主流程（演示数据未写入真实项目）。点「完成学习」返回工作台；本教程与产品对接、项目列表无跳转关联。",
+    modalMaskIds: [],
+    exitToast: "已退出教程，返回工作台",
+    exitHref: "./home.html",
     steps: [
       {
         id: "see_steps",
@@ -26,19 +28,12 @@
       },
       {
         id: "fill_next",
-        title: "填写并下一步",
-        tip: "在中间表单按提示填写（Demo 可随便填），点右下角「下一步」。可多点几次直到创建成功。",
+        title: "必填用「下一步」，可选用「跳过」",
+        tip: "先填「项目名称」等必填项，点「下一步」。到可选步骤时「跳过」会出现，可连续点「跳过 / 跳过并创建」。演示创建成功后会出现「学习完成」，不会进入开发对接。",
         allow: "#panel, #panel *, #btn-next, #btn-prev, #btn-skip, #foot-hint",
-        spotlight: "#btn-next",
+        /* 必填步会隐藏跳过；优先可见的跳过，否则高亮下一步 */
+        spotlight: "#btn-skip, #btn-next",
         waitEvent: "created"
-      },
-      {
-        id: "success",
-        title: "创建成功",
-        tip: "出现成功弹窗即完成主流程。可点「稍后对接」或「去开发对接激活」。",
-        allow: "#success-modal, #success-modal *",
-        spotlight: "#success-modal .modal",
-        clickAdvance: true
       }
     ]
   });
@@ -48,13 +43,14 @@
     id: "edit_project",
     title: "编辑项目",
     doneSummary:
-      "你已熟悉项目详情：进入详情 → 编辑基本信息 → 切换配置 Tab（水印 / 模板 / 对接等）。",
+      "你已熟悉项目详情：进入详情 → 编辑基本信息 → 切换配置 Tab。点「完成学习」返回工作台。",
     modalMaskIds: ["basic-modal"],
+    exitHref: "./home.html",
     steps: [
       {
         id: "enter_detail",
         title: "打开项目详情",
-        tip: "若在列表：点「项目详情」或项目名进入。已在详情页可点顶部「编辑基本信息」继续。",
+        tip: "若在列表：点「项目详情」或项目名进入（仍带教程标记）。已在详情页可点顶部「编辑基本信息」继续。",
         allow:
           "#project-list, #project-list *, a[href*='project-edit'], #btn-edit-basic, .detail-hero, .detail-hero *",
         spotlight: "#btn-edit-basic, #project-list .proj-card, #project-list a.btn",
@@ -73,7 +69,7 @@
       {
         id: "tabs",
         title: "切换配置 Tab",
-        tip: "点下方任一配置 Tab（如水印管理、文章模板、技术对接），看看各块怎么配。",
+        tip: "点下方任一配置 Tab（如水印管理、文章模板），看看各块怎么配。本步只在详情页内切换，不会离开教程。",
         allow: ".config-tabs, .config-tabs *, [data-tab]",
         spotlight: ".config-tabs [data-tab], [data-tab]",
         clickAdvance: true,
@@ -180,7 +176,7 @@
     id: "articles",
     title: "文章管理",
     doneSummary:
-      "你已熟悉文章列表：筛选 → 预览或进入编辑。改稿与推送在详情页继续。",
+      "你已熟悉文章列表：筛选 → 预览。教程只在本页演示，不会进入真实编辑页。",
     modalMaskIds: ["art-preview-mask", "art-confirm-mask", "art-compare-mask"],
     steps: [
       {
@@ -194,10 +190,10 @@
       },
       {
         id: "preview_or_edit",
-        title: "预览或进入编辑",
-        tip: "点某行可预览；或点操作列的编辑 / 相关按钮。任选一种操作即可。",
+        title: "打开预览",
+        tip: "点某行打开预览即可。本教程不进入编辑页，避免跳进真实产品流程。",
         allow:
-          "#art-tbody, #art-tbody *, #art-preview-mask, #art-preview-mask *, a[href*='article-edit']",
+          "#art-tbody, #art-tbody *, #art-preview-mask, #art-preview-mask *",
         spotlight: "#art-tbody tr",
         clickAdvance: true,
         skipIfMissing: true

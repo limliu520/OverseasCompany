@@ -13,12 +13,15 @@
 
     var active = false;
     var dismissed = false;
+    var showingDone = false;
     var stepIndex = 0;
     var root = null;
     var spot = null;
     var doneMask = null;
     var waiting = "";
     var api = null;
+    var spotRaf = 0;
+    var mutObs = null;
 
     function enabled() {
       if (dismissed) return false;
@@ -118,7 +121,7 @@
 
       doneMask = document.createElement("div");
       doneMask.id = uid + "-done";
-      doneMask.className = "modal-mask";
+      doneMask.className = "modal-mask fz-novice-done-mask";
       doneMask.hidden = true;
       doneMask.innerHTML =
         '<div class="modal fz-tg-novice-done-modal" role="dialog" aria-modal="true">' +
@@ -149,25 +152,90 @@
         location.href = "./home.html";
       };
       document.getElementById(uid + "-replay").onclick = function () {
+        showingDone = false;
         doneMask.hidden = true;
         stepIndex = 0;
         waiting = "";
         saveStep();
         renderCoach();
-        placeSpot();
+        scheduleSpot();
         if (global.FZShell) FZShell.toast("已从头开始，请按步骤操作", "ok");
       };
     }
 
+    function scheduleSpot() {
+      if (spotRaf) return;
+      spotRaf = requestAnimationFrame(function () {
+        spotRaf = 0;
+        placeSpot();
+      });
+    }
+
+    function showDone() {
+      showingDone = true;
+      waiting = "";
+      stepIndex = STEPS.length;
+      saveStep();
+      ensureUi();
+      if (spot) spot.hidden = true;
+      doneMask.hidden = false;
+      if (spotRaf) {
+        cancelAnimationFrame(spotRaf);
+        spotRaf = 0;
+      }
+    }
+
+    function isSpottable(el) {
+      if (!el || !el.getBoundingClientRect) return false;
+      try {
+        var st = window.getComputedStyle(el);
+        if (st.display === "none" || st.visibility === "hidden" || st.opacity === "0")
+          return false;
+      } catch (err) {
+        return false;
+      }
+      var r = el.getBoundingClientRect();
+      return r.width >= 2 && r.height >= 2;
+    }
+
+    /** 逗号选择器里取第一个「可见且有尺寸」的节点，避免 display:none 的跳过钮把高亮钉到 0,0 */
+    function resolveSpotlight(sel) {
+      if (!sel) return null;
+      var nodes;
+      try {
+        nodes = document.querySelectorAll(sel);
+      } catch (err) {
+        return null;
+      }
+      for (var i = 0; i < nodes.length; i++) {
+        if (isSpottable(nodes[i])) return nodes[i];
+      }
+      return null;
+    }
+
+    function applySpotRect(el, pad) {
+      var r = el.getBoundingClientRect();
+      spot.hidden = false;
+      spot.style.left = Math.max(8, r.left - pad) + "px";
+      spot.style.top = Math.max(8, r.top - pad) + "px";
+      spot.style.width = Math.ceil(r.width + pad * 2) + "px";
+      spot.style.height = Math.ceil(r.height + pad * 2) + "px";
+    }
+
     function placeSpot() {
       if (!spot) return;
+      if (showingDone || dismissed || !active) {
+        spot.hidden = true;
+        return;
+      }
       var step = cur();
       if (!step || !step.spotlight) {
         spot.hidden = true;
         return;
       }
       var modalEl = openTourModalEl();
-      var el = modalEl || document.querySelector(step.spotlight);
+      if (modalEl && !isSpottable(modalEl)) modalEl = null;
+      var el = modalEl || resolveSpotlight(step.spotlight);
       if (!el) {
         spot.hidden = true;
         if (step.skipIfMissing) {
@@ -177,17 +245,19 @@
         }
         return;
       }
-      var r = el.getBoundingClientRect();
       var pad = modalEl ? 8 : 6;
-      spot.hidden = false;
-      spot.style.left = Math.max(8, r.left - pad) + "px";
-      spot.style.top = Math.max(8, r.top - pad) + "px";
-      spot.style.width = Math.ceil(r.width + pad * 2) + "px";
-      spot.style.height = Math.ceil(r.height + pad * 2) + "px";
       if (!modalEl) {
         try {
           el.scrollIntoView({ block: "nearest", inline: "nearest" });
         } catch (e) {}
+      }
+      applySpotRect(el, pad);
+      /* 滚动后再量一次，避免位置漂移 */
+      if (!modalEl) {
+        setTimeout(function () {
+          if (!active || !spot || spot.hidden) return;
+          if (isSpottable(el)) applySpotRect(el, pad);
+        }, 50);
       }
     }
 
@@ -205,23 +275,46 @@
       waiting = "";
       stepIndex += 1;
       if (stepIndex >= STEPS.length) {
-        saveStep();
-        ensureUi();
-        doneMask.hidden = false;
-        if (spot) spot.hidden = true;
+        showDone();
         return;
       }
       saveStep();
       renderCoach();
-      placeSpot();
+      scheduleSpot();
       if (typeof cfg.onStep === "function") cfg.onStep(cur(), stepIndex, api);
     }
 
     function notify(kind) {
-      if (!active || dismissed) return;
+      if (!active || dismissed || showingDone) return;
       var step = cur();
       if (!step || step.waitEvent !== kind) return;
       advance();
+    }
+
+    /** 强制收口到「学习完成」（创建成功等场景，不依赖当前步） */
+    function complete() {
+      if (dismissed) return;
+      if (!active) {
+        active = true;
+        dismissed = false;
+      }
+      showDone();
+    }
+
+    function isLeavePageLink(el) {
+      var a = el && el.closest ? el.closest("a[href]") : null;
+      if (!a) return null;
+      var href = (a.getAttribute("href") || "").trim();
+      if (!href || href.charAt(0) === "#" || href.indexOf("javascript:") === 0)
+        return null;
+      try {
+        var u = new URL(href, location.href);
+        if (u.pathname === location.pathname && u.search === location.search)
+          return null;
+        return a;
+      } catch (err) {
+        return a;
+      }
     }
 
     function gateClick(e) {
@@ -233,8 +326,28 @@
       ) {
         return;
       }
+      if (showingDone) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       var step = cur();
       if (!step) return;
+
+      /* 教程期间禁止跳进真实产品页；完成/退出只回工作台 */
+      var leave = isLeavePageLink(e.target);
+      if (leave && !matchesAllow(leave, step.allow)) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (global.FZShell) {
+          FZShell.toast(
+            "教程进行中不会进入其他功能，请继续当前步骤，或点「退出教程」回工作台",
+            "err"
+          );
+        }
+        return;
+      }
+
       if (matchesAllow(e.target, step.allow)) {
         if (typeof step.onAllowClick === "function") {
           try {
@@ -242,8 +355,8 @@
           } catch (err) {}
         }
         if (step.waitEvent) {
-          setTimeout(placeSpot, 40);
-          setTimeout(placeSpot, 160);
+          setTimeout(scheduleSpot, 40);
+          setTimeout(scheduleSpot, 160);
           return;
         }
         if (step.clickAdvance) {
@@ -252,8 +365,8 @@
           }, 30);
           return;
         }
-        setTimeout(placeSpot, 40);
-        setTimeout(placeSpot, 160);
+        setTimeout(scheduleSpot, 40);
+        setTimeout(scheduleSpot, 160);
         return;
       }
       var openMask = document.querySelector(
@@ -280,6 +393,7 @@
       if (!active && !root && dismissed) return;
       active = false;
       dismissed = true;
+      showingDone = false;
       waiting = "";
       stepIndex = 0;
       try {
@@ -287,7 +401,17 @@
         sessionStorage.setItem(EXIT_KEY, "1");
       } catch (e) {}
       document.removeEventListener("click", gateClick, true);
-      window.removeEventListener("resize", placeSpot);
+      window.removeEventListener("resize", scheduleSpot);
+      if (mutObs) {
+        try {
+          mutObs.disconnect();
+        } catch (e2) {}
+        mutObs = null;
+      }
+      if (spotRaf) {
+        cancelAnimationFrame(spotRaf);
+        spotRaf = 0;
+      }
       document.body.classList.remove(SHARED_CSS, "is-tg-novice");
       if (spot) {
         spot.remove();
@@ -302,7 +426,16 @@
         root = null;
       }
       stripNoviceQuery();
-      if (global.FZShell) FZShell.toast("已退出教程，可正常使用本页", "ok");
+      if (typeof cfg.onExit === "function") {
+        try {
+          cfg.onExit(api);
+        } catch (err) {}
+        return;
+      }
+      if (global.FZShell) {
+        FZShell.toast(cfg.exitToast || "已退出教程，返回工作台", "ok");
+      }
+      location.href = cfg.exitHref || "./home.html";
     }
 
     function start() {
@@ -314,12 +447,17 @@
       } catch (e) {}
       if (!enabled()) return;
       if (active && root) {
+        if (showingDone || stepIndex >= STEPS.length) {
+          showDone();
+          return;
+        }
         renderCoach();
-        placeSpot();
+        scheduleSpot();
         return;
       }
       active = true;
       dismissed = false;
+      showingDone = false;
       loadStep();
       if (
         global.FZNovice &&
@@ -328,17 +466,31 @@
       ) {
         stepIndex = 0;
       }
+      if (stepIndex >= STEPS.length) {
+        ensureUi();
+        showDone();
+        document.addEventListener("click", gateClick, true);
+        return;
+      }
       ensureUi();
       renderCoach();
       document.addEventListener("click", gateClick, true);
-      window.addEventListener("resize", placeSpot);
-      var obsKey = "data-novice-obs-" + tourId;
-      if (!document.documentElement.getAttribute(obsKey)) {
-        document.documentElement.setAttribute(obsKey, "1");
+      window.addEventListener("resize", scheduleSpot);
+      if (!mutObs) {
         try {
-          new MutationObserver(function () {
-            if (active) placeSpot();
-          }).observe(document.body, {
+          mutObs = new MutationObserver(function (mutations) {
+            if (!active || showingDone || dismissed) return;
+            for (var i = 0; i < mutations.length; i++) {
+              var t = mutations[i].target;
+              if (t === spot || t === root || t === doneMask) continue;
+              if (spot && spot.contains && spot.contains(t)) continue;
+              if (root && root.contains && root.contains(t)) continue;
+              if (doneMask && doneMask.contains && doneMask.contains(t)) continue;
+              scheduleSpot();
+              return;
+            }
+          });
+          mutObs.observe(document.body, {
             attributes: true,
             subtree: true,
             attributeFilter: ["hidden"],
@@ -346,15 +498,15 @@
           });
         } catch (err) {}
       }
-      setTimeout(placeSpot, 80);
-      setTimeout(placeSpot, 320);
+      setTimeout(scheduleSpot, 80);
+      setTimeout(scheduleSpot, 320);
       if (typeof cfg.onStart === "function") cfg.onStart(api);
     }
 
     function onPaint() {
-      if (!active || dismissed) return;
+      if (!active || dismissed || showingDone) return;
       renderCoach();
-      placeSpot();
+      scheduleSpot();
     }
 
     api = {
@@ -364,6 +516,7 @@
       onPaint: onPaint,
       notify: notify,
       advance: advance,
+      complete: complete,
       placeSpot: placeSpot,
       active: function () {
         return active && !dismissed;

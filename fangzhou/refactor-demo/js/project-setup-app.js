@@ -8,6 +8,15 @@
   var stepIndex = 0;
   var createdProjectId = "";
 
+  /** 新手教程：独立演示，不写真实项目、不跳对接/列表 */
+  function isNoviceCreate() {
+    try {
+      return new URLSearchParams(location.search).get("novice") === "create_project";
+    } catch (e) {
+      return false;
+    }
+  }
+
   var draft = FZProjectUnion.applyTypeDefaults(
     {
       name: "",
@@ -535,7 +544,18 @@
   }
 
   function showSuccess(project) {
-    createdProjectId = project.id;
+    createdProjectId = project.id || "";
+    if (isNoviceCreate()) {
+      /* 教程：不弹产品对接窗；强制出「学习完成」，避免停在创建中 */
+      FZShell.toast("演示创建完成（未写入真实项目）", "ok");
+      var tour =
+        window.FZNoviceTours && FZNoviceTours.get
+          ? FZNoviceTours.get("create_project")
+          : null;
+      if (tour && tour.complete) tour.complete();
+      else if (window.FZNoviceTours) FZNoviceTours.notify("create_project", "created");
+      return;
+    }
     document.getElementById("success-title").textContent = "创建成功";
     document.getElementById("success-lead").textContent =
       "「" +
@@ -559,7 +579,6 @@
       '</ul><p style="margin:10px 0 0;font-size:12.5px;color:var(--muted)">下一步：把对接材料交给开发，接通后上述能力按你的配置自动生效，运营一般不必再回来配一轮。</p>';
     document.getElementById("success-modal").hidden = false;
     FZShell.toast("项目创建成功", "ok");
-    if (window.FZNoviceTours) FZNoviceTours.notify("create_project", "created");
   }
 
   function jumpToStep(id) {
@@ -593,6 +612,17 @@
     nextBtn.textContent = "创建中…";
 
     try {
+      if (isNoviceCreate()) {
+        showSuccess({
+          id: "",
+          name: draft.name.trim() || "教程演示项目",
+          autoToEdit: !!draft.autoToEdit,
+          autoPush: !!draft.autoPush,
+          hasCollectSource: !!draft.hasCollectSource
+        });
+        return;
+      }
+
       var st = FZStore.read();
       var id = FZStore.uid("p");
       var siteCode = (draft.siteCode || "").trim() || "site-" + Math.random().toString(36).slice(2, 8);
@@ -670,8 +700,11 @@
       showSuccess(project);
     } catch (e) {
       FZShell.toast("创建失败，请重试", "err");
+    } finally {
       nextBtn.textContent = "创建项目";
-      syncFoot();
+      try {
+        syncFoot();
+      } catch (e2) {}
     }
   }
 
@@ -794,6 +827,10 @@
   });
 
   document.getElementById("success-go").addEventListener("click", function () {
+    if (isNoviceCreate()) {
+      FZShell.toast("教程演示中不会进入真实对接，请点「完成学习」回工作台", "err");
+      return;
+    }
     var id = createdProjectId;
     if (!id) {
       var st = FZStore.read();
@@ -809,6 +846,10 @@
       "./project-connect.html?id=" + encodeURIComponent(id);
   });
   document.getElementById("success-later").addEventListener("click", function () {
+    if (isNoviceCreate()) {
+      FZShell.toast("教程演示中不会进入项目列表，请点「完成学习」回工作台", "err");
+      return;
+    }
     FZShell.toast("可稍后在待办或项目列表进入对接", "ok");
     location.href = "./projects.html";
   });

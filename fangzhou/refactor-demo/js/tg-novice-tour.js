@@ -119,7 +119,7 @@
 
     doneMask = document.createElement("div");
     doneMask.id = "fz-tg-novice-done";
-    doneMask.className = "modal-mask";
+    doneMask.className = "modal-mask fz-novice-done-mask";
     doneMask.hidden = true;
     doneMask.innerHTML =
       '<div class="modal fz-tg-novice-done-modal" role="dialog" aria-modal="true" aria-labelledby="fz-tg-novice-done-title">' +
@@ -184,6 +184,42 @@
     return null;
   }
 
+  function isSpottable(el) {
+    if (!el || !el.getBoundingClientRect) return false;
+    try {
+      var st = window.getComputedStyle(el);
+      if (st.display === "none" || st.visibility === "hidden" || st.opacity === "0")
+        return false;
+    } catch (err) {
+      return false;
+    }
+    var r = el.getBoundingClientRect();
+    return r.width >= 2 && r.height >= 2;
+  }
+
+  function resolveSpotlight(sel) {
+    if (!sel) return null;
+    var nodes;
+    try {
+      nodes = document.querySelectorAll(sel);
+    } catch (err) {
+      return null;
+    }
+    for (var i = 0; i < nodes.length; i++) {
+      if (isSpottable(nodes[i])) return nodes[i];
+    }
+    return null;
+  }
+
+  function applySpotRect(el, pad) {
+    var r = el.getBoundingClientRect();
+    spot.hidden = false;
+    spot.style.left = Math.max(8, r.left - pad) + "px";
+    spot.style.top = Math.max(8, r.top - pad) + "px";
+    spot.style.width = Math.ceil(r.width + pad * 2) + "px";
+    spot.style.height = Math.ceil(r.height + pad * 2) + "px";
+  }
+
   function placeSpot() {
     if (!spot) return;
     var step = cur();
@@ -192,7 +228,8 @@
       return;
     }
     var modalEl = openTourModalEl();
-    var el = modalEl || document.querySelector(step.spotlight);
+    if (modalEl && !isSpottable(modalEl)) modalEl = null;
+    var el = modalEl || resolveSpotlight(step.spotlight);
     if (!el) {
       spot.hidden = true;
       /* 无业务项目时跳过「切到业务项目」 */
@@ -206,17 +243,18 @@
       }
       return;
     }
-    var r = el.getBoundingClientRect();
     var pad = modalEl ? 8 : 6;
-    spot.hidden = false;
-    spot.style.left = Math.max(8, r.left - pad) + "px";
-    spot.style.top = Math.max(8, r.top - pad) + "px";
-    spot.style.width = Math.ceil(r.width + pad * 2) + "px";
-    spot.style.height = Math.ceil(r.height + pad * 2) + "px";
     if (!modalEl) {
       try {
         el.scrollIntoView({ block: "nearest", inline: "nearest" });
       } catch (e) {}
+    }
+    applySpotRect(el, pad);
+    if (!modalEl) {
+      setTimeout(function () {
+        if (!active || !spot || spot.hidden) return;
+        if (isSpottable(el)) applySpotRect(el, pad);
+      }, 50);
     }
   }
 
@@ -335,7 +373,8 @@
       root = null;
     }
     stripNoviceQuery();
-    if (global.FZShell) FZShell.toast("已退出教程，可正常使用本页", "ok");
+    if (global.FZShell) FZShell.toast("已退出教程，返回工作台", "ok");
+    location.href = "./home.html";
   }
 
   function start() {

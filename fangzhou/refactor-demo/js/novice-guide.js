@@ -202,9 +202,7 @@
           "</span>" +
           '<span class="wb-novice-txt"><strong>' +
           esc(step.title) +
-          "</strong><span>" +
-          esc(step.desc) +
-          "</span></span>" +
+          "</strong></span>" +
           '<span class="wb-novice-go">' +
           (done ? "再看一次" : "去学习") +
           "</span></a>"
@@ -225,7 +223,9 @@
         ? '<button type="button" class="btn btn-ghost btn-sm" data-novice-collapse>收起</button>'
         : "") +
       "</div>" +
-      '<div class="wb-novice-track">' +
+      '<div class="wb-novice-track" style="--wb-novice-n:' +
+      prog.total +
+      '">' +
       cards +
       "</div></div>";
   }
