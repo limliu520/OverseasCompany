@@ -38,19 +38,19 @@
     ]
   });
 
-  /* —— 编辑项目 / 项目详情（列表页或详情页） —— */
+  /* —— 水印 / 文章配置（仍在项目编辑页内引导） —— */
   TOURS.edit_project = FZNoviceTour.create({
     id: "edit_project",
-    title: "编辑项目",
+    title: "水印、文章配置",
     doneSummary:
-      "你已熟悉项目详情：进入详情 → 编辑基本信息 → 切换配置 Tab。点「完成学习」返回工作台。",
+      "你已在项目详情走过水印与文章配置入口。点「完成学习」返回工作台。",
     modalMaskIds: ["basic-modal"],
     exitHref: "./home.html",
     steps: [
       {
         id: "enter_detail",
         title: "打开项目详情",
-        tip: "若在列表：点「项目详情」或项目名进入（仍带教程标记）。已在详情页可点顶部「编辑基本信息」继续。",
+        tip: "若在列表：点「项目详情」或项目名进入（仍带教程标记）。已在详情页可继续下一步。",
         allow:
           "#project-list, #project-list *, a[href*='project-edit'], #btn-edit-basic, .detail-hero, .detail-hero *",
         spotlight: "#btn-edit-basic, #project-list .proj-card, #project-list a.btn",
@@ -59,8 +59,8 @@
       },
       {
         id: "edit_basic",
-        title: "编辑基本信息",
-        tip: "点「编辑基本信息」打开弹窗。Demo 可改名称后保存，或直接取消。",
+        title: "认识详情页",
+        tip: "顶部可「编辑基本信息」。本教程重点在下方 Tab：水印与文章规范，先点一下「编辑基本信息」熟悉入口（可保存或取消）。",
         allow: "#btn-edit-basic, #basic-modal, #basic-modal *",
         spotlight: "#btn-edit-basic",
         waitEvent: "basic_done",
@@ -68,10 +68,11 @@
       },
       {
         id: "tabs",
-        title: "切换配置 Tab",
-        tip: "点下方任一配置 Tab（如水印管理、文章模板），看看各块怎么配。本步只在详情页内切换，不会离开教程。",
+        title: "配置水印与文章",
+        tip: "点「水印管理」或「文章管理」Tab，学习如何配水印与文章规范。只在详情页内切换，不会离开教程。",
         allow: ".config-tabs, .config-tabs *, [data-tab]",
-        spotlight: ".config-tabs [data-tab], [data-tab]",
+        spotlight:
+          '.config-tabs [data-tab="watermark"], .config-tabs [data-tab="article"], .config-tabs [data-tab]',
         clickAdvance: true,
         skipIfMissing: true
       }

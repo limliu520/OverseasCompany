@@ -410,7 +410,7 @@
       }
     }
     if (global.FZHelpCenter) mountHelp();
-    else loadScriptOnce("js/help-center.js?v=20261031fabDragFast", mountHelp);
+    else loadScriptOnce("js/help-center.js?v=20261031fabClick", mountHelp);
     function mountNovice() {
       if (global.FZNovice && typeof FZNovice.consumeQuery === "function") {
         FZNovice.consumeQuery();

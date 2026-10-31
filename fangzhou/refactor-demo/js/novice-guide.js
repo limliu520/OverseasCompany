@@ -9,8 +9,8 @@
     },
     {
       id: "edit_project",
-      title: "编辑项目",
-      desc: "分步体验：项目详情 → 改基本信息 → 切换配置 Tab。",
+      title: "水印、文章配置",
+      desc: "在项目详情学习水印与文章规范配置。",
       need: "projects.list.view"
     },
     {

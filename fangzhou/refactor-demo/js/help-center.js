@@ -1,42 +1,273 @@
-/* 右下角帮助中心 · 主界面 = Agent 对话；快速反馈为二级页 */
+/* 右下角帮助中心 · 预设问题随当前页面功能切换 */
 (function (global) {
-  var FAQ = [
-    {
-      q: "如何创建第一个项目？",
-      a: "在「项目管理」点新建，或走工作台入驻待办。配齐信息后创建，再交给开发对接通道。",
-      href: "pages/project-setup.html?new=1",
-      need: "projects.list.create"
-    },
-    {
-      q: "内容通道如何接通？",
-      a: "项目配齐后进入「对接」页查看凭证。正式环境可由系统或对方首次合法调用变已接通；Demo 可点「模拟接通」。",
-      href: "pages/projects.html",
-      need: "projects.list.view"
-    },
-    {
-      q: "素材待审核去哪处理？",
-      a: "采集中心 → 素材管理 →「待我审核」视图。也可从工作台业务待办深链进入。",
-      href: "pages/materials.html",
-      need: "collect.materials.view"
-    },
-    {
-      q: "文章推送前怎么改？",
-      a: "内容中心 → 文章管理打开稿件，改正文/封面后保存，再确认推送。",
-      href: "pages/articles.html",
-      need: "content.article.view"
-    },
-    {
-      q: "采集号掉线怎么办？",
-      a: "到「TG 采集配置」检查连接与监听；工作台「状态与异常提醒」也会列出异常项。",
-      href: "pages/tg-collect.html",
-      need: "collect.tg.view"
-    },
+  var COMMON_TAIL = [
     {
       q: "想再看一遍菜单引导？",
       a: "点下方「重看侧栏菜单引导」，会按你当前权限重新走一遍侧栏说明（跳过过也能再开）。",
       tour: true
     }
   ];
+
+  /** 各页预设：打开帮助时优先展示当前页功能相关问题 */
+  var FAQ_BY_PAGE = {
+    home: [
+      {
+        q: "工作台待办是什么？",
+        a: "工作台汇总入驻、对接、审核等待办；点卡片可深链到对应功能。新手教程也在本页顶部。",
+        href: "pages/home.html"
+      },
+      {
+        q: "新手教程从哪开始？",
+        a: "本页「新手教程」卡片按权限列出模块；点「去学习」会带上教程标记进入对应页，完成或退出都会回工作台。",
+        href: "pages/home.html"
+      },
+      {
+        q: "如何创建第一个项目？",
+        a: "点新手教程「创建项目」，或侧栏项目管理新建。教程为独立演示，不会写入真实项目数据。",
+        href: "pages/project-setup.html?new=1",
+        need: "projects.list.create"
+      }
+    ],
+    projects: [
+      {
+        q: "项目列表怎么进详情？",
+        a: "点项目名或「项目详情」进入详情页，可配水印、文章模板、对接等。",
+        href: "pages/projects.html",
+        need: "projects.list.view"
+      },
+      {
+        q: "待接通是什么意思？",
+        a: "项目已创建但内容通道尚未接通。可进「对接」页查看凭证；Demo 可模拟接通。",
+        href: "pages/projects.html",
+        need: "projects.list.view"
+      },
+      {
+        q: "如何新建项目？",
+        a: "点「新建项目」进入创建向导，逐步填写后创建。",
+        href: "pages/project-setup.html?new=1",
+        need: "projects.list.create"
+      }
+    ],
+    "project-setup": [
+      {
+        q: "创建步骤哪些必填？",
+        a: "「项目名称」等标为必填的步骤需填写后才能「下一步」；可选步骤可用「跳过」或「跳过并创建」。",
+        href: "pages/project-setup.html?new=1",
+        need: "projects.list.create"
+      },
+      {
+        q: "创建成功后做什么？",
+        a: "正式流程会提示去「开发对接」或稍后处理。若在新手教程中，只会弹出「学习完成」并回工作台，不进入真实对接。",
+        need: "projects.list.create"
+      },
+      {
+        q: "水印和文章要在创建时配完吗？",
+        a: "创建向导里可跳过；创建后也可在项目详情的「水印管理」「文章管理」Tab 再配。",
+        need: "projects.list.create"
+      }
+    ],
+    "project-edit": [
+      {
+        q: "水印在哪里配置？",
+        a: "项目详情下方 Tab 点「水印管理」：可上传、移除、调位置与宽度比例等。",
+        need: "projects.list.view"
+      },
+      {
+        q: "文章规范 / 模板在哪？",
+        a: "同一详情页点「文章管理」Tab，可配模板提示词、自定义与文案链接等。",
+        need: "projects.list.view"
+      },
+      {
+        q: "基本信息怎么改？",
+        a: "点顶部「编辑基本信息」打开弹窗，改名称、类型、封面尺寸等后保存。",
+        need: "projects.list.view"
+      }
+    ],
+    "project-connect": [
+      {
+        q: "对接页要填什么？",
+        a: "查看通道凭证（App ID / Secret 等），交给开发联调；接通后运营侧配置才会真正生效。",
+        need: "projects.list.view"
+      },
+      {
+        q: "Demo 如何模拟接通？",
+        a: "对接页若有「模拟接通」，点后项目状态会变为已接通（仅演示）。",
+        need: "projects.list.view"
+      },
+      {
+        q: "接通前能推送吗？",
+        a: "未接通时不会真正推到业务方；自动流等配置接通后按你的选择生效。",
+        need: "projects.list.view"
+      }
+    ],
+    "project-after": [
+      {
+        q: "创建后这一页是做什么的？",
+        a: "创建成功后的引导页，可继续对接或回到项目列表。正式环境按页内按钮走即可。",
+        need: "projects.list.view"
+      }
+    ],
+    "tg-collect": [
+      {
+        q: "如何加入采集频道？",
+        a: "选好项目后点「+ 加入频道」，填写频道链接，公共池场景选「采集」角色后确认。",
+        href: "pages/tg-collect.html",
+        need: "collect.tg.view"
+      },
+      {
+        q: "采集号掉线怎么办？",
+        a: "在本页检查连接/监听状态；也可看工作台「状态与异常提醒」。",
+        href: "pages/tg-collect.html",
+        need: "collect.tg.view"
+      },
+      {
+        q: "公共池路由怎么建？",
+        a: "在公共池项目下为频道配置路由（采集/推送），按页内加号与向导完成即可。",
+        need: "collect.tg.view"
+      }
+    ],
+    "website-collect": [
+      {
+        q: "如何添加网站？",
+        a: "点「+ 添加网站」，填写名称、域名与页面链接，勾选目标项目后保存。",
+        href: "pages/website-collect.html",
+        need: "collect.web.view"
+      },
+      {
+        q: "接入中的站点能改吗？",
+        a: "接入中的站点不可改配置；等接入完成后再编辑或停用。",
+        need: "collect.web.view"
+      },
+      {
+        q: "采集记录在哪看？",
+        a: "上方点选站点卡片，下方会筛出该站采集记录；可用筛选缩小范围。",
+        need: "collect.web.view"
+      }
+    ],
+    materials: [
+      {
+        q: "待审核素材去哪处理？",
+        a: "顶部切到「待审核素材」，打开详情后审核通过或驳回；也可从工作台待办进入。",
+        href: "pages/materials.html",
+        need: "collect.materials.view"
+      },
+      {
+        q: "如何转编辑？",
+        a: "在素材详情或列表操作里走「转编辑」；按页内弹窗选择目标后确认。",
+        need: "collect.materials.view"
+      },
+      {
+        q: "全部 / 垃圾素材是什么？",
+        a: "「全部素材」看全量；「垃圾素材」为已丢弃项。用顶部 Tab 切换视图。",
+        need: "collect.materials.view"
+      }
+    ],
+    articles: [
+      {
+        q: "文章怎么筛选？",
+        a: "用项目、状态筛选，或点搜索/刷新。列表可看状态与操作列。",
+        href: "pages/articles.html",
+        need: "content.article.view"
+      },
+      {
+        q: "推送前怎么改稿？",
+        a: "打开稿件进入编辑，改正文/封面后保存，再确认推送。",
+        href: "pages/articles.html",
+        need: "content.article.view"
+      },
+      {
+        q: "如何预览文章？",
+        a: "在列表点某行可打开预览；关闭后仍停留在文章列表。",
+        need: "content.article.view"
+      }
+    ],
+    "article-edit": [
+      {
+        q: "编辑页怎么保存？",
+        a: "改完标题/正文/封面后点保存；再按页内流程确认推送（若有）。",
+        need: "content.article.view"
+      },
+      {
+        q: "推送失败怎么办？",
+        a: "检查项目通道是否已接通、稿件是否校验通过；也可回文章列表看状态后重试。",
+        need: "content.article.view"
+      }
+    ],
+    subs: [
+      {
+        q: "如何创建子账号？",
+        a: "在「子账号」Tab 点「+ 创建子账号」，按向导填个人信息 → 负责项目 → 岗位权限后保存。",
+        href: "pages/subs.html",
+        need: "global.subs.accounts.view"
+      },
+      {
+        q: "岗位权限在哪配？",
+        a: "切到「岗位」Tab 查看或编辑岗位；创建子账号第三步也会绑定岗位权限。",
+        need: "global.subs.accounts.view"
+      },
+      {
+        q: "子账号和主账号有何区别？",
+        a: "子账号按岗位授权可见菜单与项目；主账号拥有更完整的管理能力。",
+        need: "global.subs.accounts.view"
+      }
+    ],
+    roles: [
+      {
+        q: "岗位怎么理解？",
+        a: "岗位定义一组功能权限；子账号绑定岗位后，侧栏与页面按权限裁剪。",
+        need: "global.subs.accounts.view"
+      }
+    ],
+    announcements: [
+      {
+        q: "平台公告在哪看？",
+        a: "本页列出公告；点标题进详情。工作台也可能有未读入口。",
+        href: "pages/announcements.html"
+      }
+    ],
+    "announcement-detail": [
+      {
+        q: "公告详情能做什么？",
+        a: "阅读完整公告内容；读完可返回公告列表或工作台。",
+        href: "pages/announcements.html"
+      }
+    ],
+    userbots: [
+      {
+        q: "采集号列表是做什么的？",
+        a: "管理 TG 采集号连接状态；异常时可重连。具体频道绑定多在「TG 采集配置」。",
+        href: "pages/userbots.html",
+        need: "collect.tg.view"
+      }
+    ],
+    "ext-channels": [
+      {
+        q: "外站通道是什么？",
+        a: "管理对外内容通道相关配置；按页内状态与操作完成激活或调整。",
+        href: "pages/ext-channels.html"
+      }
+    ]
+  };
+
+  var PAGE_LABEL = {
+    home: "工作台",
+    projects: "项目管理",
+    "project-setup": "创建项目",
+    "project-edit": "项目详情",
+    "project-connect": "开发对接",
+    "project-after": "创建后续",
+    "tg-collect": "TG 采集",
+    "website-collect": "网站采集",
+    materials: "素材管理",
+    articles: "文章管理",
+    "article-edit": "文章编辑",
+    subs: "子账号与授权",
+    roles: "岗位",
+    announcements: "平台公告",
+    "announcement-detail": "公告详情",
+    userbots: "采集号",
+    "ext-channels": "外站通道"
+  };
 
   function esc(s) {
     return global.FZShell ? FZShell.escHtml(s) : String(s || "");
@@ -48,6 +279,20 @@
 
   function can(need) {
     return FZStore.hasFeature(FZStore.read(), need);
+  }
+
+  function pageKey() {
+    var file = (location.pathname.split("/").pop() || "").replace(/\.html$/i, "");
+    return file || "home";
+  }
+
+  function pageLabel(key) {
+    return PAGE_LABEL[key] || "当前页";
+  }
+
+  function faqForPage(key) {
+    var list = (FAQ_BY_PAGE[key] || FAQ_BY_PAGE.home || []).slice();
+    return list.concat(COMMON_TAIL);
   }
 
   function mount() {
@@ -71,12 +316,12 @@
       '<div class="fz-help-body fz-help-body--chat" id="fz-help-home">' +
       '<div class="fz-help-chat" id="fz-help-chat"></div>' +
       '<div class="fz-help-suggest">' +
-      '<span class="fz-help-suggest-lab">猜你想问</span>' +
+      '<span class="fz-help-suggest-lab" id="fz-help-suggest-lab">猜你想问</span>' +
       '<div class="fz-help-faq" id="fz-help-faq"></div></div>' +
       '<div class="fz-help-tools">' +
       '<button type="button" class="btn btn-ghost fz-help-tour-btn" id="fz-help-tour">重看侧栏菜单引导</button></div>' +
       '<form class="fz-help-compose" id="fz-help-form">' +
-      '<input id="fz-help-input" placeholder="向助手提问，例如：如何接通通道？" autocomplete="off" />' +
+      '<input id="fz-help-input" placeholder="向助手提问…" autocomplete="off" />' +
       '<button type="submit" class="btn btn-primary">发送</button></form></div>' +
       '<div class="fz-help-body fz-help-body--fb" id="fz-help-fb" hidden>' +
       '<p class="muted fz-help-lead">提交后会出现在工作台「项目待办」里的反馈工单；Admin 侧可查看（Demo 本地保存）。</p>' +
@@ -96,7 +341,9 @@
     var headMain = document.getElementById("fz-help-head-main");
     var chat = document.getElementById("fz-help-chat");
     var faqBox = document.getElementById("fz-help-faq");
+    var suggestLab = document.getElementById("fz-help-suggest-lab");
     var welcomed = false;
+    var lastHelpPage = "";
 
     function showHome() {
       home.hidden = false;
@@ -107,6 +354,7 @@
       var st = document.getElementById("fz-help-status");
       if (st) st.hidden = false;
       document.getElementById("fz-help-to-fb").hidden = false;
+      syncPageChrome();
     }
     function showFb() {
       home.hidden = true;
@@ -118,17 +366,38 @@
       if (st) st.hidden = true;
       document.getElementById("fz-help-to-fb").hidden = true;
     }
+
+    function syncPageChrome() {
+      var key = pageKey();
+      var label = pageLabel(key);
+      var st = document.getElementById("fz-help-status");
+      if (st) st.textContent = "当前页 · " + label;
+      if (suggestLab) suggestLab.textContent = "猜你想问 · " + label;
+      var input = document.getElementById("fz-help-input");
+      if (input) input.placeholder = "问「" + label + "」相关问题…";
+    }
+
     function open() {
       showHome();
       mask.hidden = false;
+      var key = pageKey();
+      var label = pageLabel(key);
       renderFaq();
       if (!welcomed) {
         welcomed = true;
         bubble(
           "bot",
-          "你好，我是方舟助手。可以直接问我通道对接、素材审核、文章推送等问题；也可以点下方快捷问题。需要人工跟进时，再点右上角「快速反馈」。"
+          "你好，我是方舟助手。你当前在「" +
+            esc(label) +
+            "」，下方预设问题已按本页功能准备。也可以直接输入提问；需要人工跟进时点「快速反馈」。"
+        );
+      } else if (lastHelpPage && lastHelpPage !== key) {
+        bubble(
+          "bot",
+          "已按「" + esc(label) + "」更新预设问题，点下方快捷项或继续提问即可。"
         );
       }
+      lastHelpPage = key;
       setTimeout(function () {
         var input = document.getElementById("fz-help-input");
         if (input) input.focus();
@@ -139,12 +408,13 @@
     }
 
     function visibleFaq() {
-      return FAQ.filter(function (item) {
+      return faqForPage(pageKey()).filter(function (item) {
         return !item.need || can(item.need);
       });
     }
 
     function renderFaq() {
+      syncPageChrome();
       var list = visibleFaq();
       faqBox.innerHTML = list
         .map(function (item, i) {
@@ -208,26 +478,32 @@
     function matchFaq(text) {
       var t = String(text || "").toLowerCase();
       var list = visibleFaq();
-      for (var i = 0; i < list.length; i++) {
-        var item = list[i];
+      var i;
+      var item;
+      for (i = 0; i < list.length; i++) {
+        item = list[i];
         if (
           (t.indexOf("引导") !== -1 || t.indexOf("菜单说明") !== -1) &&
           item.tour
         )
           return item;
-        if (t.indexOf("项目") !== -1 && item.q.indexOf("项目") !== -1) return item;
-        if (t.indexOf("接通") !== -1 || t.indexOf("通道") !== -1) {
-          if (item.q.indexOf("接通") !== -1) return item;
+      }
+      for (i = 0; i < list.length; i++) {
+        item = list[i];
+        var q = item.q || "";
+        if (q.length >= 4 && t.indexOf(q.slice(0, 4)) !== -1) return item;
+        if (item.keywords) {
+          for (var k = 0; k < item.keywords.length; k++) {
+            if (t.indexOf(item.keywords[k]) !== -1) return item;
+          }
         }
-        if (t.indexOf("素材") !== -1 && item.q.indexOf("素材") !== -1) return item;
-        if (t.indexOf("文章") !== -1 || t.indexOf("推送") !== -1) {
-          if (item.q.indexOf("文章") !== -1) return item;
+      }
+      for (i = 0; i < list.length; i++) {
+        item = list[i];
+        var words = String(item.q || "").replace(/[？?，,、]/g, " ").split(/\s+/);
+        for (var w = 0; w < words.length; w++) {
+          if (words[w].length >= 2 && t.indexOf(words[w]) !== -1) return item;
         }
-        if (
-          (t.indexOf("采集") !== -1 || t.indexOf("掉线") !== -1) &&
-          item.q.indexOf("采集") !== -1
-        )
-          return item;
       }
       return null;
     }
@@ -264,10 +540,9 @@
       var fab = document.getElementById("fz-help-fab");
       if (!fab) return;
       var FAB_KEY = "fz_help_fab_bottom";
-      var LONG_MS = 40;
-      var pressTimer = null;
+      var DRAG_PX = 8;
       var dragging = false;
-      var suppressClick = false;
+      var pressed = false;
       var startY = 0;
       var startBottom = 0;
       var pointerId = null;
@@ -288,12 +563,6 @@
         fab.style.bottom = clampBottom(b) + "px";
         fab.style.top = "auto";
       }
-      function clearPress() {
-        if (pressTimer) {
-          clearTimeout(pressTimer);
-          pressTimer = null;
-        }
-      }
       function persist() {
         try {
           localStorage.setItem(FAB_KEY, String(clampBottom(readBottom())));
@@ -305,54 +574,46 @@
         if (saved != null && saved !== "") applyBottom(+saved);
       } catch (err0) {}
 
-      fab.title = "单击打开；长按可上下拖动";
+      fab.title = "单击打开；按住拖动可上下移动";
       fab.addEventListener("pointerdown", function (e) {
         if (e.button != null && e.button !== 0) return;
+        pressed = true;
         dragging = false;
-        suppressClick = false;
         startY = e.clientY;
         startBottom = readBottom();
         pointerId = e.pointerId;
         try {
           fab.setPointerCapture(pointerId);
         } catch (err1) {}
-        clearPress();
-        pressTimer = setTimeout(function () {
-          pressTimer = null;
-          dragging = true;
-          suppressClick = true;
-          fab.classList.add("is-dragging");
-        }, LONG_MS);
       });
       fab.addEventListener("pointermove", function (e) {
+        if (!pressed) return;
         if (pointerId != null && e.pointerId !== pointerId) return;
         var dy = e.clientY - startY;
         if (!dragging) {
-          if (Math.abs(dy) > 10) clearPress();
-          return;
+          if (Math.abs(dy) < DRAG_PX) return;
+          dragging = true;
+          fab.classList.add("is-dragging");
         }
         e.preventDefault();
         applyBottom(startBottom - dy);
       });
       function endPointer(e) {
+        if (!pressed) return;
         if (pointerId != null && e.pointerId !== pointerId) return;
         var wasDragging = dragging;
-        clearPress();
+        pressed = false;
+        dragging = false;
         fab.classList.remove("is-dragging");
         try {
           fab.releasePointerCapture(pointerId);
         } catch (err2) {}
         pointerId = null;
-        dragging = false;
         if (wasDragging) {
           persist();
-          suppressClick = true;
-          setTimeout(function () {
-            suppressClick = false;
-          }, 0);
           return;
         }
-        if (!suppressClick) open();
+        open();
       }
       fab.addEventListener("pointerup", endPointer);
       fab.addEventListener("pointercancel", endPointer);
@@ -389,7 +650,9 @@
         setTimeout(function () {
           bubble(
             "bot",
-            "这个问题我暂时没有现成说明。你可以换个问法，或点右上角「快速反馈」提交工单，我们会在工作台待办里跟进。"
+            "这个问题我暂时没有现成说明。你可以点下方与「" +
+              esc(pageLabel(pageKey())) +
+              "」相关的预设问题，或点右上角「快速反馈」提交工单。"
           );
         }, 220);
       }
