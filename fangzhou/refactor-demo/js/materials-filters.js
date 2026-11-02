@@ -93,7 +93,7 @@
     if (f.category) list = list.filter(function (m) { return m.category === f.category; });
     if (f.dateFrom) list = list.filter(function (m) { return dayOf(m.time) >= f.dateFrom; });
     if (f.dateTo) list = list.filter(function (m) { return dayOf(m.time) <= f.dateTo; });
-    /* 全部素材：项目 / 公共池范围（替代原分发频道、分发项目筛） */
+    /* 全部素材：公共素材池（全量）/ 项目（子集，可与池并存） */
     if (tab === "all" && f.scope) list = applyScope(list, f.scope);
     return list;
   }
@@ -101,10 +101,15 @@
   function inProject(m, name) {
     if (m.status === "trash") return false;
     if (m.dispatchProject === name) return true;
+    if (m.dispatchProjects && m.dispatchProjects.indexOf(name) >= 0) return true;
     return m.belong === "proj" && m.project === name;
   }
+  /**
+   * 公共素材池：凡进过素材管理的非垃圾料都在此（项目自采、公共采集池、网站绑项目等）。
+   * 转编辑 / 分发进项目后仍保留，不因占用项目通道而消失。
+   */
   function inPool(m) {
-    return m.status !== "trash" && m.belong === "none" && !m.dispatchProject;
+    return m.status !== "trash";
   }
   function parseScope(s) {
     if (s === "pool") return { kind: "pool" };

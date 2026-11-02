@@ -272,7 +272,7 @@
   var DEMO_PROJECTS = [
     {
       id: PUBLIC_POOL_ID,
-      name: "公共池",
+      name: "公共采集池",
       isPublicPool: true,
       status: "ready",
       siteType: "chigua",
@@ -391,7 +391,7 @@
     },
     {
       id: "proj_demo_ready",
-      name: "演示瓜站",
+      name: "每日大赛",
       status: "ready",
       siteType: "chigua",
       creds: issueProjectCreds("seed_ready"),
@@ -439,7 +439,7 @@
     },
     {
       id: "proj_demo_pending",
-      name: "演示短剧站",
+      name: "51 短剧",
       status: "pending_activate",
       siteType: "short_drama",
       creds: issueProjectCreds("seed_pending"),
@@ -469,7 +469,7 @@
     },
     {
       id: "proj_demo_collect",
-      name: "演示视频站",
+      name: "91 网黄",
       status: "need_collect",
       siteType: "video",
       creds: issueProjectCreds("seed_collect"),
@@ -492,6 +492,87 @@
       userbotId: "bot_demo_busy",
       userbotName: "青柚采",
       userbotIds: ["bot_demo_busy"],
+      boundChannels: []
+    },
+    {
+      id: "proj_demo_chigua2",
+      name: "51 吃瓜",
+      status: "ready",
+      siteType: "chigua",
+      creds: issueProjectCreds("seed_chigua2"),
+      contentActivated: true,
+      attachedExtIds: [],
+      apiBaseUrl: "https://api.chigua2-demo.com",
+      apiPrefix: "/oash/v1",
+      siteCode: "site-cg02",
+      generationMode: "ai",
+      requireVideo: true,
+      dewatermarkEnabled: true,
+      sliceEnabled: true,
+      autoToEdit: true,
+      autoPush: false,
+      autoflow: true,
+      hasCollectSource: true,
+      watermarkDone: true,
+      templateDone: true,
+      coverWidth: "720",
+      coverHeight: "1280",
+      webhookUrl: "",
+      userbotIds: [],
+      boundChannels: []
+    },
+    {
+      id: "proj_demo_video2",
+      name: "51 原创",
+      status: "ready",
+      siteType: "video",
+      creds: issueProjectCreds("seed_video2"),
+      contentActivated: true,
+      attachedExtIds: [],
+      apiBaseUrl: "https://api.video2-demo.com",
+      apiPrefix: "/oash/v1",
+      siteCode: "site-vid02",
+      generationMode: "ai",
+      requireVideo: true,
+      autoToEdit: false,
+      autoPush: true,
+      autoflow: false,
+      hasCollectSource: true,
+      watermarkDone: true,
+      templateDone: true,
+      coverWidth: "720",
+      coverHeight: "1280",
+      webhookUrl: "",
+      userbotIds: [],
+      boundChannels: []
+    },
+    {
+      id: "proj_demo_drama2",
+      name: "51 短视频",
+      status: "pending_activate",
+      siteType: "short_drama",
+      creds: issueProjectCreds("seed_drama2"),
+      contentActivated: false,
+      attachedExtIds: [],
+      apiBaseUrl: "https://api.drama2-demo.com",
+      apiPrefix: "/oash/v1",
+      siteCode: "site-dr02",
+      generationMode: "none",
+      requireVideo: true,
+      dewatermarkEnabled: true,
+      sliceEnabled: true,
+      pushAllEpisodes: true,
+      episodeTitleFormat: "Episode {n}",
+      autoToEdit: true,
+      autoPush: true,
+      autoflow: true,
+      hasCollectSource: true,
+      watermarkDone: true,
+      templateDone: false,
+      coverWidth: "720",
+      coverHeight: "1280",
+      webhookUrl: "",
+      userbotIds: [],
       boundChannels: []
     }
   ];
@@ -521,7 +602,7 @@
       {
         id: "alert_ch_listen",
         need: "collect.tg.view",
-        projectName: "演示瓜站",
+        projectName: "每日大赛",
         kindLabel: "频道异常",
         objectName: "@demo_channel_b",
         objectExtra: "采集频道",
@@ -574,9 +655,12 @@
     } else {
       (state.statusAlerts || []).forEach(function (a) {
         var map = {
-          "演示项目 · 已完成": "演示瓜站",
-          "演示项目 · 待接通": "演示短剧站",
-          "演示项目 · 缺采集源": "演示视频站"
+          "演示项目 · 已完成": "每日大赛",
+          "演示项目 · 待接通": "51 短剧",
+          "演示项目 · 缺采集源": "91 网黄",
+          演示瓜站: "每日大赛",
+          演示短剧站: "51 短剧",
+          演示视频站: "91 网黄"
         };
         if (a.projectName && map[a.projectName]) {
           a.projectName = map[a.projectName];
@@ -685,13 +769,22 @@
       if (/^演示项目\s*·\s*(已完成|待接通|缺采集源)$/.test(n)) {
         cleaned =
           {
-            proj_demo_ready: "演示瓜站",
-            proj_demo_pending: "演示短剧站",
-            proj_demo_collect: "演示视频站"
-          }[p.id] || "演示项目";
+            proj_demo_ready: "每日大赛",
+            proj_demo_pending: "51 短剧",
+            proj_demo_collect: "91 网黄",
+            proj_demo_chigua2: "51 吃瓜",
+            proj_demo_video2: "51 原创",
+            proj_demo_drama2: "51 短视频"
+          }[p.id] || cleaned;
       } else if (/\s*·\s*(已完成|待接通|缺采集源)$/.test(n)) {
         cleaned = n.replace(/\s*·\s*(已完成|待接通|缺采集源)$/, "");
       }
+      var legacyName = {
+        演示瓜站: "每日大赛",
+        演示短剧站: "51 短剧",
+        演示视频站: "91 网黄"
+      }[cleaned];
+      if (legacyName) cleaned = legacyName;
       if (cleaned && cleaned !== n) {
         p.name = cleaned;
         changed = true;
@@ -707,12 +800,21 @@
         changed = true;
         return;
       }
-      /* 演示种子名曾把状态写进名称；纠正为纯项目名（状态只走 status 列） */
+      /* 演示种子：旧名 / 状态后缀名统一到现行项目名 */
       if (!seed.isPublicPool && hit.name !== seed.name) {
         var dirtyName =
           /演示项目\s*·\s*(已完成|待接通|缺采集源)/.test(String(hit.name || "")) ||
-          /\s*·\s*(已完成|待接通|缺采集源)$/.test(String(hit.name || ""));
+          /\s*·\s*(已完成|待接通|缺采集源)$/.test(String(hit.name || "")) ||
+          /^(演示瓜站|演示短剧站|演示视频站)$/.test(String(hit.name || "")) ||
+          String(hit.id || "").indexOf("proj_demo_") === 0;
         if (dirtyName) {
+          hit.name = seed.name;
+          changed = true;
+        }
+      }
+      /* 公共采集池：旧名「公共池」→ 现行名 */
+      if (seed.isPublicPool && hit.name !== seed.name) {
+        if (hit.name === "公共池" || !hit.name) {
           hit.name = seed.name;
           changed = true;
         }
@@ -769,13 +871,21 @@
           return r.id !== "rr_demo_1";
         });
         if (hit.routingRules.length !== beforeRr) changed = true;
-        /* Demo：补到接近上限，方便验收折叠/搜索（线上 Admin 可把上限调高） */
+        /* Demo：适量填充（约二十来个），留出「拉取频道」额度；路由仍用种子频道 */
         var fillBot = "bot_demo_pool";
+        var DEMO_FILL_MAX = 16;
+        var beforeFill = hit.boundChannels.length;
+        hit.boundChannels = hit.boundChannels.filter(function (ch) {
+          if (String(ch.id || "").indexOf("ch_pool_fill_") !== 0) return true;
+          var n0 = parseInt(String(ch.id).replace("ch_pool_fill_", ""), 10) || 0;
+          return n0 >= 1 && n0 <= DEMO_FILL_MAX;
+        });
+        if (hit.boundChannels.length !== beforeFill) changed = true;
         var onBot = hit.boundChannels.filter(function (x) {
           return x.botId === fillBot;
         }).length;
         var i;
-        for (i = 1; i <= 40 && onBot < BOT_LIMITS.maxChannelsPerBot; i++) {
+        for (i = 1; i <= DEMO_FILL_MAX && onBot < BOT_LIMITS.maxChannelsPerBot; i++) {
           var fid = "ch_pool_fill_" + i;
           if (
             hit.boundChannels.some(function (x) {
@@ -790,7 +900,7 @@
             botId: fillBot,
             role: i % 4 === 0 ? "push" : "collect",
             active: true,
-            boundAt: Date.now() - (40 - i) * 60000,
+            boundAt: Date.now() - (DEMO_FILL_MAX - i) * 60000,
             healthStatus: i % 7 === 0 ? "BROKEN" : i % 5 === 0 ? "UNKNOWN" : i % 11 === 0 ? "" : "OK",
             healthError:
               i % 7 === 0
@@ -1693,8 +1803,11 @@
           state.projects = pool ? [clone(pool)] : [];
         }
         state.firstProjectDone = false;
-        state.zeroPromptDismissed = false;
-        state.statusAlerts = [];
+        state.zeroPromptDismissed = true;
+        /* 工作台仍可看示意异常；工单清空 */
+        if (!state.statusAlerts || !state.statusAlerts.length) {
+          state.statusAlerts = clone(DEFAULT.statusAlerts);
+        }
         state.tickets = [];
         /* 新号入驻：始终重新绑定谷歌验证 */
         state.totpBound = false;
@@ -1771,6 +1884,9 @@
     DEMO_ROLES: DEMO_ROLES,
     DEMO_SUBS: DEMO_SUBS,
     DEMO_PROJECTS: DEMO_PROJECTS,
+    readDefaultStatusAlerts: function () {
+      return clone(DEFAULT.statusAlerts || []);
+    },
     read: read,
     write: write,
     uid: uid,

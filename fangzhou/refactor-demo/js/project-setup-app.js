@@ -615,7 +615,7 @@
       if (isNoviceCreate()) {
         showSuccess({
           id: "",
-          name: draft.name.trim() || "教程演示项目",
+          name: draft.name.trim() || "每日大赛",
           autoToEdit: !!draft.autoToEdit,
           autoPush: !!draft.autoPush,
           hasCollectSource: !!draft.hasCollectSource

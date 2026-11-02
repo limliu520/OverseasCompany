@@ -105,7 +105,7 @@
       "</span></div>"
     );
   }
-  /* 对齐列表「采集方式」：项目自采 / 公共池转入 / 公共池 */
+  /* 对齐列表「采集方式」：项目自采 / 公共素材池转入 / 公共素材池 */
   function howFieldHtml(m) {
     if (m.belong === "proj") {
       return (
@@ -117,13 +117,13 @@
     }
     if (m.dispatchProject) {
       return (
-        '<span class="mat-v2-how is-xfer">公共池转入</span>' +
+        '<span class="mat-v2-how is-xfer">公共素材池转入</span>' +
         '<span class="mat-how-proj"> · ' +
         esc(m.dispatchProject) +
         "</span>"
       );
     }
-    return '<span class="mat-v2-how is-pool">公共池</span>';
+    return '<span class="mat-v2-how is-pool">公共素材池</span>';
   }
   function channelList(m) {
     if (m.targetChannels && m.targetChannels.length) return m.targetChannels.slice();

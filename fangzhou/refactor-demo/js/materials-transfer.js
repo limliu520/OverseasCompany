@@ -1,15 +1,18 @@
 /* 转编辑 / 驳回弹窗（只选项目进内容通道） */
 (function (w) {
   var PROJECTS = [
-    { id: "p1", name: "演示瓜站", siteType: "瓜站" },
-    { id: "p2", name: "演示视频站", siteType: "视频站" },
+    { id: "proj_demo_ready", name: "每日大赛", siteType: "瓜站" },
+    { id: "proj_demo_chigua2", name: "51 吃瓜", siteType: "瓜站" },
+    { id: "proj_demo_collect", name: "91 网黄", siteType: "视频站" },
+    { id: "proj_demo_video2", name: "51 原创", siteType: "视频站" },
     {
-      id: "p3",
-      name: "演示短剧站",
+      id: "proj_demo_pending",
+      name: "51 短剧",
       siteType: "短剧站",
       disabled: true,
       reason: "该素材已被当前项目使用"
-    }
+    },
+    { id: "proj_demo_drama2", name: "51 短视频", siteType: "短剧站" }
   ];
 
   function open(materialId) {
@@ -54,7 +57,8 @@
     if (p && p.disabled) {
       if (hint) hint.textContent = p.reason || "该项目不可用";
     } else if (hint) {
-      hint.textContent = "确认后将占用该项目内容通道并派发处理。";
+      hint.textContent =
+        "确认后占用该项目内容通道并派发处理；素材仍留在公共素材池，其他人仍可查看。";
     }
     updateSubmit();
   }
@@ -123,6 +127,22 @@
       }
     }
     document.getElementById("mat-reject-mask").hidden = false;
+    /* 教程中预填理由，避免卡在必填 */
+    try {
+      if (
+        w.FZNoviceTours &&
+        FZNoviceTours.get &&
+        FZNoviceTours.get("materials") &&
+        FZNoviceTours.get("materials").active &&
+        FZNoviceTours.get("materials").active()
+      ) {
+        var ta0 = document.getElementById("mat-reject-reason");
+        if (ta0 && !String(ta0.value || "").trim()) {
+          ta0.value =
+            mode === "reject" ? "教程演示：驳回示例" : "教程演示：通过示例";
+        }
+      }
+    } catch (err) {}
   }
   function closeReject() {
     document.getElementById("mat-reject-mask").hidden = true;

@@ -17,11 +17,17 @@
     var stepIndex = 0;
     var root = null;
     var spot = null;
+    var ackFloat = null;
     var doneMask = null;
     var waiting = "";
     var api = null;
     var spotRaf = 0;
     var mutObs = null;
+    var runId = 0;
+    var lastSpotEl = null;
+    /** 点「下一步」时代点页面时放行门禁，避免 allow 为空时拦掉程序点击 */
+    var autoDriving = false;
+    var autoDriveTimer = 0;
 
     function enabled() {
       if (dismissed) return false;
@@ -50,18 +56,38 @@
       } catch (e) {}
     }
 
-    function matchesAllow(el, allow) {
-      if (!el || !allow) return false;
-      var parts = allow.split(",").map(function (s) {
-        return s.trim();
-      });
+    function matchesSelectorList(el, list) {
+      if (!el || !list) return false;
+      var parts = String(list)
+        .split(",")
+        .map(function (s) {
+          return s.trim();
+        })
+        .filter(Boolean);
       for (var i = 0; i < parts.length; i++) {
+        var sel = parts[i];
         try {
-          if (el.closest && el.closest(parts[i])) return true;
-          if (el.matches && el.matches(parts[i])) return true;
+          if (el.matches && el.matches(sel)) return true;
         } catch (err) {}
+        try {
+          if (el.closest && el.closest(sel)) return true;
+        } catch (err2) {
+          var idMatch = sel.match(/^#([A-Za-z0-9_-]+)\s+\*$/);
+          if (idMatch) {
+            var root = document.getElementById(idMatch[1]);
+            if (root && root.contains(el)) return true;
+          }
+        }
       }
       return false;
+    }
+
+    function matchesAllow(el, allow) {
+      return matchesSelectorList(el, allow);
+    }
+
+    function matchesBlock(el, block) {
+      return matchesSelectorList(el, block);
     }
 
     function openTourModalEl() {
@@ -90,7 +116,7 @@
         '<div class="fz-tg-novice-bar">' +
         '<div class="fz-tg-novice-lead">' +
         '<div class="fz-tg-novice-badge">教程 Demo</div>' +
-        '<p class="fz-tg-novice-fake">仅演示环境，可随意填写，不会产生真实操作</p>' +
+        '<p class="fz-tg-novice-fake">仅演示环境：示例已预填，点高亮旁「下一步」即可，无需手输</p>' +
         "</div>" +
         '<div class="fz-tg-novice-main">' +
         '<p class="fz-tg-novice-step" id="' +
@@ -118,6 +144,28 @@
       spot.className = "fz-tg-novice-spot";
       spot.hidden = true;
       document.body.appendChild(spot);
+
+      /* 确认了解 / 下一步：贴在高亮旁，不放底部教练条 */
+      ackFloat = document.createElement("button");
+      ackFloat.type = "button";
+      ackFloat.id = uid + "-ack-float";
+      ackFloat.className = "btn btn-primary fz-novice-ack-float";
+      ackFloat.hidden = true;
+      ackFloat.textContent = "确认了解";
+      document.body.appendChild(ackFloat);
+      ackFloat.onclick = function () {
+        if (!active || dismissed || showingDone) return;
+        var step = cur();
+        if (!step || !(step.ack || step.ackLabel)) return;
+        beginAutoDrive(4500);
+        if (typeof step.onAck === "function") {
+          try {
+            step.onAck(api);
+          } catch (err) {}
+          return;
+        }
+        advance();
+      };
 
       doneMask = document.createElement("div");
       doneMask.id = uid + "-done";
@@ -152,15 +200,40 @@
         location.href = "./home.html";
       };
       document.getElementById(uid + "-replay").onclick = function () {
-        showingDone = false;
-        doneMask.hidden = true;
-        stepIndex = 0;
-        waiting = "";
-        saveStep();
-        renderCoach();
-        scheduleSpot();
-        if (global.FZShell) FZShell.toast("已从头开始，请按步骤操作", "ok");
+        replayTour();
       };
+    }
+
+    /** 重新学习：清进度并回到教程入口（默认整页重进，避免停在完成态） */
+    function replayTour() {
+      runId += 1;
+      showingDone = false;
+      waiting = "";
+      stepIndex = 0;
+      try {
+        sessionStorage.removeItem(STEP_KEY);
+        sessionStorage.removeItem(EXIT_KEY);
+      } catch (e) {}
+      if (doneMask) doneMask.hidden = true;
+      if (spot) spot.hidden = true;
+      if (typeof cfg.onReplay === "function") {
+        try {
+          cfg.onReplay(api);
+        } catch (err) {}
+        return;
+      }
+      var href = cfg.replayHref;
+      if (!href) {
+        try {
+          var u = new URL(location.href);
+          u.searchParams.set("novice", tourId);
+          href = u.pathname + u.search + u.hash;
+        } catch (e2) {
+          href = location.href;
+        }
+      }
+      if (global.FZShell) FZShell.toast("已从头开始，请按步骤操作", "ok");
+      location.href = href;
     }
 
     function scheduleSpot() {
@@ -171,13 +244,28 @@
       });
     }
 
+    function beginAutoDrive(ms) {
+      autoDriving = true;
+      if (autoDriveTimer) clearTimeout(autoDriveTimer);
+      autoDriveTimer = setTimeout(function () {
+        autoDriving = false;
+        autoDriveTimer = 0;
+      }, ms || 2000);
+    }
+
     function showDone() {
       showingDone = true;
       waiting = "";
+      autoDriving = false;
+      if (autoDriveTimer) {
+        clearTimeout(autoDriveTimer);
+        autoDriveTimer = 0;
+      }
       stepIndex = STEPS.length;
       saveStep();
       ensureUi();
       if (spot) spot.hidden = true;
+      if (ackFloat) ackFloat.hidden = true;
       doneMask.hidden = false;
       if (spotRaf) {
         cancelAnimationFrame(spotRaf);
@@ -220,17 +308,59 @@
       spot.style.top = Math.max(8, r.top - pad) + "px";
       spot.style.width = Math.ceil(r.width + pad * 2) + "px";
       spot.style.height = Math.ceil(r.height + pad * 2) + "px";
+      placeAckFloat(r);
+    }
+
+    function placeAckFloat(anchorRect) {
+      if (!ackFloat) return;
+      var step = cur();
+      var needAck = !!(step && (step.ack || step.ackLabel));
+      if (!needAck || showingDone || dismissed || !active) {
+        ackFloat.hidden = true;
+        return;
+      }
+      ackFloat.hidden = false;
+      ackFloat.textContent = step.ackLabel || "确认了解";
+      var r = anchorRect;
+      if (!r && lastSpotEl && lastSpotEl.getBoundingClientRect) {
+        r = lastSpotEl.getBoundingClientRect();
+      }
+      if (!r && spot && !spot.hidden) {
+        r = spot.getBoundingClientRect();
+      }
+      if (!r) {
+        ackFloat.style.left = "50%";
+        ackFloat.style.top = "40%";
+        ackFloat.style.transform = "translate(-50%, -50%)";
+        return;
+      }
+      ackFloat.style.transform = "";
+      var btnW = Math.max(ackFloat.offsetWidth || 96, 96);
+      var btnH = Math.max(ackFloat.offsetHeight || 36, 36);
+      var left = r.left;
+      var top = r.bottom + 12;
+      if (top + btnH > window.innerHeight - 16) {
+        top = Math.max(12, r.top - btnH - 12);
+      }
+      if (left + btnW > window.innerWidth - 12) {
+        left = Math.max(12, window.innerWidth - btnW - 12);
+      }
+      if (left < 12) left = 12;
+      ackFloat.style.left = Math.round(left) + "px";
+      ackFloat.style.top = Math.round(top) + "px";
     }
 
     function placeSpot() {
       if (!spot) return;
       if (showingDone || dismissed || !active) {
         spot.hidden = true;
+        if (ackFloat) ackFloat.hidden = true;
         return;
       }
       var step = cur();
       if (!step || !step.spotlight) {
         spot.hidden = true;
+        placeAckFloat(null);
         return;
       }
       var modalEl = openTourModalEl();
@@ -238,13 +368,17 @@
       var el = modalEl || resolveSpotlight(step.spotlight);
       if (!el) {
         spot.hidden = true;
+        placeAckFloat(null);
         if (step.skipIfMissing) {
+          var skipAt = runId;
           setTimeout(function () {
-            advance();
-          }, 40);
+            if (skipAt !== runId || showingDone || dismissed) return;
+            if (!resolveSpotlight(step.spotlight)) advance();
+          }, 80);
         }
         return;
       }
+      lastSpotEl = el;
       var pad = modalEl ? 8 : 6;
       if (!modalEl) {
         try {
@@ -269,6 +403,7 @@
         "第 " + (stepIndex + 1) + " / " + STEPS.length + " 步 · " + step.title;
       document.getElementById(uid + "-tip").textContent = step.tip || "";
       document.body.classList.add(SHARED_CSS, "is-tg-novice");
+      scheduleSpot();
     }
 
     function advance() {
@@ -317,16 +452,45 @@
       }
     }
 
+    function clickInsideOpenModal(el) {
+      if (!el) return false;
+      var sels = [
+        ".modal-mask",
+        ".mat-detail-mask",
+        ".mat-xfer-mask",
+        ".mat-reject-mask",
+        ".mat-targets-mask"
+      ];
+      for (var s = 0; s < sels.length; s++) {
+        var nodes = document.querySelectorAll(sels[s]);
+        for (var i = 0; i < nodes.length; i++) {
+          var m = nodes[i];
+          if (m.hidden) continue;
+          if (m.contains(el)) return true;
+        }
+      }
+      return false;
+    }
+
     function gateClick(e) {
       if (!active || dismissed) return;
+      if (autoDriving) return;
       if (
         e.target.closest(
-          "#" + uid + ", #" + uid + "-done, #fz-help-root, .fz-help-fab"
+          "#" +
+            uid +
+            ", #" +
+            uid +
+            "-done, #" +
+            uid +
+            "-ack-float, #fz-help-root, .fz-help-fab, .fz-novice-ack-float"
         )
       ) {
         return;
       }
+      /* 完成弹层已出时，仍放行业务弹窗内操作（避免「通过」理由框被锁死） */
       if (showingDone) {
+        if (clickInsideOpenModal(e.target)) return;
         e.preventDefault();
         e.stopPropagation();
         return;
@@ -345,6 +509,38 @@
             "err"
           );
         }
+        return;
+      }
+
+      if (matchesBlock(e.target, step.block)) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (global.FZShell) {
+          FZShell.toast(
+            step.blockToast || "本教程不走这条操作，请按高亮或「下一步」继续",
+            "err"
+          );
+        }
+        return;
+      }
+
+      /* 弹层内：strict 步仍按 allow 收口；非 strict 整窗放行（兼容 TG 等二次窗） */
+      if (clickInsideOpenModal(e.target)) {
+        if (step.strict && !matchesAllow(e.target, step.allow)) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (global.FZShell) {
+            FZShell.toast(strictToast(step), "err");
+          }
+          return;
+        }
+        if (typeof step.onAllowClick === "function" && matchesAllow(e.target, step.allow)) {
+          try {
+            step.onAllowClick(e, api);
+          } catch (err) {}
+        }
+        setTimeout(scheduleSpot, 40);
+        setTimeout(scheduleSpot, 160);
         return;
       }
 
@@ -369,16 +565,25 @@
         setTimeout(scheduleSpot, 160);
         return;
       }
-      var openMask = document.querySelector(
-        ".modal-mask:not([hidden]), .mat-detail-mask:not([hidden]), .mat-xfer-mask:not([hidden]), .mat-reject-mask:not([hidden])"
-      );
-      if (openMask && openMask.contains(e.target)) return;
 
       e.preventDefault();
       e.stopPropagation();
       if (global.FZShell) {
-        FZShell.toast("请先完成当前教程步骤：" + step.title, "err");
+        FZShell.toast(strictToast(step), "err");
       }
+    }
+
+    function strictToast(step) {
+      if (step && (step.ack || step.ackLabel)) {
+        return (
+          "请按教程操作：点「" +
+          (step.ackLabel || "确认了解") +
+          "」继续（" +
+          step.title +
+          "）"
+        );
+      }
+      return "请先完成当前教程步骤：" + ((step && step.title) || "");
     }
 
     function stripNoviceQuery() {
@@ -416,6 +621,10 @@
       if (spot) {
         spot.remove();
         spot = null;
+      }
+      if (ackFloat) {
+        ackFloat.remove();
+        ackFloat = null;
       }
       if (doneMask) {
         doneMask.remove();
@@ -517,6 +726,7 @@
       notify: notify,
       advance: advance,
       complete: complete,
+      replay: replayTour,
       placeSpot: placeSpot,
       active: function () {
         return active && !dismissed;

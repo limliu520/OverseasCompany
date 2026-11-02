@@ -279,6 +279,13 @@
     }
   }
 
+  global.FZTgCollectApp = {
+    paint: paint,
+    selectedBotId: function () {
+      return selectedBotId;
+    }
+  };
+
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
 })(window);

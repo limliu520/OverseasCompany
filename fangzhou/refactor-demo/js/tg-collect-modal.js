@@ -142,6 +142,27 @@ window.FZTgCollectModal = (function () {
     var targets = mine.filter(function (ch) {
       return ch.role === "push" && ch.active !== false;
     });
+    if (
+      (!sources.length || !targets.length) &&
+      window.FZTgNovice &&
+      FZTgNovice.active &&
+      FZTgNovice.active() &&
+      FZTgNovice.ensureRoutePair
+    ) {
+      FZTgNovice.ensureRoutePair(botId);
+      st = FZStore.read();
+      c = ctx(st);
+      mine = (c.boundChannels || []).filter(function (ch) {
+        return ch.botId === botId;
+      });
+      sources = mine.filter(function (ch) {
+        return ch.role === "collect" && ch.active !== false;
+      });
+      targets = mine.filter(function (ch) {
+        return ch.role === "push" && ch.active !== false;
+      });
+      if (onDone) onDone();
+    }
     if (!sources.length || !targets.length) {
       FZShell.toast(
         "请先为本号标记并启用至少 1 个采集频道和 1 个分发频道（拉取进来的需先标用途）",
@@ -155,17 +176,42 @@ window.FZTgCollectModal = (function () {
         return '<option value="' + esc(ch.id) + '">' + esc(ch.title) + "</option>";
       })
       .join("");
+    var preferTgt = "ch_novice_demo_tgt";
+    var inNovice = !!(
+      window.FZTgNovice &&
+      FZTgNovice.active &&
+      FZTgNovice.active()
+    );
     document.getElementById("tg-rr-targets").innerHTML = targets
-      .map(function (ch) {
+      .map(function (ch, idx) {
+        var check = "";
+        if (inNovice) {
+          if (ch.id === preferTgt || ch.title === "@novice_demo_tgt") check = " checked";
+          else if (idx === 0) check = " checked";
+        }
         return (
           '<label class="check-inline"><input type="checkbox" value="' +
           esc(ch.id) +
-          '" /> ' +
+          '"' +
+          check +
+          " /> " +
           esc(ch.title) +
           "</label>"
         );
       })
       .join("");
+    if (inNovice) {
+      var srcSel = document.getElementById("tg-rr-source");
+      var preferSrc = "ch_novice_demo_src";
+      if (srcSel) {
+        for (var si = 0; si < srcSel.options.length; si++) {
+          if (srcSel.options[si].value === preferSrc) {
+            srcSel.value = preferSrc;
+            break;
+          }
+        }
+      }
+    }
     document.getElementById("tg-rr-modal").hidden = false;
   }
 
@@ -176,6 +222,25 @@ window.FZTgCollectModal = (function () {
         return el.value;
       })
       .filter(Boolean);
+    /* 教程兜底：未勾选时自动取第一个分发目标 */
+    if (
+      (!tgts.length || !src) &&
+      window.FZTgNovice &&
+      FZTgNovice.active &&
+      FZTgNovice.active()
+    ) {
+      if (!src) {
+        var srcEl = document.getElementById("tg-rr-source");
+        if (srcEl && srcEl.options.length) src = srcEl.options[0].value;
+      }
+      if (!tgts.length) {
+        var firstT = document.querySelector("#tg-rr-targets input[type=checkbox]");
+        if (firstT) {
+          firstT.checked = true;
+          tgts = [firstT.value];
+        }
+      }
+    }
     if (!src || !tgts.length) {
       FZShell.toast("请选择采集源，并至少勾选一个分发目标", "err");
       return;
@@ -222,7 +287,26 @@ window.FZTgCollectModal = (function () {
       });
       added += 1;
     });
+    var inNovice = !!(
+      window.FZTgNovice &&
+      FZTgNovice.active &&
+      FZTgNovice.active()
+    );
     if (!added) {
+      if (inNovice) {
+        document.getElementById("tg-rr-modal").hidden = true;
+        FZShell.toast(
+          skipped
+            ? "路由已存在，本步完成"
+            : blocked
+              ? "Demo：已处理路由冲突，本步完成"
+              : "Demo：路由步骤完成",
+          "ok"
+        );
+        if (onDone) onDone();
+        FZTgNovice.notify("route");
+        return;
+      }
       FZShell.toast(
         blocked && !skipped
           ? "已存在反向路由，禁止再建，避免素材成环"

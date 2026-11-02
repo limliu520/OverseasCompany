@@ -76,18 +76,20 @@ window.FZWebCollectModal = (function () {
       FZShell.toast("接入中不可修改配置", "err");
       return;
     }
-    var picks = selectedTargets();
-    if (picks.length > D.MAX_BIND) {
-      FZShell.toast("一个网站采集配置最多绑定 " + D.MAX_BIND + " 个项目", "err");
-      return;
-    }
     var typeVal = cur0 ? cur0.type : document.getElementById("wc-f-type").value;
-    var allowed = D.PROJECTS[typeVal] || [];
-    if (picks.some(function (n) {
-      return allowed.indexOf(n) === -1;
-    })) {
-      FZShell.toast("只能绑定与站点类型一致的项目", "err");
-      return;
+    var picks = D.isPublicMaterialPool(typeVal) ? [] : selectedTargets();
+    if (!D.isPublicMaterialPool(typeVal)) {
+      if (picks.length > D.MAX_BIND) {
+        FZShell.toast("一个网站采集配置最多绑定 " + D.MAX_BIND + " 个项目", "err");
+        return;
+      }
+      var allowed = D.PROJECTS[typeVal] || [];
+      if (picks.some(function (n) {
+        return allowed.indexOf(n) === -1;
+      })) {
+        FZShell.toast("只能绑定与站点类型一致的项目", "err");
+        return;
+      }
     }
     var name = document.getElementById("wc-f-name").value.trim();
     var baseUrl = document.getElementById("wc-f-url").value.trim();

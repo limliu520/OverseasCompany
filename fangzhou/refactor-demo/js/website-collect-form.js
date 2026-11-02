@@ -77,6 +77,14 @@ window.FZWebCollectForm = (function () {
   }
 
   function fillTargets(type, selectedNames) {
+    var field = document.getElementById("wc-f-targets-field");
+    var box = document.getElementById("wc-f-targets");
+    if (D.isPublicMaterialPool(type)) {
+      if (field) field.hidden = true;
+      if (box) box.innerHTML = "";
+      return;
+    }
+    if (field) field.hidden = false;
     var list = D.PROJECTS[type] || [];
     var chosen = {};
     (selectedNames || []).forEach(function (n) {
@@ -84,7 +92,6 @@ window.FZWebCollectForm = (function () {
     });
     document.getElementById("wc-f-targets-label").textContent =
       "绑定" + (D.SITE_TYPES[type] || type) + "项目（同类型，最多 " + D.MAX_BIND + " 个）";
-    var box = document.getElementById("wc-f-targets");
     if (!list.length) {
       box.innerHTML = '<span class="muted" style="font-size:13px">暂无该类型项目</span>';
       return;

@@ -142,21 +142,21 @@
       '" aria-hidden="true"><i class="th-sort-up"></i><i class="th-sort-down"></i></span></th>'
     );
   }
-  /* 全部素材列：来源频道 +（项目：采集方式 / 公共池：分发频道） */
+  /* 全部素材列：来源频道 +（项目：采集方式 / 公共素材池：分发频道） */
   function fusedHead(esc, scopeCtx) {
     var sc = scopeCtx || {};
     if (sc.kind === "pool") {
       return th(
         esc,
         "分发频道",
-        "TG 源经公共池路由后的分发频道；网站未绑定项目进公共池此列为空；点击查看具体分发频道。",
+        "公共素材池内 TG 料经路由后的分发频道；项目自采 / 网站料通常为空。点击查看具体分发频道。",
         "th-fused"
       );
     }
     return th(
       esc,
       "采集方式",
-      "项目自采：本项目频道采入；公共池转入：从公共池转编辑占用。",
+      "项目自采：本项目频道/站点采入；公共素材池转入：从公共素材池转编辑占用本项目（原池内记录仍保留）。",
       "th-fused"
     );
   }
@@ -187,12 +187,12 @@
       "</span></div>"
     );
   }
-  /* 待审：通过后会落到哪里（项目通道 / TG 频道 / 公共池） */
+  /* 待审：通过后主去向（项目通道 / TG 频道 / 仅留公共素材池）；池内记录始终保留 */
   function destCell(esc, m) {
     if (m.belong === "proj") {
       var proj = m.project || m.dispatchProject || "";
       return (
-        '<span class="mat-dest is-proj" title="通过后进入该项目内容通道">' +
+        '<span class="mat-dest is-proj" title="通过后进入该项目内容通道；同时仍在公共素材池可见">' +
         '<span class="mat-dest-k">项目</span>' +
         '<span class="mat-dest-v">' +
         esc(proj || "—") +
@@ -202,7 +202,7 @@
     var list = targetList(m);
     if (list.length && !isWebMat(m)) {
       return (
-        '<span class="mat-dest is-tg" title="通过后按公共池路由推送到这些 TG 频道">' +
+        '<span class="mat-dest is-tg" title="通过后按公共采集池路由推送到这些 TG 频道；素材仍留在公共素材池">' +
         '<span class="mat-dest-k">TG</span>' +
         '<button type="button" class="mat-targets-btn" data-row-targets="' +
         esc(m.id) +
@@ -214,10 +214,10 @@
     return (
       '<span class="mat-dest is-pool" title="' +
       (isWebMat(m)
-        ? "网站未绑项目：留在公共池；可再转编辑进项目；不会推 TG"
-        : "留在公共池；暂无项目或 TG 去向") +
+        ? "网站未绑项目：留在公共素材池；转编辑进项目后池内仍可见；不会推 TG"
+        : "留在公共素材池；可转编辑进项目，池内记录不消失") +
       '">' +
-      '<span class="mat-dest-k">公共池</span>' +
+      '<span class="mat-dest-k">公共素材池</span>' +
       '<span class="mat-dest-v mat-dest-muted">' +
       (isWebMat(m) ? "未绑项目" : "无固定去向") +
       "</span></span>"
@@ -241,7 +241,7 @@
       return '<span class="mat-v2-how is-own">项目自采</span>';
     }
     if (m.dispatchProject === name) {
-      return '<span class="mat-v2-how is-xfer">公共池转入</span>';
+      return '<span class="mat-v2-how is-xfer">公共素材池转入</span>';
     }
     return emptyCell();
   }
@@ -285,7 +285,7 @@
         th(
           esc,
           "通过后去向",
-          "项目：进内容通道；TG：按公共池路由推频道；公共池：暂无固定去向。",
+          "主去向示意。不论去向，素材均留在公共素材池。项目=进内容通道；TG=按公共采集池路由推频道；公共素材池=暂无固定下游。",
           "th-dest"
         ) +
         sortTh(esc, "浏览", "view_count", sortState) +

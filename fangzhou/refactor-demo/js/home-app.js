@@ -2,7 +2,7 @@
 (function (global) {
   /* 演示报表（按可见项目名粗匹配；真环境按项目隔离） */
   var DEMO_STATS = {
-    演示瓜站: {
+    每日大赛: {
       tgYesterday: 128,
       webYesterday: 36,
       matIn: 420,
@@ -10,7 +10,31 @@
       toArticle: 86,
       pushed: 72
     },
-    演示短剧站: {
+    "51 吃瓜": {
+      tgYesterday: 64,
+      webYesterday: 22,
+      matIn: 210,
+      matPass: 150,
+      toArticle: 40,
+      pushed: 28
+    },
+    "91 网黄": {
+      tgYesterday: 12,
+      webYesterday: 4,
+      matIn: 48,
+      matPass: 20,
+      toArticle: 9,
+      pushed: 5
+    },
+    "51 原创": {
+      tgYesterday: 28,
+      webYesterday: 8,
+      matIn: 96,
+      matPass: 55,
+      toArticle: 18,
+      pushed: 12
+    },
+    "51 短剧": {
       tgYesterday: 0,
       webYesterday: 0,
       matIn: 0,
@@ -18,13 +42,13 @@
       toArticle: 0,
       pushed: 0
     },
-    演示视频站: {
-      tgYesterday: 12,
-      webYesterday: 4,
-      matIn: 48,
-      matPass: 20,
-      toArticle: 9,
-      pushed: 5
+    "51 短视频": {
+      tgYesterday: 6,
+      webYesterday: 14,
+      matIn: 32,
+      matPass: 18,
+      toArticle: 0,
+      pushed: 0
     },
     _default: {
       tgYesterday: 40,
@@ -320,28 +344,31 @@
       .join("");
   }
 
+  function overviewProjects(s) {
+    var list = FZStore.businessProjects(s) || [];
+    if (list.length) return list;
+    /* 无业务项目时仍用示意项目名汇总，避免首页数字全空 */
+    return Object.keys(DEMO_STATS)
+      .filter(function (k) {
+        return k !== "_default";
+      })
+      .map(function (name) {
+        return { name: name };
+      });
+  }
+
   function renderStats(s) {
     /* 模块人人可见；指标按权限裁剪，无权限的数字不出现（不整块隐藏） */
     var box = document.getElementById("wb-stats");
     var extra = document.getElementById("wb-stats-extra");
     if (!box) return;
-    var emptyAcct = !!(FZStore.isEmptyOnboarding && FZStore.isEmptyOnboarding(s));
-    var projects = emptyAcct ? [] : FZStore.businessProjects(s);
+    var projects = overviewProjects(s);
     var canTg = can("collect.tg.view");
     var canWeb = can("collect.web.view");
     var canMat =
       can("collect.materials.view") || can("collect.materials.approve");
     var canArt = can("content.article.view");
-    var acc = emptyAcct
-      ? {
-          tgYesterday: 0,
-          webYesterday: 0,
-          matIn: 0,
-          matPass: 0,
-          toArticle: 0,
-          pushed: 0
-        }
-      : sumStats(projects);
+    var acc = sumStats(projects);
     var mats = canMat ? pendingMats().length : 0;
     var arts = canArt ? workArts().length : 0;
     var cards = [
@@ -375,13 +402,6 @@
         .join("");
     }
     if (!extra) return;
-    if (emptyAcct) {
-      extra.innerHTML =
-        '<div class="wb-stat-panel wb-stat-panel--empty">' +
-        '<p class="muted wb-empty" style="margin:0">创建首个业务项目后，这里会汇总采集与转化数据。</p></div>';
-      extra.classList.add("is-sparse");
-      return;
-    }
     var panels = [];
     if (canTg || canWeb) {
       panels.push(
@@ -439,23 +459,7 @@
   }
 
   function adaptWorkbenchLayout() {
-    var row = document.getElementById("wb-row-todo");
-    var todosBand = document.getElementById("wb-band-todos");
-    var workBand = document.getElementById("wb-band-work");
-    var showTodos = canSeeTodos();
-    var showMats = canSeeMats();
-    var showArts = canSeeArts();
-    if (row) row.classList.toggle("is-alerts-only", !showTodos);
-    if (todosBand) todosBand.hidden = !showTodos;
-    if (workBand) workBand.hidden = !showMats && !showArts;
-    var tabMats = document.getElementById("wb-tab-mats");
-    var tabArts = document.getElementById("wb-tab-arts");
-    if (tabMats) tabMats.hidden = !showMats;
-    if (tabArts) tabArts.hidden = !showArts;
-    if (showMats || showArts) {
-      if (showMats) setWorkTab("mats");
-      else setWorkTab("arts");
-    }
+    /* 本期工作台只保留：新手教程 + 数据概览 / 状态异常 / 平台公告 */
   }
 
   function renderQuick() {
@@ -699,12 +703,13 @@
 
   function buildAlerts(s) {
     var list = [];
-    if (FZStore.isEmptyOnboarding && FZStore.isEmptyOnboarding(s)) return list;
-    var projects = FZStore.businessProjects(s);
-
-    (s.statusAlerts || []).forEach(function (a) {
+    var projects = FZStore.businessProjects(s) || [];
+    var seedAlerts = s.statusAlerts || [];
+    if (!seedAlerts.length && FZStore.readDefaultStatusAlerts) {
+      seedAlerts = FZStore.readDefaultStatusAlerts();
+    }
+    seedAlerts.forEach(function (a) {
       if (a.need && !can(a.need)) return;
-      if (!projects.length) return;
       var obj = a.objectName || "—";
       list.push({
         object: obj,
@@ -745,6 +750,22 @@
           });
         });
       }
+      /* 业务项目 + 公共池上的异常频道 */
+      (projects || []).concat(pool ? [pool] : []).forEach(function (p) {
+        (p.boundChannels || []).forEach(function (ch) {
+          var hs = String(ch.healthStatus || "").toUpperCase();
+          if (hs !== "BROKEN" && hs !== "UNKNOWN") return;
+          list.push({
+            object: ch.title || ch.id || "—",
+            type: "频道异常",
+            reason: ch.healthError || hs,
+            tip: (p.name || "项目") + (ch.role === "push" ? " · 分发" : " · 采集"),
+            sev: hs === "BROKEN" ? "danger" : "warn",
+            href:
+              "./tg-collect.html?project=" + encodeURIComponent(p.id || "")
+          });
+        });
+      });
       projects.forEach(function (p) {
         var bots = FZStore.botsForProject(s, p.id) || [];
         bots.forEach(function (b) {
@@ -779,6 +800,15 @@
     var box = document.getElementById("wb-alerts");
     if (!box) return;
     bindWorkbenchPagers();
+    if (
+      (!s.statusAlerts || !s.statusAlerts.length) &&
+      FZStore.readDefaultStatusAlerts
+    ) {
+      s.statusAlerts = FZStore.readDefaultStatusAlerts();
+      try {
+        FZStore.write(s);
+      } catch (e) {}
+    }
     var list = buildAlerts(s);
     if (!list.length) {
       box.innerHTML =
@@ -1013,44 +1043,7 @@
     renderNovice();
     renderStats(s);
     renderAnnounce();
-    if (canSeeTodos()) renderTodos(s);
     renderAlerts(s);
-    if (canSeeMats()) renderMats();
-    if (canSeeArts()) renderArts();
-  }
-
-  function bootWelcomeAndTour() {
-    var s = FZStore.read();
-    var zero =
-      !FZStore.businessProjects(s).length ||
-      !!(FZStore.isEmptyOnboarding && FZStore.isEmptyOnboarding(s));
-    var modal = document.getElementById("zero-modal");
-    if (modal && zero && !s.zeroPromptDismissed && can("projects.list.create")) {
-      modal.hidden = false;
-    } else if (modal && !zero) {
-      modal.hidden = true;
-    }
-    var go = document.getElementById("btn-go-setup");
-    var later = document.getElementById("btn-later");
-    if (go) {
-      go.onclick = function () {
-        location.href = "./project-setup.html?new=1&novice=create_project";
-      };
-    }
-    function dismissZero() {
-      var st = FZStore.read();
-      st.zeroPromptDismissed = true;
-      FZStore.write(st);
-      if (modal) modal.hidden = true;
-      render();
-    }
-    if (later) later.onclick = dismissZero;
-    if (modal) {
-      modal.addEventListener("click", function (e) {
-        if (e.target === modal) dismissZero();
-      });
-    }
-    /* 侧栏菜单引导不再自动弹出；仅「帮助与反馈 → 重看侧栏菜单引导」可开 */
   }
 
   global.FZHomeRefreshTickets = function () {
@@ -1060,7 +1053,7 @@
     render: render,
     boot: function () {
       render();
-      bootWelcomeAndTour();
+      /* 新号不再弹「欢迎创建首个项目」；侧栏引导仅从帮助中心重看 */
     }
   };
 })(window);

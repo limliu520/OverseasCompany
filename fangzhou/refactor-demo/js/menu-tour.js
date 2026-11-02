@@ -5,6 +5,21 @@
     var steps = [];
     var nav = global.FZShell && FZShell.getNav ? FZShell.getNav() : [];
     nav.forEach(function (group) {
+      var isLeaf =
+        !!group.leaf ||
+        (!!(group.href || group.stub) && !(group.children && group.children.length));
+      if (isLeaf) {
+        if (!group.done || group.stub || group.tourSkip) return;
+        if (group.need && !FZStore.hasFeature(s, group.need)) return;
+        steps.push({
+          id: group.id,
+          label: group.label,
+          tip:
+            group.tourTip ||
+            ("「" + group.label + "」是业务操作入口：从侧栏进入后按页面提示完成配置或处理待办。")
+        });
+        return;
+      }
       (group.children || []).forEach(function (c) {
         if (!c.done || c.stub || c.tourSkip) return;
         if (c.need && !FZStore.hasFeature(s, c.need)) return;

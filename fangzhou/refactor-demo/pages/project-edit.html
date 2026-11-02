@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>项目详情 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261031doneFix" />
+  <link rel="stylesheet" href="../css/app.css?v=20261031prefill" />
 </head>
 <body>
   <div class="app">
@@ -43,11 +43,11 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261031demoPerm"></script>
-  <script src="../js/shell.js?v=20261031fabDragFast"></script>
-  <script src="../js/novice-guide.js?v=20261031tour7"></script>
-  <script src="../js/novice-tour-kit.js?v=20261031doneFix"></script>
-  <script src="../js/novice-tours.js?v=20261031wmArt"></script>
+  <script src="../js/store.js?v=20261031poolCollect"></script>
+  <script src="../js/shell.js?v=20261031navProj"></script>
+  <script src="../js/novice-guide.js?v=20261031demoEdit"></script>
+  <script src="../js/novice-tour-kit.js?v=20261031prefill"></script>
+  <script src="../js/novice-tours.js?v=20261031prefill"></script>
   <script src="../js/article-defaults.js?v=20261028wmFx2"></script>
   <script src="../js/media-config.js?v=20261028ioLR1"></script>
   <script src="../js/pick-cards.js"></script>
@@ -57,9 +57,61 @@
     FZShell.boot({ active: "projects" });
     var id = new URLSearchParams(location.search).get("id");
     var tab = new URLSearchParams(location.search).get("tab") || "watermark";
+    var NOVICE_DEMO_ID = "novice_demo_edit";
+    var noviceDemoProject = null;
     var wmAddView = "image";
     var artSection = "prompt";
     var artView = "custom";
+
+    function isNoviceEditTour() {
+      try {
+        return new URLSearchParams(location.search).get("novice") === "edit_project";
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function editPageUrl(nextTab) {
+      var u =
+        "./project-edit.html?id=" +
+        encodeURIComponent(id) +
+        "&tab=" +
+        encodeURIComponent(nextTab || tab);
+      try {
+        var nov = new URLSearchParams(location.search).get("novice");
+        if (nov) u += "&novice=" + encodeURIComponent(nov);
+      } catch (e) {}
+      return u;
+    }
+
+    function makeNoviceDemoProject() {
+      var p = {
+        id: NOVICE_DEMO_ID,
+        name: "每日大赛",
+        siteType: "chigua",
+        status: "pending_activate",
+        contentActivated: false,
+        coverWidth: "720",
+        coverHeight: "1280",
+        coverAspect: "",
+        autoToEdit: false,
+        autoPush: false,
+        boundChannels: [],
+        optionalPacks: {},
+        userbotIds: [],
+        userbotId: "",
+        userbotName: "",
+        creds: { appId: "demo_app_id", appSecret: "demo_secret" }
+      };
+      FZProjectUnion.normalizeProject(p);
+      FZArticle.ensureWatermarks(p);
+      FZArticle.ensureArticle(p);
+      return p;
+    }
+
+    function usingNoviceDemo() {
+      return isNoviceEditTour() && (id === NOVICE_DEMO_ID || !FZStore.findProject(FZStore.read(), id));
+    }
     var ALL_TABS = [
       { id: "watermark", label: "水印管理" },
       { id: "intro", label: "片头和片尾" },
@@ -88,6 +140,11 @@
     function loadProject() {
       var st = FZStore.read();
       var p = FZStore.findProject(st, id);
+      if (!p && (isNoviceEditTour() || id === NOVICE_DEMO_ID)) {
+        id = NOVICE_DEMO_ID;
+        if (!noviceDemoProject) noviceDemoProject = makeNoviceDemoProject();
+        return { st: st, p: noviceDemoProject, noviceDemo: true };
+      }
       if (!p) {
         location.href = "./projects.html";
         return null;
@@ -247,7 +304,7 @@
         '">' +
         st.text +
         "</span>" +
-        (p.status === "pending_activate"
+        (p.status === "pending_activate" && !usingNoviceDemo()
           ? '<a class="btn btn-primary" href="./project-connect.html?id=' +
             encodeURIComponent(p.id) +
             '">去对接</a>'
@@ -526,11 +583,7 @@
       var visible = tabsForProject(p);
       if (!visible.some(function (t) { return t.id === tab; })) {
         tab = visible[0] ? visible[0].id : "watermark";
-        history.replaceState(
-          null,
-          "",
-          "./project-edit.html?id=" + encodeURIComponent(id) + "&tab=" + tab
-        );
+        history.replaceState(null, "", editPageUrl(tab));
       }
       var body = "";
       if (tab === "watermark") body = paneWatermark(p);
@@ -543,12 +596,26 @@
       else body = paneOptional(p);
 
       document.getElementById("root").innerHTML =
-        renderHero(p) + renderTabs(p) + body;
+        renderHero(p) +
+        (ctx.noviceDemo
+          ? '<p class="hint" style="margin:0 0 12px">教程演示项目 · 操作不会写入真实项目列表</p>'
+          : "") +
+        renderTabs(p) +
+        body;
       bind();
     }
 
     function saveProject(mutator, okMsg) {
       var st = FZStore.read();
+      if (usingNoviceDemo()) {
+        if (!noviceDemoProject) noviceDemoProject = makeNoviceDemoProject();
+        FZArticle.ensureWatermarks(noviceDemoProject);
+        FZArticle.ensureArticle(noviceDemoProject);
+        mutator(noviceDemoProject, st);
+        FZShell.toast((okMsg || "已保存") + "（教程演示，未写入真实项目）", "ok");
+        render();
+        return;
+      }
       var p = FZStore.findProject(st, id);
       FZArticle.ensureWatermarks(p);
       FZArticle.ensureArticle(p);
@@ -563,11 +630,7 @@
       document.querySelectorAll("[data-tab]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           tab = btn.getAttribute("data-tab");
-          history.replaceState(
-            null,
-            "",
-            "./project-edit.html?id=" + encodeURIComponent(id) + "&tab=" + tab
-          );
+          history.replaceState(null, "", editPageUrl(tab));
           render();
         });
       });

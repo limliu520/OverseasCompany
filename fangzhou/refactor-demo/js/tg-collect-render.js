@@ -38,7 +38,7 @@ window.FZTgCollectRender = (function () {
       .map(function (p) {
         var isPool = FZStore.isPublicPool(p);
         var s = ctxStats(st, p);
-        var title = isPool ? "公共池" : p.name;
+        var title = isPool ? "公共采集池" : p.name;
         var typeLabel = isPool ? "TG→TG 转发" : siteTypeShort(p);
         var meta =
           s.bots +

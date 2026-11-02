@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>工作台 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261031noviceRow" />
+  <link rel="stylesheet" href="../css/app.css?v=20261031prefill" />
 </head>
 <body>
   <div class="app">
@@ -16,16 +16,23 @@
       </div>
       <div class="content wb-page" id="wb-root">
         <div id="wb-novice" class="wb-novice-mount" hidden></div>
-        <!-- 上：数据概览左 + 平台公告右 -->
-        <div class="wb-row-2 wb-row-2--hero">
-          <section class="wb-band card card-pad wb-stats-band">
+        <!-- 第一排：数据概览 -->
+        <section class="wb-band card card-pad wb-stats-band wb-stats-band--solo">
+          <div class="wb-mod-head">
+            <h2>数据概览</h2>
+          </div>
+          <div class="wb-stats-body">
+            <div class="wb-stats" id="wb-stats"></div>
+            <div class="wb-stats-extra" id="wb-stats-extra"></div>
+          </div>
+        </section>
+        <!-- 第二排：异常提醒 | 平台公告 -->
+        <div class="wb-row-2 wb-row-2--alert-announce">
+          <section class="wb-band card card-pad wb-alert-band" id="wb-band-alerts">
             <div class="wb-mod-head">
-              <h2>数据概览</h2>
+              <h2>状态与异常提醒</h2>
             </div>
-            <div class="wb-stats-body">
-              <div class="wb-stats" id="wb-stats"></div>
-              <div class="wb-stats-extra" id="wb-stats-extra"></div>
-            </div>
+            <div class="wb-dense" id="wb-alerts"></div>
           </section>
           <section class="wb-band card card-pad wb-announce-band">
             <div class="wb-mod-head">
@@ -35,61 +42,6 @@
             <div class="wb-announce" id="wb-announce"></div>
           </section>
         </div>
-
-        <div class="wb-row-2 wb-row-2--todo" id="wb-row-todo">
-          <section class="wb-band card card-pad" id="wb-band-todos">
-            <div class="wb-mod-head">
-              <h2>项目待办</h2>
-            </div>
-            <div class="wb-dense" id="wb-todos"></div>
-          </section>
-
-          <section class="wb-band card card-pad wb-alert-band" id="wb-band-alerts">
-            <div class="wb-mod-head">
-              <h2>状态与异常提醒</h2>
-            </div>
-            <div class="wb-dense" id="wb-alerts"></div>
-          </section>
-        </div>
-
-        <section class="wb-band card card-pad wb-work-band" id="wb-band-work">
-          <div class="wb-mod-head wb-mod-head--tabs">
-            <div class="wb-tabs" role="tablist" aria-label="待处理列表">
-              <button type="button" class="wb-tab is-on" role="tab" aria-selected="true" data-wb-tab="mats" id="wb-tab-mats">
-                待审素材 <em class="wb-tab-n" id="wb-tab-mats-n"></em>
-              </button>
-              <button type="button" class="wb-tab" role="tab" aria-selected="false" data-wb-tab="arts" id="wb-tab-arts">
-                待处理稿件 <em class="wb-tab-n" id="wb-tab-arts-n"></em>
-              </button>
-            </div>
-            <a class="wb-sec-more" id="wb-work-more" href="./materials.html">素材管理</a>
-          </div>
-          <div class="wb-table-wrap" id="wb-mats" data-wb-pane="mats"></div>
-          <div class="wb-table-wrap" id="wb-arts" data-wb-pane="arts" hidden></div>
-        </section>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-mask" id="zero-modal" hidden>
-    <div class="modal modal--welcome" role="dialog" aria-modal="true" aria-labelledby="zero-title">
-      <div class="wz-hero" aria-hidden="true">
-        <span class="wz-orb wz-orb--a"></span>
-        <span class="wz-orb wz-orb--b"></span>
-        <div class="wz-mark">舟</div>
-      </div>
-      <h2 id="zero-title">👋 欢迎使用方舟</h2>
-      <p class="wz-lead">你还没有业务项目。先创建第一个项目，配齐配置后交给开发对接，接通即可开始采编。</p>
-      <ol class="wz-steps" aria-label="入驻三步">
-        <li><span class="wz-step-ico">①</span><span>创建项目</span></li>
-        <li class="wz-steps-sep" aria-hidden="true">→</li>
-        <li><span class="wz-step-ico">②</span><span>开发对接</span></li>
-        <li class="wz-steps-sep" aria-hidden="true">→</li>
-        <li><span class="wz-step-ico">③</span><span>开始采编</span></li>
-      </ol>
-      <div class="modal-actions modal-actions--stack">
-        <button type="button" class="btn btn-primary btn-block" id="btn-go-setup">✨ 去创建项目</button>
-        <button type="button" class="btn btn-ghost btn-block" id="btn-later">稍后</button>
       </div>
     </div>
   </div>
@@ -175,19 +127,19 @@
     </div>
   </div>
 
-  <script src="../js/perm-tree.js?v=20261031permNav"></script>
-  <script src="../js/store.js?v=20261031demoPerm"></script>
+  <script src="../js/perm-tree.js?v=20261031navProj"></script>
+  <script src="../js/store.js?v=20261031poolCollect"></script>
   <script src="../js/project-union.js?v=20261029wb4"></script>
   <script src="../js/materials-data.js?v=20261029wb4"></script>
   <script src="../js/materials-media.js?v=20261029wb16"></script>
   <script src="../js/materials-detail.js?v=20261029wb16"></script>
-  <script src="../js/materials-transfer.js?v=20261029wb16"></script>
+  <script src="../js/materials-transfer.js?v=20261031proj6"></script>
   <script src="../js/articles-data.js?v=20261029wb4"></script>
-  <script src="../js/shell.js?v=20261031permNav"></script>
+  <script src="../js/shell.js?v=20261031navProj"></script>
   <script src="../js/announcements-data.js?v=20261029wb13"></script>
-  <script src="../js/novice-guide.js?v=20261031wmArt"></script>
+  <script src="../js/novice-guide.js?v=20261031demoEdit"></script>
   <script src="../js/menu-tour.js?v=20261029wb33"></script>
-  <script src="../js/home-app.js?v=20261031novice1"></script>
+  <script src="../js/home-app.js?v=20261031alertFix"></script>
   <script>
     FZShell.boot({ active: "home" });
     var hour = new Date().getHours();

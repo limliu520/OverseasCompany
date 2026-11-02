@@ -11,19 +11,32 @@
     {
       id: "chigua",
       title: "瓜站（内容站）",
-      desc: "图文混排（含吃瓜站）。资讯/爆料类；默认可含视频。走内容编辑或原文直推。"
+      desc: "图文混排（含吃瓜站）。资讯/爆料类；默认可含视频。走内容编辑或原文直推。演示项目名：每日大赛、51 吃瓜。"
     },
     {
       id: "video",
       title: "视频站",
-      desc: "短视频形态；一稿一个视频。含「AI 文 + 单视频」类（如原 51 短剧形态）。走内容编辑或原文直推。"
+      desc: "短视频形态；一稿一个视频。走内容编辑或原文直推。演示项目名：91 网黄、51 原创。"
     },
     {
       id: "short_drama",
       title: "短剧站",
-      desc: "无文章主路径；去水印/加水印 + 分集推送（蜜果 / KiteDrama 形态）。剧集站同此类型。"
+      desc: "无文章主路径；去水印/加水印 + 分集推送（蜜果 / KiteDrama 形态）。演示项目名：51 短剧、51 短视频。"
     }
   ];
+
+  /** 各站点类型可用演示项目名（全站统一） */
+  var DEMO_PROJECT_NAMES = {
+    chigua: ["每日大赛", "51 吃瓜"],
+    video: ["91 网黄", "51 原创"],
+    short_drama: ["51 短剧", "51 短视频"]
+  };
+
+  function demoProjectName(siteType, index) {
+    var list = DEMO_PROJECT_NAMES[siteType] || DEMO_PROJECT_NAMES.chigua;
+    var i = Number(index) || 0;
+    return list[((i % list.length) + list.length) % list.length];
+  }
 
   function tip(text) {
     var body =
@@ -566,6 +579,8 @@
     GLOBAL_MIN_VIDEO_SEC: GLOBAL_MIN_VIDEO_SEC,
     GLOBAL_MAX_EPISODES: GLOBAL_MAX_EPISODES,
     SITE_TYPES: SITE_TYPES,
+    DEMO_PROJECT_NAMES: DEMO_PROJECT_NAMES,
+    demoProjectName: demoProjectName,
     siteTypeLabel: siteTypeLabel,
     defaultsForType: defaultsForType,
     applyTypeDefaults: applyTypeDefaults,

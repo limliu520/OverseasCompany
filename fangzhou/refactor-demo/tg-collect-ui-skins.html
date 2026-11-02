@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-skin="current">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TG 采集配置 · UI 风格对照</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@450;550;650;750&family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* —— 静态对照页：只换皮，不接业务 —— */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--ink);
+      background: var(--canvas);
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; }
+    button { cursor: default; }
+    .mono { font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+
+    /* ========== Skin tokens ========== */
+    html[data-skin="current"] {
+      --font: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+      --canvas: #f4f4f5;
+      --sidebar: #fff;
+      --panel: #fff;
+      --ink: #18181b;
+      --muted: #71717a;
+      --line: #e4e4e7;
+      --line-strong: #d4d4d8;
+      --accent: #5b5bd6;
+      --accent-soft: #eef0ff;
+      --accent-ink: #3f3f9a;
+      --ok: #1a7f4b;
+      --ok-bg: #e8f6ee;
+      --warn: #b45309;
+      --warn-bg: #fff7ed;
+      --danger: #b42318;
+      --danger-bg: #fef3f2;
+      --push: #6d28d9;
+      --push-bg: #f3e8ff;
+      --radius: 10px;
+      --radius-sm: 8px;
+      --shadow: 0 1px 2px rgba(24, 24, 27, 0.04);
+      --shadow-card: 0 1px 2px rgba(24, 24, 27, 0.05);
+      --sidebar-w: 220px;
+      --density: 1;
+    }
+
+    /* 墨蓝精工：冷静、利落，少装饰 */
+    html[data-skin="ink"] {
+      --font: "Manrope", "PingFang SC", "Noto Sans SC", sans-serif;
+      --canvas: #eef1f6;
+      --sidebar: #0f172a;
+      --panel: #ffffff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #dbe2ea;
+      --line-strong: #cbd5e1;
+      --accent: #1d4ed8;
+      --accent-soft: #dbeafe;
+      --accent-ink: #1e3a8a;
+      --ok: #047857;
+      --ok-bg: #ecfdf5;
+      --warn: #b45309;
+      --warn-bg: #fffbeb;
+      --danger: #b91c1c;
+      --danger-bg: #fef2f2;
+      --push: #0e7490;
+      --push-bg: #ecfeff;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: none;
+      --shadow-card: 0 0 0 1px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04);
+      --sidebar-w: 228px;
+      --density: 1.05;
+    }
+
+    /* 石色企业：暖灰层次 + 青绿点缀 */
+    html[data-skin="stone"] {
+      --font: "Plus Jakarta Sans", "PingFang SC", "Noto Sans SC", sans-serif;
+      --canvas: #f3f1ee;
+      --sidebar: #1c1917;
+      --panel: #fffcf8;
+      --ink: #1c1917;
+      --muted: #78716c;
+      --line: #e7e5e4;
+      --line-strong: #d6d3d1;
+      --accent: #0f766e;
+      --accent-soft: #ccfbf1;
+      --accent-ink: #115e59;
+      --ok: #15803d;
+      --ok-bg: #f0fdf4;
+      --warn: #a16207;
+      --warn-bg: #fefce8;
+      --danger: #b91c1c;
+      --danger-bg: #fef2f2;
+      --push: #9a3412;
+      --push-bg: #ffedd5;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 1px 0 rgba(28, 25, 23, 0.04);
+      --shadow-card: 0 10px 30px rgba(28, 25, 23, 0.05);
+      --sidebar-w: 232px;
+      --density: 1.08;
+    }
+
+    /* 冷静控制台：更密、更克制 */
+    html[data-skin="slate"] {
+      --font: "IBM Plex Sans", "PingFang SC", "Noto Sans SC", sans-serif;
+      --canvas: #f8fafc;
+      --sidebar: #111827;
+      --panel: #ffffff;
+      --ink: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --line-strong: #d1d5db;
+      --accent: #111827;
+      --accent-soft: #f3f4f6;
+      --accent-ink: #111827;
+      --ok: #059669;
+      --ok-bg: #ecfdf5;
+      --warn: #d97706;
+      --warn-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --push: #4b5563;
+      --push-bg: #f3f4f6;
+      --radius: 6px;
+      --radius-sm: 4px;
+      --shadow: none;
+      --shadow-card: 0 0 0 1px var(--line);
+      --sidebar-w: 216px;
+      --density: 0.92;
+    }
+
+    /* 纸面编辑室：浅层叠 + 墨绿强调 */
+    html[data-skin="paper"] {
+      --font: "Figtree", "PingFang SC", "Noto Sans SC", sans-serif;
+      --canvas: #ebe8e2;
+      --sidebar: #f7f5f0;
+      --panel: #fffcf7;
+      --ink: #1a1a18;
+      --muted: #6f6b63;
+      --line: #ddd8ce;
+      --line-strong: #cfc8bb;
+      --accent: #1f4d3a;
+      --accent-soft: #dceee4;
+      --accent-ink: #16382b;
+      --ok: #1f4d3a;
+      --ok-bg: #e7f3ec;
+      --warn: #8a5a12;
+      --warn-bg: #f7eedc;
+      --danger: #8f2d2d;
+      --danger-bg: #f7e8e8;
+      --push: #3d4f6f;
+      --push-bg: #e6ebf3;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 1px 0 rgba(26, 26, 24, 0.03);
+      --shadow-card: 0 12px 28px rgba(26, 26, 24, 0.06);
+      --sidebar-w: 236px;
+      --density: 1.1;
+    }
+
+    /* ========== Switcher ========== */
+    .skin-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.92);
+      border-bottom: 1px solid #e5e5e5;
+      backdrop-filter: blur(10px);
+    }
+    .skin-bar-brand {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #111;
+      margin-right: 4px;
+      white-space: nowrap;
+    }
+    .skin-bar-note {
+      font-size: 12px;
+      color: #737373;
+      margin-right: auto;
+      white-space: nowrap;
+    }
+    .skin-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .skin-tab {
+      border: 1px solid #d4d4d4;
+      background: #fff;
+      color: #404040;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .skin-tab:hover { border-color: #a3a3a3; }
+    .skin-tab.is-on {
+      background: #171717;
+      border-color: #171717;
+      color: #fff;
+    }
+
+    /* ========== Shell ========== */
+    .app {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      min-height: calc(100vh - 49px);
+    }
+    .sidebar {
+      background: var(--sidebar);
+      color: var(--side-ink, var(--ink));
+      border-right: 1px solid var(--side-line, var(--line));
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    html[data-skin="ink"] .sidebar,
+    html[data-skin="stone"] .sidebar,
+    html[data-skin="slate"] .sidebar {
+      --side-ink: #e5e7eb;
+      --side-line: transparent;
+      --side-muted: #94a3b8;
+      --side-active-bg: rgba(255, 255, 255, 0.08);
+      --side-active-ink: #fff;
+    }
+    html[data-skin="paper"] .sidebar {
+      --side-ink: var(--ink);
+      --side-line: var(--line);
+      --side-muted: var(--muted);
+      --side-active-bg: var(--accent-soft);
+      --side-active-ink: var(--accent-ink);
+    }
+    html[data-skin="current"] .sidebar {
+      --side-ink: #3f3f46;
+      --side-line: var(--line);
+      --side-muted: #a1a1aa;
+      --side-active-bg: var(--accent-soft);
+      --side-active-ink: var(--accent);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 8px 10px;
+    }
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 14px;
+      background: var(--accent);
+      color: #fff;
+    }
+    html[data-skin="slate"] .brand-mark { background: #fff; color: #111827; border-radius: 4px; }
+    html[data-skin="paper"] .brand-mark { background: var(--accent); border-radius: 12px; }
+    .brand-text { font-weight: 750; font-size: 15px; color: var(--side-ink); }
+    .brand-sub { font-size: 11px; color: var(--side-muted, var(--muted)); margin-top: 1px; }
+    .nav-lab {
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--side-muted, var(--muted));
+      padding: 0 10px;
+      margin-top: 6px;
+    }
+    .nav-item {
+      display: block;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      color: var(--side-ink);
+      font-size: 13px;
+      font-weight: 550;
+      opacity: 0.72;
+    }
+    .nav-item.is-on {
+      background: var(--side-active-bg);
+      color: var(--side-active-ink);
+      opacity: 1;
+      font-weight: 650;
+    }
+    .nav-item.is-sub { padding-left: 18px; font-size: 12.5px; }
+
+    .main { display: flex; flex-direction: column; min-width: 0; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: calc(14px * var(--density)) 22px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar h1 {
+      margin: 0;
+      font-size: calc(18px * var(--density));
+      font-weight: 750;
+      letter-spacing: -0.02em;
+    }
+    .topbar-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-ink);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    html[data-skin="slate"] .avatar { border-radius: 4px; background: #111827; color: #fff; }
+
+    .content {
+      padding: calc(16px * var(--density)) 22px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: calc(14px * var(--density));
+    }
+
+    /* ========== Context cards ========== */
+    .sec-lab {
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .ctx-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 200px));
+      gap: 10px;
+    }
+    .ctx-card {
+      text-align: left;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      color: inherit;
+    }
+    .ctx-card.is-on {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent-soft) 70%, var(--panel));
+      box-shadow: var(--shadow-card);
+    }
+    html[data-skin="slate"] .ctx-card.is-on {
+      background: #fff;
+      box-shadow: inset 0 0 0 1px #111827;
+    }
+    html[data-skin="ink"] .ctx-card.is-on {
+      background: #fff;
+      border-color: #1d4ed8;
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+    }
+    .ctx-name { display: block; font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+    .ctx-type { display: block; font-size: 12px; color: var(--accent-ink); margin-bottom: 6px; }
+    html[data-skin="slate"] .ctx-type { color: var(--muted); }
+    .ctx-meta { display: block; font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 2px 0;
+    }
+    html[data-skin="paper"] .divider {
+      height: 0;
+      border-top: 1px dashed var(--line-strong);
+      background: transparent;
+    }
+
+    /* ========== Workspace ========== */
+    .workspace {
+      display: grid;
+      grid-template-columns: 248px 1fr;
+      gap: 12px;
+      min-height: 560px;
+      align-items: stretch;
+    }
+    .bot-pane, .detail-pane {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      min-width: 0;
+    }
+    html[data-skin="slate"] .bot-pane,
+    html[data-skin="slate"] .detail-pane {
+      border-radius: var(--radius);
+      box-shadow: none;
+    }
+    .bot-head, .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .bot-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .bot-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      background: transparent;
+      text-align: left;
+      color: inherit;
+      width: 100%;
+    }
+    .bot-item.is-on {
+      background: var(--accent-soft);
+      border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+    }
+    html[data-skin="slate"] .bot-item.is-on {
+      background: #f3f4f6;
+      border-color: #111827;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--ok);
+      flex: 0 0 auto;
+    }
+    .dot.is-off { background: #a1a1aa; }
+    .bot-name { font-size: 13px; font-weight: 650; }
+    .bot-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .bot-item .btn-ghost {
+      margin-left: auto;
+      flex: 0 0 auto;
+    }
+
+    .detail-body { padding: 12px 14px 16px; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .search {
+      flex: 1 1 180px;
+      min-width: 160px;
+      height: 34px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      background: color-mix(in srgb, var(--canvas) 45%, var(--panel));
+      color: var(--ink);
+    }
+    .search::placeholder { color: var(--muted); }
+    .seg {
+      display: inline-flex;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--panel);
+    }
+    html[data-skin="slate"] .seg { border-radius: var(--radius-sm); }
+    .seg button {
+      border: 0;
+      background: transparent;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .seg button.is-on {
+      background: var(--accent);
+      color: #fff;
+    }
+    html[data-skin="slate"] .seg button.is-on {
+      background: #111827;
+    }
+    html[data-skin="paper"] .seg button.is-on {
+      background: var(--accent);
+    }
+    .filter-lab {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-left: 4px;
+    }
+
+    .btn {
+      border: 1px solid var(--line-strong);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: var(--radius-sm);
+      padding: 6px 11px;
+      font-size: 12px;
+      font-weight: 650;
+      line-height: 1.2;
+    }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    html[data-skin="slate"] .btn-primary {
+      background: #111827;
+      border-color: #111827;
+    }
+    .btn-ghost {
+      background: transparent;
+      border-color: var(--line);
+      color: var(--muted);
+      padding: 4px 8px;
+    }
+    .btn-sm { padding: 5px 9px; font-size: 12px; }
+
+    .ch-grid {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+    @media (max-width: 1280px) {
+      .ch-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .ctx-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    .ch-grid li {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      padding: 8px 8px 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--canvas) 35%, var(--panel));
+    }
+    html[data-skin="ink"] .ch-grid li,
+    html[data-skin="slate"] .ch-grid li {
+      background: #fff;
+    }
+    html[data-skin="paper"] .ch-grid li {
+      background: #fff;
+      border-color: var(--line);
+    }
+    .badge {
+      flex: 0 0 auto;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 999px;
+    }
+    html[data-skin="slate"] .badge { border-radius: 3px; }
+    .badge-collect { background: var(--ok-bg); color: var(--ok); }
+    .badge-push { background: var(--push-bg); color: var(--push); }
+    .badge-pending { background: #f4f4f5; color: #71717a; }
+    html[data-skin="paper"] .badge-pending { background: #eeeae2; color: #6f6b63; }
+    .health {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 9px;
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+    .health-ok { background: var(--ok-bg); color: var(--ok); }
+    .health-bad { background: var(--danger-bg); color: var(--danger); }
+    .health-unk { background: var(--warn-bg); color: var(--warn); }
+    .ch-title {
+      flex: 1;
+      min-width: 0;
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ch-acts { display: flex; gap: 4px; flex: 0 0 auto; }
+    .icon-x {
+      width: 22px;
+      height: 22px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 6px;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .pager {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .panel-block { margin-top: 18px; }
+    .panel-block h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .route-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .route-table th,
+    .route-table td {
+      text-align: left;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+    .route-table th {
+      color: var(--muted);
+      font-weight: 650;
+      background: color-mix(in srgb, var(--canvas) 55%, var(--panel));
+    }
+    html[data-skin="slate"] .route-table th { background: #f9fafb; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    html[data-skin="slate"] .pill { border-radius: 3px; }
+    .pill-ok { background: var(--ok-bg); color: var(--ok); }
+    .pill-bad { background: var(--danger-bg); color: var(--danger); }
+    .pill-unk { background: var(--warn-bg); color: var(--warn); }
+
+    .foot-note {
+      margin: 8px 22px 20px;
+      font-size: 12px;
+      color: #737373;
+    }
+    .foot-note code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      background: #f5f5f5;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="skin-bar">
+    <div class="skin-bar-brand">UI 风格对照</div>
+    <div class="skin-bar-note">同一「TG 采集配置」静态页 · 仅换皮 · 不可点业务</div>
+    <div class="skin-tabs" role="tablist" aria-label="风格切换">
+      <button type="button" class="skin-tab is-on" data-skin="current">现行 Demo</button>
+      <button type="button" class="skin-tab" data-skin="ink">墨蓝精工</button>
+      <button type="button" class="skin-tab" data-skin="stone">石色企业</button>
+      <button type="button" class="skin-tab" data-skin="slate">冷静控制台</button>
+      <button type="button" class="skin-tab" data-skin="paper">纸面编辑室</button>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="sidebar" aria-label="侧栏示意">
+      <div class="brand">
+        <div class="brand-mark">舟</div>
+        <div>
+          <div class="brand-text">方舟</div>
+          <div class="brand-sub">业务端 · 风格预览</div>
+        </div>
+      </div>
+      <div class="nav-item">⌂ 工作台</div>
+      <div class="nav-lab">采集中心</div>
+      <div class="nav-item is-on is-sub">TG 采集配置</div>
+      <div class="nav-item is-sub">网站采集配置</div>
+      <div class="nav-item is-sub">素材管理</div>
+      <div class="nav-lab">内容中心</div>
+      <div class="nav-item is-sub">文章管理</div>
+      <div class="nav-lab">项目管理</div>
+      <div class="nav-item is-sub">项目列表</div>
+      <div class="nav-lab">全局配置</div>
+      <div class="nav-item is-sub">子账号与授权</div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <h1>TG 采集配置</h1>
+        <div class="topbar-meta">
+          <span>示意账号 · 运营</span>
+          <div class="avatar">运</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div>
+          <div class="sec-lab">项目切换</div>
+          <div class="ctx-row">
+            <button type="button" class="ctx-card is-on">
+              <span class="ctx-name">公共采集池</span>
+              <span class="ctx-type">TG→TG 转发</span>
+              <span class="ctx-meta">2 个采集号 · 22 个频道 · 1 监听中</span>
+            </button>
+            <button type="button" class="ctx-card">
+              <span class="ctx-name">每日大赛</span>
+              <span class="ctx-type">瓜站</span>
+              <span class="ctx-meta">1 个采集号 · 2 个频道</span>
+            </button>
+            <button type="button" class="ctx-card">
+              <span class="ctx-name">51 短剧</span>
+              <span class="ctx-type">短剧站</span>
+              <span class="ctx-meta">1 个采集号 · 0 个频道</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="divider" aria-hidden="true"></div>
+
+        <div class="workspace">
+          <aside class="bot-pane">
+            <div class="bot-head">
+              <span>TG 采集号</span>
+              <button type="button" class="btn btn-primary btn-sm">+ 添加</button>
+            </div>
+            <div class="bot-list">
+              <button type="button" class="bot-item is-on">
+                <span class="dot" aria-hidden="true"></span>
+                <span>
+                  <div class="bot-name">晚风号</div>
+                  <div class="bot-sub">已连接 · 监听中</div>
+                </span>
+                <span class="btn btn-ghost btn-sm">断开</span>
+              </button>
+              <button type="button" class="bot-item">
+                <span class="dot" aria-hidden="true"></span>
+                <span>
+                  <div class="bot-name">云雀号</div>
+                  <div class="bot-sub">已连接</div>
+                </span>
+                <span class="btn btn-ghost btn-sm">断开</span>
+              </button>
+            </div>
+          </aside>
+
+          <section class="detail-pane">
+            <div class="panel-head">
+              <span>晚风号 · 频道</span>
+              <div style="display:flex;gap:6px">
+                <button type="button" class="btn btn-sm">拉取频道</button>
+                <button type="button" class="btn btn-primary btn-sm">+ 加入频道</button>
+              </div>
+            </div>
+            <div class="detail-body">
+              <div class="toolbar">
+                <input class="search" type="text" placeholder="搜索频道…" readonly tabindex="-1" />
+                <span class="filter-lab">状态</span>
+                <div class="seg" aria-hidden="true">
+                  <button type="button" class="is-on">全部</button>
+                  <button type="button">启用</button>
+                  <button type="button">停用</button>
+                  <button type="button">异常</button>
+                </div>
+                <span class="filter-lab">类型</span>
+                <div class="seg" aria-hidden="true">
+                  <button type="button" class="is-on">全部</button>
+                  <button type="button">未分配</button>
+                  <button type="button">采集</button>
+                  <button type="button">分发</button>
+                </div>
+              </div>
+
+              <ul class="ch-grid">
+                <li>
+                  <span class="badge badge-pending">未分配</span>
+                  <span class="health health-ok">✓</span>
+                  <span class="ch-title mono">@pool_pending_b</span>
+                </li>
+                <li>
+                  <span class="badge badge-pending">未分配</span>
+                  <span class="health health-ok">✓</span>
+                  <span class="ch-title mono">@pool_pending_a</span>
+                </li>
+                <li>
+                  <span class="badge badge-push">分发</span>
+                  <span class="health health-bad">✗</span>
+                  <span class="ch-title mono">@pool_target_two</span>
+                  <span class="ch-acts">
+                    <button type="button" class="btn btn-ghost btn-sm">停用</button>
+                    <button type="button" class="icon-x" aria-hidden="true">×</button>
+                  </span>
+                </li>
+                <li>
+                  <span class="badge badge-push">分发</span>
+                  <span class="health health-ok">✓</span>
+                  <span class="ch-title mono">@pool_target_one</span>
+                  <span class="ch-acts">
+                    <button type="button" class="btn btn-ghost btn-sm">停用</button>
+                    <button type="button" class="icon-x" aria-hidden="true">×</button>
+                  </span>
+                </li>
+                <li>
+                  <span class="badge badge-collect">采集</span>
+                  <span class="health health-unk">?</span>
+                  <span class="ch-title mono">@pool_source_beta</span>
+                  <span class="ch-acts">
+                    <button type="button" class="btn btn-ghost btn-sm">停用</button>
+                    <button type="button" class="icon-x" aria-hidden="true">×</button>
+                  </span>
+                </li>
+                <li>
+                  <span class="badge badge-collect">采集</span>
+                  <span class="health health-ok">✓</span>
+                  <span class="ch-title mono">@pool_source_alpha</span>
+                  <span class="ch-acts">
+                    <button type="button" class="btn btn-ghost btn-sm">停用</button>
+                    <button type="button" class="icon-x" aria-hidden="true">×</button>
+                  </span>
+                </li>
+                <li>
+                  <span class="badge badge-push">分发</span>
+                  <span class="health health-ok">✓</span>
+                  <span class="ch-title mono">@pool_demo_ch_16</span>
+                  <span class="ch-acts">
+                    <button type="button" class="btn btn-ghost btn-sm">停用</button>
+                    <button type="button" class="icon-x" aria-hidden="true">×</button>
+                  </span>
+                </li>
+                <li>
+                  <span class="badge badge-collect">采集</span>
+                  <span class="health health-bad">✗</span>
+                  <span class="ch-title mono">@pool_demo_ch_15</span>
+                  <span class="ch-acts">
+                    <button type="button" class="btn btn-ghost btn-sm">停用</button>
+                    <button type="button" class="icon-x" aria-hidden="true">×</button>
+                  </span>
+                </li>
+                <li>
+                  <span class="badge badge-collect">采集</span>
+                  <span class="health health-ok">✓</span>
+                  <span class="ch-title mono">@pool_demo_ch_14</span>
+                  <span class="ch-acts">
+                    <button type="button" class="btn btn-ghost btn-sm">停用</button>
+                    <button type="button" class="icon-x" aria-hidden="true">×</button>
+                  </span>
+                </li>
+                <li>
+                  <span class="badge badge-collect">采集</span>
+                  <span class="health health-ok">✓</span>
+                  <span class="ch-title mono">@pool_demo_ch_13</span>
+                  <span class="ch-acts">
+                    <button type="button" class="btn btn-ghost btn-sm">停用</button>
+                    <button type="button" class="icon-x" aria-hidden="true">×</button>
+                  </span>
+                </li>
+                <li>
+                  <span class="badge badge-push">分发</span>
+                  <span class="health health-unk">?</span>
+                  <span class="ch-title mono">@pool_demo_ch_12</span>
+                  <span class="ch-acts">
+                    <button type="button" class="btn btn-ghost btn-sm">停用</button>
+                    <button type="button" class="icon-x" aria-hidden="true">×</button>
+                  </span>
+                </li>
+                <li>
+                  <span class="badge badge-collect">采集</span>
+                  <span class="health health-ok">✓</span>
+                  <span class="ch-title mono">@pool_demo_ch_11</span>
+                  <span class="ch-acts">
+                    <button type="button" class="btn btn-ghost btn-sm">停用</button>
+                    <button type="button" class="icon-x" aria-hidden="true">×</button>
+                  </span>
+                </li>
+              </ul>
+
+              <div class="pager">
+                <button type="button" class="btn btn-sm">上一页</button>
+                <button type="button" class="btn btn-sm">下一页</button>
+                <span>第 1 / 2 页 · 共 22 个</span>
+              </div>
+
+              <div class="panel-block">
+                <div class="panel-head" style="padding:0 0 10px;border:0">
+                  <h3 style="margin:0">TG 路由</h3>
+                  <button type="button" class="btn btn-primary btn-sm">+ 新建路由</button>
+                </div>
+                <table class="route-table">
+                  <thead>
+                    <tr>
+                      <th>采集源</th>
+                      <th>分发目标</th>
+                      <th>状态</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="mono">@pool_source_alpha</td>
+                      <td class="mono">@pool_target_one</td>
+                      <td><span class="pill pill-ok">正常</span></td>
+                      <td><button type="button" class="btn btn-ghost btn-sm">停用</button></td>
+                    </tr>
+                    <tr>
+                      <td class="mono">@pool_source_alpha</td>
+                      <td class="mono">@pool_target_two</td>
+                      <td><span class="pill pill-bad">异常</span></td>
+                      <td><button type="button" class="btn btn-ghost btn-sm">停用</button></td>
+                    </tr>
+                    <tr>
+                      <td class="mono">@pool_source_beta</td>
+                      <td class="mono">@pool_target_one</td>
+                      <td><span class="pill pill-unk">未知</span></td>
+                      <td><button type="button" class="btn btn-ghost btn-sm">停用</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+      <p class="foot-note">
+        文件：<code>fangzhou/refactor-demo/tg-collect-ui-skins.html</code>
+        · 五套皮肤仅 CSS token / 侧栏与表面处理不同，信息架构与现行页一致。
+      </p>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var tabs = document.querySelectorAll(".skin-tab");
+      function apply(skin) {
+        root.setAttribute("data-skin", skin);
+        tabs.forEach(function (t) {
+          t.classList.toggle("is-on", t.getAttribute("data-skin") === skin);
+        });
+        try {
+          localStorage.setItem("fz_tg_ui_skin", skin);
+        } catch (e) {}
+      }
+      tabs.forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          apply(tab.getAttribute("data-skin"));
+        });
+      });
+      var saved = null;
+      try {
+        saved = localStorage.getItem("fz_tg_ui_skin");
+      } catch (e) {}
+      if (saved) apply(saved);
+    })();
+  </script>
+</body>
+</html>

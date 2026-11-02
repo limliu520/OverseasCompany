@@ -1,4 +1,4 @@
-/* 素材管理：三视图（待审核素材 / 全部素材 / 垃圾素材）；全部素材下挂项目/公共池范围 */
+/* 素材管理：三视图（待审 / 全部 / 垃圾）；全部下挂公共素材池（全量）+ 项目子集 */
 (function () {
   var D = window.FZMatData;
   var Fil = window.FZMatFilters;
@@ -6,7 +6,7 @@
   var TABS = D.TABS;
   var ITEMS = D.ITEMS;
   var LABEL = D.LABEL;
-  var PROJECTS = D.DISPATCH_PROJECTS || ["演示瓜站", "演示视频站", "演示短剧站"];
+  var PROJECTS = D.DISPATCH_PROJECTS || ["每日大赛", "91 网黄", "51 短剧"];
   var F = Fil.blank();
   var esc = Fil.esc;
 
@@ -197,7 +197,7 @@
     var parts = [
       '<button type="button" class="mat-v2-scope mat-v2-scope--pool' +
         (scope === "pool" ? " is-on" : "") +
-        '" data-scope="pool"><span class="mat-v2-scope-name">公共池</span><span class="mat-v2-scope-n">' +
+        '" data-scope="pool"><span class="mat-v2-scope-name">公共素材池</span><span class="mat-v2-scope-n">' +
         Fil.scopeCount(ITEMS, "pool") +
         "</span></button>"
     ];
@@ -282,6 +282,13 @@
     paintScopes();
     paintToolbar();
     paintTable();
+    try {
+      var tour = window.FZNoviceTours && FZNoviceTours.get && FZNoviceTours.get("materials");
+      var step = tour && tour.active && tour.active() && tour.cur && tour.cur();
+      if (step && step.id === "open_detail") {
+        window.FZMatApp && FZMatApp.markTourHitRow && FZMatApp.markTourHitRow();
+      }
+    } catch (err) {}
   }
   function bind() {
     document.getElementById("mat-tabs").addEventListener("click", function (e) {
@@ -474,6 +481,21 @@
     if (window.FZMatTransfer) window.FZMatTransfer.bind();
     paint();
   }
+
+  window.FZMatApp = {
+    setTab: setTab,
+    setScope: setScope,
+    paint: paint,
+    markTourHitRow: function () {
+      var rows = document.querySelectorAll("#mat-root tbody tr[data-id]");
+      for (var i = 0; i < rows.length; i++) {
+        if (i === 0) rows[i].setAttribute("data-tour-hit", "1");
+        else rows[i].removeAttribute("data-tour-hit");
+      }
+      return rows[0] || null;
+    }
+  };
+
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
 })();

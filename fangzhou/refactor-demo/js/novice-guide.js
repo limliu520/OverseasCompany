@@ -61,20 +61,12 @@
       return base + "project-setup.html?new=1&" + q;
     }
     if (step.id === "edit_project") {
-      var list =
-        FZStore.businessProjects && FZStore.businessProjects(state)
-          ? FZStore.businessProjects(state)
-          : [];
-      if (list.length) {
-        return (
-          base +
-          "project-edit.html?id=" +
-          encodeURIComponent(list[0].id) +
-          "&" +
-          q
-        );
-      }
-      return base + "projects.html?" + q;
+      /* 教程独立演示页：不依赖真实项目，新号也不进空列表 */
+      return (
+        base +
+        "project-edit.html?id=novice_demo_edit&tab=watermark&" +
+        q
+      );
     }
     if (step.id === "tg_collect") return base + "tg-collect.html?" + q;
     if (step.id === "web_collect") return base + "website-collect.html?" + q;

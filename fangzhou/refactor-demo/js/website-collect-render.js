@@ -151,21 +151,23 @@ window.FZWebCollectRender = (function () {
         var st = D.STATUS[s.status] || { label: s.status, cls: "" };
         var targets = s.targets || [];
         var typeLabel = D.SITE_TYPES[s.type] || s.type || "—";
-        var bindHtml = targets.length
-          ? '<div class="wc-site-bind">' +
-            '<div class="wc-site-bind-hd muted">绑 ' +
-            targets.length +
-            "/" +
-            D.MAX_BIND +
-            " 项目</div>" +
-            '<ul class="wc-site-bind-list">' +
-            targets
-              .map(function (t) {
-                return "<li>" + esc(t) + "</li>";
-              })
-              .join("") +
-            "</ul></div>"
-          : '<div class="wc-site-bind muted">未绑定项目</div>';
+        var bindHtml = D.isPublicMaterialPool(s.type)
+          ? '<div class="wc-site-bind muted">进公共素材池</div>'
+          : targets.length
+            ? '<div class="wc-site-bind">' +
+              '<div class="wc-site-bind-hd muted">绑 ' +
+              targets.length +
+              "/" +
+              D.MAX_BIND +
+              " 项目</div>" +
+              '<ul class="wc-site-bind-list">' +
+              targets
+                .map(function (t) {
+                  return "<li>" + esc(t) + "</li>";
+                })
+                .join("") +
+              "</ul></div>"
+            : '<div class="wc-site-bind muted">未绑定项目</div>';
         var ops = "";
         if (s.status === "active") {
           ops =

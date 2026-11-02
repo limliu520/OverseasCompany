@@ -8,11 +8,21 @@
   var CHANNELS = ["源频道甲", "源频道乙", "源频道丙", "示例短剧站 A"];
   /* 全部素材筛选项：对齐列表「分发频道 / 分发项目」列 */
   var TARGET_CHANNELS = ["@push_demo_a", "@push_demo_b", "@push_demo_c", "@push_demo_d"];
-  var DISPATCH_PROJECTS = ["演示瓜站", "演示视频站", "演示短剧站"];
+  var DISPATCH_PROJECTS = [
+    "每日大赛",
+    "51 吃瓜",
+    "91 网黄",
+    "51 原创",
+    "51 短剧",
+    "51 短视频"
+  ];
   var PROJECT_SITE_TYPE = {
-    演示瓜站: "chigua",
-    演示视频站: "video",
-    演示短剧站: "short_drama"
+    每日大赛: "chigua",
+    "51 吃瓜": "chigua",
+    "91 网黄": "video",
+    "51 原创": "video",
+    "51 短剧": "short_drama",
+    "51 短视频": "short_drama"
   };
   var SITE_TYPE_LABEL = {
     chigua: "瓜站",
@@ -47,9 +57,11 @@
     var collectType =
       opts.collectType || (String(channel || "").indexOf("站") >= 0 ? "web" : "tg");
     /*
-     * belong: none=公共池；proj=业务项目内容通道
-     * 公共池含：① TG 采集未进项目（可 TG→TG 分发频道）；② 网站采集未绑任何项目
-     * 网站已绑项目 → proj；网站料永不挂 TG 分发频道（进不了 TG）
+     * belong：采入主路径标记（展示「采集方式」用）
+     *   none = 先入公共采集 / 未绑项目网站等
+     *   proj = 项目自采（频道/网站已绑项目）
+     * 口径：不论 belong，素材一律进「公共素材池」；转编辑进项目后仍留在公共素材池，他人可见。
+     * 网站料永不挂 TG 分发频道（进不了 TG）。
      */
     var belong = opts.belong != null ? opts.belong : collectType === "web" ? "proj" : "none";
     var isPool = belong === "none";
@@ -127,37 +139,37 @@
 
   var ITEMS = [
     /* 待审去向示例：公共池已配 TG 路由 / 项目自采 / 公共池无固定去向 */
-    mk("m1012", "频道快讯 · 图文组", "演示瓜站", "源频道甲", "pending", "2026-10-27 10:48", 1200, 88, {
+    mk("m1012", "频道快讯 · 图文组", "每日大赛", "源频道甲", "pending", "2026-10-27 10:48", 1200, 88, {
       imageCount: 12,
       videoCount: 0,
       belong: "none",
       targetChannels: ["@push_demo_a", "@push_demo_b"]
     }),
-    mk("m1011", "短视频素材 #8841", "演示视频站", "源频道乙", "pending", "2026-10-27 10:12", 860, 41, {
+    mk("m1011", "短视频素材 #8841", "91 网黄", "源频道乙", "pending", "2026-10-27 10:12", 860, 41, {
       mediaType: "视频",
       belong: "proj",
       targetChannels: []
     }),
-    mk("m1010", "公共池待审 · 暂无路由", "演示瓜站", "源频道丙", "pending", "2026-10-27 09:40", 420, 19, {
+    mk("m1010", "公共池待审 · 暂无路由", "每日大赛", "源频道丙", "pending", "2026-10-27 09:40", 420, 19, {
       belong: "none",
       targetChannels: []
     }),
-    mk("m1009", "已驳回样例", "演示瓜站", "源频道甲", "rejected", "2026-10-27 08:00", 90, 3),
-    mk("m1007", "去重保留样例", "演示视频站", "源频道乙", "kept", "2026-10-26 20:10", 500, 20),
-    mk("m1006", "重复淘汰样例", "演示瓜站", "源频道丙", "duplicate", "2026-10-26 19:00", 40, 1),
-    mkTrash("m1005", "广告疑似 · 已入垃圾", "演示瓜站", "源频道丙", "2026-10-26 22:01", AD_CATS[0], 9.2, "导流外链"),
+    mk("m1009", "已驳回样例", "每日大赛", "源频道甲", "rejected", "2026-10-27 08:00", 90, 3),
+    mk("m1007", "去重保留样例", "91 网黄", "源频道乙", "kept", "2026-10-26 20:10", 500, 20),
+    mk("m1006", "重复淘汰样例", "每日大赛", "源频道丙", "duplicate", "2026-10-26 19:00", 40, 1),
+    mkTrash("m1005", "广告疑似 · 已入垃圾", "每日大赛", "源频道丙", "2026-10-26 22:01", AD_CATS[0], 9.2, "导流外链"),
     /* 少数垃圾仍带媒体：证明详情壳相同，有 media_files 就会出预览 */
-    mkTrash("m1004", "垃圾但有图 · 对照", "演示瓜站", "源频道甲", "2026-10-26 21:30", AD_CATS[2], 6.1, "关键词命中", {
+    mkTrash("m1004", "垃圾但有图 · 对照", "每日大赛", "源频道甲", "2026-10-26 21:30", AD_CATS[2], 6.1, "关键词命中", {
       imageCount: 3,
       videoCount: 0
     }),
     /* 网站已绑项目 → 进项目；无 TG 分发频道 */
-    mk("m1002", "网站已绑项目 · 进短剧站", "演示短剧站", "示例短剧站 A", "available", "2026-10-26 18:40", 2200, 156, {
+    mk("m1002", "网站已绑项目 · 进短剧站", "51 短剧", "示例短剧站 A", "available", "2026-10-26 18:40", 2200, 156, {
       mediaType: "视频",
       collectType: "web",
       belong: "proj",
       targetChannels: [],
-      dispatchProject: "演示短剧站"
+      dispatchProject: "51 短剧"
     }),
     /* 网站未绑任何项目 → 进公共池；分发频道为空（进不了 TG） */
     mk("m1003", "网站未绑项目 · 进公共池", "", "示例短剧站 A", "available", "2026-10-26 18:10", 900, 44, {
@@ -167,21 +179,21 @@
       targetChannels: [],
       dispatchProject: ""
     }),
-    /* 公共池 TG：多频道已推 + 转编辑进项目后离开公共池列表 */
-    mk("m0998", "公共池已转编辑", "演示瓜站", "源频道甲", "used", "2026-10-25 12:00", 300, 18, {
+    /* 已转编辑进项目：项目范围可见，公共素材池仍保留 */
+    mk("m0998", "公共池已转编辑", "每日大赛", "源频道甲", "used", "2026-10-25 12:00", 300, 18, {
       belong: "none",
       targetChannels: ["@push_demo_b", "@push_demo_d", "@push_demo_c"],
-      dispatchProject: "演示瓜站",
-      dispatchProjects: ["演示瓜站", "演示视频站"]
+      dispatchProject: "每日大赛",
+      dispatchProjects: ["每日大赛", "91 网黄"]
     }),
     /* TG 项目自采 */
-    mk("m0997", "项目自采进内容通道", "演示瓜站", "源频道乙", "available", "2026-10-25 09:00", 180, 9, {
+    mk("m0997", "项目自采进内容通道", "每日大赛", "源频道乙", "available", "2026-10-25 09:00", 180, 9, {
       belong: "proj",
       targetChannels: [],
-      dispatchProject: "演示瓜站"
+      dispatchProject: "每日大赛"
     }),
     /* 公共池 TG 可用成片 */
-    mk("m1001", "公共池可用 · 可转编辑", "演示视频站", "源频道甲", "available", "2026-10-26 17:20", 1800, 120, {
+    mk("m1001", "公共池可用 · 可转编辑", "91 网黄", "源频道甲", "available", "2026-10-26 17:20", 1800, 120, {
       mediaType: "视频",
       belong: "none",
       targetChannels: ["@push_demo_a", "@push_demo_b", "@push_demo_c"],
@@ -197,11 +209,11 @@
       var title = "演示素材 #" + (980 - i);
       /* 网站：约 1/3 未绑项目进公共池，其余进短剧站 */
       var webInPool = isWeb && i % 3 === 0;
-      var proj = webInPool ? "" : isWeb ? "演示短剧站" : i % 2 ? "演示视频站" : "演示瓜站";
+      var proj = webInPool ? "" : isWeb ? "51 短剧" : i % 2 ? "91 网黄" : "每日大赛";
       var time = "2026-10-24 " + String(8 + (i % 10)).padStart(2, "0") + ":00";
       if (i % 5 === 4) {
         ITEMS.push(
-          mkTrash(id, title, proj || "演示瓜站", ch, time, AD_CATS[i % 3], (5 + (i % 50) / 10).toFixed(1), "规则#" + ((i % 7) + 1))
+          mkTrash(id, title, proj || "每日大赛", ch, time, AD_CATS[i % 3], (5 + (i % 50) / 10).toFixed(1), "规则#" + ((i % 7) + 1))
         );
       } else {
         var st = ALL_STATUSES[i % ALL_STATUSES.length];

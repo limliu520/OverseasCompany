@@ -36,19 +36,6 @@
       ]
     },
     {
-      id: "projects",
-      label: "项目管理",
-      children: [
-        leaf("projects.list", "项目列表", [
-          "view",
-          "create",
-          "edit",
-          "config",
-          "connect"
-        ])
-      ]
-    },
-    {
       id: "collect",
       label: "采集中心",
       children: [
@@ -95,6 +82,19 @@
         leaf("review.comment", "评论审核", ["view", "approve", "edit"]),
         leaf("review.user", "用户审核", ["view", "approve", "enable"]),
         leaf("review.post", "帖子审核", ["view", "approve", "delete"])
+      ]
+    },
+    {
+      id: "projects",
+      label: "项目管理",
+      children: [
+        leaf("projects.list", "项目列表", [
+          "view",
+          "create",
+          "edit",
+          "config",
+          "connect"
+        ])
       ]
     },
     {

@@ -7,57 +7,317 @@
     {
       id: "switch_biz",
       title: "切换到业务项目",
-      tip: "先点一张业务项目卡片，看看「项目内采集」和公共池有什么不同。",
-      allow: "[data-pick-ctx]:not([data-pick-ctx=\"" + POOL + "\"])",
+      tip: "点「下一步」自动切到业务项目卡片，看看「项目内采集」和公共池有什么不同。",
+      allow: "",
       spotlight: "[data-pick-ctx]:not([data-pick-ctx=\"" + POOL + "\"])"
     },
     {
       id: "switch_pool",
-      title: "切回公共池",
-      tip: "路由只能在公共池创建。请点「公共池」，后面要在这里建 TG→TG 路由。",
-      allow: "[data-pick-ctx=\"" + POOL + "\"]",
+      title: "切回公共采集池",
+      tip: "路由只能在公共采集池创建。点「下一步」自动切回「公共采集池」。",
+      allow: "",
       spotlight: "[data-pick-ctx=\"" + POOL + "\"]"
     },
     {
       id: "add_bot",
       title: "添加采集号",
-      tip: "点左侧「+ 添加」。Demo 里验证码随便填非空即可模拟登录成功。",
-      allow: "#tg-add-bot, #fz-tg-wizard-mask, #fz-tg-wizard-mask *",
+      tip: "点高亮旁「下一步」，或直接点「+ 添加」：会自动预填并完成添加，无需手输。",
+      allow: "",
       spotlight: "#tg-add-bot",
       waitEvent: "bot"
     },
     {
       id: "add_channel",
       title: "加入频道",
-      tip: "点「+ 加入频道」。已帮你填好示例 @novice_demo_src，直接确认即可（公共池请选「采集」）。",
-      allow:
-        "[data-add-ch], #tg-ch-modal, #tg-ch-modal *, [data-pick-bot], .tg-bot-item, .tg-bot-item *",
+      tip: "点「下一步」：自动加入示例采集频道 @novice_demo_src，并备好分发频道，无需手输。",
+      allow: "",
       spotlight: "[data-add-ch]",
-      waitEvent: "channel",
-      prefillChannel: true
+      waitEvent: "channel"
     },
     {
       id: "add_route",
       title: "创建路由（仅公共池）",
-      tip: "点「+ 新建路由」：选一个采集源，勾至少一个分发目标，保存。若还没有分发频道，可先加入一个用途为「分发」的频道。",
-      allow:
-        "[data-add-route], #tg-rr-modal, #tg-rr-modal *, [data-add-ch], #tg-ch-modal, #tg-ch-modal *, [data-ch-role], [data-ch-role] *, [data-assign-pick], #tg-assign-modal, #tg-assign-modal *",
+      tip: "点「保存并完成」：自动打开新建路由并保存预填的采集源与分发目标。",
+      allow: "",
       spotlight: "[data-add-route]",
       waitEvent: "route"
     }
   ];
 
+  var NOVICE_SRC = {
+    id: "ch_novice_demo_src",
+    title: "@novice_demo_src",
+    role: "collect"
+  };
+  var NOVICE_TGT = {
+    id: "ch_novice_demo_tgt",
+    title: "@novice_demo_tgt",
+    role: "push"
+  };
+
   var active = false;
   var dismissed = false;
+  var showingDone = false;
   var stepIndex = 0;
   var root = null;
   var spot = null;
+  var ackFloat = null;
   var doneMask = null;
   var waiting = "";
+  var autoDriving = false;
+  var autoDriveTimer = 0;
   var EXIT_KEY = "fz_tg_novice_exit";
+
+  function beginAutoDrive(ms) {
+    autoDriving = true;
+    if (autoDriveTimer) clearTimeout(autoDriveTimer);
+    autoDriveTimer = setTimeout(function () {
+      autoDriving = false;
+      autoDriveTimer = 0;
+    }, ms || 8000);
+  }
+
+  function liveContextId() {
+    try {
+      var u = new URLSearchParams(location.search);
+      return u.get("project") || u.get("ctx") || POOL;
+    } catch (e) {
+      return POOL;
+    }
+  }
+
+  /** 教程兜底：保证当前上下文至少有一个可用采集号 */
+  function ensureNoviceDemoBot() {
+    if (!global.FZStore) return null;
+    var st = FZStore.read();
+    var ctxId = liveContextId();
+    var bots = FZStore.botsForProject(st, ctxId);
+    if (bots.length) return bots[0];
+    var bot = {
+      id: FZStore.uid("bot"),
+      name: "教程采集号",
+      phoneHint: "+861****8000",
+      channelCount: 0,
+      loginMode: "quick",
+      status: "connected",
+      monitoring: false
+    };
+    if (!st.userbots) st.userbots = [];
+    st.userbots.push(bot);
+    var p = FZStore.findProject(st, ctxId);
+    if (p) FZStore.attachBotToProject(st, p, bot);
+    FZStore.write(st);
+    refreshCollect();
+    return bot;
+  }
+
+  function forceFinishAddBot(msg) {
+    var step = cur();
+    if (!step || step.id !== "add_bot" || showingDone) return;
+    var mask = document.getElementById("fz-tg-wizard-mask");
+    if (mask) mask.hidden = true;
+    ensureNoviceDemoBot();
+    if (msg && global.FZShell) FZShell.toast(msg, "ok");
+    notify("bot");
+  }
+
+  function runPrefillAddBot() {
+    beginAutoDrive(8000);
+    if (!global.FZStore) {
+      forceFinishAddBot("已跳过添加采集号");
+      return;
+    }
+    var st = FZStore.read();
+    var ctxId = liveContextId();
+    var block = FZStore.addBotToProjectBlockReason(st, ctxId);
+    if (block) {
+      forceFinishAddBot("本项目已有采集号，跳过添加演示");
+      return;
+    }
+    var mask = document.getElementById("fz-tg-wizard-mask");
+    if (!mask || mask.hidden) {
+      var btn = document.getElementById("tg-add-bot");
+      if (btn) btn.click();
+    }
+    setTimeout(function () {
+      var wiz = document.getElementById("fz-tg-wizard-mask");
+      if (!wiz || wiz.hidden) {
+        forceFinishAddBot("添加向导未打开，已用示例号完成本步");
+        return;
+      }
+      var label = document.getElementById("tg-wiz-quick-label");
+      var phone = document.getElementById("tg-wiz-quick-phone");
+      if (label) label.value = "教程采集号";
+      if (phone) phone.value = "+8613800138000";
+      var send = document.querySelector('#fz-tg-wizard-mask [data-act="quick-send"]');
+      if (send) send.click();
+      setTimeout(function () {
+        var code = document.getElementById("tg-wiz-code");
+        if (code) code.value = "12345";
+        var verify = document.querySelector('#fz-tg-wizard-mask [data-act="verify"]');
+        if (verify) verify.click();
+        setTimeout(function () {
+          var finish = document.querySelector('#fz-tg-wizard-mask [data-act="finish"]');
+          if (finish) finish.click();
+        }, 100);
+      }, 100);
+    }, 160);
+    /* 向导任一步失败也不卡死 */
+    setTimeout(function () {
+      forceFinishAddBot("已用示例采集号完成本步");
+    }, 3200);
+  }
+
+  function runPrefillAddChannel() {
+    beginAutoDrive(8000);
+    ensureNoviceDemoBot();
+    var mask = document.getElementById("tg-ch-modal");
+    if (!mask || mask.hidden) {
+      var add = document.querySelector("[data-add-ch]");
+      if (add) add.click();
+    }
+    setTimeout(function () {
+      var input = document.getElementById("tg-ch-link");
+      var role = document.getElementById("tg-ch-role");
+      if (input) input.value = "@novice_demo_src";
+      if (role) role.value = "collect";
+      document.querySelectorAll("[data-ch-role]").forEach(function (b) {
+        b.classList.toggle("is-active", b.getAttribute("data-ch-role") === "collect");
+      });
+      var save = document.getElementById("tg-ch-save");
+      if (save) save.click();
+      setTimeout(function () {
+        var step = cur();
+        if (step && step.id === "add_channel" && !showingDone) {
+          var bid = currentBotId();
+          if (bid) ensureNoviceRoutePair(bid);
+          var chMask = document.getElementById("tg-ch-modal");
+          if (chMask) chMask.hidden = true;
+          if (global.FZShell) FZShell.toast("已挂上示例频道，继续下一步", "ok");
+          notify("channel");
+        }
+      }, 800);
+    }, 120);
+  }
+
+  function triggerStepAction() {
+    if (!active || dismissed || showingDone) return;
+    var step = cur();
+    if (!step) return;
+    beginAutoDrive(8000);
+    if (step.id === "switch_biz" || step.id === "switch_pool") {
+      var el = resolveSpotlight(step.spotlight);
+      if (el) el.click();
+      else advance();
+      return;
+    }
+    if (step.id === "add_bot") {
+      runPrefillAddBot();
+      return;
+    }
+    if (step.id === "add_channel") {
+      runPrefillAddChannel();
+      return;
+    }
+    if (step.id === "add_route") {
+      var rrMask = document.getElementById("tg-rr-modal");
+      var saveBtn = document.getElementById("tg-rr-save");
+      if (rrMask && !rrMask.hidden && saveBtn) {
+        try {
+          saveBtn.click();
+        } catch (err) {}
+        setTimeout(function () {
+          if (!showingDone) showDone();
+        }, 80);
+        return;
+      }
+      var addRr = document.querySelector("[data-add-route]");
+      if (addRr && (!rrMask || rrMask.hidden)) {
+        addRr.click();
+        setTimeout(function () {
+          var save2 = document.getElementById("tg-rr-save");
+          if (save2) save2.click();
+          setTimeout(function () {
+            if (!showingDone) showDone();
+          }, 120);
+        }, 140);
+        return;
+      }
+      showDone();
+    }
+  }
 
   function esc(s) {
     return global.FZShell ? FZShell.escHtml(s) : String(s || "");
+  }
+
+  function currentBotId() {
+    if (global.FZTgCollectApp && FZTgCollectApp.selectedBotId) {
+      var live = FZTgCollectApp.selectedBotId();
+      if (live) return live;
+    }
+    try {
+      return new URLSearchParams(location.search).get("bot") || "";
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function refreshCollect() {
+    if (global.FZTgCollectApp && FZTgCollectApp.paint) {
+      try {
+        FZTgCollectApp.paint();
+      } catch (e) {}
+    }
+  }
+
+  /**
+   * 建路由需要同号下至少 1 采集 + 1 分发。教程步骤只点一次「加入」，
+   * 此处补齐示例分发（及必要时补采集），避免点「新建路由」被拦。
+   */
+  function ensureNoviceRoutePair(botId) {
+    if (!global.FZStore || !botId) return false;
+    var st = FZStore.read();
+    var pool = FZStore.findProject(st, POOL);
+    if (!pool) return false;
+    if (!pool.boundChannels) pool.boundChannels = [];
+    var changed = false;
+    function upsert(row) {
+      var hit = pool.boundChannels.find(function (ch) {
+        return ch.botId === botId && (ch.id === row.id || ch.title === row.title);
+      });
+      if (hit) {
+        if (hit.role !== row.role) {
+          hit.role = row.role;
+          changed = true;
+        }
+        if (hit.active === false) {
+          hit.active = true;
+          changed = true;
+        }
+        return;
+      }
+      pool.boundChannels.unshift({
+        id: row.id,
+        title: row.title,
+        botId: botId,
+        role: row.role,
+        active: true,
+        boundAt: Date.now(),
+        healthStatus: "OK",
+        healthError: "",
+        note: "教程示例"
+      });
+      changed = true;
+    }
+    upsert(NOVICE_SRC);
+    upsert(NOVICE_TGT);
+    if (changed) {
+      if (NOVICE_SRC.role === "collect") pool.hasCollectSource = true;
+      FZStore.upsertProject(st, pool);
+      FZStore.write(st);
+    }
+    return changed;
   }
 
   function enabled() {
@@ -96,12 +356,12 @@
       '<div class="fz-tg-novice-bar">' +
       '<div class="fz-tg-novice-lead">' +
       '<div class="fz-tg-novice-badge">教程 Demo</div>' +
-      '<p class="fz-tg-novice-fake">仅演示环境，可随意填写，不会产生真实操作</p>' +
+      '<p class="fz-tg-novice-fake">仅演示环境：示例已预填，点高亮旁「下一步」即可，无需手输</p>' +
       "</div>" +
       '<div class="fz-tg-novice-main">' +
       '<p class="fz-tg-novice-step" id="fz-tg-novice-step"></p>' +
       '<p class="fz-tg-novice-tip" id="fz-tg-novice-tip"></p>' +
-      '<p class="fz-tg-novice-aside">旁白：连接/断开、启用停用、筛选分页等是基础能力，本教程不强制点；跟着高亮走主流程即可。</p>' +
+      '<p class="fz-tg-novice-aside">旁白：连接/断开、启用停用、筛选分页等是基础能力，本教程不强制点；跟着高亮旁按钮走即可。</p>' +
       "</div>" +
       '<div class="fz-tg-novice-side">' +
       '<button type="button" class="btn btn-sm fz-tg-novice-exit" id="fz-tg-novice-exit">退出教程</button>' +
@@ -116,6 +376,17 @@
     spot.className = "fz-tg-novice-spot";
     spot.hidden = true;
     document.body.appendChild(spot);
+
+    ackFloat = document.createElement("button");
+    ackFloat.type = "button";
+    ackFloat.id = "fz-tg-novice-ack-float";
+    ackFloat.className = "btn btn-primary fz-novice-ack-float";
+    ackFloat.hidden = true;
+    ackFloat.textContent = "下一步";
+    document.body.appendChild(ackFloat);
+    ackFloat.onclick = function () {
+      triggerStepAction();
+    };
 
     doneMask = document.createElement("div");
     doneMask.id = "fz-tg-novice-done";
@@ -145,10 +416,12 @@
       doneMask.hidden = true;
       stepIndex = 0;
       waiting = "";
-      saveStep();
-      renderCoach();
-      placeSpot();
-      FZShell.toast("已从头开始，请按步骤操作", "ok");
+      try {
+        sessionStorage.removeItem(STEP_KEY);
+        sessionStorage.removeItem(EXIT_KEY);
+      } catch (e) {}
+      if (global.FZShell) FZShell.toast("已从头开始，请按步骤操作", "ok");
+      location.href = "./tg-collect.html?novice=tg_collect";
     };
   }
 
@@ -158,12 +431,53 @@
       return s.trim();
     });
     for (var i = 0; i < parts.length; i++) {
+      var sel = parts[i];
+      if (!sel) continue;
       try {
-        if (el.closest && el.closest(parts[i])) return true;
-        if (el.matches && el.matches(parts[i])) return true;
+        if (el.matches && el.matches(sel)) return true;
       } catch (err) {}
+      /* closest 不支持「祖先 后代」复合选择器时会抛错，退化为找祖先 id/类 */
+      try {
+        if (el.closest && el.closest(sel)) return true;
+      } catch (err2) {
+        var idMatch = sel.match(/^#([A-Za-z0-9_-]+)\s+\*$/);
+        if (idMatch) {
+          var root = document.getElementById(idMatch[1]);
+          if (root && root.contains(el)) return true;
+        }
+      }
     }
     return false;
+  }
+
+  function clickInsideOpenModal(el) {
+    if (!el) return false;
+    var masks = document.querySelectorAll(".modal-mask");
+    for (var i = 0; i < masks.length; i++) {
+      var m = masks[i];
+      if (m.hidden || m.hasAttribute("hidden")) continue;
+      if (m.id === "fz-tg-novice-done") continue;
+      if (m.contains(el)) return true;
+    }
+    return false;
+  }
+
+  function showDone() {
+    showingDone = true;
+    waiting = "";
+    autoDriving = false;
+    if (autoDriveTimer) {
+      clearTimeout(autoDriveTimer);
+      autoDriveTimer = 0;
+    }
+    stepIndex = STEPS.length;
+    saveStep();
+    ensureUi();
+    if (spot) spot.hidden = true;
+    if (ackFloat) ackFloat.hidden = true;
+    var rr = document.getElementById("tg-rr-modal");
+    if (rr) rr.hidden = true;
+    if (doneMask) doneMask.hidden = false;
   }
 
   /** 教程步骤打开的弹窗：高亮应落在弹窗上，避免 spot 遮罩把弹窗压暗 */
@@ -211,6 +525,33 @@
     return null;
   }
 
+  function placeAckFloat(r) {
+    if (!ackFloat) return;
+    var step = cur();
+    if (!step || showingDone || dismissed || !active) {
+      ackFloat.hidden = true;
+      return;
+    }
+    ackFloat.hidden = false;
+    ackFloat.textContent = step.id === "add_route" ? "保存并完成" : "下一步";
+    if (!r) {
+      ackFloat.style.left = "50%";
+      ackFloat.style.top = "42%";
+      ackFloat.style.transform = "translate(-50%, -50%)";
+      return;
+    }
+    ackFloat.style.transform = "";
+    var btnW = Math.max(ackFloat.offsetWidth || 110, 110);
+    var btnH = Math.max(ackFloat.offsetHeight || 36, 36);
+    var left = r.left;
+    var top = r.bottom + 12;
+    if (top + btnH > window.innerHeight - 16) top = Math.max(12, r.top - btnH - 12);
+    if (left + btnW > window.innerWidth - 12) left = Math.max(12, window.innerWidth - btnW - 12);
+    if (left < 12) left = 12;
+    ackFloat.style.left = Math.round(left) + "px";
+    ackFloat.style.top = Math.round(top) + "px";
+  }
+
   function applySpotRect(el, pad) {
     var r = el.getBoundingClientRect();
     spot.hidden = false;
@@ -218,18 +559,35 @@
     spot.style.top = Math.max(8, r.top - pad) + "px";
     spot.style.width = Math.ceil(r.width + pad * 2) + "px";
     spot.style.height = Math.ceil(r.height + pad * 2) + "px";
+    placeAckFloat({
+      left: Math.max(8, r.left - pad),
+      top: Math.max(8, r.top - pad),
+      bottom: Math.max(8, r.top - pad) + Math.ceil(r.height + pad * 2),
+      right: 0
+    });
   }
 
   function placeSpot() {
     if (!spot) return;
+    if (showingDone || dismissed || !active) {
+      spot.hidden = true;
+      if (ackFloat) ackFloat.hidden = true;
+      return;
+    }
     var step = cur();
     if (!step || !step.spotlight) {
       spot.hidden = true;
+      placeAckFloat(null);
       return;
     }
+    /* 业务弹窗已打开：高亮弹窗并贴「保存并完成」 */
     var modalEl = openTourModalEl();
-    if (modalEl && !isSpottable(modalEl)) modalEl = null;
-    var el = modalEl || resolveSpotlight(step.spotlight);
+    if (modalEl && isSpottable(modalEl)) {
+      spot.hidden = true;
+      placeAckFloat(modalEl.getBoundingClientRect());
+      return;
+    }
+    var el = resolveSpotlight(step.spotlight);
     if (!el) {
       spot.hidden = true;
       /* 无业务项目时跳过「切到业务项目」 */
@@ -243,25 +601,24 @@
       }
       return;
     }
-    var pad = modalEl ? 8 : 6;
-    if (!modalEl) {
-      try {
-        el.scrollIntoView({ block: "nearest", inline: "nearest" });
-      } catch (e) {}
-    }
-    applySpotRect(el, pad);
-    if (!modalEl) {
-      setTimeout(function () {
-        if (!active || !spot || spot.hidden) return;
-        if (isSpottable(el)) applySpotRect(el, pad);
-      }, 50);
-    }
+    try {
+      el.scrollIntoView({ block: "nearest", inline: "nearest" });
+    } catch (e) {}
+    applySpotRect(el, 6);
+    setTimeout(function () {
+      if (!active || !spot || spot.hidden || showingDone) return;
+      if (isSpottable(el)) applySpotRect(el, 6);
+    }, 50);
   }
 
   function renderCoach() {
     ensureUi();
     var step = cur();
     if (!step) return;
+    if (step.id === "add_route") {
+      var routeBot = currentBotId();
+      if (routeBot && ensureNoviceRoutePair(routeBot)) refreshCollect();
+    }
     document.getElementById("fz-tg-novice-step").textContent =
       "第 " + (stepIndex + 1) + " / " + STEPS.length + " 步 · " + step.title;
     document.getElementById("fz-tg-novice-tip").textContent = step.tip;
@@ -272,10 +629,7 @@
     waiting = "";
     stepIndex += 1;
     if (stepIndex >= STEPS.length) {
-      saveStep();
-      ensureUi();
-      doneMask.hidden = false;
-      if (spot) spot.hidden = true;
+      showDone();
       return;
     }
     saveStep();
@@ -293,50 +647,67 @@
 
   function notify(kind) {
     if (!active || dismissed) return;
+    if (kind === "route") {
+      /* 路由保存成功：强制收口，不依赖当前步是否仍为 add_route */
+      showDone();
+      return;
+    }
+    if (showingDone) return;
     var step = cur();
     if (!step || step.waitEvent !== kind) return;
+    if (kind === "channel") {
+      var bid = currentBotId();
+      if (bid && ensureNoviceRoutePair(bid)) refreshCollect();
+    }
     if (waiting === kind || step.waitEvent === kind) advance();
   }
 
   function gateClick(e) {
     if (!active || dismissed) return;
-    if (e.target.closest("#fz-tg-novice, #fz-tg-novice-done, #fz-help-root, .fz-help-fab"))
+    if (autoDriving) return;
+    if (
+      e.target.closest(
+        "#fz-tg-novice, #fz-tg-novice-done, #fz-tg-novice-ack-float, .fz-novice-ack-float, #fz-help-root, .fz-help-fab"
+      )
+    )
       return;
-    var step = cur();
-    if (!step) return;
-    if (matchesAllow(e.target, step.allow)) {
-      if (e.target.closest("[data-add-ch]")) {
-        setTimeout(function () {
-          var input = document.getElementById("tg-ch-link");
-          var role = document.getElementById("tg-ch-role");
-          var wantPush = step.id === "add_route";
-          var roleVal = wantPush ? "push" : "collect";
-          var demo = wantPush ? "@novice_demo_tgt" : "@novice_demo_src";
-          if (input) input.value = demo;
-          if (role) role.value = roleVal;
-          document.querySelectorAll("[data-ch-role]").forEach(function (b) {
-            b.classList.toggle(
-              "is-active",
-              b.getAttribute("data-ch-role") === roleVal
-            );
-          });
-          placeSpot();
-        }, 60);
-      } else if (
-        e.target.closest("#tg-add-bot, [data-add-route], [data-ch-assign]")
-      ) {
-        setTimeout(placeSpot, 40);
-        setTimeout(placeSpot, 160);
-      }
+    if (showingDone) {
+      if (e.target.closest("#fz-tg-novice-done")) return;
+      if (clickInsideOpenModal(e.target)) return;
+      e.preventDefault();
+      e.stopPropagation();
       return;
     }
-    /* 已有遮罩打开时，放行遮罩内操作（避免卡死） */
-    var openMask = document.querySelector(".modal-mask:not([hidden])");
-    if (openMask && openMask.contains(e.target)) return;
+    var step = cur();
+    if (!step) return;
+    /* 业务弹窗内永远放行（保存路由必须能点到） */
+    if (clickInsideOpenModal(e.target)) {
+      setTimeout(placeSpot, 40);
+      return;
+    }
+    /* 点高亮目标 = 点「下一步」：避免高亮「添加」却被门禁拦死 */
+    var hitSpotlight =
+      (step.id === "add_bot" && e.target.closest("#tg-add-bot")) ||
+      (step.id === "add_channel" && e.target.closest("[data-add-ch]")) ||
+      (step.id === "add_route" && e.target.closest("[data-add-route], #tg-rr-save")) ||
+      (step.id === "switch_biz" &&
+        e.target.closest("[data-pick-ctx]") &&
+        e.target.closest("[data-pick-ctx]").getAttribute("data-pick-ctx") !== POOL) ||
+      (step.id === "switch_pool" && e.target.closest('[data-pick-ctx="' + POOL + '"]'));
+    if (hitSpotlight) {
+      e.preventDefault();
+      e.stopPropagation();
+      triggerStepAction();
+      return;
+    }
+    if (matchesAllow(e.target, step.allow)) {
+      setTimeout(placeSpot, 40);
+      return;
+    }
 
     e.preventDefault();
     e.stopPropagation();
-    if (global.FZShell) FZShell.toast("请先完成当前教程步骤：" + step.title, "err");
+    if (global.FZShell) FZShell.toast("请点高亮旁的「下一步」（或高亮按钮）继续：「" + step.title + "」", "err");
   }
 
   function stripNoviceQuery() {
@@ -351,6 +722,7 @@
     if (!active && !root && dismissed) return;
     active = false;
     dismissed = true;
+    showingDone = false;
     waiting = "";
     stepIndex = 0;
     try {
@@ -363,6 +735,10 @@
     if (spot) {
       spot.remove();
       spot = null;
+    }
+    if (ackFloat) {
+      ackFloat.remove();
+      ackFloat = null;
     }
     if (doneMask) {
       doneMask.remove();
@@ -393,10 +769,17 @@
     }
     active = true;
     dismissed = false;
+    showingDone = false;
     loadStep();
     /* 若本地已完成教程又从任务进来，从 0 开始演示 */
     if (global.FZNovice && FZNovice.isDone && FZNovice.isDone(FZStore.read(), "tg_collect")) {
       stepIndex = 0;
+    }
+    if (stepIndex >= STEPS.length) {
+      ensureUi();
+      showDone();
+      document.addEventListener("click", gateClick, true);
+      return;
     }
     ensureUi();
     renderCoach();
@@ -431,8 +814,10 @@
     onPaint: onPaint,
     onCtxPicked: onCtxPicked,
     notify: notify,
+    complete: showDone,
+    ensureRoutePair: ensureNoviceRoutePair,
     active: function () {
-      return active && !dismissed;
+      return active && !dismissed && !showingDone;
     },
     dismissed: function () {
       return !!dismissed;

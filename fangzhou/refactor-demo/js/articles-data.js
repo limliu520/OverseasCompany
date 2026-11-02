@@ -71,7 +71,7 @@
     mk(1201, {
       title: "文案称「教父，夫人来了」枪口对准婴儿头…",
       projectId: "proj_demo_ready",
-      projectName: "演示瓜站",
+      projectName: "每日大赛",
       siteType: "chigua",
       materialId: 39699,
       status: "awaiting_edit",
@@ -82,7 +82,7 @@
     mk(1200, {
       title: "自动流入待编 · 专属频道成片",
       projectId: "proj_demo_ready",
-      projectName: "演示瓜站",
+      projectName: "每日大赛",
       siteType: "chigua",
       materialId: 39680,
       status: "awaiting_edit",
@@ -93,7 +93,7 @@
     mk(1198, {
       title: "视频站成片 · 已推送可再编辑",
       projectId: "proj_demo_collect",
-      projectName: "演示视频站",
+      projectName: "91 网黄",
       siteType: "video",
       materialId: 39501,
       status: "draft_created",
@@ -109,7 +109,7 @@
     mk(1195, {
       title: "媒体处理失败样例",
       projectId: "proj_demo_ready",
-      projectName: "演示瓜站",
+      projectName: "每日大赛",
       siteType: "chigua",
       materialId: 39440,
       status: "failed",
@@ -120,7 +120,7 @@
     mk(1192, {
       title: "生成中 · 勿打断",
       projectId: "proj_demo_collect",
-      projectName: "演示视频站",
+      projectName: "91 网黄",
       siteType: "video",
       materialId: 39300,
       status: "generating",
@@ -130,7 +130,7 @@
     mk(1188, {
       title: "主号转入 · 待编辑",
       projectId: "proj_demo_ready",
-      projectName: "演示瓜站",
+      projectName: "每日大赛",
       siteType: "chigua",
       materialId: 39210,
       status: "awaiting_edit",
@@ -160,6 +160,19 @@
       if (!raw) return;
       var parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length) articles = parsed;
+      var rename = {
+        演示瓜站: "每日大赛",
+        演示短剧站: "51 短剧",
+        演示视频站: "91 网黄"
+      };
+      var dirty = false;
+      articles.forEach(function (a) {
+        if (a.projectName && rename[a.projectName]) {
+          a.projectName = rename[a.projectName];
+          dirty = true;
+        }
+      });
+      if (dirty) persist();
     } catch (err) {}
   }
   hydrate();

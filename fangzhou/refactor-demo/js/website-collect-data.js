@@ -21,19 +21,24 @@ window.FZWebCollectData = {
     active: { label: "生效中", cls: "badge-ok" },
     paused: { label: "已暂停", cls: "badge-warn" }
   },
-  /* 站点类型：一站一种；只能绑同类型项目；最多 5 个（承接现网外站上限） */
+  /* 站点类型：一站一种；业务类型只能绑同类型项目（最多 5）；public_pool=进公共素材池、不绑项目 */
   MAX_BIND: 5,
   /* 现网硬规则：单配置最多 50 个页面；同一页面不可进两条配置 */
   MAX_PAGES: 50,
   SITE_TYPES: {
     chigua: "瓜站",
     video: "视频站",
-    short_drama: "短剧站"
+    short_drama: "短剧站",
+    public_pool: "公共素材池"
   },
   PROJECTS: {
-    chigua: ["演示瓜站 · 主站", "演示瓜站 · 分站"],
-    video: ["演示视频站", "演示视频站 · 备用"],
-    short_drama: ["演示短剧项目", "演示短剧项目·备用", "演示短剧·海外"]
+    chigua: ["每日大赛", "51 吃瓜"],
+    video: ["91 网黄", "51 原创"],
+    short_drama: ["51 短剧", "51 短视频"],
+    public_pool: []
+  },
+  isPublicMaterialPool: function (type) {
+    return type === "public_pool";
   },
   sites: [
     {
@@ -48,7 +53,7 @@ window.FZWebCollectData = {
       interval: 60,
       nextAt: "2026-10-27 12:00",
       notes: "",
-      targets: ["演示短剧项目", "演示短剧项目·备用"]
+      targets: ["51 短剧", "51 短视频"]
     },
     {
       id: "w2",
@@ -62,7 +67,7 @@ window.FZWebCollectData = {
       interval: 180,
       nextAt: "—",
       notes: "Admin 接入中",
-      targets: ["演示视频站"]
+      targets: ["91 网黄"]
     },
     {
       id: "w3",
@@ -90,7 +95,7 @@ window.FZWebCollectData = {
       interval: 60,
       nextAt: "—",
       notes: "",
-      targets: ["演示短剧·海外"]
+      targets: ["51 短视频"]
     }
   ],
   records: [

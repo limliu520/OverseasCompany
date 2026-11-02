@@ -8,6 +8,11 @@
 
   var TOURS = {};
 
+  function prefillCreateProject() {
+    var name = document.getElementById("f-name");
+    if (name && !String(name.value || "").trim()) name.value = "教程演示项目";
+  }
+
   /* —— 创建项目 —— */
   TOURS.create_project = FZNoviceTour.create({
     id: "create_project",
@@ -17,67 +22,152 @@
     modalMaskIds: [],
     exitToast: "已退出教程，返回工作台",
     exitHref: "./home.html",
+    replayHref: "./project-setup.html?new=1&novice=create_project",
+    onStart: function () {
+      setTimeout(prefillCreateProject, 60);
+    },
+    onStep: function () {
+      setTimeout(prefillCreateProject, 40);
+    },
     steps: [
       {
         id: "see_steps",
         title: "认识创建步骤",
-        tip: "左侧步骤条会标出当前进度。先点一下步骤条熟悉结构，再去填表。",
-        allow: "#steps, #steps *",
+        tip: "左侧是创建步骤。示例项目名已预填，点「下一步」继续。",
+        allow: "",
         spotlight: "#steps",
-        clickAdvance: true
+        strict: true,
+        ack: true,
+        ackLabel: "下一步"
       },
       {
         id: "fill_next",
-        title: "必填用「下一步」，可选用「跳过」",
-        tip: "先填「项目名称」等必填项，点「下一步」。到可选步骤时「跳过」会出现，可连续点「跳过 / 跳过并创建」。演示创建成功后会出现「学习完成」，不会进入开发对接。",
-        allow: "#panel, #panel *, #btn-next, #btn-prev, #btn-skip, #foot-hint",
-        /* 必填步会隐藏跳过；优先可见的跳过，否则高亮下一步 */
+        title: "一路下一步 / 跳过",
+        tip: "必填已预填。点「下一步」：系统会自动点页脚「下一步 / 跳过」直至演示创建完成，无需手输。",
+        allow: "",
         spotlight: "#btn-skip, #btn-next",
-        waitEvent: "created"
+        strict: true,
+        waitEvent: "created",
+        ack: true,
+        ackLabel: "下一步",
+        onAck: function () {
+          prefillCreateProject();
+          var ticks = 0;
+          var iv = setInterval(function () {
+            ticks += 1;
+            if (ticks > 24) {
+              clearInterval(iv);
+              return;
+            }
+            prefillCreateProject();
+            var skip = document.getElementById("btn-skip");
+            var next = document.getElementById("btn-next");
+            if (skip && skip.style.display !== "none" && !skip.classList.contains("is-disabled")) {
+              skip.click();
+              return;
+            }
+            if (next && !next.classList.contains("is-disabled")) next.click();
+          }, 140);
+        }
       }
     ]
   });
 
-  /* —— 水印 / 文章配置（仍在项目编辑页内引导） —— */
+  /* —— 水印 / 文章配置（演示详情页，不依赖真实项目） —— */
   TOURS.edit_project = FZNoviceTour.create({
     id: "edit_project",
     title: "水印、文章配置",
     doneSummary:
-      "你已在项目详情走过水印与文章配置入口。点「完成学习」返回工作台。",
+      "你已在演示项目详情走过水印与文章配置入口（未写入真实项目）。点「完成学习」返回工作台。",
     modalMaskIds: ["basic-modal"],
     exitHref: "./home.html",
+    replayHref:
+      "./project-edit.html?id=novice_demo_edit&tab=watermark&novice=edit_project",
     steps: [
-      {
-        id: "enter_detail",
-        title: "打开项目详情",
-        tip: "若在列表：点「项目详情」或项目名进入（仍带教程标记）。已在详情页可继续下一步。",
-        allow:
-          "#project-list, #project-list *, a[href*='project-edit'], #btn-edit-basic, .detail-hero, .detail-hero *",
-        spotlight: "#btn-edit-basic, #project-list .proj-card, #project-list a.btn",
-        clickAdvance: true,
-        skipIfMissing: true
-      },
       {
         id: "edit_basic",
         title: "认识详情页",
-        tip: "顶部可「编辑基本信息」。本教程重点在下方 Tab：水印与文章规范，先点一下「编辑基本信息」熟悉入口（可保存或取消）。",
-        allow: "#btn-edit-basic, #basic-modal, #basic-modal *",
+        tip: "演示项目详情。点「下一步」打开「编辑基本信息」再自动关闭，无需手填。",
+        allow: "",
         spotlight: "#btn-edit-basic",
-        waitEvent: "basic_done",
-        skipIfMissing: true
+        strict: true,
+        skipIfMissing: true,
+        ack: true,
+        ackLabel: "下一步",
+        onAck: function (api) {
+          var btn = document.getElementById("btn-edit-basic");
+          if (btn) btn.click();
+          setTimeout(function () {
+            var cancel =
+              document.querySelector("#basic-modal [data-close], #basic-modal .btn:not(.btn-primary)") ||
+              document.getElementById("basic-cancel");
+            if (cancel) cancel.click();
+            else {
+              var mask = document.getElementById("basic-modal");
+              if (mask) mask.hidden = true;
+            }
+            api.advance();
+          }, 120);
+        }
       },
       {
-        id: "tabs",
-        title: "配置水印与文章",
-        tip: "点「水印管理」或「文章管理」Tab，学习如何配水印与文章规范。只在详情页内切换，不会离开教程。",
-        allow: ".config-tabs, .config-tabs *, [data-tab]",
-        spotlight:
-          '.config-tabs [data-tab="watermark"], .config-tabs [data-tab="article"], .config-tabs [data-tab]',
-        clickAdvance: true,
-        skipIfMissing: true
+        id: "wm_tab",
+        title: "打开水印管理",
+        tip: "点「下一步」切换到水印管理 Tab。",
+        allow: "",
+        spotlight: '.config-tabs [data-tab="watermark"]',
+        strict: true,
+        skipIfMissing: true,
+        ack: true,
+        ackLabel: "下一步",
+        onAck: function (api) {
+          var t = document.querySelector('.config-tabs [data-tab="watermark"]');
+          if (t) t.click();
+          setTimeout(function () {
+            api.advance();
+          }, 40);
+        }
+      },
+      {
+        id: "article_tab",
+        title: "打开文章管理",
+        tip: "点「确认了解」切换到文章管理并完成本教程。",
+        allow: "",
+        spotlight: '.config-tabs [data-tab="article"]',
+        strict: true,
+        skipIfMissing: true,
+        ack: true,
+        ackLabel: "确认了解",
+        onAck: function (api) {
+          var t = document.querySelector('.config-tabs [data-tab="article"]');
+          if (t) t.click();
+          setTimeout(function () {
+            api.advance();
+          }, 40);
+        }
       }
     ]
   });
+
+  function prefillWebSiteForm() {
+    var typeSel = document.getElementById("wc-f-type");
+    if (typeSel) typeSel.value = "short_drama";
+    if (window.FZWebCollectForm && typeSel) {
+      FZWebCollectForm.fillTargets("short_drama", ["51 短剧"]);
+    }
+    var name = document.getElementById("wc-f-name");
+    var url = document.getElementById("wc-f-url");
+    var pages = document.getElementById("wc-f-pages");
+    if (name) name.value = "教程演示站";
+    if (url) url.value = "https://novice-demo.example.com";
+    if (pages) pages.value = "https://novice-demo.example.com/list";
+    var first = document.querySelector("#wc-f-targets input[type=checkbox]");
+    if (first) first.checked = true;
+    var collect = document.getElementById("wc-f-collect");
+    var dedup = document.getElementById("wc-f-dedup");
+    if (collect) collect.checked = true;
+    if (dedup) dedup.checked = true;
+  }
 
   /* —— 网站采集 —— */
   TOURS.web_collect = FZNoviceTour.create({
@@ -85,89 +175,138 @@
     title: "网站采集配置",
     doneSummary:
       "你已走完网站采集主流程：添加网站 → 查看站点卡片 → 浏览采集记录。",
+    replayHref: "./website-collect.html?novice=web_collect",
     modalMaskIds: ["wc-site-modal", "wc-prog-modal"],
     steps: [
       {
         id: "add_site",
         title: "添加网站",
-        tip: "点右上角「+ 添加网站」。Demo 里名称、域名、页面链接可随便填，保存即可。",
-        allow: "#btn-add-site, #wc-site-modal, #wc-site-modal *",
+        tip: "点「下一步」：自动打开添加弹窗并预填示例，再自动提交，无需手输。",
+        allow: "",
         spotlight: "#btn-add-site",
+        strict: true,
+        ack: true,
+        ackLabel: "下一步",
         waitEvent: "site_saved",
-        onAllowClick: function () {
+        onAck: function () {
+          var btn = document.getElementById("btn-add-site");
+          if (btn) btn.click();
           setTimeout(function () {
-            var name = document.getElementById("wc-f-name");
-            var url = document.getElementById("wc-f-url");
-            var pages = document.getElementById("wc-f-pages");
-            if (name && !name.value) name.value = "教程演示站";
-            if (url && !url.value) url.value = "https://novice-demo.example.com";
-            if (pages && !pages.value)
-              pages.value = "https://novice-demo.example.com/list";
-            var first = document.querySelector("#wc-f-targets input[type=checkbox]");
-            if (first && !document.querySelector("#wc-f-targets input:checked")) {
-              first.checked = true;
-            }
-          }, 80);
+            prefillWebSiteForm();
+            setTimeout(function () {
+              prefillWebSiteForm();
+              var save = document.getElementById("wc-site-save");
+              if (save) save.click();
+            }, 80);
+          }, 100);
         }
       },
       {
         id: "pick_site",
         title: "点选站点卡片",
-        tip: "点上方任一站点卡片，下方会筛出该站的采集记录。",
-        allow: "#wc-sites, #wc-sites *",
+        tip: "点「下一步」自动选中演示站点卡片，下方会联动采集记录。",
+        allow: "",
         spotlight: "#wc-sites .wc-site-card, #wc-sites [data-site], #wc-sites > *",
-        clickAdvance: true,
-        skipIfMissing: true
+        strict: true,
+        ack: true,
+        ackLabel: "下一步",
+        skipIfMissing: true,
+        onAck: function (api) {
+          var card =
+            document.querySelector("#wc-sites .wc-site-card") ||
+            document.querySelector("#wc-sites [data-site]");
+          if (card) card.click();
+          setTimeout(function () {
+            api.advance();
+          }, 40);
+        }
       },
       {
         id: "records",
         title: "看采集记录",
-        tip: "下方是采集记录区，可用筛选缩小范围。点一下记录区域即可完成本步。",
-        allow: "#wc-records, #wc-records *, #wc-filters, #wc-filters *",
-        spotlight: "#wc-record-title",
-        clickAdvance: true
+        tip: "这里是采集记录区。新站可能暂时没有数据，知道位置即可。",
+        allow: "",
+        spotlight: ".wc-record-head, #wc-records",
+        strict: true,
+        ack: true,
+        ackLabel: "确认了解"
       }
     ]
   });
 
-  /* —— 素材管理 —— */
+  /* —— 素材管理（严格路径：不让点未引导的 Tab / 审核通过） —— */
+  function matPrepareListStep() {
+    if (window.FZMatApp) {
+      if (FZMatApp.setTab) FZMatApp.setTab("all");
+      if (FZMatApp.setScope) FZMatApp.setScope("pool");
+      setTimeout(function () {
+        if (FZMatApp.markTourHitRow) FZMatApp.markTourHitRow();
+      }, 40);
+    }
+  }
+
   TOURS.materials = FZNoviceTour.create({
     id: "materials",
     title: "素材管理",
     doneSummary:
-      "你已熟悉素材管理：切换待审/全部视图 → 打开详情 → 了解审核或转编辑入口。",
+      "你已走完素材管理主路径：认识三视图 → 在公共素材池打开详情 → 了解详情结构。",
+    replayHref: "./materials.html?novice=materials&tab=all&scope=pool",
     modalMaskIds: [
       "mat-detail-mask",
       "mat-xfer-mask",
       "mat-reject-mask",
       "mat-targets-mask"
     ],
+    onStart: function () {
+      matPrepareListStep();
+    },
+    onStep: function (step) {
+      if (!step) return;
+      if (step.id === "open_detail" || step.id === "tabs") matPrepareListStep();
+    },
     steps: [
       {
         id: "tabs",
-        title: "切换素材视图",
-        tip: "顶部可切「待审核素材 / 全部素材 / 垃圾素材」。先点「全部素材」或保持待审。",
-        allow: "#mat-tabs, #mat-tabs *, #mat-scopes, #mat-scopes *",
+        title: "认识素材视图",
+        tip: "顶部有三个视图。本教程只走「全部素材 → 公共素材池」，点「下一步」继续。",
+        allow: "",
         spotlight: "#mat-tabs",
-        clickAdvance: true
+        strict: true,
+        ack: true,
+        ackLabel: "下一步"
       },
       {
         id: "open_detail",
         title: "打开素材详情",
-        tip: "点列表里某一条的「审核」或行内入口，打开详情弹窗。",
-        allow:
-          "#mat-root, #mat-root *, #mat-detail-mask, #mat-detail-mask *, [data-mat-open], [data-audit]",
-        spotlight: "#mat-root .btn-primary, #mat-root [data-audit], #mat-root button",
+        tip: "已切到公共素材池并标出示例行。点「下一步」自动打开详情，无需手点表格。",
+        allow: "",
+        spotlight: "#mat-root tbody tr[data-tour-hit]",
         waitEvent: "detail_open",
-        skipIfMissing: true
+        strict: true,
+        skipIfMissing: true,
+        ack: true,
+        ackLabel: "下一步",
+        onAck: function () {
+          matPrepareListStep();
+          setTimeout(function () {
+            var row = document.querySelector("#mat-root tbody tr[data-tour-hit]");
+            var detail =
+              row &&
+              row.querySelector('[data-row="detail"]');
+            if (detail) detail.click();
+            else if (row) row.click();
+          }, 60);
+        }
       },
       {
         id: "detail_actions",
-        title: "看详情操作",
-        tip: "详情里可切换「基本信息 / 分发记录」，也可关闭。点关闭或任意详情内按钮完成本步。",
-        allow: "#mat-detail-mask, #mat-detail-mask *, [data-mat-close]",
+        title: "看详情结构",
+        tip: "这是素材详情。审核通过等不在本教程路径，点「确认了解」完成即可。",
+        allow: "",
         spotlight: "#mat-detail-mask .mat-detail",
-        clickAdvance: true
+        strict: true,
+        ack: true,
+        ackLabel: "确认了解"
       }
     ]
   });
@@ -178,38 +317,67 @@
     title: "文章管理",
     doneSummary:
       "你已熟悉文章列表：筛选 → 预览。教程只在本页演示，不会进入真实编辑页。",
+    replayHref: "./articles.html?novice=articles",
     modalMaskIds: ["art-preview-mask", "art-confirm-mask", "art-compare-mask"],
     steps: [
       {
         id: "filter",
-        title: "试用筛选",
-        tip: "用项目 / 状态筛选，或点「搜索」「刷新」。先点一次「刷新」或「搜索」。",
-        allow:
-          ".list-toolbar, .list-toolbar *, #art-f-search, #art-f-clear, #art-f-refresh, #art-f-project, #art-f-status",
-        spotlight: "#art-f-search",
-        clickAdvance: true
+        title: "认识筛选",
+        tip: "上方可按项目 / 状态筛选。点「下一步」自动点一次刷新，无需手输。",
+        allow: "",
+        spotlight: ".list-toolbar, #art-f-search",
+        strict: true,
+        ack: true,
+        ackLabel: "下一步",
+        onAck: function (api) {
+          var btn =
+            document.getElementById("art-f-refresh") ||
+            document.getElementById("art-f-search");
+          if (btn) btn.click();
+          setTimeout(function () {
+            api.advance();
+          }, 40);
+        }
       },
       {
         id: "preview_or_edit",
         title: "打开预览",
-        tip: "点某行打开预览即可。本教程不进入编辑页，避免跳进真实产品流程。",
-        allow:
-          "#art-tbody, #art-tbody *, #art-preview-mask, #art-preview-mask *",
+        tip: "点「下一步」打开第一条预览。本教程不进入编辑页。",
+        allow: "",
         spotlight: "#art-tbody tr",
-        clickAdvance: true,
-        skipIfMissing: true
+        strict: true,
+        skipIfMissing: true,
+        ack: true,
+        ackLabel: "下一步",
+        onAck: function (api) {
+          var row = document.querySelector("#art-tbody tr");
+          if (row) row.click();
+          setTimeout(function () {
+            api.advance();
+          }, 80);
+        }
       },
       {
         id: "close_or_done",
         title: "确认列表能力",
-        tip: "若开了预览可点关闭；或再点一下表格区域，确认你会看状态与操作列。",
-        allow:
-          "#art-tbody, #art-tbody *, #art-preview-mask, #art-preview-mask *, #art-preview-close",
-        spotlight: ".fz-table--art",
-        clickAdvance: true
+        tip: "预览可关闭。点「确认了解」完成本教程。",
+        allow: "",
+        spotlight: ".fz-table--art, #art-preview-mask .modal",
+        strict: true,
+        ack: true,
+        ackLabel: "确认了解"
       }
     ]
   });
+
+  function prefillSubWizard() {
+    var u = document.getElementById("sub-user");
+    var n = document.getElementById("sub-name");
+    if (u) u.value = "novice_demo_" + Date.now().toString(36).slice(-4);
+    if (n) n.value = "教程演示号";
+    var proj = document.querySelector("#sub-modal input[type=checkbox]");
+    if (proj) proj.checked = true;
+  }
 
   /* —— 子账号与授权 —— */
   TOURS.subs = FZNoviceTour.create({
@@ -217,39 +385,72 @@
     title: "子账号与授权",
     doneSummary:
       "你已走完子账号与授权主流程：切 Tab → 创建/查看子账号向导 → 了解岗位。",
+    replayHref: "./subs.html?novice=subs",
     modalMaskIds: ["sub-modal", "role-modal"],
     steps: [
       {
         id: "tabs",
         title: "子账号 / 岗位 Tab",
-        tip: "本页两个 Tab：子账号、岗位。先点「岗位」看一眼，再点回「子账号」。",
-        allow: "#tab-subs, #tab-roles, [data-tab]",
+        tip: "本页有「子账号」「岗位」两个 Tab。点「下一步」先看岗位。",
+        allow: "",
         spotlight: "#tab-roles",
-        clickAdvance: true
+        strict: true,
+        ack: true,
+        ackLabel: "下一步",
+        onAck: function (api) {
+          var t = document.getElementById("tab-roles");
+          if (t) t.click();
+          setTimeout(function () {
+            api.advance();
+          }, 40);
+        }
       },
       {
         id: "back_subs",
         title: "回到子账号",
-        tip: "点「子账号」Tab，准备走创建流程。",
-        allow: "#tab-subs, [data-tab=\"subs\"]",
+        tip: "点「下一步」回到子账号 Tab。",
+        allow: "",
         spotlight: "#tab-subs",
-        clickAdvance: true
+        strict: true,
+        ack: true,
+        ackLabel: "下一步",
+        onAck: function (api) {
+          var t = document.getElementById("tab-subs");
+          if (t) t.click();
+          setTimeout(function () {
+            api.advance();
+          }, 40);
+        }
       },
       {
         id: "create_sub",
         title: "创建子账号",
-        tip: "点「+ 创建子账号」。向导分三步：个人信息 → 负责项目 → 岗位权限。Demo 可随便填，走完保存或取消。",
-        allow:
-          "#btn-primary-act, #sub-modal, #sub-modal *, #sub-next, #sub-prev, #sub-save, #sub-cancel",
+        tip: "点「下一步」打开创建向导并预填示例账号，再自动保存。无需手输。",
+        allow: "",
         spotlight: "#btn-primary-act",
         waitEvent: "sub_wizard_done",
-        onAllowClick: function () {
+        strict: true,
+        ack: true,
+        ackLabel: "下一步",
+        onAck: function () {
+          var btn = document.getElementById("btn-primary-act");
+          if (btn) btn.click();
           setTimeout(function () {
-            var u = document.getElementById("sub-user");
-            var n = document.getElementById("sub-name");
-            if (u && !u.value) u.value = "novice_demo_" + Date.now().toString(36).slice(-4);
-            if (n && !n.value) n.value = "教程演示号";
-          }, 80);
+            prefillSubWizard();
+            var next = document.getElementById("sub-next");
+            if (next) next.click();
+            setTimeout(function () {
+              prefillSubWizard();
+              var next2 = document.getElementById("sub-next");
+              if (next2) next2.click();
+              setTimeout(function () {
+                var save = document.getElementById("sub-save");
+                var cancel = document.getElementById("sub-cancel");
+                if (save) save.click();
+                else if (cancel) cancel.click();
+              }, 80);
+            }, 80);
+          }, 100);
         }
       }
     ]

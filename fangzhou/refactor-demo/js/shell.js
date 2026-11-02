@@ -73,7 +73,7 @@
    * 信息架构约定（框架层）：
    * - 侧栏只放「列表 / 工作区」入口，不放「新建 xxx」等页内动作
    * - 岗位归属「子账号与授权」页内 Tab，不单独占二级菜单
-   * - 未做模块用 stub，点击 Toast「设计中」
+   * - 未做模块用 stub，点击 Toast「{菜单名}，方案重构中」
    */
   /** done: 本 Demo 已可点可演示；无 done 且 stub = 未做（侧栏降透） */
   var NAV = [
@@ -81,40 +81,11 @@
       id: "home",
       label: "工作台",
       ico: "⌂",
-      children: [
-        {
-          id: "home",
-          label: "概览",
-          href: "pages/home.html",
-          done: true,
-          need: "home.overview.view",
-          tourSkip: true
-        },
-        {
-          id: "announcements",
-          label: "平台公告",
-          href: "pages/announcements.html",
-          done: true,
-          need: "home.announcements.view",
-          tourSkip: true
-        }
-      ]
-    },
-    {
-      id: "projects",
-      label: "项目管理",
-      ico: "▣",
-      children: [
-        {
-          id: "projects",
-          label: "项目列表",
-          href: "pages/projects.html",
-          done: true,
-          need: "projects.list.view",
-          tourTip:
-            "这里管理所有业务项目：一个项目对应一套文章内容通道。新建时配齐基本信息与对接材料；待接通项目可点「对接」交给开发。日常改水印、模板、自动流等，从「项目详情」进入。"
-        }
-      ]
+      href: "pages/home.html",
+      done: true,
+      need: "home.overview.view",
+      leaf: true,
+      tourSkip: true
     },
     {
       id: "collect",
@@ -146,7 +117,7 @@
           done: true,
           need: "collect.materials.view",
           tourTip:
-            "处理采进来的素材。顶部切换「待审核 / 全部 / 垃圾」视图：待审可在详情里通过、驳回或转编辑；全部素材按项目或公共池筛选；垃圾可恢复。工作台「当前待审素材」点审核也会打开同一套详情弹窗。"
+            "处理采进来的素材。顶部切换「待审核 / 全部 / 垃圾」：待审可在详情通过、驳回或转编辑。全部素材下「公共素材池」含全部入池料（含项目自采）；转编辑进项目后池内仍保留。也可按项目看子集。垃圾可恢复。"
         }
       ]
     },
@@ -207,6 +178,22 @@
       ]
     },
     {
+      id: "projects",
+      label: "项目管理",
+      ico: "▣",
+      children: [
+        {
+          id: "projects",
+          label: "项目列表",
+          href: "pages/projects.html",
+          done: true,
+          need: "projects.list.view",
+          tourTip:
+            "这里管理所有业务项目：一个项目对应一套文章内容通道。新建时配齐基本信息与对接材料；待接通项目可点「对接」交给开发。日常改水印、模板、自动流等，从「项目详情」进入。"
+        }
+      ]
+    },
+    {
       id: "global",
       label: "全局配置",
       ico: "⚙",
@@ -239,6 +226,39 @@
     html += '<div class="nav-section">';
 
     NAV.forEach(function (group) {
+      var isLeaf =
+        !!group.leaf ||
+        (!!(group.href || group.stub) && !(group.children && group.children.length));
+      if (isLeaf) {
+        if (group.need && !FZStore.hasFeature(s, group.need)) return;
+        if (group.stub || !group.done) {
+          html +=
+            '<button type="button" class="nav-item nav-top is-todo" data-nav-id="' +
+            group.id +
+            '" data-stub="1"><span class="ico" aria-hidden="true">' +
+            (group.ico || "") +
+            "</span>" +
+            group.label +
+            "</button>";
+        } else {
+          var leafAct = activeId === group.id ? " active" : "";
+          html +=
+            '<a class="nav-item nav-top is-done' +
+            leafAct +
+            '" data-nav-id="' +
+            group.id +
+            '" href="' +
+            BASE +
+            group.href +
+            '"><span class="ico" aria-hidden="true">' +
+            (group.ico || "") +
+            "</span>" +
+            group.label +
+            "</a>";
+        }
+        return;
+      }
+
       var kids = (group.children || []).filter(function (c) {
         return !c.need || FZStore.hasFeature(s, c.need);
       });
@@ -265,9 +285,7 @@
           html +=
             '<button type="button" class="nav-item nav-sub is-todo" data-nav-id="' +
             c.id +
-            '" data-stub="' +
-            (c.stub || c.label) +
-            '">' +
+            '" data-stub="1">' +
             c.label +
             "</button>";
         } else {
@@ -332,8 +350,8 @@
 
     mount.querySelectorAll("[data-stub]").forEach(function (el) {
       el.addEventListener("click", function () {
-        var msg = el.getAttribute("data-stub") || "";
-        toast(/设计中|产品债务/.test(msg) ? msg : msg + " · 设计中");
+        var name = (el.textContent || "").replace(/\s+/g, " ").trim() || "该功能";
+        toast(name + "，方案重构中");
       });
     });
 
@@ -410,7 +428,7 @@
       }
     }
     if (global.FZHelpCenter) mountHelp();
-    else loadScriptOnce("js/help-center.js?v=20261031fabClick", mountHelp);
+    else loadScriptOnce("js/help-center.js?v=20261031poolStay", mountHelp);
     function mountNovice() {
       if (global.FZNovice && typeof FZNovice.consumeQuery === "function") {
         FZNovice.consumeQuery();
