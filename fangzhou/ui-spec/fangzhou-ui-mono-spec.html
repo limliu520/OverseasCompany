@@ -897,11 +897,13 @@
         <li>图标线性：细线描边图标，与文字同色或略浅。</li>
         <li>落地与迭代时只改视觉（色 / 字重 / 边 / 影），不改文案、结构、位置与交互流程；新需求须参照本规范。</li>
       </ul>
-      <h4>深色模式（已定）</h4>
+      <h4>深色模式（已定 · 不单独立规范）</h4>
       <ul>
-        <li>对齐 Cursor Dark：侧栏 / 外框 <code>#141414</code>（更凹），主画布 <code>#181818</code>，卡片 <code>#1f1f1f</code>，边线 <code>#2b2b2b</code>，正文 <code>#e4e4e4</code> / <code>#cccccc</code>。</li>
+        <li>不另开「深色 UI 规范」文档；在本规范 Token / 控件节补深色对照即可。静态对照见 <a href="./fangzhou-ui-mono-pages.html">页面预览</a>。</li>
+        <li>对齐 Cursor Dark：侧栏 / 外框 <code>#141414</code>（更凹），主画布 <code>#181818</code>，卡片 <code>#1f1f1f</code>，边线 <code>#2b2b2b</code>，正文 <code>--ink #e4e4e4</code> / 次级 <code>--ink-2 #cccccc</code> / 弱化 <code>--muted #9d9d9d</code>。</li>
+        <li>深色须完整覆盖 Token 表（含 <code>--ink-2</code>）；侧栏未选项、搜索占位、分组标题一律走 Token，禁止写死浅色 hex（如 <code>#3f3f46</code>），否则深色侧栏字会发黑。</li>
         <li>主按钮深色下反相：浅底深字（<code>--accent</code> ↔ <code>--on-ink</code>）。</li>
-        <li>静态对照见 <a href="./fangzhou-ui-mono-pages.html">页面预览</a>；Demo 侧栏用户菜单可切浅/深。</li>
+        <li>Demo：侧栏用户菜单可切浅/深；<code>html[data-theme="dark"]</code> 写在 <code>refactor-demo/css/app.css</code>。</li>
       </ul>
       <h4>明确不做</h4>
       <ul>

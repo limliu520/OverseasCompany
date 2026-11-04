@@ -1825,9 +1825,13 @@
     return out;
   }
 
+  /* 全员默认开通：不依赖 perm-tree.js 是否已加载（采集等页常不引 FZPerm） */
+  var ALWAYS_ON_FEATURES = ["home.overview.view", "home.announcements.view"];
+
   function hasFeature(state, featureId) {
     if (!featureId) return true;
     /* 概览 / 平台公告：全员默认开通，不进岗位勾选 */
+    if (ALWAYS_ON_FEATURES.indexOf(featureId) !== -1) return true;
     if (
       window.FZPerm &&
       FZPerm.isAlwaysOn &&

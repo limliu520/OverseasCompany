@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>文章管理 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261104createBlk1" />
+  <link rel="stylesheet" href="../css/app.css?v=20261104themeAutoL" />
 </head>
 <body>
   <div class="app">
@@ -21,9 +21,8 @@
           </p>
           <div class="list-toolbar">
             <div class="list-toolbar-row">
-              <input class="input" id="art-f-title" type="search" placeholder="搜索标题…" aria-label="标题" style="max-width:200px" />
-              <input class="input" id="art-f-id" inputmode="numeric" placeholder="文章 ID" aria-label="文章 ID" style="max-width:120px" />
-              <input class="input" id="art-f-op" placeholder="操作人" aria-label="操作人" style="max-width:120px" />
+              <input class="input" id="art-f-q" type="search" placeholder="搜索标题 / 文章 ID" aria-label="搜索标题或文章 ID" style="max-width:240px" />
+              <select class="input" id="art-f-op" aria-label="操作人"></select>
               <select class="input" id="art-f-project" aria-label="项目"></select>
               <select class="input" id="art-f-status" aria-label="状态"></select>
               <button type="button" class="btn" id="art-f-search">搜索</button>
@@ -136,8 +135,8 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261031poolCollect"></script>
-  <script src="../js/shell.js?v=20261104mono4"></script>
+  <script src="../js/store.js?v=20261104alwaysOn"></script>
+  <script src="../js/shell.js?v=20261104themeAutoL"></script>
   <script src="../js/pager.js?v=20261104rf03"></script>
   <script src="../js/articles-data.js?v=20261028artact5"></script>
   <script src="../js/materials-data.js?v=20261028artact1"></script>
@@ -146,6 +145,6 @@
   <script src="../js/novice-guide.js?v=20261031tour7"></script>
   <script src="../js/novice-tour-kit.js?v=20261031prefill"></script>
   <script src="../js/novice-tours.js?v=20261031prefill"></script>
-  <script src="../js/articles-app.js?v=20261104artTb1"></script>
+  <script src="../js/articles-app.js?v=20261104artFilter1"></script>
 </body>
 </html>

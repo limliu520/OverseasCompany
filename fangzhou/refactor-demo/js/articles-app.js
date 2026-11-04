@@ -4,7 +4,7 @@
 
   var page = 1;
   var pageSize = window.FZPager ? window.FZPager.DEFAULT : 20;
-  var filter = { projectId: "", status: "", qId: "", qTitle: "", qOp: "" };
+  var filter = { projectId: "", status: "", q: "", qOp: "" };
 
   function esc(s) {
     return String(s == null ? "" : s)
@@ -21,29 +21,37 @@
   }
 
   function filtered() {
+    var q = String(filter.q || "").trim().toLowerCase();
     return FZArticles.list().filter(function (a) {
       if (a.siteType === "short_drama") return false;
       if (filter.projectId && a.projectId !== filter.projectId) return false;
       if (filter.status && a.status !== filter.status) return false;
-      if (filter.qId && String(a.id).indexOf(filter.qId.trim()) < 0) return false;
-      if (
-        filter.qTitle &&
-        String(a.title || "")
+      if (filter.qOp && String(a.operator || "") !== filter.qOp) return false;
+      if (q) {
+        var idHit = String(a.id).toLowerCase().indexOf(q) >= 0;
+        var titleHit = String(a.title || "")
           .toLowerCase()
-          .indexOf(filter.qTitle.trim().toLowerCase()) < 0
-      ) {
-        return false;
-      }
-      if (
-        filter.qOp &&
-        String(a.operator || "")
-          .toLowerCase()
-          .indexOf(filter.qOp.trim().toLowerCase()) < 0
-      ) {
-        return false;
+          .indexOf(q) >= 0;
+        if (!idHit && !titleHit) return false;
       }
       return true;
     });
+  }
+
+  function operatorOptions() {
+    var seen = {};
+    var out = [];
+    FZArticles.list().forEach(function (a) {
+      if (a.siteType === "short_drama") return;
+      var op = String(a.operator || "").trim();
+      if (!op || op === "—" || seen[op]) return;
+      seen[op] = true;
+      out.push(op);
+    });
+    out.sort(function (a, b) {
+      return a.localeCompare(b, "zh");
+    });
+    return out;
   }
 
   function paintFilter() {
@@ -51,6 +59,9 @@
     var projects = FZArticles.articleProjects(s);
     var proj = document.getElementById("art-f-project");
     var st = document.getElementById("art-f-status");
+    var op = document.getElementById("art-f-op");
+    var qEl = document.getElementById("art-f-q");
+    if (qEl) qEl.value = filter.q || "";
     proj.innerHTML =
       '<option value="">全部项目</option>' +
       projects
@@ -80,6 +91,21 @@
             (filter.status === k ? " selected" : "") +
             ">" +
             m.text +
+            "</option>"
+          );
+        })
+        .join("");
+    op.innerHTML =
+      '<option value="">全部操作人</option>' +
+      operatorOptions()
+        .map(function (name) {
+          return (
+            '<option value="' +
+            esc(name) +
+            '"' +
+            (filter.qOp === name ? " selected" : "") +
+            ">" +
+            esc(name) +
             "</option>"
           );
         })
@@ -522,16 +548,13 @@
   function readFilter() {
     filter.projectId = document.getElementById("art-f-project").value;
     filter.status = document.getElementById("art-f-status").value;
-    filter.qId = document.getElementById("art-f-id").value;
-    filter.qTitle = document.getElementById("art-f-title").value;
+    filter.q = document.getElementById("art-f-q").value;
     filter.qOp = document.getElementById("art-f-op").value;
   }
 
   function clearFilter() {
-    filter = { projectId: "", status: "", qId: "", qTitle: "", qOp: "" };
-    document.getElementById("art-f-id").value = "";
-    document.getElementById("art-f-title").value = "";
-    document.getElementById("art-f-op").value = "";
+    filter = { projectId: "", status: "", q: "", qOp: "" };
+    document.getElementById("art-f-q").value = "";
     paintFilter();
     page = 1;
     render();
@@ -551,22 +574,21 @@
     render();
     FZShell.toast("已刷新", "ok");
   });
-  ["art-f-project", "art-f-status"].forEach(function (id) {
+  ["art-f-project", "art-f-status", "art-f-op"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", function () {
       filter.projectId = document.getElementById("art-f-project").value;
       filter.status = document.getElementById("art-f-status").value;
+      filter.qOp = document.getElementById("art-f-op").value;
       page = 1;
       render();
     });
   });
-  ["art-f-id", "art-f-title", "art-f-op"].forEach(function (id) {
-    document.getElementById(id).addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        readFilter();
-        page = 1;
-        render();
-      }
-    });
+  document.getElementById("art-f-q").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      readFilter();
+      page = 1;
+      render();
+    }
   });
 
   document.getElementById("art-preview-close").addEventListener("click", closePreview);

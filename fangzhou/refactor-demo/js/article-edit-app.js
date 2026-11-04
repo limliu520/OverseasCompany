@@ -872,7 +872,7 @@
   if (vcRestore) {
     vcRestore.addEventListener("click", function () {
       if (article.videoCoverKind !== "custom") {
-        FZShell.toast("当前已是跟随项目策略", "err");
+        FZShell.toast("当前已是跟随项目策略");
         return;
       }
       article.videoCoverKind = "strategy";

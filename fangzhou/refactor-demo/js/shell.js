@@ -13,34 +13,105 @@
 
   var BASE = basePath();
   var THEME_KEY = "fz_ui_theme";
+  var _themeMql =
+    window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 
-  function currentTheme() {
+  /** 用户偏好：light | dark | auto */
+  function themePreference() {
     try {
       var saved = localStorage.getItem(THEME_KEY);
-      if (saved === "dark" || saved === "light") return saved;
+      if (saved === "dark" || saved === "light" || saved === "auto") return saved;
     } catch (e) {}
-    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark";
-    }
-    return "light";
+    return "auto";
+  }
+
+  function systemTheme() {
+    return _themeMql && _themeMql.matches ? "dark" : "light";
+  }
+
+  /** 实际生效的深浅色 */
+  function resolvedTheme(pref) {
+    var p = pref || themePreference();
+    if (p === "auto") return systemTheme();
+    return p === "dark" ? "dark" : "light";
+  }
+
+  function currentTheme() {
+    return resolvedTheme(themePreference());
+  }
+
+  function syncThemeSwitch(pref) {
+    var sw = document.getElementById("fz-theme-switch");
+    if (!sw) return;
+    var p =
+      pref === "dark" || pref === "light" || pref === "auto" ? pref : "auto";
+    sw.setAttribute("data-mode", p);
+    sw.querySelectorAll("[data-theme-set]").forEach(function (btn) {
+      btn.setAttribute(
+        "aria-checked",
+        btn.getAttribute("data-theme-set") === p ? "true" : "false"
+      );
+    });
+  }
+
+  function applyResolved(resolved) {
+    document.documentElement.setAttribute(
+      "data-theme",
+      resolved === "dark" ? "dark" : "light"
+    );
   }
 
   function applyTheme(theme) {
-    var t = theme === "dark" ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", t);
+    var p =
+      theme === "dark" || theme === "light" || theme === "auto" ? theme : "auto";
     try {
-      localStorage.setItem(THEME_KEY, t);
+      localStorage.setItem(THEME_KEY, p);
     } catch (e) {}
-    return t;
+    applyResolved(resolvedTheme(p));
+    syncThemeSwitch(p);
+    return p;
   }
 
   function toggleTheme() {
     var next = currentTheme() === "dark" ? "light" : "dark";
-    applyTheme(next);
-    toast(next === "dark" ? "已切换深色外观" : "已切换浅色外观", "ok");
+    setTheme(next);
   }
 
-  applyTheme(currentTheme());
+  function setTheme(theme, opts) {
+    opts = opts || {};
+    var prevPref = themePreference();
+    var prevResolved = resolvedTheme(prevPref);
+    var nextPref = applyTheme(theme);
+    var nextResolved = resolvedTheme(nextPref);
+    if (opts.silent) return nextPref;
+    if (nextPref !== prevPref || nextResolved !== prevResolved) {
+      var msg =
+        nextPref === "auto"
+          ? "已跟随系统外观（当前" +
+            (nextResolved === "dark" ? "深色" : "浅色") +
+            "）"
+          : nextResolved === "dark"
+            ? "已切换深色外观"
+            : "已切换浅色外观";
+      toast(msg, "ok");
+    }
+    return nextPref;
+  }
+
+  function onSystemThemeChange() {
+    if (themePreference() !== "auto") return;
+    applyResolved(systemTheme());
+  }
+
+  if (_themeMql) {
+    if (_themeMql.addEventListener) {
+      _themeMql.addEventListener("change", onSystemThemeChange);
+    } else if (_themeMql.addListener) {
+      _themeMql.addListener(onSystemThemeChange);
+    }
+  }
+
+  applyTheme(themePreference());
 
   function escHtml(s) {
     return String(s == null ? "" : s)
@@ -409,6 +480,32 @@
     /* 帮助入口固定在侧栏账户上方（不再右下角悬浮） */
     html += '<div class="sidebar-help" id="fz-help-slot"></div>';
 
+    var themePref = themePreference();
+    html +=
+      '<div class="sidebar-theme">' +
+      '<div class="theme-switch" id="fz-theme-switch" data-mode="' +
+      themePref +
+      '" role="radiogroup" aria-label="外观模式">' +
+      '<span class="theme-switch-thumb" aria-hidden="true"></span>' +
+      '<button type="button" class="theme-switch-opt theme-switch-opt--auto" data-theme-set="auto" role="radio" aria-checked="' +
+      (themePref === "auto" ? "true" : "false") +
+      '" title="跟随系统" aria-label="跟随系统">' +
+      '<span class="theme-switch-auto">Auto</span></button>' +
+      '<button type="button" class="theme-switch-opt" data-theme-set="light" role="radio" aria-checked="' +
+      (themePref === "light" ? "true" : "false") +
+      '" title="浅色外观" aria-label="浅色外观">' +
+      '<svg class="theme-switch-ico" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">' +
+      '<circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.7"/>' +
+      '<path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M12 2.8v2.2M12 19v2.2M2.8 12h2.2M19 12h2.2M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M5.1 18.9l1.6-1.6M17.3 6.7l1.6-1.6"/>' +
+      "</svg></button>" +
+      '<button type="button" class="theme-switch-opt" data-theme-set="dark" role="radio" aria-checked="' +
+      (themePref === "dark" ? "true" : "false") +
+      '" title="深色外观" aria-label="深色外观">' +
+      '<svg class="theme-switch-ico" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">' +
+      '<path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.4A7.2 7.2 0 0 1 10.6 4.5 7.4 7.4 0 1 0 19.5 13.4z"/>' +
+      "</svg></button>" +
+      "</div></div>";
+
     html += '<div class="sidebar-user" id="sidebar-user">';
     html += '<button type="button" class="user-trigger" id="user-menu-btn">';
     html +=
@@ -424,10 +521,6 @@
     html += '<span class="user-caret" aria-hidden="true">⇅</span>';
     html += "</button>";
     html += '<div class="user-menu" id="user-menu" hidden>';
-    html +=
-      '<button type="button" data-act="theme">' +
-      (currentTheme() === "dark" ? "切换浅色外观" : "切换深色外观") +
-      "</button>";
     html += '<button type="button" data-act="pwd">修改密码</button>';
     html += '<button type="button" data-act="profile">个人资料</button>';
     html += '<button type="button" data-act="reset">重置演示数据</button>';
@@ -435,16 +528,39 @@
     html += "</div></div>";
 
     mount.innerHTML = html;
+    syncThemeSwitch(themePref);
+
+    var themeSwitch = document.getElementById("fz-theme-switch");
+    if (themeSwitch) {
+      themeSwitch.querySelectorAll("[data-theme-set]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          setTheme(btn.getAttribute("data-theme-set"));
+        });
+      });
+    }
 
     var navSec = mount.querySelector(".nav-section");
     if (navSec) {
+      var activeEl = mount.querySelector(".nav-item.active");
+      /*
+       * 记忆滚动 + scrollIntoView 会在切到「采集中心」等项时把上方「工作台」顶出视口。
+       * 规则：当前项本可完整落在首屏 → 强制 scrollTop=0；否则再 nearest 滚到可见。
+       */
       try {
         var saved = sessionStorage.getItem(NAV_SCROLL_KEY);
         if (saved != null) navSec.scrollTop = Number(saved) || 0;
       } catch (e) {}
-      var activeEl = mount.querySelector(".nav-item.active");
-      if (activeEl && typeof activeEl.scrollIntoView === "function") {
-        activeEl.scrollIntoView({ block: "nearest", inline: "nearest" });
+      if (activeEl) {
+        var fitsTop =
+          activeEl.offsetTop + activeEl.offsetHeight <= navSec.clientHeight;
+        if (fitsTop) {
+          navSec.scrollTop = 0;
+        } else if (typeof activeEl.scrollIntoView === "function") {
+          activeEl.scrollIntoView({ block: "nearest", inline: "nearest" });
+        }
+        try {
+          sessionStorage.setItem(NAV_SCROLL_KEY, String(navSec.scrollTop));
+        } catch (eSave) {}
       }
       navSec.addEventListener("scroll", function () {
         try {
@@ -497,13 +613,6 @@
                 });
               } catch (eClr) {}
               location.href = BASE + "login.html";
-            }
-          } else if (act === "theme") {
-            toggleTheme();
-            var themeBtn = menu.querySelector('[data-act="theme"]');
-            if (themeBtn) {
-              themeBtn.textContent =
-                currentTheme() === "dark" ? "切换浅色外观" : "切换深色外观";
             }
           } else if (act === "pwd") toast("修改密码 · 设计中");
           else if (act === "profile") toast("个人资料 · 设计中");
@@ -562,7 +671,10 @@
     loadScriptOnce: loadScriptOnce,
     applyTheme: applyTheme,
     currentTheme: currentTheme,
+    themePreference: themePreference,
+    resolvedTheme: resolvedTheme,
     toggleTheme: toggleTheme,
+    setTheme: setTheme,
     getNav: function () {
       return NAV;
     }
