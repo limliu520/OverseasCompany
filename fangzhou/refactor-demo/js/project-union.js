@@ -95,11 +95,20 @@
       partnerCategoryName: "",
       coverWidth: "720",
       coverHeight: "1280",
+      /* 文章封面拼图：1 单 / 2 二 / 3 三，现网默认 3 */
+      coverPanelCount: 3,
       minVideoSeconds: GLOBAL_MIN_VIDEO_SEC,
       maxEpisodes: GLOBAL_MAX_EPISODES,
       autoToEdit: false,
+      /* RF-04：新建默认推送 = 手动 */
       autoPush: false,
       autoflow: false,
+      videoCoverStrategy: "article",
+      /* 去源水印默认：图 / 视频总开关都开；move/fixed 与 video 对齐（兼容旧字段） */
+      dewatermarkImage: "remove",
+      dewatermarkVideo: "remove",
+      dewatermarkMove: "remove",
+      dewatermarkFixed: "remove",
       hasCollectSource: false,
       webhookUrl: ""
     };
@@ -137,6 +146,28 @@
     if (p.autoPush == null && p.autoflow != null) p.autoPush = !!p.autoflow;
     if (p.autoPush == null) p.autoPush = false;
     p.autoflow = !!p.autoToEdit;
+    if (!p.videoCoverStrategy) p.videoCoverStrategy = "article";
+    var panelN = Number(p.coverPanelCount);
+    p.coverPanelCount =
+      panelN === 1 || panelN === 2 || panelN === 3 ? panelN : 3;
+    if (!p.dewatermarkVideo) {
+      if (p.dewatermarkMove === "keep" && p.dewatermarkFixed === "keep") {
+        p.dewatermarkVideo = "keep";
+      } else if (p.dewatermarkEnabled === false) {
+        p.dewatermarkVideo = "keep";
+      } else {
+        p.dewatermarkVideo = "remove";
+      }
+    }
+    if (!p.dewatermarkImage) {
+      p.dewatermarkImage =
+        p.dewatermarkEnabled === false ? "keep" : "remove";
+    }
+    /* 本期视频为总开关：同步写回 move/fixed，避免旧逻辑读到分叉 */
+    p.dewatermarkMove = p.dewatermarkVideo;
+    p.dewatermarkFixed = p.dewatermarkVideo;
+    p.dewatermarkEnabled =
+      p.dewatermarkImage !== "keep" || p.dewatermarkVideo !== "keep";
     if (p.minVideoSeconds == null || p.minVideoSeconds < GLOBAL_MIN_VIDEO_SEC) {
       p.minVideoSeconds = GLOBAL_MIN_VIDEO_SEC;
     }
@@ -298,8 +329,8 @@
   }
 
   /**
-   * 图片视频规则：左右分栏。
-   * 左=图片规则（输出格式等）；右=视频规则（必须视频 / 切片 / 时长）。
+   * 内容生成规则：左右分栏。
+   * 左=图片生成规则；右=视频生成规则。推送门槛归「推送规则」。
    */
   function renderVideoRulesFields(p, prefix) {
     prefix = prefix || "";
@@ -310,8 +341,8 @@
     return (
       '<div class="media-rules-split">' +
       '<div class="cfg-card media-rules-col">' +
-      '<div class="cfg-card-head"><div class="cfg-card-title">图片规则</div>' +
-      '<div class="cfg-card-sub">出图与推送封面的格式</div></div>' +
+      '<div class="cfg-card-head"><div class="cfg-card-title">图片生成规则</div>' +
+      '<div class="cfg-card-sub">出图与推送封面的编码</div></div>' +
       '<div class="field" style="margin:0">' +
       label(
         "图片输出格式",
@@ -331,37 +362,18 @@
       ">WebP</option>" +
       "</select></div></div>" +
       '<div class="cfg-card media-rules-col">' +
-      '<div class="cfg-card-head"><div class="cfg-card-title">视频规则</div>' +
-      '<div class="cfg-card-sub">闸门与切片</div></div>' +
-      '<label class="check-item"><input type="checkbox" id="' +
-      id("req-video") +
-      '"' +
-      (p.requireVideo ? " checked" : "") +
-      " /> 必须含视频 " +
-      tip("必须含视频才可推送；瓜/视频/短剧默认开启。") +
-      "</label>" +
+      '<div class="cfg-card-head"><div class="cfg-card-title">视频生成规则</div>' +
+      '<div class="cfg-card-sub">推送前如何交付播放地址</div></div>' +
       '<label class="check-item"><input type="checkbox" id="' +
       id("slice") +
       '"' +
       (p.sliceEnabled ? " checked" : "") +
-      " /> 切片生成 m3u8 " +
-      tip("开启后生成 m3u8 切片；转编辑时常需要。") +
-      "</label>" +
-      '<div class="field" style="margin-top:12px">' +
-      label(
-        "最短视频时长（秒）",
-        "全局下限 " +
-          GLOBAL_MIN_VIDEO_SEC +
-          " 秒；项目可在此之上再收紧。"
+      " /> 生成可边下边播的播放地址 " +
+      tip(
+        "开启后推送前把视频切成适合网页/App 边下边播的格式（技术上叫 m3u8）。切片服务没配好、超时或失败时，仍只推完整视频文件，不会卡死整条推送。对方站若不需要自适应播放，可关掉。"
       ) +
-      '<input type="number" id="' +
-      id("min-sec") +
-      '" min="' +
-      GLOBAL_MIN_VIDEO_SEC +
-      '" value="' +
-      esc(p.minVideoSeconds || GLOBAL_MIN_VIDEO_SEC) +
-      '" /></div>' +
-      '<p class="hint" style="margin:10px 0 0">「推送全部分集」在「推送规则」；短剧站默认开启。</p>' +
+      "</label>" +
+      '<p class="hint" style="margin:10px 0 0">「必须含视频」「最短时长」等出站门槛在「推送规则」。</p>' +
       "</div></div>"
     );
   }
@@ -369,10 +381,10 @@
   function collectVideoRules(root, into, prefix) {
     root = root || document;
     prefix = prefix || "";
-    into.requireVideo = !!(root.getElementById(prefix + "req-video") || {}).checked;
     into.sliceEnabled = !!(root.getElementById(prefix + "slice") || {}).checked;
-    var sec = Number(val(root, prefix + "min-sec"));
-    into.minVideoSeconds = isFinite(sec) ? Math.max(GLOBAL_MIN_VIDEO_SEC, sec) : GLOBAL_MIN_VIDEO_SEC;
+    if (into.minVideoSeconds == null || into.minVideoSeconds < GLOBAL_MIN_VIDEO_SEC) {
+      into.minVideoSeconds = GLOBAL_MIN_VIDEO_SEC;
+    }
     var fmtEl = root.getElementById(prefix + "img-fmt");
     var fmt = fmtEl ? String(fmtEl.value || "png") : into.imageOutputFormat || "png";
     if (["png", "jpeg", "webp"].indexOf(fmt) === -1) fmt = "png";
@@ -401,48 +413,54 @@
       '<div class="cfg-card" style="margin-bottom:12px">' +
       '<div class="cfg-card-head"><div class="cfg-card-title">① 素材进编辑</div>' +
       '<div class="cfg-card-sub">采集加工完成之后</div></div>' +
-      '<div class="mode-toggles" role="radiogroup" aria-label="素材进编辑">' +
-      '<label class="check-item" style="margin:0"><input type="radio" name="' +
-      id("to-edit-mode") +
-      '" id="' +
-      id("auto-to-edit-on") +
-      '" value="auto"' +
-      (toEditOn ? " checked" : "") +
-      " /> 自动转入编辑 " +
-      tip("素材可用后自动进本项目编辑；无需再点「转编辑」。") +
-      "</label>" +
-      '<label class="check-item" style="margin:0"><input type="radio" name="' +
-      id("to-edit-mode") +
-      '" id="' +
-      id("auto-to-edit-off") +
-      '" value="manual"' +
-      (!toEditOn ? " checked" : "") +
-      " /> 人工转编辑 " +
-      tip("停在「可使用」；在素材管理点「转编辑」选进本项目。") +
-      "</label></div></div>" +
+      (global.FZMediaConfig && FZMediaConfig.renderSeg
+        ? FZMediaConfig.renderSeg(
+            id("to-edit-mode"),
+            [
+              { value: "auto", label: "自动转入编辑" },
+              { value: "manual", label: "人工转编辑" }
+            ],
+            toEditOn ? "auto" : "manual",
+            "素材进编辑"
+          )
+        : "") +
+      '<p class="hint" style="margin:10px 0 0">自动：素材可用后进本项目编辑。人工：停在「可使用」，在素材管理点「转编辑」。</p></div>' +
       '<div class="cfg-card" style="margin-bottom:12px">' +
       '<div class="cfg-card-head"><div class="cfg-card-title">② 推送给业务方</div>' +
       '<div class="cfg-card-sub">编辑侧内容就绪之后 · 通道接通前只记意向</div></div>' +
-      '<div class="mode-toggles" role="radiogroup" aria-label="推送给业务方">' +
-      '<label class="check-item" style="margin:0"><input type="radio" name="' +
-      id("push-mode") +
-      '" id="' +
-      id("auto-push-on") +
-      '" value="auto"' +
-      (pushOn ? " checked" : "") +
-      " /> 内容就绪后自动推送 " +
-      tip("编辑完成（或可跳过）后经内容通道自动推；未接通时不会真推。") +
+      (global.FZMediaConfig && FZMediaConfig.renderSeg
+        ? FZMediaConfig.renderSeg(
+            id("push-mode"),
+            [
+              { value: "auto", label: "内容就绪后自动推送" },
+              { value: "manual", label: "待人工确认再推" }
+            ],
+            pushOn ? "auto" : "manual",
+            "推送给业务方"
+          )
+        : "") +
+      '<p class="hint" style="margin:10px 0 0">新建项目默认「待人工确认再推」（RF-04）；两段可分开配。收件/事件通知在「开发对接」。</p></div>' +
+      '<div class="cfg-card" style="margin-bottom:12px">' +
+      '<div class="cfg-card-head"><div class="cfg-card-title">③ 出站媒体门槛</div>' +
+      '<div class="cfg-card-sub">推给业务方时校验 · 不管采集</div></div>' +
+      '<label class="check-item"><input type="checkbox" id="' +
+      id("req-video") +
+      '"' +
+      (p.requireVideo ? " checked" : "") +
+      " /> 必须含视频才可推送 " +
+      tip(
+        "开着时无视频不推（自动推、人工点推都一样）。关掉后纯图文也可以推。采集进池不看这项。"
+      ) +
       "</label>" +
-      '<label class="check-item" style="margin:0"><input type="radio" name="' +
-      id("push-mode") +
-      '" id="' +
-      id("auto-push-off") +
-      '" value="manual"' +
-      (!pushOn ? " checked" : "") +
-      " /> 待人工确认再推 " +
-      tip("停在待推送，列表里人工点推；超过 7 天自动取消。") +
-      "</label></div>" +
-      '<p class="hint" style="margin:10px 0 0">两段可分开配（如自动进编辑、推送仍人工）。收件/事件通知在「开发对接」。</p></div>';
+      '<div class="field" style="margin-top:12px">' +
+      '<label>推送最短时长（只读） ' +
+      tip(
+        "单视频看片长；开了「推送全部分集」则各集时长加总。短于全局下限则不推。现网是环境全局值，项目侧不单独改。"
+      ) +
+      "</label>" +
+      '<p class="hint" style="margin:6px 0 0">当前全局下限 ' +
+      GLOBAL_MIN_VIDEO_SEC +
+      " 秒。过短仍可采进池、可转编辑，只是推不出去。</p></div></div>";
 
     if (short) {
       html +=
@@ -477,19 +495,40 @@
   function collectPushRules(root, into, prefix) {
     root = root || document;
     prefix = prefix || "";
-    var toEditOn = root.getElementById(prefix + "auto-to-edit-on");
-    var toEditLegacy = root.getElementById(prefix + "auto-to-edit");
-    if (toEditOn) into.autoToEdit = !!toEditOn.checked;
-    else if (toEditLegacy) into.autoToEdit = !!toEditLegacy.checked;
-    else if (into.autoToEdit == null) into.autoToEdit = !!(into.autoflow || into.autoPush);
+    var readSeg =
+      global.FZMediaConfig && FZMediaConfig.readSeg
+        ? function (name) {
+            return FZMediaConfig.readSeg(root, name);
+          }
+        : function () {
+            return null;
+          };
+    var toEditSeg = readSeg(prefix + "to-edit-mode");
+    if (toEditSeg != null) into.autoToEdit = toEditSeg === "auto";
+    else {
+      var toEditOn = root.getElementById(prefix + "auto-to-edit-on");
+      var toEditLegacy = root.getElementById(prefix + "auto-to-edit");
+      if (toEditOn) into.autoToEdit = !!toEditOn.checked;
+      else if (toEditLegacy) into.autoToEdit = !!toEditLegacy.checked;
+      else if (into.autoToEdit == null) into.autoToEdit = !!(into.autoflow || into.autoPush);
+    }
 
-    var onEl = root.getElementById(prefix + "auto-push-on");
-    var legacy = root.getElementById(prefix + "auto-push");
-    if (onEl) into.autoPush = !!onEl.checked;
-    else if (legacy) into.autoPush = !!legacy.checked;
-    else if (into.autoPush == null) into.autoPush = false;
+    var pushSeg = readSeg(prefix + "push-mode");
+    if (pushSeg != null) into.autoPush = pushSeg === "auto";
+    else {
+      var onEl = root.getElementById(prefix + "auto-push-on");
+      var legacy = root.getElementById(prefix + "auto-push");
+      if (onEl) into.autoPush = !!onEl.checked;
+      else if (legacy) into.autoPush = !!legacy.checked;
+      else if (into.autoPush == null) into.autoPush = false;
+    }
 
     into.autoflow = !!into.autoToEdit;
+    var reqEl = root.getElementById(prefix + "req-video");
+    if (reqEl) into.requireVideo = !!reqEl.checked;
+    if (into.minVideoSeconds == null || into.minVideoSeconds < GLOBAL_MIN_VIDEO_SEC) {
+      into.minVideoSeconds = GLOBAL_MIN_VIDEO_SEC;
+    }
     var epEl = root.getElementById(prefix + "episodes");
     if (epEl) {
       into.pushAllEpisodes = !!epEl.checked;

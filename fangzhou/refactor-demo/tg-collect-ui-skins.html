@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TG 采集配置 · UI 风格对照</title>
+  <title>视觉 UI 对照风格 · TG 采集</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@450;550;650;750&family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@450;550;650;750&family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=Outfit:wght@450;550;650;750&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Sora:wght@450;550;650;750&display=swap" rel="stylesheet" />
   <style>
     /* —— 静态对照页：只换皮，不接业务 —— */
     *, *::before, *::after { box-sizing: border-box; }
@@ -167,6 +167,64 @@
       --density: 1.1;
     }
 
+    /* 薰紫 SaaS：参照 Trackify — 薰衣草底 + 浅色侧栏 + 大圆角软阴影 */
+    html[data-skin="lilac"] {
+      --font: "Outfit", "PingFang SC", "Noto Sans SC", sans-serif;
+      --canvas: #f1eef8;
+      --sidebar: #ffffff;
+      --panel: #ffffff;
+      --ink: #1c1830;
+      --muted: #7a7594;
+      --line: #e8e4f2;
+      --line-strong: #d9d3e8;
+      --accent: #6b5cff;
+      --accent-soft: #efecff;
+      --accent-ink: #4a3fd4;
+      --ok: #0f9f6e;
+      --ok-bg: #e6f8f1;
+      --warn: #c2410c;
+      --warn-bg: #fff4ed;
+      --danger: #e11d48;
+      --danger-bg: #fff1f3;
+      --push: #7c3aed;
+      --push-bg: #f3e8ff;
+      --radius: 20px;
+      --radius-sm: 12px;
+      --shadow: 0 1px 2px rgba(28, 24, 48, 0.04);
+      --shadow-card: 0 10px 28px rgba(70, 55, 140, 0.08);
+      --sidebar-w: 240px;
+      --density: 1.08;
+    }
+
+    /* 青柠金融：参照 Finexy — 浅灰底 + 酸绿强调 + 胶囊控件 */
+    html[data-skin="lime"] {
+      --font: "Sora", "PingFang SC", "Noto Sans SC", sans-serif;
+      --canvas: #eceef1;
+      --sidebar: #f7f8fa;
+      --panel: #ffffff;
+      --ink: #15181c;
+      --muted: #6b7280;
+      --line: #e4e7eb;
+      --line-strong: #d5d9df;
+      --accent: #c6f000;
+      --accent-soft: #f3facc;
+      --accent-ink: #2a3200;
+      --ok: #16a34a;
+      --ok-bg: #eaf8ef;
+      --warn: #ca8a04;
+      --warn-bg: #fef9c3;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --push: #111827;
+      --push-bg: #f3f4f6;
+      --radius: 18px;
+      --radius-sm: 999px;
+      --shadow: none;
+      --shadow-card: 0 8px 24px rgba(17, 24, 39, 0.06);
+      --sidebar-w: 220px;
+      --density: 1.05;
+    }
+
     /* ========== Switcher ========== */
     .skin-bar {
       position: sticky;
@@ -242,12 +300,20 @@
       --side-active-bg: rgba(255, 255, 255, 0.08);
       --side-active-ink: #fff;
     }
-    html[data-skin="paper"] .sidebar {
+    html[data-skin="paper"] .sidebar,
+    html[data-skin="lilac"] .sidebar {
       --side-ink: var(--ink);
       --side-line: var(--line);
       --side-muted: var(--muted);
       --side-active-bg: var(--accent-soft);
       --side-active-ink: var(--accent-ink);
+    }
+    html[data-skin="lime"] .sidebar {
+      --side-ink: #374151;
+      --side-line: transparent;
+      --side-muted: #9ca3af;
+      --side-active-bg: #111827;
+      --side-active-ink: #fff;
     }
     html[data-skin="current"] .sidebar {
       --side-ink: #3f3f46;
@@ -255,6 +321,19 @@
       --side-muted: #a1a1aa;
       --side-active-bg: var(--accent-soft);
       --side-active-ink: var(--accent);
+    }
+    html[data-skin="lilac"] .sidebar {
+      border-right: 0;
+      box-shadow: 4px 0 24px rgba(70, 55, 140, 0.04);
+      padding: 18px 14px;
+    }
+    html[data-skin="lime"] .sidebar {
+      margin: 12px 0 12px 12px;
+      border-radius: 22px;
+      border-right: 0;
+      box-shadow: var(--shadow-card);
+      padding: 18px 12px;
+      min-height: calc(100% - 24px);
     }
     .brand {
       display: flex;
@@ -275,6 +354,17 @@
     }
     html[data-skin="slate"] .brand-mark { background: #fff; color: #111827; border-radius: 4px; }
     html[data-skin="paper"] .brand-mark { background: var(--accent); border-radius: 12px; }
+    html[data-skin="lilac"] .brand-mark {
+      background: linear-gradient(145deg, #8b7cff, #5b4df0);
+      border-radius: 12px;
+      box-shadow: 0 6px 14px rgba(91, 77, 240, 0.28);
+    }
+    html[data-skin="lime"] .brand-mark {
+      background: var(--accent);
+      color: #15181c;
+      border-radius: 999px;
+      box-shadow: 0 4px 12px rgba(198, 240, 0, 0.35);
+    }
     .brand-text { font-weight: 750; font-size: 15px; color: var(--side-ink); }
     .brand-sub { font-size: 11px; color: var(--side-muted, var(--muted)); margin-top: 1px; }
     .nav-lab {
@@ -338,6 +428,24 @@
       font-weight: 700;
     }
     html[data-skin="slate"] .avatar { border-radius: 4px; background: #111827; color: #fff; }
+    html[data-skin="lilac"] .avatar {
+      background: linear-gradient(145deg, #c4b5fd, #818cf8);
+      color: #fff;
+    }
+    html[data-skin="lime"] .avatar {
+      background: #111827;
+      color: #c6f000;
+    }
+    html[data-skin="lilac"] .topbar,
+    html[data-skin="lime"] .topbar {
+      background: transparent;
+      border-bottom: 0;
+      padding-top: 18px;
+    }
+    html[data-skin="lilac"] .main,
+    html[data-skin="lime"] .main {
+      background: transparent;
+    }
 
     .content {
       padding: calc(16px * var(--density)) 22px 28px;
@@ -381,6 +489,26 @@
       border-color: #1d4ed8;
       box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
     }
+    html[data-skin="lilac"] .ctx-card {
+      border: 0;
+      box-shadow: var(--shadow-card);
+    }
+    html[data-skin="lilac"] .ctx-card.is-on {
+      background: #fff;
+      box-shadow: 0 0 0 2px var(--accent), 0 12px 28px rgba(70, 55, 140, 0.12);
+    }
+    html[data-skin="lime"] .ctx-card {
+      border: 0;
+      border-radius: 16px;
+      box-shadow: var(--shadow-card);
+    }
+    html[data-skin="lime"] .ctx-card.is-on {
+      background: #111827;
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(17, 24, 39, 0.18);
+    }
+    html[data-skin="lime"] .ctx-card.is-on .ctx-type { color: #c6f000; }
+    html[data-skin="lime"] .ctx-card.is-on .ctx-meta { color: rgba(255, 255, 255, 0.62); }
     .ctx-name { display: block; font-weight: 700; font-size: 14px; margin-bottom: 2px; }
     .ctx-type { display: block; font-size: 12px; color: var(--accent-ink); margin-bottom: 6px; }
     html[data-skin="slate"] .ctx-type { color: var(--muted); }
@@ -417,6 +545,23 @@
       border-radius: var(--radius);
       box-shadow: none;
     }
+    html[data-skin="lilac"] .bot-pane,
+    html[data-skin="lilac"] .detail-pane,
+    html[data-skin="lime"] .bot-pane,
+    html[data-skin="lime"] .detail-pane {
+      border: 0;
+      box-shadow: var(--shadow-card);
+    }
+    html[data-skin="lime"] .bot-pane,
+    html[data-skin="lime"] .detail-pane {
+      border-radius: 20px;
+    }
+    html[data-skin="lilac"] .workspace {
+      gap: 16px;
+    }
+    html[data-skin="lime"] .app {
+      background: var(--canvas);
+    }
     .bot-head, .panel-head {
       display: flex;
       align-items: center;
@@ -447,6 +592,25 @@
     html[data-skin="slate"] .bot-item.is-on {
       background: #f3f4f6;
       border-color: #111827;
+    }
+    html[data-skin="lilac"] .bot-item.is-on {
+      background: var(--accent-soft);
+      border-color: transparent;
+      box-shadow: inset 3px 0 0 var(--accent);
+      border-radius: 14px;
+    }
+    html[data-skin="lime"] .bot-item {
+      border-radius: 14px;
+    }
+    html[data-skin="lime"] .bot-item.is-on {
+      background: #111827;
+      border-color: transparent;
+      color: #fff;
+    }
+    html[data-skin="lime"] .bot-item.is-on .bot-sub { color: rgba(255, 255, 255, 0.55); }
+    html[data-skin="lime"] .bot-item.is-on .btn-ghost {
+      color: rgba(255, 255, 255, 0.7);
+      border-color: rgba(255, 255, 255, 0.18);
     }
     .dot {
       width: 8px;
@@ -490,6 +654,19 @@
       background: var(--panel);
     }
     html[data-skin="slate"] .seg { border-radius: var(--radius-sm); }
+    html[data-skin="lilac"] .seg {
+      border: 0;
+      background: #efeaf8;
+      padding: 3px;
+      gap: 2px;
+      border-radius: 999px;
+    }
+    html[data-skin="lime"] .seg {
+      border: 0;
+      background: #e8eaee;
+      padding: 3px;
+      border-radius: 999px;
+    }
     .seg button {
       border: 0;
       background: transparent;
@@ -508,6 +685,25 @@
     html[data-skin="paper"] .seg button.is-on {
       background: var(--accent);
     }
+    html[data-skin="lilac"] .seg button.is-on {
+      background: #fff;
+      color: var(--accent-ink);
+      border-radius: 999px;
+      box-shadow: 0 2px 8px rgba(70, 55, 140, 0.12);
+    }
+    html[data-skin="lime"] .seg button.is-on {
+      background: #111827;
+      color: #fff;
+      border-radius: 999px;
+    }
+    html[data-skin="lilac"] .search,
+    html[data-skin="lime"] .search {
+      border: 0;
+      background: color-mix(in srgb, var(--canvas) 70%, #fff);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    html[data-skin="lilac"] .search { border-radius: 12px; }
+    html[data-skin="lime"] .search { border-radius: 999px; }
     .filter-lab {
       font-size: 12px;
       color: var(--muted);
@@ -533,6 +729,26 @@
     html[data-skin="slate"] .btn-primary {
       background: #111827;
       border-color: #111827;
+    }
+    html[data-skin="lilac"] .btn {
+      border-radius: 12px;
+    }
+    html[data-skin="lilac"] .btn-primary {
+      background: linear-gradient(145deg, #8b7cff, #5b4df0);
+      border-color: transparent;
+      box-shadow: 0 6px 14px rgba(91, 77, 240, 0.28);
+    }
+    html[data-skin="lime"] .btn {
+      border-radius: 999px;
+    }
+    html[data-skin="lime"] .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #15181c;
+      box-shadow: 0 4px 12px rgba(198, 240, 0, 0.35);
+    }
+    html[data-skin="lime"] .btn-ghost {
+      border-radius: 999px;
     }
     .btn-ghost {
       background: transparent;
@@ -571,6 +787,17 @@
     html[data-skin="paper"] .ch-grid li {
       background: #fff;
       border-color: var(--line);
+    }
+    html[data-skin="lilac"] .ch-grid li {
+      border: 0;
+      background: #f7f5fc;
+      border-radius: 12px;
+      box-shadow: inset 0 0 0 1px rgba(109, 92, 255, 0.08);
+    }
+    html[data-skin="lime"] .ch-grid li {
+      border: 0;
+      background: #f4f5f7;
+      border-radius: 14px;
     }
     .badge {
       flex: 0 0 auto;
@@ -650,6 +877,16 @@
       background: color-mix(in srgb, var(--canvas) 55%, var(--panel));
     }
     html[data-skin="slate"] .route-table th { background: #f9fafb; }
+    html[data-skin="lilac"] .route-table th {
+      background: #f6f3fb;
+      border-bottom: 0;
+    }
+    html[data-skin="lilac"] .route-table td { border-bottom-color: #efeaf8; }
+    html[data-skin="lime"] .route-table th {
+      background: #f4f5f7;
+      border-bottom: 0;
+    }
+    html[data-skin="lime"] .route-table td { border-bottom-color: #eef0f3; }
     .pill {
       display: inline-flex;
       align-items: center;
@@ -676,11 +913,83 @@
       padding: 1px 5px;
       border-radius: 4px;
     }
+
+    /* 参考图浮层：切到新 sheet 时对照原图 */
+    .skin-ref {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 50;
+      width: min(320px, 42vw);
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 14px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+      overflow: hidden;
+      display: none;
+    }
+    .skin-ref.is-on { display: block; }
+    .skin-ref-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid #eee;
+      font-size: 12px;
+      font-weight: 700;
+      color: #111;
+    }
+    .skin-ref-head button {
+      border: 0;
+      background: #f4f4f5;
+      color: #52525b;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 11px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .skin-ref img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 240px;
+      object-fit: cover;
+      object-position: top left;
+      cursor: zoom-in;
+      background: #f4f4f5;
+    }
+    .skin-ref-cap {
+      margin: 0;
+      padding: 8px 10px 10px;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #737373;
+    }
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(15, 15, 20, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      cursor: zoom-out;
+    }
+    #lightbox.is-on { display: flex; }
+    #lightbox img {
+      max-width: min(1100px, 96vw);
+      max-height: 92vh;
+      border-radius: 10px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
   </style>
 </head>
 <body>
   <div class="skin-bar">
-    <div class="skin-bar-brand">UI 风格对照</div>
+    <div class="skin-bar-brand">视觉 UI 对照风格</div>
     <div class="skin-bar-note">同一「TG 采集配置」静态页 · 仅换皮 · 不可点业务</div>
     <div class="skin-tabs" role="tablist" aria-label="风格切换">
       <button type="button" class="skin-tab is-on" data-skin="current">现行 Demo</button>
@@ -688,8 +997,20 @@
       <button type="button" class="skin-tab" data-skin="stone">石色企业</button>
       <button type="button" class="skin-tab" data-skin="slate">冷静控制台</button>
       <button type="button" class="skin-tab" data-skin="paper">纸面编辑室</button>
+      <button type="button" class="skin-tab" data-skin="lilac">薰紫 SaaS</button>
+      <button type="button" class="skin-tab" data-skin="lime">青柠金融</button>
     </div>
   </div>
+
+  <aside class="skin-ref" id="skin-ref" hidden aria-label="风格参考图">
+    <div class="skin-ref-head">
+      <span id="skin-ref-title">参考图</span>
+      <button type="button" id="skin-ref-hide">收起</button>
+    </div>
+    <img id="skin-ref-img" src="" alt="风格参考" />
+    <p class="skin-ref-cap" id="skin-ref-cap"></p>
+  </aside>
+  <div id="lightbox" aria-hidden="true"><img alt="" /></div>
 
   <div class="app">
     <aside class="sidebar" aria-label="侧栏示意">
@@ -950,7 +1271,8 @@
       </div>
       <p class="foot-note">
         文件：<code>fangzhou/refactor-demo/tg-collect-ui-skins.html</code>
-        · 五套皮肤仅 CSS token / 侧栏与表面处理不同，信息架构与现行页一致。
+        · 七套皮肤仅 CSS token / 侧栏与表面处理不同，信息架构与现行页一致。
+        · 新增「薰紫 SaaS / 青柠金融」分别参照 Trackify、Finexy 参考图。
       </p>
     </div>
   </div>
@@ -959,25 +1281,91 @@
     (function () {
       var root = document.documentElement;
       var tabs = document.querySelectorAll(".skin-tab");
+      var refBox = document.getElementById("skin-ref");
+      var refImg = document.getElementById("skin-ref-img");
+      var refTitle = document.getElementById("skin-ref-title");
+      var refCap = document.getElementById("skin-ref-cap");
+      var refHide = document.getElementById("skin-ref-hide");
+      var lightbox = document.getElementById("lightbox");
+      var lightImg = lightbox ? lightbox.querySelector("img") : null;
+      var REF = {
+        lilac: {
+          src: "./assets/ui-ref-trackify.webp",
+          title: "薰紫 SaaS · 参考 Trackify",
+          cap: "浅薰衣草底、浅色侧栏、大圆角软阴影、紫强调。"
+        },
+        lime: {
+          src: "./assets/ui-ref-finexy.jpg",
+          title: "青柠金融 · 参考 Finexy",
+          cap: "浅灰底、酸绿主按钮、深色选中态、胶囊控件。"
+        }
+      };
+      var refDismissed = {};
+
+      function syncRef(skin) {
+        var meta = REF[skin];
+        if (!refBox) return;
+        if (!meta || refDismissed[skin]) {
+          refBox.hidden = true;
+          refBox.classList.remove("is-on");
+          return;
+        }
+        refImg.src = meta.src;
+        refImg.alt = meta.title;
+        refTitle.textContent = meta.title;
+        refCap.textContent = meta.cap;
+        refBox.hidden = false;
+        refBox.classList.add("is-on");
+      }
+
       function apply(skin) {
         root.setAttribute("data-skin", skin);
         tabs.forEach(function (t) {
           t.classList.toggle("is-on", t.getAttribute("data-skin") === skin);
         });
+        syncRef(skin);
         try {
           localStorage.setItem("fz_tg_ui_skin", skin);
         } catch (e) {}
       }
       tabs.forEach(function (tab) {
         tab.addEventListener("click", function () {
-          apply(tab.getAttribute("data-skin"));
+          var skin = tab.getAttribute("data-skin");
+          if (REF[skin]) delete refDismissed[skin];
+          apply(skin);
         });
       });
+      if (refHide) {
+        refHide.addEventListener("click", function () {
+          var skin = root.getAttribute("data-skin");
+          refDismissed[skin] = true;
+          refBox.hidden = true;
+          refBox.classList.remove("is-on");
+        });
+      }
+      if (refImg && lightbox && lightImg) {
+        refImg.addEventListener("click", function () {
+          lightImg.src = refImg.src;
+          lightbox.classList.add("is-on");
+          lightbox.setAttribute("aria-hidden", "false");
+        });
+        lightbox.addEventListener("click", function () {
+          lightbox.classList.remove("is-on");
+          lightbox.setAttribute("aria-hidden", "true");
+        });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && lightbox.classList.contains("is-on")) {
+            lightbox.classList.remove("is-on");
+            lightbox.setAttribute("aria-hidden", "true");
+          }
+        });
+      }
       var saved = null;
       try {
         saved = localStorage.getItem("fz_tg_ui_skin");
       } catch (e) {}
       if (saved) apply(saved);
+      else syncRef(root.getAttribute("data-skin"));
     })();
   </script>
 </body>

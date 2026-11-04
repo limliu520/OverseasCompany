@@ -9,6 +9,8 @@
   var applyingPreset = false;
   /** 创建/编辑子账号：1 个人信息 → 2 负责项目 → 3 岗位权限 */
   var subStep = 1;
+  /** 已到达的最远步；侧栏只允许点 ≤ farthest，禁止跳过未走过的步 */
+  var subFarthest = 1;
   var subSelectedProjects = [];
   var filterProjId = "";
   var page = 1;
@@ -114,6 +116,29 @@
     return list.length + " 项权限 · " + pageN + " 个页面";
   }
 
+  /** 岗位卡用：覆盖页面中文名，避免英文 id 挤换行 */
+  function roleCoverPages(features) {
+    var list = FZPerm.migrateFeatures(features || []);
+    if (!list.length) return "未勾选权限";
+    var pageIds = {};
+    list.forEach(function (id) {
+      var parts = id.split(".");
+      parts.pop();
+      pageIds[parts.join(".")] = true;
+    });
+    var labels = [];
+    function walk(nodes) {
+      (nodes || []).forEach(function (n) {
+        if (n.actions && pageIds[n.id]) labels.push(n.label);
+        if (n.children) walk(n.children);
+      });
+    }
+    walk(FZPerm.TREE || []);
+    if (!labels.length) return Object.keys(pageIds).length + " 个页面";
+    if (labels.length <= 3) return labels.join("、");
+    return labels.slice(0, 3).join("、") + " 等 " + labels.length + " 个";
+  }
+
   function factRow(k, v, vClass) {
     return (
       '<div class="proj-fact"><span class="proj-fact-k">' +
@@ -123,6 +148,19 @@
       '">' +
       esc(v) +
       "</span></div>"
+    );
+  }
+
+  /** 子账号卡片：相关信息成组竖排，避免双列把关联项拆散 */
+  function subFactGroup(title, rowsHtml) {
+    return (
+      '<div class="sub-fact-group">' +
+      '<div class="sub-fact-group-title">' +
+      esc(title) +
+      "</div>" +
+      '<div class="sub-fact-group-body">' +
+      rowsHtml +
+      "</div></div>"
     );
   }
 
@@ -180,17 +218,24 @@
           '">' +
           (on ? "启用中" : "已停用") +
           "</span></div>" +
-          (u.roleName
-            ? '<div class="proj-tags"><span class="proj-tag">' +
-              esc(u.roleName) +
-              "</span></div>"
-            : '<div class="proj-tags"><span class="proj-tag is-custom">自定义权限</span></div>') +
-          '<div class="proj-facts">' +
-          factRow("CMS", u.cmsId || "未填写", u.cmsId ? "is-mono" : "is-muted") +
-          factRow("负责项目", projectNames(u.projects, s.projects)) +
-          factRow("权限", featureStats(u.features), "is-muted") +
+          '<div class="sub-facts">' +
+          subFactGroup(
+            "岗位与权限",
+            factRow("岗位", u.roleName || "自定义权限") +
+              factRow("权限", featureStats(u.features), "is-muted")
+          ) +
+          subFactGroup(
+            "对接与项目",
+            factRow(
+              "CMS 标识",
+              u.cmsId || "未填写",
+              u.cmsId ? "is-mono" : "is-muted"
+            ) + factRow("负责项目", projectNames(u.projects, s.projects))
+          ) +
           "</div>" +
           '<div class="proj-actions">' +
+          '<div class="fz-actions-opt"></div>' +
+          '<div class="fz-actions-fix">' +
           '<button type="button" class="btn" data-edit-sub="' +
           esc(u.id) +
           '">编辑</button>' +
@@ -201,7 +246,7 @@
           esc(u.id) +
           '">' +
           (on ? "停用" : "启用") +
-          "</button></div></article>"
+          "</button></div></div></article>"
         );
       })
       .join("");
@@ -213,21 +258,41 @@
     });
     box.querySelectorAll("[data-reset]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        FZShell.toast("已重置子账号密码（演示）");
+        openResetPassModal(btn.getAttribute("data-reset"));
       });
     });
     box.querySelectorAll("[data-disable]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var st = FZStore.read();
-        st.subs = st.subs.map(function (u) {
-          if (u.id === btn.getAttribute("data-disable")) {
-            u.disabled = !u.disabled;
-            FZShell.toast(u.disabled ? "已停用，演示为立即失效" : "已启用");
+        var id = btn.getAttribute("data-disable");
+        var u = (FZStore.read().subs || []).filter(function (x) {
+          return x.id === id;
+        })[0];
+        if (!u) return;
+        var name = u.displayName || u.username || "该子账号";
+        var turningOff = !u.disabled;
+        FZShell.confirm({
+          title: turningOff ? "停用子账号" : "启用子账号",
+          message: turningOff
+            ? "确定停用「" + name + "」？停用后对方立即无法登录与操作。"
+            : "确定重新启用「" + name + "」？启用后对方可按原权限继续使用。",
+          okText: turningOff ? "停用" : "启用",
+          danger: turningOff,
+          onOk: function () {
+            var st = FZStore.read();
+            st.subs = st.subs.map(function (row) {
+              if (row.id === id) {
+                row.disabled = !row.disabled;
+                FZShell.toast(
+                  row.disabled ? "已停用，演示为立即失效" : "已启用",
+                  "ok"
+                );
+              }
+              return row;
+            });
+            FZStore.write(st);
+            renderSubs();
           }
-          return u;
         });
-        FZStore.write(st);
-        renderSubs();
       });
     });
   }
@@ -256,10 +321,19 @@
     box.innerHTML = slice.items
       .map(function (r) {
         var used = roleUserCount(r.name, s.subs);
+        var feats = FZPerm.migrateFeatures(r.features || []);
+        var pageN = 0;
+        var pages = {};
+        feats.forEach(function (id) {
+          var parts = id.split(".");
+          parts.pop();
+          pages[parts.join(".")] = true;
+        });
+        pageN = Object.keys(pages).length;
         return (
           '<article class="role-card" data-id="' +
           esc(r.id) +
-          '"><div class="role-card-body">' +
+          '">' +
           '<div class="sub-card-head">' +
           '<div class="role-mark">' +
           esc(markChar(r.name)) +
@@ -267,24 +341,26 @@
           '<div class="sub-card-head-main">' +
           '<h3 class="sub-title">' +
           esc(r.name) +
-          "</h3>" +
-          '<p class="sub-status">权限包</p></div></div>' +
-          '<div class="proj-facts">' +
-          factRow("规模", featureStats(r.features)) +
-          factRow(
-            "选用",
-            used ? used + " 个子账号套用" : "暂无子账号套用",
-            used ? "" : "is-muted"
-          ) +
-          factRow("摘要", FZPerm.summarize(r.features), "is-muted") +
-          "</div></div>" +
+          "</h3></div>" +
+          '<span class="tag ' +
+          (used ? "tag-ok" : "tag-muted") +
+          '" title="当前使用该岗位的子账号数">' +
+          (used ? "使用人数 " + used : "暂无人使用") +
+          "</span></div>" +
+          '<div class="sub-facts sub-facts--flat">' +
+          factRow("权限", feats.length + " 项") +
+          factRow("页面", pageN + " 个") +
+          factRow("覆盖", roleCoverPages(r.features), "is-muted") +
+          "</div>" +
           '<div class="proj-actions">' +
+          '<div class="fz-actions-opt"></div>' +
+          '<div class="fz-actions-fix">' +
           '<button type="button" class="btn" data-edit="' +
           esc(r.id) +
           '">编辑</button>' +
-          '<button type="button" class="btn btn-ghost" data-del="' +
+          '<button type="button" class="btn" data-del="' +
           esc(r.id) +
-          '">删除</button></div></article>'
+          '">删除</button></div></div></article>'
         );
       })
       .join("");
@@ -296,13 +372,33 @@
     });
     box.querySelectorAll("[data-del]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var st = FZStore.read();
-        st.roles = st.roles.filter(function (r) {
-          return r.id !== btn.getAttribute("data-del");
+        var id = btn.getAttribute("data-del");
+        var r = (FZStore.read().roles || []).filter(function (x) {
+          return x.id === id;
+        })[0];
+        var name = (r && r.name) || "该岗位";
+        var used = roleUserCount(name, FZStore.read().subs);
+        FZShell.confirm({
+          title: "删除岗位",
+          message:
+            "确定删除岗位「" +
+            name +
+            "」？" +
+            (used
+              ? "当前有 " + used + " 个子账号仍挂此岗位名，删除后不影响已写权限，但无法再套用该岗位。"
+              : "删除后不可恢复。"),
+          okText: "删除",
+          danger: true,
+          onOk: function () {
+            var st = FZStore.read();
+            st.roles = st.roles.filter(function (row) {
+              return row.id !== id;
+            });
+            FZStore.write(st);
+            renderRoles();
+            FZShell.toast("已删除岗位", "ok");
+          }
         });
-        FZStore.write(st);
-        renderRoles();
-        FZShell.toast("已删除岗位");
       });
     });
   }
@@ -396,9 +492,18 @@
   function paintSubSteps() {
     document.querySelectorAll(".sub-wiz-step").forEach(function (btn) {
       var n = Number(btn.getAttribute("data-goto-step"));
+      var locked = n > subFarthest;
       btn.classList.toggle("is-on", n === subStep);
       btn.classList.toggle("is-done", n < subStep);
+      btn.classList.toggle("is-locked", locked);
       btn.setAttribute("aria-selected", n === subStep ? "true" : "false");
+      if (locked) {
+        btn.setAttribute("aria-disabled", "true");
+        btn.title = "请按顺序完成前面的步骤";
+      } else {
+        btn.removeAttribute("aria-disabled");
+        btn.removeAttribute("title");
+      }
     });
     document.querySelectorAll(".sub-wiz-pane").forEach(function (pane) {
       pane.hidden = Number(pane.getAttribute("data-step")) !== subStep;
@@ -475,9 +580,16 @@
       var username = isEdit ? "" : document.getElementById("sub-user").value.trim();
       var displayName = document.getElementById("sub-name").value.trim();
       var pass = document.getElementById("sub-pass").value;
-      if (!isEdit && (!username || !pass)) {
-        FZShell.toast("请填写登录名和初始密码", "err");
+      if (!isEdit && !username) {
+        FZShell.toast("请填写登录名", "err");
         return false;
+      }
+      if (!isEdit) {
+        var pErr = validateNewPassword(pass, pass);
+        if (pErr) {
+          FZShell.toast(pErr === "两次输入的密码不一致" ? "请填写初始密码（至少 8 位）" : pErr, "err");
+          return false;
+        }
       }
       if (!displayName) {
         FZShell.toast("请填写显示名", "err");
@@ -504,14 +616,76 @@
   }
 
   function goSubStep(next) {
-    if (next > subStep && !validateSubStep(subStep)) return;
     if (next < 1 || next > 3) return;
+    /* 前进到未走过的步：只允许相邻 +1，且校验当前步 */
+    if (next > subFarthest) {
+      if (next !== subStep + 1 || next !== subFarthest + 1) return;
+      if (!validateSubStep(subStep)) return;
+    } else if (next > subStep && !validateSubStep(subStep)) {
+      return;
+    }
     subStep = next;
+    if (subStep > subFarthest) subFarthest = subStep;
     if (subStep === 2) paintSubProjects();
     if (subStep === 3) {
       paintRolePresets();
     }
     paintSubSteps();
+  }
+
+  var resetPassSubId = null;
+
+  function genPassword() {
+    var chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    var out = "";
+    for (var i = 0; i < 10; i++) {
+      out += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return out;
+  }
+
+  function validateNewPassword(pass, confirm) {
+    if (!pass || pass.length < 8) return "新密码至少 8 位";
+    if (pass !== confirm) return "两次输入的密码不一致";
+    return "";
+  }
+
+  function openResetPassModal(subId) {
+    var u = (FZStore.read().subs || []).filter(function (x) {
+      return x.id === subId;
+    })[0];
+    if (!u) {
+      FZShell.toast("子账号不存在", "err");
+      return;
+    }
+    if (u.disabled) {
+      FZShell.toast("已停用的子账号请先启用，再重置密码", "err");
+      return;
+    }
+    resetPassSubId = subId;
+    var name = u.displayName || u.username;
+    document.getElementById("sub-pass-lead").textContent =
+      "为「" + name + "」（@" + u.username + "）设置新登录密码。生效后对方须用新密码登录。";
+    document.getElementById("sub-pass-new").value = "";
+    document.getElementById("sub-pass-confirm").value = "";
+    document.getElementById("sub-pass-modal").hidden = false;
+    document.getElementById("sub-pass-new").focus();
+  }
+
+  function closeResetPassModal() {
+    document.getElementById("sub-pass-modal").hidden = true;
+    resetPassSubId = null;
+  }
+
+  function showPassDone(username, password) {
+    document.getElementById("sub-pass-done-user").textContent = "@" + username;
+    document.getElementById("sub-pass-done-pwd").textContent = password;
+    document.getElementById("sub-pass-done-modal").hidden = false;
+  }
+
+  function closePassDone() {
+    document.getElementById("sub-pass-done-modal").hidden = true;
+    document.getElementById("sub-pass-done-pwd").textContent = "";
   }
 
   function openSubModal(subId) {
@@ -547,6 +721,8 @@
     paintRolePresets();
     renderSubPermTree(sub ? sub.features : []);
     subStep = 1;
+    /* 编辑：三步均已填过，可自由切换；新建：从第 1 步起按序推进 */
+    subFarthest = isEdit ? 3 : 1;
     paintSubSteps();
     document.getElementById("sub-modal").hidden = false;
   }
@@ -606,20 +782,15 @@
     if (!btn) return;
     var target = Number(btn.getAttribute("data-goto-step"));
     if (target === subStep) return;
-    if (target < subStep) {
-      goSubStep(target);
+    if (target > subFarthest) {
+      FZShell.toast("请按顺序完成前面的步骤，不能跳过", "err");
       return;
     }
-    /* 向前跳：逐步校验；失败停在当前未过关的一步 */
-    var cur = subStep;
-    while (cur < target) {
-      if (!validateSubStep(cur)) {
-        if (cur !== subStep) goSubStep(cur);
-        return;
-      }
-      cur += 1;
-    }
-    goSubStep(target);
+    /* 仅在已到达的步骤间切换修改，不校验、不自动跨步推进 */
+    subStep = target;
+    if (subStep === 2) paintSubProjects();
+    if (subStep === 3) paintRolePresets();
+    paintSubSteps();
   });
   document.getElementById("sub-save").addEventListener("click", function () {
     if (!validateSubStep(1)) {
@@ -667,10 +838,18 @@
       notifySubWizardDone();
       return;
     }
+    var initPass = document.getElementById("sub-pass").value;
+    var passErr = validateNewPassword(initPass, initPass);
+    if (passErr) {
+      FZShell.toast(passErr, "err");
+      goSubStep(1);
+      return;
+    }
     st.subs.push({
       id: FZStore.uid("sub"),
       username: username,
       displayName: displayName,
+      password: initPass,
       cmsId: cmsId,
       features: features,
       projects: projects,
@@ -682,8 +861,69 @@
     editingSubId = null;
     subStep = 1;
     renderList();
-    FZShell.toast("子账号已创建，权限立即生效（演示）", "ok");
+    FZShell.toast("子账号已创建，可用登录名与初始密码登录", "ok");
     notifySubWizardDone();
+  });
+
+  document.getElementById("sub-pass-cancel").addEventListener("click", closeResetPassModal);
+  document.getElementById("sub-pass-modal").addEventListener("click", function (e) {
+    if (e.target === e.currentTarget) closeResetPassModal();
+  });
+  document.getElementById("sub-pass-gen").addEventListener("click", function () {
+    var p = genPassword();
+    var neu = document.getElementById("sub-pass-new");
+    var conf = document.getElementById("sub-pass-confirm");
+    neu.type = "text";
+    conf.type = "text";
+    neu.value = p;
+    conf.value = p;
+    FZShell.toast("已生成随机密码，可改后再确认", "ok");
+  });
+  document.getElementById("sub-pass-ok").addEventListener("click", function () {
+    if (!resetPassSubId) return;
+    var neu = document.getElementById("sub-pass-new").value;
+    var conf = document.getElementById("sub-pass-confirm").value;
+    var err = validateNewPassword(neu, conf);
+    if (err) {
+      FZShell.toast(err, "err");
+      return;
+    }
+    var st = FZStore.read();
+    var hit = null;
+    st.subs = st.subs.map(function (u) {
+      if (u.id !== resetPassSubId) return u;
+      u.password = neu;
+      u.passwordUpdatedAt = new Date().toISOString();
+      hit = u;
+      return u;
+    });
+    if (!hit) {
+      FZShell.toast("子账号不存在", "err");
+      closeResetPassModal();
+      return;
+    }
+    FZStore.write(st);
+    closeResetPassModal();
+    showPassDone(hit.username, neu);
+    FZShell.toast("密码已重置", "ok");
+  });
+  document.getElementById("sub-pass-copy").addEventListener("click", function () {
+    var text = document.getElementById("sub-pass-done-pwd").textContent || "";
+    if (!text) return;
+    function ok() {
+      FZShell.toast("已复制新密码", "ok");
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(ok).catch(function () {
+        FZShell.toast("复制失败，请手动选中密码", "err");
+      });
+    } else {
+      FZShell.toast("请手动选中密码复制", "err");
+    }
+  });
+  document.getElementById("sub-pass-done-ok").addEventListener("click", closePassDone);
+  document.getElementById("sub-pass-done-modal").addEventListener("click", function (e) {
+    if (e.target === e.currentTarget) closePassDone();
   });
 
   document.getElementById("role-cancel").addEventListener("click", function () {

@@ -6,6 +6,8 @@
 
   var STEPS = [];
   var stepIndex = 0;
+  /** 已到达的最远步骤（含跳过）；侧栏只允许点 ≤ farthest，禁止跳到未走过的步 */
+  var farthestStep = 0;
   var createdProjectId = "";
 
   /** 新手教程：独立演示，不写真实项目、不跳对接/列表 */
@@ -36,15 +38,20 @@
 
   function rebuildSteps() {
     var curId = STEPS[stepIndex] && STEPS[stepIndex].id;
+    /*
+     * 身份 → 出图/加工 → 文案 → 内容生成规则 → 采集号 → 推送规则
+     * 有默认配置的步：hasDefaults → 无「跳过」，确认后「下一步」。
+     * 真正可选才跳过：片头片尾（无上传不拼）、文章（须粘贴自定义词）、采集号。
+     */
     STEPS = [
       { id: "basic", title: "基本信息", required: true },
-      { id: "userbot", title: "采集号" },
       { id: "cover", title: "封面", required: true },
-      { id: "watermark", title: "水印" },
+      { id: "watermark", title: "水印", hasDefaults: true },
       { id: "intro", title: "片头和片尾" },
-      { id: "media", title: "图片视频规则" },
       { id: "article", title: "文章管理" },
-      { id: "flow", title: "推送规则" }
+      { id: "media", title: "内容生成规则", hasDefaults: true },
+      { id: "userbot", title: "采集号" },
+      { id: "flow", title: "推送规则", hasDefaults: true }
     ];
     if (!FZProjectUnion.needsArticle(draft.siteType)) {
       STEPS = STEPS.filter(function (s) {
@@ -65,13 +72,19 @@
 
   function renderSteps() {
     document.getElementById("steps").innerHTML = STEPS.map(function (st, i) {
-      var cls = "step" + (i === stepIndex ? " active" : i < stepIndex ? " done" : "");
+      var locked = i > farthestStep;
+      var cls =
+        "step" +
+        (i === stepIndex ? " active" : i < stepIndex ? " done" : "") +
+        (locked ? " locked" : "");
       return (
         '<button type="button" class="' +
         cls +
         '" data-i="' +
         i +
-        '"><span class="step-num">' +
+        '"' +
+        (locked ? ' aria-disabled="true" title="请按顺序完成前面的步骤"' : "") +
+        '><span class="step-num">' +
         (i + 1) +
         '</span><span class="step-text"><span class="step-title">' +
         st.title +
@@ -81,28 +94,43 @@
     }).join("");
     document.querySelectorAll("#steps [data-i]").forEach(function (b) {
       b.addEventListener("click", function () {
+        var i = Number(b.getAttribute("data-i"));
+        if (i > farthestStep) {
+          FZShell.toast("请按顺序完成前面的步骤，不能跳过", "err");
+          return;
+        }
         collect();
-        stepIndex = Number(b.getAttribute("data-i"));
+        stepIndex = i;
         render();
       });
     });
   }
 
-  function wmSummary() {
-    if (!draft.watermarks) return "未配 / 可跳过";
-    if (FZMediaConfig.hasWmFile(draft.watermarks)) return "已上传素材";
-    if (draft.wmUseDefault) return "默认（稍后可改）";
-    if (draft.wmConfigured) return "已调整参数";
-    return "未配 / 可跳过";
+  function dewmSummary() {
+    var img = draft.dewatermarkImage !== "keep" ? "开" : "关";
+    var vid =
+      (draft.dewatermarkVideo != null
+        ? draft.dewatermarkVideo
+        : draft.dewatermarkMove === "keep" && draft.dewatermarkFixed === "keep"
+        ? "keep"
+        : "remove") !== "keep"
+        ? "开"
+        : "关";
+    return "去源 图" + img + " / 视频" + vid;
   }
 
+  function wmSummary() {
+    var base = dewmSummary();
+    if (!draft.watermarks) return base;
+    if (FZMediaConfig.hasWmFile(draft.watermarks)) return base + " · 已叠层";
+    if (draft.wmUseDefault) return base + " · 默认叠层";
+    if (draft.wmConfigured) return base + " · 叠层参数已调";
+    return base + " · 未叠层";
+  }
+
+  /** 去源水印有默认策略；叠层可选。过本步即视为已确认配置 */
   function wmDone() {
-    return !!(
-      draft.watermarks &&
-      (FZMediaConfig.hasWmFile(draft.watermarks) ||
-        draft.wmUseDefault ||
-        draft.wmConfigured)
-    );
+    return true;
   }
 
   function renderSummary() {
@@ -125,10 +153,19 @@
         : "") ||
         draft.userbotName ||
         "未选/可跳过") +
-      "</div><div>封面：" +
+      "</div><div>文章封面：" +
       (draft.coverWidth || "—") +
       " × " +
       (draft.coverHeight || "—") +
+      " · " +
+      ({ 1: "单拼图", 2: "二拼图", 3: "三拼图" }[Number(draft.coverPanelCount)] ||
+        "三拼图") +
+      "</div><div>视频封面：" +
+      ({
+        article: "文章封面",
+        first_frame: "视频首帧",
+        random: "随机抽帧"
+      }[draft.videoCoverStrategy] || "文章封面") +
       "</div><div>水印：" +
       wmSummary() +
       "</div><div>片头片尾：" +
@@ -150,7 +187,7 @@
   function panelBasic() {
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">基本信息</h2>' +
-      '<p class="muted" style="margin:0 0 14px">创建前必填。项目专属 Token 在点击「创建项目」之后才会生成。</p>' +
+      '<p class="muted" style="margin:0 0 14px">先定项目是谁、做什么站。站点类型会决定后面是否出现「文章管理」、短剧分集等。Token 在点「创建项目」后才生成。</p>' +
       '<div class="field"><label>项目名称 *</label><input id="f-name" value="' +
       esc(draft.name) +
       '" placeholder="例如：出海内容站 A" /></div>' +
@@ -165,7 +202,7 @@
     var pending = draft._pendingBots || [];
     var rows =
       pending.length === 0
-        ? '<p class="muted" style="font-size:13px;margin:0">尚未添加。创建后可在项目「TG 采集号」继续加（最多 ' +
+        ? '<p class="muted" style="font-size:13px;margin:0">尚未添加。可点下方添加，或直接跳过；创建后在项目「TG 采集号」继续加（最多 ' +
           lim.maxBotsPerProject +
           " 个）。</p>"
         : pending
@@ -183,13 +220,13 @@
             .join("");
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">采集号（Userbot）</h2>' +
-      '<p class="muted" style="margin:0 0 10px">采集号归属<strong>本项目</strong>（可多个，上限 ' +
+      '<p class="muted" style="margin:0 0 10px">出图与交付形态已定。这一步接「从哪采」，下一步再定流转与出站门槛。本步可跳过；创建后也可在项目「TG 采集号」再配。上限 ' +
       lim.maxBotsPerProject +
-      "）。创建后挂频道：单号合计 ≤" +
+      " 个；挂频道单号 ≤" +
       lim.maxChannelsPerBot +
-      "；同频道最多 " +
+      "，同频道最多 " +
       lim.maxBotsPerChannel +
-      " 个号。也可跳过，稍后再配。</p>" +
+      " 个号。</p>" +
       '<div id="pending-bots" style="margin-bottom:12px">' +
       rows +
       "</div>" +
@@ -201,15 +238,17 @@
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">封面</h2>' +
       FZMediaConfig.renderCoverPanel(draft.coverWidth, draft.coverHeight, {
-        lead: "只配宽高一套；生成与推送共用。水印 / 图片视频规则在后续步骤。"
+        lead: "项目身份已定。这一步定封面长什么样：文章封面尺寸 / 拼图，以及视频封面策略。",
+        videoCoverStrategy: draft.videoCoverStrategy || "article",
+        coverPanelCount: draft.coverPanelCount || 3
       })
     );
   }
 
   function panelMedia() {
     return (
-      '<h2 style="margin:0 0 8px;font-size:18px">图片视频规则</h2>' +
-      '<p class="muted" style="margin:0 0 14px">左栏图片输出格式；右栏必须含视频、切片、最短时长。分集在「推送规则」。</p>' +
+      '<h2 style="margin:0 0 8px;font-size:18px">内容生成规则</h2>' +
+      '<p class="muted" style="margin:0 0 14px">出图、加工与文案已定。这一步定交付形态：下方分「图片生成规则」与「视频生成规则」，均有默认值，确认后直接「下一步」。出站门槛（必须含视频、最短时长）在「推送规则」。</p>' +
       FZProjectUnion.renderVideoRulesFields(draft)
     );
   }
@@ -219,10 +258,14 @@
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">水印</h2>' +
       FZMediaConfig.renderWatermarkPanel(draft.watermarks, {
-        lead: "上下同级两块：去源水印、添加水印（图片 / 视频叠层）。片头片尾在下一步。",
+        lead: "封面规格已定。这一步确认去源水印（图 / 视频各一开关，默认都开），再决定要不要叠自己的水印。默认可直接「下一步」；片头片尾下一步单独配。",
         allowDefault: true,
         showSave: false,
         dewatermarkEnabled: draft.dewatermarkEnabled !== false,
+        dewatermarkImage: draft.dewatermarkImage,
+        dewatermarkVideo: draft.dewatermarkVideo,
+        dewatermarkMove: draft.dewatermarkMove,
+        dewatermarkFixed: draft.dewatermarkFixed,
         showDewatermark: true,
         wmAddView: draft.wmAddView || "image"
       })
@@ -234,7 +277,7 @@
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">片头和片尾</h2>' +
       FZMediaConfig.renderIntroOutroPanel(draft.watermarks, {
-        lead: "整段拼接在原片前/后，不是水印。可跳过；有上传才拼接。",
+        lead: "水印是叠层；片头片尾是整段拼在原片前/后。可跳过；有上传才拼接。",
         showSave: false
       })
     );
@@ -244,7 +287,7 @@
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">文章管理</h2>' +
       FZMediaConfig.renderArticlePanel(draft.article, {
-        lead: "顶栏切换「AI 文章提示词管理 / 文案内链管理」。提示词默认优先自定义；点卡片切换，开关开才展开（可同开，不可同关）。文案内链独立，与提示词无关。",
+        lead: "封面与媒体加工已配完。这一步定进内容通道后的文案：AI 提示词与文案内链。短剧站不会出现本步。",
         showSave: false,
         showLinks: true,
         artSection: draft.artSection || "prompt",
@@ -256,7 +299,7 @@
   function panelFlow() {
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">推送规则</h2>' +
-      '<p class="muted" style="margin:0 0 14px">① 素材进编辑、② 推业务方，两段分开选。短剧站可配分集。收件/事件通知创建后在「开发对接」填，接通前不会真推。</p>' +
+      '<p class="muted" style="margin:0 0 14px">采集来源已选（或已跳过）。这一步定流转与出站门槛：① 素材何时进编辑；② 何时推业务方；③ 必须含视频 / 最短时长。各项有默认（新建默认「待人工确认再推」），确认后直接创建。短剧站可配分集。对接地址创建后在「开发对接」填。</p>' +
       FZProjectUnion.renderPushRulesFields(draft)
     );
   }
@@ -287,13 +330,15 @@
       draft.coverWidth = cov.coverWidth;
       draft.coverHeight = cov.coverHeight;
       draft.coverAspect = "";
+      if (cov.videoCoverStrategy) draft.videoCoverStrategy = cov.videoCoverStrategy;
+      if (cov.coverPanelCount != null) draft.coverPanelCount = cov.coverPanelCount;
     }
     if (id === "media") FZProjectUnion.collectVideoRules(document, draft);
     if (id === "watermark") {
       if (document.querySelector("[data-media-wm]")) {
         FZMediaConfig.applyWatermarkForm(draft.watermarks, document);
-        var dewm = FZMediaConfig.collectDewatermark(document);
-        if (dewm != null) draft.dewatermarkEnabled = dewm;
+        var dewmS = FZMediaConfig.collectDewatermarkStrategies(document);
+        if (dewmS) FZMediaConfig.applyDewatermarkStrategies(draft, dewmS);
         var wav = document.getElementById("wm-add-view");
         if (wav) draft.wmAddView = wav.value || "image";
       }
@@ -464,19 +509,21 @@
     FZProjectUnion.bindSiteTypeCards(document, onSiteTypeChange);
     FZProjectUnion.bindGenModeCards(document);
     bindMedia();
+    FZMediaConfig.bindSegControls(document.getElementById("panel"), afterPick);
   }
 
   function stepHasContent(stepId) {
     if (stepId === "basic") return !!(draft.name || "").trim();
     if (stepId === "userbot") return !!(draft._pendingBots && draft._pendingBots.length);
     if (stepId === "cover") return !FZProjectUnion.validateCover(draft);
-    if (stepId === "media") return true;
-    if (stepId === "watermark") return wmDone();
+    /* 有默认配置：可直接下一步 / 创建 */
+    if (stepId === "media" || stepId === "watermark" || stepId === "flow") return true;
     if (stepId === "article") {
       return !!(draft.articleConfigured || !FZMediaConfig.validateArticle(draft.article));
     }
-    if (stepId === "flow") {
-      return !!(draft.autoToEdit || draft.autoPush || draft.hasCollectSource);
+    /* intro：有上传才算「已填」；未填走跳过 */
+    if (stepId === "intro") {
+      return !!(draft.watermarks && FZMediaConfig.hasIntroOutroFile(draft.watermarks));
     }
     return true;
   }
@@ -523,6 +570,11 @@
       var ok = stepHasContent(step.id);
       setUnavailable(next, !ok, ok ? "进入下一步" : requiredHint(step));
       hint.textContent = ok ? "" : requiredHint(step);
+    } else if (step.hasDefaults) {
+      /* 有默认项：确认即可下一步/创建，不提供「跳过」 */
+      skip.style.display = "none";
+      setUnavailable(next, false, last ? "按当前配置创建项目" : "确认本步并继续");
+      hint.textContent = "";
     } else if (last) {
       skip.style.display = "";
       skip.textContent = "跳过并创建";
@@ -642,6 +694,10 @@
         generationMode: draft.generationMode || "ai",
         requireVideo: !!draft.requireVideo,
         dewatermarkEnabled: !!draft.dewatermarkEnabled,
+        dewatermarkImage: draft.dewatermarkImage || "remove",
+        dewatermarkVideo: draft.dewatermarkVideo || "remove",
+        dewatermarkMove: draft.dewatermarkMove || "remove",
+        dewatermarkFixed: draft.dewatermarkFixed || "remove",
         sliceEnabled: !!draft.sliceEnabled,
         pushAllEpisodes: !!draft.pushAllEpisodes,
         episodeTitleFormat: draft.episodeTitleFormat || "",
@@ -655,6 +711,8 @@
         userbotIds: [],
         coverWidth: draft.coverWidth || "720",
         coverHeight: draft.coverHeight || "1280",
+        coverPanelCount: draft.coverPanelCount || 3,
+        videoCoverStrategy: draft.videoCoverStrategy || "article",
         watermarks: FZMediaConfig.clone(draft.watermarks),
         article: FZMediaConfig.clone(draft.article),
         watermarkDone: wmDone(),
@@ -800,6 +858,7 @@
     }
     FZShell.toast("已跳过「" + STEPS[stepIndex].title + "」");
     stepIndex++;
+    farthestStep = Math.max(farthestStep, stepIndex);
     render();
   });
 
@@ -820,6 +879,7 @@
     }
     if (stepIndex < STEPS.length - 1) {
       stepIndex++;
+      farthestStep = Math.max(farthestStep, stepIndex);
       render();
     } else {
       createProject();

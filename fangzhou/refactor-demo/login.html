@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>登录 · 方舟</title>
-  <link rel="stylesheet" href="./css/app.css?v=20261029login2" />
+  <link rel="stylesheet" href="./css/app.css?v=20261104mono4" />
 </head>
 <body>
   <div class="login-page">
@@ -53,7 +53,7 @@
     </main>
   </div>
   <script src="./js/perm-tree.js?v=20261031navProj"></script>
-  <script src="./js/store.js?v=20261031poolCollect"></script>
+  <script src="./js/store.js?v=20261104subPass1"></script>
   <script>
     (function () {
       var selected = "owner";
@@ -136,12 +136,21 @@
         });
       });
 
+      function resolvePass(r) {
+        if (!r || r.isNew || String(r.id).indexOf("sub_") !== 0) return r.pass;
+        var st = FZStore.read();
+        var sub = (st.subs || []).filter(function (u) {
+          return u.id === r.id;
+        })[0];
+        return (sub && sub.password) || r.pass || "demo1234";
+      }
+
       function showCreds() {
         var r = roleById(selected);
         stepRoles.hidden = true;
         stepCreds.hidden = false;
         document.getElementById("f-user").value = r.user;
-        document.getElementById("f-pass").value = r.pass;
+        document.getElementById("f-pass").value = resolvePass(r);
         document.getElementById("f-totp").value = "";
         var totpField = document.getElementById("field-totp");
         var title = document.getElementById("creds-title");
@@ -155,6 +164,13 @@
           lead.textContent = "输入密码后，将进入首次谷歌验证绑定（新二维码）。";
           hint.textContent = "演示：密码任意非空即可，下一步扫描绑定二维码。";
           submit.textContent = "登录并绑定验证器";
+        } else if (String(r.id).indexOf("sub_") === 0) {
+          totpField.hidden = false;
+          document.getElementById("f-totp").required = true;
+          title.textContent = "登录";
+          lead.textContent = "子账号：密码须与「子账号与授权」里当前密码一致；验证码填任意 6 位即可。";
+          hint.textContent = "若刚重置过密码，请使用新密码登录。";
+          submit.textContent = "登录并进入";
         } else {
           totpField.hidden = false;
           document.getElementById("f-totp").required = true;
@@ -201,6 +217,24 @@
         }
 
         var s = FZStore.read();
+        if (String(selected).indexOf("sub_") === 0) {
+          var subAcc = (s.subs || []).filter(function (u) {
+            return u.id === selected;
+          })[0];
+          if (!subAcc) {
+            alert("子账号不存在");
+            return;
+          }
+          if (subAcc.disabled) {
+            alert("该子账号已停用，无法登录");
+            return;
+          }
+          var expect = subAcc.password || "demo1234";
+          if (pass !== expect) {
+            alert("密码错误");
+            return;
+          }
+        }
         FZStore.applyLoginProfile(s, selected);
         s.username = user;
         if (r.isNew) {

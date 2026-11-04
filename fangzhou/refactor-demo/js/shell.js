@@ -12,6 +12,35 @@
   }
 
   var BASE = basePath();
+  var THEME_KEY = "fz_ui_theme";
+
+  function currentTheme() {
+    try {
+      var saved = localStorage.getItem(THEME_KEY);
+      if (saved === "dark" || saved === "light") return saved;
+    } catch (e) {}
+    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      return "dark";
+    }
+    return "light";
+  }
+
+  function applyTheme(theme) {
+    var t = theme === "dark" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", t);
+    try {
+      localStorage.setItem(THEME_KEY, t);
+    } catch (e) {}
+    return t;
+  }
+
+  function toggleTheme() {
+    var next = currentTheme() === "dark" ? "light" : "dark";
+    applyTheme(next);
+    toast(next === "dark" ? "已切换深色外观" : "已切换浅色外观", "ok");
+  }
+
+  applyTheme(currentTheme());
 
   function escHtml(s) {
     return String(s == null ? "" : s)
@@ -47,6 +76,58 @@
         el.remove();
       }, 220);
     }, type === "ok" ? 2800 : 2200);
+  }
+
+  var _confirmCb = null;
+
+  function ensureConfirmModal() {
+    var mask = document.getElementById("fz-shell-confirm");
+    if (mask) return mask;
+    mask = document.createElement("div");
+    mask.className = "modal-mask";
+    mask.id = "fz-shell-confirm";
+    mask.hidden = true;
+    mask.innerHTML =
+      '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="fz-shell-confirm-title">' +
+      '<h2 id="fz-shell-confirm-title">确认</h2>' +
+      '<p id="fz-shell-confirm-msg"></p>' +
+      '<div class="modal-actions">' +
+      '<button type="button" class="btn btn-ghost" id="fz-shell-confirm-cancel">取消</button>' +
+      '<button type="button" class="btn btn-primary" id="fz-shell-confirm-ok">确定</button>' +
+      "</div></div>";
+    document.body.appendChild(mask);
+    function close() {
+      mask.hidden = true;
+      _confirmCb = null;
+    }
+    mask.querySelector("#fz-shell-confirm-cancel").addEventListener("click", close);
+    mask.querySelector("#fz-shell-confirm-ok").addEventListener("click", function () {
+      var fn = _confirmCb;
+      close();
+      if (fn) fn();
+    });
+    mask.addEventListener("click", function (e) {
+      if (e.target === mask) close();
+    });
+    return mask;
+  }
+
+  /**
+   * 页内二次确认（预览里原生 confirm 常被挡）。
+   * @param {{ title?: string, message?: string, okText?: string, cancelText?: string, danger?: boolean, onOk?: function }} opts
+   */
+  function confirm(opts) {
+    opts = opts || {};
+    var mask = ensureConfirmModal();
+    mask.querySelector("#fz-shell-confirm-title").textContent = opts.title || "确认";
+    mask.querySelector("#fz-shell-confirm-msg").textContent = opts.message || "";
+    var okBtn = mask.querySelector("#fz-shell-confirm-ok");
+    var cancelBtn = mask.querySelector("#fz-shell-confirm-cancel");
+    okBtn.textContent = opts.okText || "确定";
+    cancelBtn.textContent = opts.cancelText || "取消";
+    okBtn.className = "btn " + (opts.danger ? "btn-danger" : "btn-primary");
+    _confirmCb = typeof opts.onOk === "function" ? opts.onOk : null;
+    mask.hidden = false;
   }
 
   function requireAuth() {
@@ -95,6 +176,7 @@
         {
           id: "c_tg",
           label: "TG 采集配置",
+          ico: "✈",
           href: "pages/tg-collect.html",
           done: true,
           need: "collect.tg.view",
@@ -104,6 +186,7 @@
         {
           id: "c_web",
           label: "网站采集配置",
+          ico: "◎",
           href: "pages/website-collect.html",
           done: true,
           need: "collect.web.view",
@@ -113,6 +196,7 @@
         {
           id: "c_mat",
           label: "素材管理",
+          ico: "▤",
           href: "pages/materials.html",
           done: true,
           need: "collect.materials.view",
@@ -129,6 +213,7 @@
         {
           id: "e_art",
           label: "文章管理",
+          ico: "✎",
           href: "pages/articles.html",
           done: true,
           need: "content.article.view",
@@ -138,6 +223,7 @@
         {
           id: "i_ai",
           label: "AI 评论",
+          ico: "✦",
           need: "content.ai_cmt.view",
           stub:
             "AI 评论（生成）· 设计中。产品债务：须补「评论预览」（前台地址预览已删）"
@@ -145,6 +231,7 @@
         {
           id: "e_pull_wm",
           label: "拉取加水印",
+          ico: "▣",
           need: "content.pull_wm.view",
           stub:
             "拉取加水印 · 设计中（对方领任务加水印后回报；不进项目内容通道并集）"
@@ -159,6 +246,7 @@
         {
           id: "r_cmt",
           label: "评论审核",
+          ico: "◇",
           need: "review.comment.view",
           stub:
             "评论审核 · 设计中。按项目开通；含 AI 评论与社区评论等推过来的评论待审（不再分站内/外站）。产品债务：须补「评论预览」"
@@ -166,12 +254,14 @@
         {
           id: "r_user",
           label: "用户审核",
+          ico: "○",
           need: "review.user.view",
           stub: "用户审核 · 设计中。按项目开通"
         },
         {
           id: "r_post",
           label: "帖子审核",
+          ico: "☰",
           need: "review.post.view",
           stub: "帖子审核 · 设计中。按项目开通"
         }
@@ -185,6 +275,7 @@
         {
           id: "projects",
           label: "项目列表",
+          ico: "▣",
           href: "pages/projects.html",
           done: true,
           need: "projects.list.view",
@@ -201,6 +292,7 @@
         {
           id: "subs",
           label: "子账号与授权",
+          ico: "⚙",
           href: "pages/subs.html",
           done: true,
           need: "global.subs.accounts.view",
@@ -222,7 +314,13 @@
     html += '<div class="brand-mark">舟</div>';
     html += '<div><div class="brand-text">方舟</div>';
     html += '<div class="brand-sub">业务端 · 重构 Demo</div></div></div>';
-    html += '<div class="nav-search"><span>⌕</span><span>搜索 ⌘K</span></div>';
+    html +=
+      '<div class="nav-search" role="search">' +
+      '<span class="nav-search-ico" aria-hidden="true">' +
+      '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
+      '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/></svg></span>' +
+      '<span class="nav-search-ph">搜索</span>' +
+      '<kbd class="nav-search-kbd">⌘K</kbd></div>';
     html += '<div class="nav-section">';
 
     NAV.forEach(function (group) {
@@ -274,18 +372,17 @@
         (allTodo ? " is-todo-group" : "") +
         (hasDone ? " is-done-group" : "") +
         '">';
-      html +=
-        '<div class="nav-group-title"><span class="ico">' +
-        group.ico +
-        "</span>" +
-        group.label +
-        "</div>";
+      /* 分组标题无 icon；可点项才带 icon（对齐 Trackify） */
+      html += '<div class="nav-group-title">' + group.label + "</div>";
       kids.forEach(function (c) {
+        var ico =
+          '<span class="ico" aria-hidden="true">' + (c.ico || "") + "</span>";
         if (c.stub || !c.done) {
           html +=
             '<button type="button" class="nav-item nav-sub is-todo" data-nav-id="' +
             c.id +
             '" data-stub="1">' +
+            ico +
             c.label +
             "</button>";
         } else {
@@ -299,6 +396,7 @@
             BASE +
             c.href +
             '">' +
+            ico +
             c.label +
             "</a>";
         }
@@ -307,6 +405,9 @@
     });
 
     html += "</div>";
+
+    /* 帮助入口固定在侧栏账户上方（不再右下角悬浮） */
+    html += '<div class="sidebar-help" id="fz-help-slot"></div>';
 
     html += '<div class="sidebar-user" id="sidebar-user">';
     html += '<button type="button" class="user-trigger" id="user-menu-btn">';
@@ -320,9 +421,13 @@
       '</span><span class="user-role">' +
       (s.accountKind === "sub" ? "子账号" : "主账号") +
       "</span></span>";
-    html += '<span class="user-caret">▴</span>';
+    html += '<span class="user-caret" aria-hidden="true">⇅</span>';
     html += "</button>";
     html += '<div class="user-menu" id="user-menu" hidden>';
+    html +=
+      '<button type="button" data-act="theme">' +
+      (currentTheme() === "dark" ? "切换浅色外观" : "切换深色外观") +
+      "</button>";
     html += '<button type="button" data-act="pwd">修改密码</button>';
     html += '<button type="button" data-act="profile">个人资料</button>';
     html += '<button type="button" data-act="reset">重置演示数据</button>';
@@ -393,6 +498,13 @@
               } catch (eClr) {}
               location.href = BASE + "login.html";
             }
+          } else if (act === "theme") {
+            toggleTheme();
+            var themeBtn = menu.querySelector('[data-act="theme"]');
+            if (themeBtn) {
+              themeBtn.textContent =
+                currentTheme() === "dark" ? "切换浅色外观" : "切换深色外观";
+            }
           } else if (act === "pwd") toast("修改密码 · 设计中");
           else if (act === "profile") toast("个人资料 · 设计中");
         });
@@ -428,7 +540,7 @@
       }
     }
     if (global.FZHelpCenter) mountHelp();
-    else loadScriptOnce("js/help-center.js?v=20261031poolStay", mountHelp);
+    else loadScriptOnce("js/help-center.js?v=20261104mono4", mountHelp);
     function mountNovice() {
       if (global.FZNovice && typeof FZNovice.consumeQuery === "function") {
         FZNovice.consumeQuery();
@@ -441,12 +553,16 @@
   global.FZShell = {
     BASE: BASE,
     toast: toast,
+    confirm: confirm,
     escHtml: escHtml,
     tipHtml: tipHtml,
     requireAuth: requireAuth,
     logout: logout,
     boot: boot,
     loadScriptOnce: loadScriptOnce,
+    applyTheme: applyTheme,
+    currentTheme: currentTheme,
+    toggleTheme: toggleTheme,
     getNav: function () {
       return NAV;
     }

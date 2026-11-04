@@ -157,8 +157,6 @@
       id: "role_demo_ops",
       name: "采集运营",
       features: [
-        "home.overview.view",
-        "home.announcements.view",
         "collect.web.view",
         "collect.web.create",
         "collect.web.edit",
@@ -173,8 +171,6 @@
       id: "role_demo_editor",
       name: "内容编辑",
       features: [
-        "home.overview.view",
-        "home.announcements.view",
         "collect.materials.view",
         "collect.materials.approve",
         "content.article.view",
@@ -192,8 +188,6 @@
       id: "role_demo_pm",
       name: "项目管理",
       features: [
-        "home.overview.view",
-        "home.announcements.view",
         "projects.list.view",
         "projects.list.create",
         "projects.list.edit",
@@ -221,6 +215,7 @@
       id: "sub_demo_xiaowang",
       username: "ops_xiaowang",
       displayName: "小王",
+      password: "demo1234",
       cmsId: "cms_partner_xiaowang",
       features: DEMO_ROLES[0].features.slice(),
       roleName: "采集运营",
@@ -230,6 +225,7 @@
       id: "sub_demo_lili",
       username: "editor_lili",
       displayName: "李丽",
+      password: "demo1234",
       cmsId: "cms_partner_lili",
       features: DEMO_ROLES[1].features.slice(),
       roleName: "内容编辑",
@@ -239,6 +235,7 @@
       id: "sub_demo_chen",
       username: "pm_chen",
       displayName: "陈晨",
+      password: "demo1234",
       cmsId: "",
       features: DEMO_ROLES[2].features.slice(),
       roleName: "项目管理",
@@ -248,12 +245,9 @@
       id: "sub_demo_old",
       username: "ops_retired",
       displayName: "已停用 · 旧号",
+      password: "demo1234",
       cmsId: "cms_partner_old",
-      features: [
-        "home.overview.view",
-        "home.announcements.view",
-        "collect.tg.view"
-      ],
+      features: ["collect.tg.view"],
       roleName: "",
       disabled: true
     }
@@ -266,6 +260,70 @@
       appSecret: "sk_live_demo_" + short + "_xxxxxxxx",
       webhookHint: "https://api.fangzhou.example/v1/hooks/" + short
     };
+  }
+
+  /** 演示用图片水印 SVG（列表头图对齐现网取 watermark_images） */
+  function demoImageWmDataUrl(label, fill) {
+    var ch = String(label || "项").charAt(0);
+    var svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">' +
+      '<rect width="96" height="96" rx="16" fill="' +
+      (fill || "#222") +
+      '"/>' +
+      '<text x="48" y="58" text-anchor="middle" fill="#fff" font-size="36" font-weight="700" font-family="system-ui,-apple-system,sans-serif">' +
+      ch +
+      "</text></svg>";
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  }
+
+  /**
+   * 确保项目有图片水印可供列表展示。
+   * 已有 dataUrl 不覆盖；演示项目或 watermarkDone 时补默认图。
+   */
+  function seedProjectImageWm(p) {
+    if (!p || p.isPublicPool) return false;
+    if (!p.watermarks) {
+      p.watermarks =
+        global.FZArticle && FZArticle.defaultWatermarks
+          ? FZArticle.defaultWatermarks()
+          : {
+              image: {
+                enabled: false,
+                name: "",
+                dataUrl: "",
+                position: "top-right"
+              }
+            };
+    }
+    if (!p.watermarks.image) {
+      p.watermarks.image = {
+        enabled: false,
+        name: "",
+        dataUrl: "",
+        position: "top-right"
+      };
+    }
+    var img = p.watermarks.image;
+    if (img.dataUrl) {
+      if (!img.enabled) {
+        img.enabled = true;
+        return true;
+      }
+      return false;
+    }
+    var isDemo = String(p.id || "").indexOf("proj_demo_") === 0;
+    if (!isDemo && !p.watermarkDone) return false;
+    var fill =
+      p.siteType === "video"
+        ? "#3d6ef5"
+        : p.siteType === "short_drama"
+          ? "#c45a2a"
+          : "#222222";
+    img.enabled = true;
+    img.name = "project-logo.svg";
+    img.dataUrl = demoImageWmDataUrl(p.name || "项", fill);
+    if (!img.position) img.position = "top-right";
+    return true;
   }
 
   /** 各状态演示项目（首次登录即有，不必先走新建） */
@@ -1051,6 +1109,8 @@
         p.routingRules = [];
         changed = true;
       }
+      /* 列表头图对齐现网：取图片水印；演示项缺图时补一张 SVG logo */
+      if (seedProjectImageWm(p)) changed = true;
     });
     /* 仅有业务项目时才视为已完成首项；公共池不算入驻完成 */
     if (businessProjects(state).length && !state.firstProjectDone) {
@@ -1122,6 +1182,10 @@
     (state.subs || []).forEach(function (u) {
       if (needsPermMigrate(u.features)) {
         u.features = migratePermIds(u.features);
+        changed = true;
+      }
+      if (!u.password) {
+        u.password = "demo1234";
         changed = true;
       }
     });
@@ -1740,13 +1804,21 @@
     }
     walk(tree);
     if (!out.length) {
-      out = ["home.overview.view", "projects.list.view", "projects.list.create"];
+      out = ["projects.list.view", "projects.list.create"];
     }
     return out;
   }
 
   function hasFeature(state, featureId) {
     if (!featureId) return true;
+    /* 概览 / 平台公告：全员默认开通，不进岗位勾选 */
+    if (
+      window.FZPerm &&
+      FZPerm.isAlwaysOn &&
+      FZPerm.isAlwaysOn(featureId)
+    ) {
+      return true;
+    }
     /* 未标记子账号的一律按主账号（全量或 features 列表） */
     if (!state || state.accountKind !== "sub") {
       var feats = state && state.features;

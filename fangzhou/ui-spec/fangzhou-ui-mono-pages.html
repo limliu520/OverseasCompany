@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>方舟 · 黑白 UI 页面预览（静态）</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --font: "Inter", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+      --frame: #ebebec;
+      --chrome-bg: rgba(255, 255, 255, 0.94);
+      --side: #ffffff;
+      --bg: #f7f7f8;
+      --surface: #ffffff;
+      --ink: #111111;
+      --on-ink: #ffffff;
+      --ink-2: #3f3f46;
+      --muted: #71717a;
+      --muted-2: #a1a1aa;
+      --line: #e8e8ea;
+      --line-strong: #d4d4d8;
+      --fill: #f4f4f5;
+      --fill-strong: #ececee;
+      --ok: #2563eb;
+      --ok-bg: #eff6ff;
+      --danger: #ef4444;
+      --danger-bg: #fef2f2;
+      --warn: #d97706;
+      --warn-bg: #fffbeb;
+      --hatch-a: #fafafa;
+      --hatch-b: #f0f0f2;
+      --radius-sm: 8px;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-pill: 999px;
+      --shadow: 0 1px 2px rgba(17, 17, 17, 0.04);
+      --shadow-card: 0 8px 24px rgba(17, 17, 17, 0.05);
+      --side-w: 228px;
+    }
+    /* 黑夜：对齐 Cursor Dark（侧栏更凹、主画布略亮，少死灰） */
+    body:has(#theme-dark:checked) {
+      color-scheme: dark;
+      --frame: #141414;
+      --chrome-bg: rgba(20, 20, 20, 0.94);
+      --side: #141414;
+      --bg: #181818;
+      --surface: #1f1f1f;
+      --ink: #e4e4e4;
+      --on-ink: #141414;
+      --ink-2: #cccccc;
+      --muted: #9d9d9d;
+      --muted-2: #868686;
+      --line: #2b2b2b;
+      --line-strong: #3c3c3c;
+      --fill: #2a2a2a;
+      --fill-strong: #313131;
+      --ok: #60a5fa;
+      --ok-bg: #1a2f4a;
+      --danger: #f85149;
+      --danger-bg: #3d1515;
+      --warn: #e2c08d;
+      --warn-bg: #3d2e14;
+      --hatch-a: #1c1c1c;
+      --hatch-b: #252525;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--font);
+      color: var(--ink);
+      background: var(--frame);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.45;
+    }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: default; }
+
+    /* —— 预览壳 —— */
+    .chrome {
+      position: sticky; top: 0; z-index: 40;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 10px 16px;
+      background: var(--chrome-bg);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+      color: var(--ink);
+    }
+    .chrome-brand { font-weight: 700; font-size: 13px; letter-spacing: -0.02em; }
+    .chrome-meta { font-size: 12px; color: var(--muted); margin-right: auto; }
+    .chrome-tabs,
+    .chrome-theme { display: flex; flex-wrap: wrap; gap: 4px; }
+    .chrome-theme {
+      padding: 3px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--line);
+      background: var(--fill);
+    }
+    .chrome-tabs label,
+    .chrome-theme label {
+      font-size: 12px; font-weight: 650;
+      padding: 7px 12px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink-2);
+      cursor: pointer;
+    }
+    .chrome-theme label {
+      border-color: transparent;
+      background: transparent;
+      padding: 5px 10px;
+    }
+    .chrome a.doc {
+      font-size: 12px; font-weight: 600;
+      color: var(--muted); text-decoration: none;
+      padding: 6px 8px;
+    }
+    .chrome a.doc:hover { color: var(--ink); }
+
+    .pg { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
+    #pg-home:checked ~ .chrome .chrome-tabs label[for="pg-home"],
+    #pg-mat:checked ~ .chrome .chrome-tabs label[for="pg-mat"],
+    #pg-art:checked ~ .chrome .chrome-tabs label[for="pg-art"],
+    #pg-proj:checked ~ .chrome .chrome-tabs label[for="pg-proj"],
+    #pg-tg:checked ~ .chrome .chrome-tabs label[for="pg-tg"],
+    #theme-light:checked ~ .chrome .chrome-theme label[for="theme-light"],
+    #theme-dark:checked ~ .chrome .chrome-theme label[for="theme-dark"] {
+      background: var(--ink); border-color: var(--ink); color: var(--on-ink);
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: var(--side-w) 1fr;
+      max-width: 1280px;
+      height: calc(100vh - 49px);
+      margin: 0 auto;
+      background: var(--bg);
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      overflow: hidden;
+    }
+    @media (max-width: 900px) {
+      .stage { grid-template-columns: 1fr; height: auto; min-height: calc(100vh - 49px); }
+      .sidebar { display: none; }
+    }
+
+    /* —— 侧栏 —— */
+    .sidebar {
+      background: var(--side);
+      border-right: 1px solid var(--line);
+      padding: 14px 12px;
+      overflow: auto;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .side-brand {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 10px 14px;
+      font-weight: 700; font-size: 14px; letter-spacing: -0.02em;
+    }
+    .side-mark {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: var(--ink); color: var(--on-ink);
+      display: grid; place-items: center;
+      font-size: 12px; font-weight: 700;
+    }
+    .nav-lab {
+      font-size: 11px; font-weight: 650;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted-2);
+      padding: 12px 10px 6px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 500;
+      color: var(--ink-2);
+    }
+    .nav-item .ico { width: 15px; height: 15px; opacity: 0.5; flex: 0 0 auto; }
+    .nav-item.is-on {
+      background: var(--fill);
+      color: var(--ink);
+      font-weight: 650;
+    }
+    .nav-item.is-on .ico { opacity: 0.95; }
+    .nav-sub { padding-left: 12px; }
+    .nav-sub .nav-item { font-size: 12.5px; padding: 7px 10px; }
+
+    #pg-home:checked ~ .stage .ni-home,
+    #pg-mat:checked ~ .stage .ni-mat,
+    #pg-art:checked ~ .stage .ni-art,
+    #pg-proj:checked ~ .stage .ni-proj,
+    #pg-tg:checked ~ .stage .ni-tg { background: var(--fill); color: var(--ink); font-weight: 650; }
+    #pg-home:checked ~ .stage .ni-home .ico,
+    #pg-mat:checked ~ .stage .ni-mat .ico,
+    #pg-art:checked ~ .stage .ni-art .ico,
+    #pg-proj:checked ~ .stage .ni-proj .ico,
+    #pg-tg:checked ~ .stage .ni-tg .ico { opacity: 0.95; }
+
+    .main { min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+    .screen { display: none; flex: 1; min-height: 0; flex-direction: column; overflow: hidden; }
+    #pg-home:checked ~ .stage .screen-home,
+    #pg-mat:checked ~ .stage .screen-mat,
+    #pg-art:checked ~ .stage .screen-art,
+    #pg-proj:checked ~ .stage .screen-proj,
+    #pg-tg:checked ~ .stage .screen-tg { display: flex; }
+
+    .topbar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 22px 10px;
+      flex: 0 0 auto;
+    }
+    .topbar h1 {
+      margin: 0; font-size: 20px; font-weight: 700;
+      letter-spacing: -0.02em; flex: 1; min-width: 0;
+    }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .content {
+      flex: 1; min-height: 0; overflow: auto;
+      padding: 6px 22px 28px;
+    }
+
+    /* —— 控件 —— */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      height: 36px; padding: 0 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line-strong);
+      background: var(--surface);
+      color: var(--ink);
+      font: 600 13px/1 var(--font);
+      white-space: nowrap;
+    }
+    .btn-primary { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+    .btn-secondary { background: var(--surface); }
+    .btn-ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
+    .btn-sm { height: 30px; padding: 0 10px; font-size: 12px; border-radius: 7px; }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 999px;
+      background: var(--fill-strong); color: var(--ink);
+      display: inline-grid; place-items: center;
+      font-size: 11px; font-weight: 700;
+      border: 1px solid var(--line);
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 24px; padding: 0 10px;
+      border-radius: var(--radius-pill);
+      font-size: 12px; font-weight: 650;
+      background: var(--fill); color: var(--ink-2);
+    }
+    .badge .dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+    .badge-ok { background: var(--ok-bg); color: var(--ok); }
+    .badge-danger { background: var(--danger-bg); color: var(--danger); }
+    .badge-warn { background: var(--warn-bg); color: var(--warn); }
+    .badge-neutral { background: var(--fill); color: var(--muted); }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 16px 18px;
+    }
+    .card-hd {
+      display: flex; align-items: center; gap: 10px;
+      margin: 0 0 12px;
+    }
+    .card-hd h2 { margin: 0; font-size: 14px; font-weight: 700; flex: 1; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .hint { color: var(--muted); font-size: 12px; margin: 0; }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    @media (max-width: 860px) { .metric-grid { grid-template-columns: 1fr; } }
+    .metric-card {
+      display: flex; justify-content: space-between; gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .metric-card .k { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 8px; }
+    .metric-card .v { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; }
+    .metric-card .d {
+      display: inline-flex; margin-top: 8px;
+      font-size: 12px; font-weight: 650;
+      padding: 3px 8px; border-radius: var(--radius-pill);
+    }
+    .delta-up { background: var(--ok-bg); color: var(--ok); }
+    .delta-down { background: var(--danger-bg); color: var(--danger); }
+    .metric-viz { width: 72px; height: 48px; color: var(--muted-2); flex: 0 0 auto; }
+    .metric-viz svg { width: 100%; height: 100%; display: block; }
+    .is-up .metric-viz { color: var(--ok); }
+    .is-down .metric-viz { color: var(--danger); }
+
+    .wb-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    @media (max-width: 860px) { .wb-row { grid-template-columns: 1fr; } }
+    .dense { display: flex; flex-direction: column; gap: 0; }
+    .drow {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .drow:last-child { border-bottom: 0; }
+    .drow .main-t { flex: 1; min-width: 0; color: var(--ink); font-weight: 600; }
+    .drow .sub-t { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .drow.is-danger .main-t { color: var(--danger); }
+    .drow.is-warn .main-t { color: var(--warn); }
+
+    .tabs {
+      display: inline-flex; gap: 2px; padding: 3px;
+      background: var(--fill);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      margin-bottom: 12px;
+    }
+    .tab {
+      border: 0; background: transparent;
+      padding: 7px 12px; border-radius: 6px;
+      font: 600 12px/1 var(--font); color: var(--muted);
+    }
+    .tab.is-on {
+      background: var(--surface); color: var(--ink); box-shadow: var(--shadow);
+    }
+    .tabs-underline {
+      display: flex; gap: 18px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 14px;
+    }
+    .tabs-underline .tab {
+      padding: 10px 0; border-radius: 0;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .tabs-underline .tab.is-on {
+      background: transparent; box-shadow: none;
+      border-bottom-color: var(--ink); color: var(--ink);
+    }
+
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      padding: 10px 12px; margin-bottom: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .toolbar .grow { flex: 1; min-width: 160px; }
+    .input {
+      height: 36px; width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-sm);
+      padding: 0 12px;
+      background: var(--surface);
+      color: var(--ink);
+      font: 500 13px/1.4 var(--font);
+    }
+    .input-sm { height: 30px; font-size: 12px; }
+    .search { background: var(--fill); border-color: transparent; }
+
+    .table-wrap {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th {
+      text-align: left; padding: 10px 12px;
+      background: var(--fill); color: var(--muted); font-weight: 650;
+      border-bottom: 1px solid var(--line);
+    }
+    .data-table td {
+      padding: 12px; border-bottom: 1px solid var(--line); color: var(--ink-2);
+    }
+    .data-table tr:last-child td { border-bottom: 0; }
+    .data-table .strong { color: var(--ink); font-weight: 650; }
+    .pager {
+      display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+      margin-top: 12px; font-size: 12px; color: var(--muted);
+    }
+
+    /* 文章编辑 */
+    .art-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+      flex: 0 0 auto;
+    }
+    .art-bar .sep { width: 1px; height: 18px; background: var(--line); }
+    .art-bar .grow { flex: 1; }
+    .art-shell {
+      flex: 1; min-height: 0; display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 0; overflow: hidden;
+    }
+    @media (max-width: 980px) { .art-shell { grid-template-columns: 1fr; } }
+    .art-stage { overflow: auto; padding: 18px 22px 28px; }
+    .art-side {
+      border-left: 1px solid var(--line);
+      background: var(--surface);
+      overflow: auto;
+      padding: 14px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .art-draft-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+    .chip {
+      display: inline-flex; align-items: center;
+      height: 28px; padding: 0 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--line);
+      background: var(--fill);
+      font-size: 12px; font-weight: 650; color: var(--ink-2);
+    }
+    .chip.is-on { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+    .art-title {
+      width: 100%; border: 0; outline: none; resize: none;
+      font-size: 24px; font-weight: 700; letter-spacing: -0.02em;
+      line-height: 1.3; color: var(--ink);
+      background: transparent; padding: 0; margin: 0 0 10px;
+    }
+    .art-tools {
+      display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid var(--line); margin-bottom: 12px;
+    }
+    .art-tool {
+      width: 32px; height: 28px; border: 0; border-radius: 6px;
+      background: transparent; color: var(--ink-2); font-size: 12px; font-weight: 700;
+    }
+    .art-tool-sep { width: 1px; height: 16px; background: var(--line); margin: 0 4px; }
+    .art-body {
+      min-height: 280px; font-size: 15px; color: var(--ink-2); line-height: 1.7;
+    }
+    .art-body p { margin: 0 0 12px; }
+    .rail-sec-title {
+      font-size: 11px; font-weight: 650; letter-spacing: 0.04em;
+      text-transform: uppercase; color: var(--muted); margin: 0 0 8px;
+    }
+    .cover-box {
+      aspect-ratio: 16/9; border-radius: var(--radius-sm);
+      background: var(--fill); border: 1px dashed var(--line-strong);
+      display: grid; place-items: center;
+      color: var(--muted); font-size: 12px; font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .thumb-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .thumb {
+      aspect-ratio: 1; border-radius: 8px; background: var(--fill-strong);
+      border: 1px solid var(--line);
+    }
+
+    /* 项目详情 */
+    .summary {
+      display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .summary-main { flex: 1; min-width: 220px; }
+    .summary-main h2 { margin: 0 0 8px; font-size: 18px; font-weight: 700; }
+    .summary-meta {
+      display: flex; flex-wrap: wrap; gap: 8px 14px;
+      font-size: 13px; color: var(--ink-2);
+    }
+    .summary-meta span b { font-weight: 650; color: var(--muted); margin-right: 6px; }
+    .banner {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 14px 16px; margin-bottom: 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--fill);
+    }
+    .banner .bt { font-weight: 650; font-size: 13px; margin: 0 0 2px; }
+    .banner .bd { margin: 0; font-size: 12px; color: var(--muted); }
+    .wm-grid {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+    }
+    @media (max-width: 860px) { .wm-grid { grid-template-columns: 1fr; } }
+    .wm-card .wm-preview {
+      height: 88px; border-radius: var(--radius-sm);
+      background: repeating-linear-gradient(
+        -45deg,
+        var(--hatch-a),
+        var(--hatch-a) 8px,
+        var(--hatch-b) 8px,
+        var(--hatch-b) 16px
+      );
+      border: 1px solid var(--line); margin-bottom: 10px;
+      display: grid; place-items: center; color: var(--muted); font-size: 12px;
+    }
+    .wm-card h3 { margin: 0 0 4px; font-size: 13px; }
+    .wm-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+
+    /* TG */
+    .ctx-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .ctx-card {
+      border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 10px 12px; background: var(--surface); min-width: 140px;
+    }
+    .ctx-card.is-on { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); background: var(--fill); }
+    .ctx-card .pn { font-weight: 700; font-size: 13px; }
+    .ctx-card .pm { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .tg-work {
+      display: grid; grid-template-columns: 260px 1fr; gap: 12px; min-height: 420px;
+    }
+    @media (max-width: 860px) { .tg-work { grid-template-columns: 1fr; } }
+    .tg-bots, .tg-detail {
+      border: 1px solid var(--line); border-radius: var(--radius-lg);
+      background: var(--surface); overflow: hidden;
+    }
+    .pane-hd {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 14px; border-bottom: 1px solid var(--line);
+      font-size: 13px; font-weight: 700;
+    }
+    .pane-hd .grow { flex: 1; }
+    .bot-item {
+      display: flex; gap: 10px; align-items: center;
+      padding: 12px 14px; border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .bot-item.is-on { background: var(--fill); }
+    .bot-item:last-child { border-bottom: 0; }
+    .bot-item .nm { font-weight: 650; color: var(--ink); }
+    .bot-item .ph { font-size: 12px; color: var(--muted); }
+    .tg-detail-bd { padding: 14px; }
+    .ch-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .ch-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border: 1px solid var(--line);
+      border-radius: var(--radius-sm); font-size: 13px;
+    }
+    .ch-row .grow { flex: 1; min-width: 0; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <input class="pg" type="radio" name="pg" id="pg-home" checked />
+  <input class="pg" type="radio" name="pg" id="pg-mat" />
+  <input class="pg" type="radio" name="pg" id="pg-art" />
+  <input class="pg" type="radio" name="pg" id="pg-proj" />
+  <input class="pg" type="radio" name="pg" id="pg-tg" />
+  <input class="pg" type="radio" name="theme" id="theme-light" checked />
+  <input class="pg" type="radio" name="theme" id="theme-dark" />
+
+  <header class="chrome">
+    <div class="chrome-brand">方舟 · 黑白 UI</div>
+    <div class="chrome-meta">静态页面预览 · 无交互逻辑</div>
+    <nav class="chrome-tabs" aria-label="页面切换">
+      <label for="pg-home">工作台</label>
+      <label for="pg-mat">素材管理</label>
+      <label for="pg-art">文章编辑</label>
+      <label for="pg-proj">项目详情</label>
+      <label for="pg-tg">TG 配置</label>
+    </nav>
+    <div class="chrome-theme" role="group" aria-label="主题">
+      <label for="theme-light">浅色</label>
+      <label for="theme-dark">深色</label>
+    </div>
+    <a class="doc" href="./fangzhou-ui-mono-spec.html">← 控件规范</a>
+  </header>
+
+  <div class="stage">
+    <aside class="sidebar" aria-label="侧栏示意">
+      <div class="side-brand"><span class="side-mark">舟</span>方舟</div>
+      <div class="nav-item ni-home">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"/></svg>
+        工作台
+      </div>
+      <div class="nav-lab">采集中心</div>
+      <div class="nav-sub">
+        <div class="nav-item ni-tg">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 5 10.5 19l-4-5"/><path d="M21 5 3 11.5l7.5 2.2L21 5Z"/></svg>
+          TG 采集配置
+        </div>
+        <div class="nav-item ni-mat">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="m4 15 4-3 3 2 4-4 5 5"/></svg>
+          素材管理
+        </div>
+      </div>
+      <div class="nav-lab">内容中心</div>
+      <div class="nav-sub">
+        <div class="nav-item ni-art">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h9l3 3v13H6V4Z"/><path d="M14 4v4h4M8 12h8M8 16h6"/></svg>
+          文章管理
+        </div>
+      </div>
+      <div class="nav-lab">项目管理</div>
+      <div class="nav-sub">
+        <div class="nav-item ni-proj">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h16v11H4V8Z"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          项目列表
+        </div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <!-- 工作台 -->
+      <section class="screen screen-home" aria-label="工作台">
+        <div class="topbar">
+          <h1>早上好，运营同学</h1>
+          <div class="topbar-actions">
+            <button type="button" class="btn btn-secondary btn-sm">刷新</button>
+            <span class="avatar">运</span>
+          </div>
+        </div>
+        <div class="content">
+          <div class="card" style="margin-bottom:12px">
+            <div class="card-hd"><h2>数据概览</h2><span class="muted">近 7 日 · 示意</span></div>
+            <div class="metric-grid">
+              <div class="metric-card is-up">
+                <div>
+                  <div class="k">昨日采集</div>
+                  <div class="v">1,284</div>
+                  <span class="d delta-up">↑ 12%</span>
+                </div>
+                <div class="metric-viz" aria-hidden="true">
+                  <svg viewBox="0 0 72 48" fill="none"><path d="M2 36 14 28 26 32 38 18 50 22 70 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 36 14 28 26 32 38 18 50 22 70 8V48H2Z" fill="currentColor" opacity=".12"/></svg>
+                </div>
+              </div>
+              <div class="metric-card is-up">
+                <div>
+                  <div class="k">转入编辑</div>
+                  <div class="v">326</div>
+                  <span class="d delta-up">↑ 4%</span>
+                </div>
+                <div class="metric-viz" aria-hidden="true">
+                  <svg viewBox="0 0 72 48" fill="none"><path d="M2 30 16 26 28 34 42 20 54 24 70 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 30 16 26 28 34 42 20 54 24 70 14V48H2Z" fill="currentColor" opacity=".12"/></svg>
+                </div>
+              </div>
+              <div class="metric-card is-down">
+                <div>
+                  <div class="k">已推送</div>
+                  <div class="v">198</div>
+                  <span class="d delta-down">↓ 3%</span>
+                </div>
+                <div class="metric-viz" aria-hidden="true">
+                  <svg viewBox="0 0 72 48" fill="none"><path d="M2 14 16 18 28 12 40 28 52 24 70 34" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 14 16 18 28 12 40 28 52 24 70 34V48H2Z" fill="currentColor" opacity=".12"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="wb-row">
+            <div class="card">
+              <div class="card-hd"><h2>状态与异常提醒</h2><button type="button" class="btn btn-ghost btn-sm">全部</button></div>
+              <div class="dense">
+                <div class="drow is-danger">
+                  <div class="main-t">采集号 @daily_bot 掉线</div>
+                  <span class="sub-t">2 小时前</span>
+                  <button type="button" class="btn btn-sm">去处理</button>
+                </div>
+                <div class="drow is-warn">
+                  <div class="main-t">频道 @source_a 非成员</div>
+                  <span class="sub-t">昨天</span>
+                  <button type="button" class="btn btn-sm">去处理</button>
+                </div>
+                <div class="drow">
+                  <div class="main-t">开发对接尚未完成 · 每日大赛</div>
+                  <span class="sub-t">待接通</span>
+                  <button type="button" class="btn btn-sm">去对接</button>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-hd"><h2>平台公告</h2><span class="muted">全部公告</span></div>
+              <div class="dense">
+                <div class="drow">
+                  <div class="main-t">内容通道统一口径说明</div>
+                  <span class="sub-t">11-01</span>
+                </div>
+                <div class="drow">
+                  <div class="main-t">水印与片头片尾优化上线</div>
+                  <span class="sub-t">10-28</span>
+                </div>
+                <div class="drow">
+                  <div class="main-t">列表刷新与正文编辑优化</div>
+                  <span class="sub-t">10-20</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 素材管理 -->
+      <section class="screen screen-mat" aria-label="素材管理">
+        <div class="topbar">
+          <h1>素材管理</h1>
+          <div class="topbar-actions"><span class="avatar">运</span></div>
+        </div>
+        <div class="content">
+          <div class="tabs" role="tablist">
+            <button type="button" class="tab is-on">待审核 12</button>
+            <button type="button" class="tab">全部</button>
+            <button type="button" class="tab">垃圾箱</button>
+          </div>
+          <div class="toolbar">
+            <input class="input search grow input-sm" type="search" value="" placeholder="搜索标题 / 来源…" readonly />
+            <button type="button" class="btn btn-secondary btn-sm">刷新</button>
+            <button type="button" class="btn btn-secondary btn-sm">筛选</button>
+            <button type="button" class="btn btn-primary btn-sm">+ 转入编辑</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:36px"><span class="muted">☐</span></th>
+                  <th>标题</th>
+                  <th>来源</th>
+                  <th>状态</th>
+                  <th>采集时间</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="muted">☐</span></td>
+                  <td class="strong">周末赛程速览 · 焦点对阵</td>
+                  <td>@league_feed</td>
+                  <td><span class="badge badge-warn"><span class="dot"></span>待审核</span></td>
+                  <td>今天 09:12</td>
+                  <td><button type="button" class="btn btn-sm">详情</button></td>
+                </tr>
+                <tr>
+                  <td><span class="muted">☐</span></td>
+                  <td class="strong">球员伤停名单更新</td>
+                  <td>网站采集</td>
+                  <td><span class="badge badge-warn"><span class="dot"></span>待审核</span></td>
+                  <td>今天 08:40</td>
+                  <td><button type="button" class="btn btn-sm">详情</button></td>
+                </tr>
+                <tr>
+                  <td><span class="muted">☐</span></td>
+                  <td class="strong">经典进球集锦（短视频）</td>
+                  <td>@clips_pool</td>
+                  <td><span class="badge badge-ok"><span class="dot"></span>已通过</span></td>
+                  <td>昨天 21:05</td>
+                  <td><button type="button" class="btn btn-sm">详情</button></td>
+                </tr>
+                <tr>
+                  <td><span class="muted">☐</span></td>
+                  <td class="strong">广告软文疑似稿</td>
+                  <td>@noise_ch</td>
+                  <td><span class="badge badge-danger"><span class="dot"></span>已驳回</span></td>
+                  <td>昨天 18:22</td>
+                  <td><button type="button" class="btn btn-sm">详情</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pager">
+            <span>共 48 条 · 第 1 / 5 页</span>
+            <button type="button" class="btn btn-ghost btn-sm">上一页</button>
+            <button type="button" class="btn btn-ghost btn-sm">下一页</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 文章编辑 -->
+      <section class="screen screen-art" aria-label="文章编辑">
+        <div class="art-bar">
+          <button type="button" class="btn btn-sm">← 返回列表</button>
+          <span class="sep"></span>
+          <span class="badge badge-warn"><span class="dot"></span>待编辑</span>
+          <span class="muted" style="font-family:ui-monospace,Menlo,monospace">#A-20841</span>
+          <span class="grow"></span>
+          <button type="button" class="btn btn-sm">版本对比</button>
+          <button type="button" class="btn btn-primary btn-sm">保存</button>
+          <span class="avatar">运</span>
+        </div>
+        <div class="art-shell">
+          <div class="art-stage">
+            <div class="art-draft-bar">
+              <span class="chip is-on">草稿 A</span>
+              <span class="chip">草稿 B</span>
+              <span class="chip">原稿</span>
+              <span style="flex:1"></span>
+              <button type="button" class="btn btn-sm">✦ AI 稿件</button>
+            </div>
+            <textarea class="art-title" rows="1" readonly>周末赛程速览：三场焦点对阵值得关注</textarea>
+            <div class="art-tools" aria-hidden="true">
+              <button type="button" class="art-tool">↩</button>
+              <button type="button" class="art-tool">↪</button>
+              <span class="art-tool-sep"></span>
+              <button type="button" class="art-tool"><b>B</b></button>
+              <button type="button" class="art-tool"><i>I</i></button>
+              <button type="button" class="art-tool">≡</button>
+              <button type="button" class="art-tool">链</button>
+              <span class="art-tool-sep"></span>
+              <button type="button" class="art-tool">图</button>
+              <button type="button" class="art-tool">视</button>
+            </div>
+            <div class="art-body">
+              <p>本周末联赛进入关键阶段，多支强队将同场竞技。以下梳理三场焦点对阵的看点与可能影响积分榜走势的关键变量。</p>
+              <p>首场对决中，主队近期防守稳固，但定位球机会仍是客队破局点。第二场则更看重中场控制与反击效率……</p>
+              <p class="muted">（静态示意正文，不可编辑）</p>
+            </div>
+          </div>
+          <aside class="art-side">
+            <div>
+              <div class="rail-sec-title">封面</div>
+              <div class="cover-box">720 × 1280</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button type="button" class="btn btn-ghost btn-sm">恢复默认</button>
+                <button type="button" class="btn btn-sm">选择</button>
+                <button type="button" class="btn btn-ghost btn-sm">自定义</button>
+              </div>
+            </div>
+            <div>
+              <div class="rail-sec-title">分类</div>
+              <div class="tag-row">
+                <span class="chip is-on">赛事</span>
+                <span class="chip">情报</span>
+                <span class="chip">专题</span>
+              </div>
+            </div>
+            <div>
+              <div class="rail-sec-title">关键词</div>
+              <div class="tag-row">
+                <span class="badge badge-neutral">周末赛程</span>
+                <span class="badge badge-neutral">焦点对阵</span>
+              </div>
+            </div>
+            <div>
+              <div class="rail-sec-title">文章素材</div>
+              <p class="hint" style="margin-bottom:8px">仅方舟内部取用</p>
+              <div class="thumb-row">
+                <div class="thumb"></div>
+                <div class="thumb"></div>
+                <div class="thumb"></div>
+              </div>
+            </div>
+            <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+              <button type="button" class="btn btn-secondary">预览</button>
+              <button type="button" class="btn btn-primary">确认推送</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 项目详情 -->
+      <section class="screen screen-proj" aria-label="项目详情">
+        <div class="topbar">
+          <button type="button" class="btn btn-sm">← 项目列表</button>
+          <h1>项目详情</h1>
+          <div class="topbar-actions"><span class="avatar">运</span></div>
+        </div>
+        <div class="content">
+          <div class="card summary">
+            <div class="summary-main">
+              <h2>每日大赛</h2>
+              <div class="summary-meta">
+                <span><b>类型</b>瓜站</span>
+                <span><b>状态</b><span class="badge badge-warn"><span class="dot"></span>待接通</span></span>
+                <span><b>封面</b>720 × 1280</span>
+                <span><b>采集号</b>1 个已绑定</span>
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary">编辑基本信息</button>
+          </div>
+          <div class="banner">
+            <div>
+              <p class="bt">开发对接尚未完成</p>
+              <p class="bd">通道凭证接通前，自动推送不会真正生效。</p>
+            </div>
+            <button type="button" class="btn btn-secondary">去对接</button>
+          </div>
+          <div class="tabs-underline">
+            <button type="button" class="tab is-on">水印管理</button>
+            <button type="button" class="tab">文章模板</button>
+            <button type="button" class="tab">技术对接</button>
+            <button type="button" class="tab">通道管理</button>
+            <button type="button" class="tab">自动流与通知</button>
+            <button type="button" class="tab">可选功能</button>
+          </div>
+          <div class="wm-grid">
+            <div class="card wm-card">
+              <div class="wm-preview">封面水印示意</div>
+              <h3>封面水印</h3>
+              <p class="hint">位置右下 · 宽度 18%</p>
+              <div class="wm-actions">
+                <button type="button" class="btn btn-sm">上传</button>
+                <button type="button" class="btn btn-ghost btn-sm">移除</button>
+                <button type="button" class="btn btn-sm">调整</button>
+              </div>
+            </div>
+            <div class="card wm-card">
+              <div class="wm-preview">正文图水印示意</div>
+              <h3>正文图水印</h3>
+              <p class="hint">未上传</p>
+              <div class="wm-actions">
+                <button type="button" class="btn btn-sm btn-primary">上传</button>
+              </div>
+            </div>
+            <div class="card wm-card">
+              <div class="wm-preview">视频水印示意</div>
+              <h3>视频水印</h3>
+              <p class="hint">位置左上 · 宽度 12%</p>
+              <div class="wm-actions">
+                <button type="button" class="btn btn-sm">上传</button>
+                <button type="button" class="btn btn-ghost btn-sm">移除</button>
+                <button type="button" class="btn btn-sm">调整</button>
+              </div>
+            </div>
+            <div class="card wm-card">
+              <div class="wm-preview">片头片尾示意</div>
+              <h3>片头 / 片尾</h3>
+              <p class="hint">片头 3s · 片尾未配</p>
+              <div class="wm-actions">
+                <button type="button" class="btn btn-sm">配置</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TG 配置 -->
+      <section class="screen screen-tg" aria-label="TG 采集配置">
+        <div class="topbar">
+          <h1>TG 采集配置</h1>
+          <div class="topbar-actions"><span class="avatar">运</span></div>
+        </div>
+        <div class="content">
+          <div class="muted" style="margin-bottom:8px;font-weight:650">项目切换</div>
+          <div class="ctx-row">
+            <div class="ctx-card is-on">
+              <div class="pn">每日大赛</div>
+              <div class="pm">瓜站 · 1 个采集号</div>
+            </div>
+            <div class="ctx-card">
+              <div class="pn">短剧精选</div>
+              <div class="pm">短剧站 · 2 个采集号</div>
+            </div>
+            <div class="ctx-card">
+              <div class="pn">公共素材池</div>
+              <div class="pm">全局 · 可分发</div>
+            </div>
+          </div>
+          <div class="tg-work">
+            <aside class="tg-bots">
+              <div class="pane-hd"><span class="grow">TG 采集号</span><button type="button" class="btn btn-primary btn-sm">+ 添加</button></div>
+              <div class="bot-item is-on">
+                <span class="avatar">B</span>
+                <div>
+                  <div class="nm">daily_bot</div>
+                  <div class="ph">+62 ··· 8841</div>
+                </div>
+                <span class="badge badge-ok" style="margin-left:auto"><span class="dot"></span>在线</span>
+              </div>
+              <div class="bot-item">
+                <span class="avatar">N</span>
+                <div>
+                  <div class="nm">night_scout</div>
+                  <div class="ph">+62 ··· 2209</div>
+                </div>
+                <span class="badge badge-danger" style="margin-left:auto"><span class="dot"></span>掉线</span>
+              </div>
+            </aside>
+            <div class="tg-detail">
+              <div class="pane-hd"><span class="grow">daily_bot</span><button type="button" class="btn btn-sm">重新登录</button></div>
+              <div class="tg-detail-bd">
+                <div class="summary-meta" style="margin-bottom:12px">
+                  <span><b>状态</b><span class="badge badge-ok"><span class="dot"></span>已连接</span></span>
+                  <span><b>绑定项目</b>每日大赛</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="font-weight:700;font-size:13px;flex:1">已加入频道</div>
+                  <button type="button" class="btn btn-primary btn-sm">+ 加入频道</button>
+                </div>
+                <div class="ch-list">
+                  <div class="ch-row">
+                    <span class="grow">@league_feed</span>
+                    <span class="badge badge-neutral">采集</span>
+                    <button type="button" class="btn btn-ghost btn-sm">退出</button>
+                  </div>
+                  <div class="ch-row">
+                    <span class="grow">@clips_pool</span>
+                    <span class="badge badge-neutral">采集</span>
+                    <button type="button" class="btn btn-ghost btn-sm">退出</button>
+                  </div>
+                  <div class="ch-row">
+                    <span class="grow">@source_a</span>
+                    <span class="badge badge-warn"><span class="dot"></span>异常</span>
+                    <button type="button" class="btn btn-sm">处理</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

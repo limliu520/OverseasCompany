@@ -1,6 +1,6 @@
-/* 列表翻页：每页 20 / 30（对齐现网布局：左页大小、右共 N 条 + 页码） */
+/* 列表翻页：每页 20 / 50 / 100（RF-03）；左页大小、右共 N 条 · 共 M 页 + 页码 */
 window.FZPager = (function () {
-  var SIZES = [20, 30];
+  var SIZES = [20, 50, 100];
   var DEFAULT = 20;
 
   function clampSize(n) {
@@ -79,7 +79,9 @@ window.FZPager = (function () {
         ? ""
         : '<span class="fz-pager-total">共 ' +
           total +
-          " 条</span>" +
+          " 条 · 共 " +
+          pages +
+          " 页</span>" +
           '<button type="button" class="fz-pager-btn" data-pager-page="prev"' +
           (page <= 1 ? " disabled" : "") +
           ">‹</button>" +

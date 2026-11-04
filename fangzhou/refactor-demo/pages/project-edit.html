@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>项目详情 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261031prefill" />
+  <link rel="stylesheet" href="../css/app.css?v=20261104actRR1" />
 </head>
 <body>
   <div class="app">
@@ -24,17 +24,33 @@
   <div class="modal-mask" id="basic-modal" hidden>
     <div class="modal" style="width:min(640px,100%)">
       <h2>编辑基本信息</h2>
-      <p class="hint" style="margin-top:0">展示与编辑分离：名称、类型与封面宽高在此修改（生成与推送同一套）。一个项目一套内容通道。</p>
+      <p class="hint" style="margin-top:0">展示与编辑分离：名称、类型与封面（文章封面 + 视频封面）在此修改。一个项目一套内容通道。</p>
       <div class="field"><label>项目名称 *</label><input id="b-name" /></div>
       <div class="field"><label>站点类型</label>
         <div id="basic-site-types"></div>
         <p class="hint" id="b-type-hint" style="margin-top:8px">创建后仍可改。改类型只影响后续出稿/分集等规则，已产出的历史稿不会自动重跑或改写。</p>
       </div>
-      <div class="field"><label>图片封面尺寸（生成与推送共用，200–4096px）</label>
+      <div class="field"><label>文章封面尺寸（生成与推送共用，200–4096px）</label>
         <div class="ratio-row">
           <div class="field"><label>宽 (px)</label><input id="b-cw" /></div>
           <div class="field"><label>高 (px)</label><input id="b-ch" /></div>
         </div>
+      </div>
+      <div class="field"><label>文章封面拼图</label>
+        <div class="fz-seg" role="radiogroup" data-seg-name="b-panel" aria-label="文章封面拼图">
+          <button type="button" class="fz-seg-btn" data-seg-value="1" aria-pressed="false">单拼图</button>
+          <button type="button" class="fz-seg-btn" data-seg-value="2" aria-pressed="false">二拼图</button>
+          <button type="button" class="fz-seg-btn is-on" data-seg-value="3" aria-pressed="true">三拼图</button>
+        </div>
+        <p class="hint" style="margin:8px 0 0">转编辑默认用此拼图数；弹窗里可改本次。</p>
+      </div>
+      <div class="field"><label>视频封面默认策略</label>
+        <div class="fz-seg" role="radiogroup" data-seg-name="b-vcs" aria-label="视频封面默认策略">
+          <button type="button" class="fz-seg-btn is-on" data-seg-value="article" aria-pressed="true">文章封面</button>
+          <button type="button" class="fz-seg-btn" data-seg-value="first_frame" aria-pressed="false">视频首帧</button>
+          <button type="button" class="fz-seg-btn" data-seg-value="random" aria-pressed="false">随机视频抽帧</button>
+        </div>
+        <p class="hint" style="margin:8px 0 0">转编辑按此策略出视频封面；单篇可在文章编辑单独上传覆盖。</p>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="basic-cancel">取消</button>
@@ -44,15 +60,15 @@
   </div>
 
   <script src="../js/store.js?v=20261031poolCollect"></script>
-  <script src="../js/shell.js?v=20261031navProj"></script>
+  <script src="../js/shell.js?v=20261104mono4"></script>
   <script src="../js/novice-guide.js?v=20261031demoEdit"></script>
   <script src="../js/novice-tour-kit.js?v=20261031prefill"></script>
   <script src="../js/novice-tours.js?v=20261031prefill"></script>
   <script src="../js/article-defaults.js?v=20261028wmFx2"></script>
-  <script src="../js/media-config.js?v=20261028ioLR1"></script>
+  <script src="../js/media-config.js?v=20261104dewmSw1"></script>
   <script src="../js/pick-cards.js"></script>
   <script src="../js/tg-add-wizard.js?v=20261028tipAll"></script>
-  <script src="../js/project-union.js?v=20261028tipAll"></script>
+  <script src="../js/project-union.js?v=20261104dewmSw1"></script>
   <script>
     FZShell.boot({ active: "projects" });
     var id = new URLSearchParams(location.search).get("id");
@@ -116,7 +132,7 @@
       { id: "watermark", label: "水印管理" },
       { id: "intro", label: "片头和片尾" },
       { id: "article", label: "文章管理" },
-      { id: "media", label: "图片视频规则" },
+      { id: "media", label: "内容生成规则" },
       { id: "connect", label: "开发对接配置" },
       { id: "channel", label: "TG 采集号" },
       { id: "flow", label: "推送规则" },
@@ -320,11 +336,21 @@
         '<div><div class="label">站点类型</div><div class="value">' +
         typeLabel +
         "</div></div>" +
-        '<div><div class="label">封面</div><div class="value">' +
+        '<div><div class="label">文章封面</div><div class="value">' +
         (p.coverWidth || "—") +
         " × " +
         (p.coverHeight || "—") +
-        " px</div></div>" +
+        " · " +
+        ({ 1: "单拼图", 2: "二拼图", 3: "三拼图" }[Number(p.coverPanelCount)] ||
+          "三拼图") +
+        "</div></div>" +
+        '<div><div class="label">视频封面策略</div><div class="value">' +
+        ({
+          article: "文章封面",
+          first_frame: "视频首帧",
+          random: "随机抽帧"
+        }[p.videoCoverStrategy] || "文章封面") +
+        "</div></div>" +
         '<div><div class="label">采集号</div><div class="value">' +
         (FZStore.projectUserbotIds(p).length
           ? FZStore.projectUserbotIds(p).length + " 个"
@@ -366,10 +392,14 @@
       return (
         '<div class="card card-pad">' +
         FZMediaConfig.renderWatermarkPanel(p.watermarks, {
-          lead: "上下同级两块：去源水印、添加水印（图片 / 视频叠层）。片头片尾见「片头和片尾」Tab。",
+          lead: "上下两块：去源水印（图 / 视频总开关），添加水印（叠自己的图/视频）。片头片尾见「片头和片尾」Tab。",
           allowDefault: false,
           showSave: true,
           dewatermarkEnabled: p.dewatermarkEnabled !== false,
+          dewatermarkImage: p.dewatermarkImage,
+          dewatermarkVideo: p.dewatermarkVideo,
+          dewatermarkMove: p.dewatermarkMove,
+          dewatermarkFixed: p.dewatermarkFixed,
           showDewatermark: true,
           wmAddView: wmAddView
         }) +
@@ -392,7 +422,7 @@
       if (!FZProjectUnion.needsArticle(p.siteType)) {
         return (
           '<div class="card card-pad">' +
-          '<p class="muted" style="margin:0;font-size:13px">短剧站不配文章管理。分集在「推送规则」，闸门在「图片视频规则」。</p></div>'
+          '<p class="muted" style="margin:0;font-size:13px">短剧站不配文章管理。分集与出站门槛在「推送规则」；图片编码 / 边下边播在「内容生成规则」。</p></div>'
         );
       }
       return (
@@ -452,9 +482,9 @@
       return (
         '<div class="card card-pad" id="union-media-root">' +
         paneToolbar(
-          "左栏图片输出格式；右栏必须含视频、切片、最短时长。分集在「推送规则」。封面在「编辑基本信息」，水印在「水印管理」。",
+          "左栏「图片生成规则」、右栏「视频生成规则」。必须含视频、最短时长在「推送规则」。封面在「编辑基本信息」，水印在「水印管理」。",
           "btn-save-media",
-          "保存图片视频规则"
+          "保存内容生成规则"
         ) +
         FZProjectUnion.renderVideoRulesFields(p) +
         "</div>"
@@ -508,14 +538,16 @@
                   " 个频道</p>" +
                   "</div></div>" +
                   '<div class="ub-actions">' +
+                  '<div class="fz-actions-opt"></div>' +
+                  '<div class="fz-actions-fix">' +
+                  '<button type="button" class="btn btn-ghost" data-detach-bot="' +
+                  b.id +
+                  '">移出本项目</button>' +
                   '<a class="btn btn-primary" href="' +
                   tgHref +
                   "&bot=" +
                   encodeURIComponent(b.id) +
-                  '">去采集配置</a>' +
-                  '<button type="button" class="btn btn-ghost" data-detach-bot="' +
-                  b.id +
-                  '">移出本项目</button></div></article>'
+                  '">去采集配置</a></div></div></article>'
                 );
               })
               .join("") +
@@ -649,6 +681,18 @@
           fillBasicSiteTypes(p.siteType || "chigua");
           document.getElementById("b-cw").value = p.coverWidth || "720";
           document.getElementById("b-ch").value = p.coverHeight || "1280";
+          var panel = String(
+            FZMediaConfig.clampCoverPanelCount
+              ? FZMediaConfig.clampCoverPanelCount(p.coverPanelCount)
+              : p.coverPanelCount || 3
+          );
+          FZMediaConfig.setSegValue(document.getElementById("basic-modal"), "b-panel", panel);
+          FZMediaConfig.setSegValue(
+            document.getElementById("basic-modal"),
+            "b-vcs",
+            p.videoCoverStrategy || "article"
+          );
+          FZMediaConfig.bindSegControls(document.getElementById("basic-modal"));
           document.getElementById("basic-modal").hidden = false;
         });
       }
@@ -674,7 +718,7 @@
         saveMedia.addEventListener("click", function () {
           saveProject(function (p) {
             FZProjectUnion.collectVideoRules(document, p);
-          }, "图片视频规则已保存");
+          }, "内容生成规则已保存");
         });
       }
 
@@ -707,8 +751,8 @@
         if (swm) {
           swm.addEventListener("click", function () {
             saveProject(function (p) {
-              var dewm = FZMediaConfig.collectDewatermark(document);
-              if (dewm != null) p.dewatermarkEnabled = dewm;
+              var dewmS = FZMediaConfig.collectDewatermarkStrategies(document);
+              if (dewmS) FZMediaConfig.applyDewatermarkStrategies(p, dewmS);
               FZMediaConfig.applyWatermarkForm(p.watermarks, document);
               var wav = document.getElementById("wm-add-view");
               if (wav) wmAddView = wav.value || "image";
@@ -843,6 +887,8 @@
           }, "已保存");
         });
 
+      FZMediaConfig.bindSegControls(document.getElementById("root"));
+
       document.querySelectorAll("[data-opt]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           FZShell.toast(
@@ -937,6 +983,14 @@
         p.coverWidth = String(Number(coverDraft.coverWidth) || 720);
         p.coverHeight = String(Number(coverDraft.coverHeight) || 1280);
         p.coverAspect = "";
+        var panelVal = FZMediaConfig.readSeg(
+          document.getElementById("basic-modal"),
+          "b-panel"
+        );
+        p.coverPanelCount = FZMediaConfig.clampCoverPanelCount(panelVal);
+        p.videoCoverStrategy =
+          FZMediaConfig.readSeg(document.getElementById("basic-modal"), "b-vcs") ||
+          "article";
         if (prev !== nextType) FZProjectUnion.applyTypeDefaults(p, nextType);
       }, prevType !== nextType ? "基本信息已保存（类型已变更）" : "基本信息已保存");
       document.getElementById("basic-modal").hidden = true;

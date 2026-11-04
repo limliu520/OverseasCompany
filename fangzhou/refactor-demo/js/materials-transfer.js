@@ -39,9 +39,32 @@
       return !p.disabled;
     })[0];
     if (first) sel.value = first.id;
-    document.getElementById("mat-xfer-cover").value = "3";
+    applyCoverDefault(first && first.id);
     onProjectChange();
     document.getElementById("mat-xfer-mask").hidden = false;
+  }
+  function projectCoverPanel(pid) {
+    try {
+      if (w.FZStore) {
+        var st = FZStore.read();
+        var hit = (st.projects || []).find(function (x) {
+          return x.id === pid;
+        });
+        if (hit) {
+          if (w.FZProjectUnion && FZProjectUnion.normalizeProject) {
+            FZProjectUnion.normalizeProject(hit);
+          }
+          var n = Number(hit.coverPanelCount);
+          if (n === 1 || n === 2 || n === 3) return n;
+        }
+      }
+    } catch (e) {}
+    return 3;
+  }
+  function applyCoverDefault(pid) {
+    var el = document.getElementById("mat-xfer-cover");
+    if (!el) return;
+    el.value = String(projectCoverPanel(pid));
   }
   function onProjectChange() {
     var pid = document.getElementById("mat-xfer-project").value;
@@ -49,6 +72,7 @@
     var p = PROJECTS.filter(function (x) {
       return x.id === pid;
     })[0];
+    applyCoverDefault(pid);
     if (!pid) {
       if (hint) hint.textContent = "";
       updateSubmit();
@@ -58,7 +82,7 @@
       if (hint) hint.textContent = p.reason || "该项目不可用";
     } else if (hint) {
       hint.textContent =
-        "确认后占用该项目内容通道并派发处理；素材仍留在公共素材池，其他人仍可查看。";
+        "确认后占用该项目内容通道并派发处理；素材仍留在公共素材池，其他人仍可查看。文章封面拼图默认取项目配置，可改本次。";
     }
     updateSubmit();
   }
@@ -84,8 +108,15 @@
       return;
     }
     var cover = document.getElementById("mat-xfer-cover").value || "3";
+    var coverLabel = { 1: "单拼图", 2: "二拼图", 3: "三拼图" }[cover] || "三拼图";
     FZShell.toast(
-      "Demo：已派发媒体处理（" + p.name + " · 封面拼图 " + cover + " · 素材 " + mid + "）",
+      "Demo：已派发媒体处理（" +
+        p.name +
+        " · 文章封面" +
+        coverLabel +
+        " · 素材 " +
+        mid +
+        "）",
       "ok"
     );
     close();

@@ -1,4 +1,4 @@
-/* 右下角帮助中心 · 预设问题随当前页面功能切换 */
+/* 侧栏帮助中心（账户上方）· 预设问题随当前页面功能切换 */
 (function (global) {
   var COMMON_TAIL = [
     {
@@ -51,7 +51,7 @@
     "project-setup": [
       {
         q: "创建步骤哪些必填？",
-        a: "「项目名称」等标为必填的步骤需填写后才能「下一步」；可选步骤可用「跳过」或「跳过并创建」。",
+        a: "「项目名称」「封面」必填。有默认配置的步（水印、内容生成规则、推送规则）确认后直接「下一步 / 创建」，不提供跳过。真正可跳过的只有：片头片尾、文章管理、采集号。",
         href: "pages/project-setup.html?new=1",
         need: "projects.list.create"
       },
@@ -62,7 +62,7 @@
       },
       {
         q: "水印和文章要在创建时配完吗？",
-        a: "创建向导里可跳过；创建后也可在项目详情的「水印管理」「文章管理」Tab 再配。",
+        a: "水印、内容生成、推送都有默认，确认即可（无跳过）。文章管理可跳过（自定义提示词须粘贴才算配完）。片头片尾、采集号也可跳过。创建后都可在项目详情再改。",
         need: "projects.list.create"
       }
     ],
@@ -300,7 +300,6 @@
     var root = document.createElement("div");
     root.id = "fz-help-root";
     root.innerHTML =
-      '<button type="button" class="fz-help-fab" id="fz-help-fab" aria-label="帮助与反馈">帮助与反馈</button>' +
       '<div class="fz-help-mask" id="fz-help-mask" hidden>' +
       '<div class="fz-help-panel" role="dialog" aria-labelledby="fz-help-title">' +
       '<div class="fz-help-head">' +
@@ -332,6 +331,17 @@
       '<button type="button" class="btn btn-primary" id="fz-fb-submit">提交反馈</button></div></div>' +
       "</div></div>";
     document.body.appendChild(root);
+
+    var fab = document.createElement("button");
+    fab.type = "button";
+    fab.className = "fz-help-fab";
+    fab.id = "fz-help-fab";
+    fab.setAttribute("aria-label", "帮助与反馈");
+    fab.innerHTML =
+      '<span class="ico" aria-hidden="true">?</span><span>帮助与反馈</span>';
+    var slot = document.getElementById("fz-help-slot");
+    if (slot) slot.appendChild(fab);
+    else document.body.appendChild(fab);
 
     var mask = document.getElementById("fz-help-mask");
     var home = document.getElementById("fz-help-home");
@@ -536,94 +546,13 @@
       }
     }
 
-    (function bindFabDrag() {
-      var fab = document.getElementById("fz-help-fab");
-      if (!fab) return;
-      var FAB_KEY = "fz_help_fab_bottom";
-      var DRAG_PX = 8;
-      var dragging = false;
-      var pressed = false;
-      var startY = 0;
-      var startBottom = 0;
-      var pointerId = null;
-
-      function fabH() {
-        return fab.offsetHeight || 40;
-      }
-      function clampBottom(b) {
-        var min = 12;
-        var max = Math.max(min, window.innerHeight - fabH() - 12);
-        return Math.min(max, Math.max(min, Math.round(b)));
-      }
-      function readBottom() {
-        var r = fab.getBoundingClientRect();
-        return window.innerHeight - r.bottom;
-      }
-      function applyBottom(b) {
-        fab.style.bottom = clampBottom(b) + "px";
-        fab.style.top = "auto";
-      }
-      function persist() {
-        try {
-          localStorage.setItem(FAB_KEY, String(clampBottom(readBottom())));
-        } catch (err) {}
-      }
-
-      try {
-        var saved = localStorage.getItem(FAB_KEY);
-        if (saved != null && saved !== "") applyBottom(+saved);
-      } catch (err0) {}
-
-      fab.title = "单击打开；按住拖动可上下移动";
-      fab.addEventListener("pointerdown", function (e) {
-        if (e.button != null && e.button !== 0) return;
-        pressed = true;
-        dragging = false;
-        startY = e.clientY;
-        startBottom = readBottom();
-        pointerId = e.pointerId;
-        try {
-          fab.setPointerCapture(pointerId);
-        } catch (err1) {}
-      });
-      fab.addEventListener("pointermove", function (e) {
-        if (!pressed) return;
-        if (pointerId != null && e.pointerId !== pointerId) return;
-        var dy = e.clientY - startY;
-        if (!dragging) {
-          if (Math.abs(dy) < DRAG_PX) return;
-          dragging = true;
-          fab.classList.add("is-dragging");
-        }
-        e.preventDefault();
-        applyBottom(startBottom - dy);
-      });
-      function endPointer(e) {
-        if (!pressed) return;
-        if (pointerId != null && e.pointerId !== pointerId) return;
-        var wasDragging = dragging;
-        pressed = false;
-        dragging = false;
-        fab.classList.remove("is-dragging");
-        try {
-          fab.releasePointerCapture(pointerId);
-        } catch (err2) {}
-        pointerId = null;
-        if (wasDragging) {
-          persist();
-          return;
-        }
-        open();
-      }
-      fab.addEventListener("pointerup", endPointer);
-      fab.addEventListener("pointercancel", endPointer);
-      fab.addEventListener("click", function (e) {
+    (function bindFabOpen() {
+      var fabBtn = document.getElementById("fz-help-fab");
+      if (!fabBtn) return;
+      fabBtn.addEventListener("click", function (e) {
         e.preventDefault();
         e.stopPropagation();
-      });
-      window.addEventListener("resize", function () {
-        applyBottom(readBottom());
-        persist();
+        open();
       });
     })();
     document.getElementById("fz-help-tour").addEventListener("click", startMenuTour);

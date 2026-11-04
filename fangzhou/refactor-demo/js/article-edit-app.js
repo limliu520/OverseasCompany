@@ -779,6 +779,135 @@
     zoomMask.hidden = false;
   });
 
+  /* —— 视频封面（RF-01）：与文章封面分离；可上传覆盖项目策略 —— */
+  var VCS_LABELS = {
+    article: "文章封面",
+    first_frame: "视频首帧",
+    random: "随机视频抽帧"
+  };
+  var projectVcs = "article";
+  try {
+    var stAll = FZStore.read();
+    var projHit = (stAll.projects || []).find(function (p) {
+      return p.id === article.projectId;
+    });
+    if (projHit && window.FZProjectUnion && FZProjectUnion.normalizeProject) {
+      FZProjectUnion.normalizeProject(projHit);
+    }
+    if (projHit && projHit.videoCoverStrategy) projectVcs = projHit.videoCoverStrategy;
+  } catch (eVcs) {}
+  if (!article.videoCoverKind) article.videoCoverKind = "strategy";
+
+  var vcPreview = document.getElementById("art-vc-preview");
+  var vcStatus = document.getElementById("art-vc-status");
+  var vcHint = document.getElementById("art-vc-strategy-hint");
+  if (vcHint) {
+    vcHint.textContent =
+      "项目默认：「" + (VCS_LABELS[projectVcs] || "文章封面") + "」。上传后本篇以自定义图为准。";
+  }
+
+  function paintVideoCover() {
+    if (!vcPreview) return;
+    var custom = article.videoCoverKind === "custom";
+    var tone;
+    var label;
+    if (custom) {
+      tone = article.videoCoverTone || "#c7d2fe";
+      label = article.videoCoverLabel || "自定义视频封面";
+    } else if (projectVcs === "article") {
+      tone = article.coverTone || article.baseCoverTone || baseCover.tone;
+      label = "跟随文章封面";
+    } else if (projectVcs === "first_frame") {
+      tone = "#e0e7ff";
+      label = "视频首帧（策略）";
+    } else {
+      tone = "#fef3c7";
+      label = "随机抽帧（策略）";
+    }
+    vcPreview.style.background = tone;
+    vcPreview.innerHTML = "<span>" + esc(label) + "</span>";
+    vcPreview.classList.add("has-cover");
+    if (vcStatus) {
+      vcStatus.textContent = custom
+        ? "已自定义（改文章封面不会覆盖）"
+        : "未自定义，跟随项目策略";
+    }
+  }
+  paintVideoCover();
+
+  var _paintCover = paintCover;
+  paintCover = function () {
+    _paintCover();
+    if (article.videoCoverKind !== "custom" && projectVcs === "article") {
+      paintVideoCover();
+    }
+  };
+
+  var vcFile = document.getElementById("art-vc-file");
+  var vcPick = document.getElementById("art-vc-pick");
+  if (vcPick) {
+    vcPick.addEventListener("click", function () {
+      if (vcFile) vcFile.click();
+    });
+  }
+  if (vcFile) {
+    vcFile.addEventListener("change", function () {
+      var f = vcFile.files && vcFile.files[0];
+      if (!f) return;
+      if (!/^image\//.test(f.type)) {
+        FZShell.toast("请选择图片文件", "err");
+        vcFile.value = "";
+        return;
+      }
+      article.videoCoverKind = "custom";
+      article.videoCoverTone = "#a5b4fc";
+      article.videoCoverLabel =
+        f.name.replace(/\.[^.]+$/, "").slice(0, 20) || "自定义视频封面";
+      paintVideoCover();
+      FZShell.toast("已上传视频封面「" + article.videoCoverLabel + "」", "ok");
+      vcFile.value = "";
+    });
+  }
+  var vcRestore = document.getElementById("art-vc-restore");
+  if (vcRestore) {
+    vcRestore.addEventListener("click", function () {
+      if (article.videoCoverKind !== "custom") {
+        FZShell.toast("当前已是跟随项目策略", "err");
+        return;
+      }
+      article.videoCoverKind = "strategy";
+      article.videoCoverTone = null;
+      article.videoCoverLabel = null;
+      paintVideoCover();
+      FZShell.toast("已恢复跟随项目策略，保存文章后生效", "ok");
+    });
+  }
+  if (vcPreview) {
+    vcPreview.addEventListener("click", function () {
+      var tone =
+        article.videoCoverKind === "custom"
+          ? article.videoCoverTone || "#a5b4fc"
+          : projectVcs === "article"
+            ? article.coverTone || baseCover.tone
+            : projectVcs === "first_frame"
+              ? "#e0e7ff"
+              : "#fef3c7";
+      var label =
+        article.videoCoverKind === "custom"
+          ? article.videoCoverLabel || "视频封面"
+          : projectVcs === "article"
+            ? "跟随文章封面"
+            : VCS_LABELS[projectVcs] || "视频封面";
+      zoomStage.innerHTML =
+        '<div class="art-mat-zoom-view" style="background:' +
+        tone +
+        '">🎬 ' +
+        esc(label) +
+        "</div>";
+      zoomMask.hidden = false;
+    });
+  }
+
   /* 分类：点选开关，不再「下拉 + 下方标签」双显 */
   var CAT_OPTIONS = ["今日吃瓜", "社会", "娱乐"];
   function paintCatToggles() {

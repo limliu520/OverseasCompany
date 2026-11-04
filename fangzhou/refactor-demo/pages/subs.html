@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>子账号与授权 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261031prefill" />
+  <link rel="stylesheet" href="../css/app.css?v=20261104roleSize1" />
 </head>
 <body>
   <div class="app">
@@ -19,9 +19,9 @@
       </div>
       <div class="content content--dock-pager">
         <div class="page-scroll">
-          <div style="display:flex;gap:4px;margin-bottom:14px">
-            <button type="button" class="btn" id="tab-subs" data-tab="subs">子账号</button>
-            <button type="button" class="btn" id="tab-roles" data-tab="roles">岗位</button>
+          <div class="seg-tabs" role="tablist" aria-label="子账号与岗位">
+            <button type="button" class="btn" id="tab-subs" data-tab="subs" role="tab">子账号</button>
+            <button type="button" class="btn" id="tab-roles" data-tab="roles" role="tab">岗位</button>
           </div>
           <p class="muted" id="tab-desc" style="margin:0 0 14px"></p>
           <div class="sub-list-bar" id="sub-list-bar" hidden>
@@ -119,14 +119,57 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261031poolCollect"></script>
-  <script src="../js/perm-tree.js?v=20261031navProj"></script>
-  <script src="../js/shell.js?v=20261031navProj"></script>
-  <script src="../js/pager.js?v=20261027pager"></script>
-  <script src="../js/project-union.js?v=20261028subWiz"></script>
+  <div class="modal-mask" id="sub-pass-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sub-pass-title">
+      <h2 id="sub-pass-title">重置密码</h2>
+      <p class="hint" id="sub-pass-lead" style="margin-top:0">为该子账号设置新登录密码。生效后对方须用新密码登录。</p>
+      <div class="field">
+        <label>新密码 *</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="sub-pass-new" type="password" autocomplete="new-password" placeholder="至少 8 位" style="flex:1" />
+          <button type="button" class="btn btn-ghost" id="sub-pass-gen">随机生成</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>确认新密码 *</label>
+        <input id="sub-pass-confirm" type="password" autocomplete="new-password" placeholder="再输入一次" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="sub-pass-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="sub-pass-ok">确认重置</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="sub-pass-done-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sub-pass-done-title">
+      <h2 id="sub-pass-done-title">密码已重置</h2>
+      <p class="hint" style="margin-top:0">请将新密码告知对方。关闭后无法再查看明文，请先复制。</p>
+      <div class="field">
+        <label>登录名</label>
+        <div class="muted" id="sub-pass-done-user" style="font-family:ui-monospace,monospace;font-size:13px"></div>
+      </div>
+      <div class="field">
+        <label>新密码</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <code id="sub-pass-done-pwd" style="flex:1;padding:8px 10px;background:var(--fill,#f4f4f5);border-radius:8px;font-size:14px;word-break:break-all"></code>
+          <button type="button" class="btn" id="sub-pass-copy">复制</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary" id="sub-pass-done-ok">我已抄下</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/store.js?v=20261104alwaysOn1"></script>
+  <script src="../js/perm-tree.js?v=20261104alwaysOn1"></script>
+  <script src="../js/shell.js?v=20261104confirm1"></script>
+  <script src="../js/pager.js?v=20261104rf03"></script>
+  <script src="../js/project-union.js?v=20261104rf"></script>
   <script src="../js/novice-guide.js?v=20261031tour7"></script>
   <script src="../js/novice-tour-kit.js?v=20261031prefill"></script>
   <script src="../js/novice-tours.js?v=20261031prefill"></script>
-  <script src="../js/subs-app.js?v=20261031tour7b"></script>
+  <script src="../js/subs-app.js?v=20261104roleSize1"></script>
 </body>
 </html>

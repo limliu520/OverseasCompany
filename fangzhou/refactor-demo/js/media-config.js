@@ -581,35 +581,141 @@
   }
 
   /**
-   * 水印管理：上下同级两卡——上「去源水印」，下「添加水印」。
-   * @param opts {{ lead?: string, allowDefault?: boolean, showSave?: boolean, dewatermarkEnabled?: boolean, showDewatermark?: boolean, wmAddView?: string }}
+   * 分段单选（替代原生 radio）。
+   * @param {string} name data-seg-name
+   * @param {{ value: string, label: string }[]} items
+   * @param {string} selected
+   * @param {string} [ariaLabel]
+   */
+  function renderSeg(name, items, selected, ariaLabel) {
+    var sel = selected == null ? "" : String(selected);
+    return (
+      '<div class="fz-seg" role="radiogroup" data-seg-name="' +
+      name +
+      '"' +
+      (ariaLabel ? ' aria-label="' + ariaLabel + '"' : "") +
+      ">" +
+      (items || [])
+        .map(function (it) {
+          var on = String(it.value) === sel;
+          return (
+            '<button type="button" class="fz-seg-btn' +
+            (on ? " is-on" : "") +
+            '" data-seg-value="' +
+            it.value +
+            '" aria-pressed="' +
+            (on ? "true" : "false") +
+            '">' +
+            it.label +
+            "</button>"
+          );
+        })
+        .join("") +
+      "</div>"
+    );
+  }
+
+  function readSeg(root, name) {
+    root = root || document;
+    var g = root.querySelector
+      ? root.querySelector('[data-seg-name="' + name + '"]')
+      : document.querySelector('[data-seg-name="' + name + '"]');
+    if (!g) return null;
+    var on = g.querySelector(".fz-seg-btn.is-on");
+    return on ? on.getAttribute("data-seg-value") : null;
+  }
+
+  function setSegValue(root, name, value) {
+    root = root || document;
+    var g = root.querySelector
+      ? root.querySelector('[data-seg-name="' + name + '"]')
+      : document.querySelector('[data-seg-name="' + name + '"]');
+    if (!g) return;
+    var want = String(value);
+    g.querySelectorAll(".fz-seg-btn").forEach(function (b) {
+      var on = b.getAttribute("data-seg-value") === want;
+      b.classList.toggle("is-on", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+
+  function bindSegControls(root, onChange) {
+    root = root || document;
+    root.querySelectorAll("[data-seg-name]").forEach(function (g) {
+      if (g.getAttribute("data-seg-bound")) return;
+      g.setAttribute("data-seg-bound", "1");
+      g.addEventListener("click", function (e) {
+        if (e.target.closest && e.target.closest(".field-tip")) return;
+        var btn = e.target.closest ? e.target.closest(".fz-seg-btn") : null;
+        if (!btn || !g.contains(btn)) return;
+        e.preventDefault();
+        g.querySelectorAll(".fz-seg-btn").forEach(function (b) {
+          var on = b === btn;
+          b.classList.toggle("is-on", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+        if (onChange) onChange(g.getAttribute("data-seg-name"), btn.getAttribute("data-seg-value"));
+      });
+    });
+  }
+
+  /**
+   * 水印管理：上「去源水印」（图 / 视频总开关），下「添加水印」。
+   * 本期暂不拆移动/固定；后续有细项时再「开开关 → 展开配置」。
    */
   function renderWatermarkPanel(watermarks, opts) {
     opts = opts || {};
     var showDewm = opts.showDewatermark !== false;
-    var dewmOn = opts.dewatermarkEnabled !== false;
+    var keepAll = opts.dewatermarkEnabled === false;
+    var image =
+      opts.dewatermarkImage || (keepAll ? "keep" : "remove");
+    var video =
+      opts.dewatermarkVideo ||
+      (opts.dewatermarkMove === "keep" && opts.dewatermarkFixed === "keep"
+        ? "keep"
+        : null) ||
+      (keepAll ? "keep" : "remove");
+    var imgOn = image !== "keep";
+    var videoOn = video !== "keep";
     var lead =
       opts.lead ||
       (showDewm
-        ? "上下同级两块：去源水印、添加水印。片头片尾不在本页。"
+        ? "上下两块：先定要不要抹原站水印，再定要不要叠自己的水印。片头片尾不在本页。"
         : "配置本项目叠加水印。");
     var removePane =
       '<div class="cfg-card wm-dewm-card">' +
-      '<div class="wm-dewm-row">' +
-      '<div class="wm-dewm-copy"><div class="cfg-card-title">去源水印</div>' +
-      '<div class="cfg-card-sub">抹掉素材上原站留下的水印 · 与下方添加无关 ' +
-      fieldTip("现网外站 dewatermark_enabled。关=保留原站水印；开=推送前尽量抹掉。") +
+      '<div class="cfg-card-head"><div class="cfg-card-title">去源水印</div>' +
+      '<div class="cfg-card-sub">抹掉素材自带的水印 · 与下方「添加水印」无关 · 默认都开 ' +
+      fieldTip(
+        "图片、视频各一个总开关。开=去源水印，关=保留原站水印。本期不区分视频移动/固定；后续细项会在开关打开后展开。"
+      ) +
       "</div></div>" +
+      '<div class="art-modes" style="margin-bottom:0">' +
+      '<button type="button" class="art-mode-sub' +
+      (imgOn ? " is-on" : "") +
+      '" data-dewm-kind="image">' +
+      '<div class="art-mode-head"><div><strong>图片去源水印</strong>' +
+      '<span class="art-mode-tag">封面图、正文配图上的原站水印。</span></div>' +
       '<span class="switch' +
-      (dewmOn ? " on" : "") +
-      '" id="de-wm" role="switch" aria-checked="' +
-      (dewmOn ? "true" : "false") +
-      '" aria-label="去源水印"><i></i></span></div></div>';
+      (imgOn ? " on" : "") +
+      '" id="sw-dewm-image" role="switch" aria-checked="' +
+      (imgOn ? "true" : "false") +
+      '" aria-label="图片去源水印"><i></i></span></div></button>' +
+      '<button type="button" class="art-mode-sub' +
+      (videoOn ? " is-on" : "") +
+      '" data-dewm-kind="video">' +
+      '<div class="art-mode-head"><div><strong>视频去源水印</strong>' +
+      '<span class="art-mode-tag">视频画面上的原站水印（总开关）。</span></div>' +
+      '<span class="switch' +
+      (videoOn ? " on" : "") +
+      '" id="sw-dewm-video" role="switch" aria-checked="' +
+      (videoOn ? "true" : "false") +
+      '" aria-label="视频去源水印"><i></i></span></div></button></div></div>';
     var addPane =
       renderAddWmSection(watermarks, { wmAddView: opts.wmAddView }) +
       (opts.allowDefault
         ? '<div class="media-sec-actions">' +
-          '<button type="button" class="btn btn-ghost" id="btn-wm-default">使用默认水印配置，稍后在项目详情改</button>' +
+          '<button type="button" class="btn btn-ghost" id="btn-wm-default">套用默认添加水印素材，稍后在项目详情改</button>' +
           "</div>"
         : "");
     return (
@@ -639,21 +745,31 @@
     );
   }
 
-  /** @param opts {{ lead?: string }} */
+  function clampCoverPanelCount(n) {
+    var x = Number(n);
+    return x === 1 || x === 2 || x === 3 ? x : 3;
+  }
+
+  /**
+   * 封面配置：文章封面（尺寸 + 拼图）+ 视频封面策略。内容生成规则另页，不并入。
+   * @param opts {{ lead?: string, videoCoverStrategy?: string, coverPanelCount?: number }}
+   */
   function renderCoverPanel(coverWidth, coverHeight, opts) {
     opts = opts || {};
+    var vcs = opts.videoCoverStrategy || "article";
+    var panel = clampCoverPanelCount(opts.coverPanelCount);
     return (
       '<div class="media-mod" data-media-cover>' +
       '<p class="muted media-lead">' +
       (opts.lead ||
-        "只配一套宽高：生成封面与推送封面共用，不再另设「推送比例」。") +
+        "封面含文章封面与视频封面两块。图片编码与边下边播在「内容生成规则」；出站门槛在「推送规则」。") +
       "</p>" +
       '<div class="cfg-card">' +
-      '<div class="cfg-card-head"><div class="cfg-card-title">图片封面尺寸</div>' +
+      '<div class="cfg-card-head"><div class="cfg-card-title">文章封面尺寸</div>' +
       '<div class="cfg-card-sub">生成与推送同一规格 · 单边 200–4096px</div></div>' +
       '<div class="field"><label>宽 / 高 (px) ' +
       fieldTip(
-        "须在 200–4096。水印出图、推送封面、自定义封面画框都按这组像素。旧外站 cover_aspect 已废弃，比例由宽高本身决定（如 1920×1080 即横版）。"
+        "须在 200–4096。文章封面出图、推送封面、自定义封面画框都按这组像素。旧外站 cover_aspect 已废弃，比例由宽高本身决定（如 1920×1080 即横版）。"
       ) +
       "</label>" +
       '<div class="ratio-row">' +
@@ -685,7 +801,43 @@
         })
         .join("") +
       "</div>" +
-      '<p class="hint" style="margin:8px 0 0">快捷项写入上方宽高；手动改宽高后，仅当数值完全等于某快捷项时才保持选中。</p></div></div>'
+      '<p class="hint" style="margin:8px 0 0">快捷项写入上方宽高；手动改宽高后，仅当数值完全等于某快捷项时才保持选中。</p></div>' +
+      '<div class="cfg-card" style="margin-top:12px">' +
+      '<div class="cfg-card-head"><div class="cfg-card-title">文章封面拼图</div>' +
+      '<div class="cfg-card-sub">转编辑生成文章封面时默认拼几格 · 与现网 cover_panel_count 对齐 ' +
+      fieldTip(
+        "单拼图=1 格整图；二拼图=左右两格；三拼图=左中右三格。转编辑弹窗可改本次值，未改则用项目默认。"
+      ) +
+      "</div></div>" +
+      renderSeg(
+        "cover-panel-count",
+        [
+          { value: "1", label: "单拼图" },
+          { value: "2", label: "二拼图" },
+          { value: "3", label: "三拼图" }
+        ],
+        String(panel),
+        "文章封面拼图"
+      ) +
+      "</div>" +
+      '<div class="cfg-card" style="margin-top:12px">' +
+      '<div class="cfg-card-head"><div class="cfg-card-title">视频封面默认策略</div>' +
+      '<div class="cfg-card-sub">转编辑生成时按此策略出视频封面 · 单篇可在文章编辑覆盖 ' +
+      fieldTip(
+        "RF-01：新建默认「文章封面」。文章编辑里可单独上传视频封面，覆盖后不再跟随本策略，直至清除自定义。"
+      ) +
+      "</div></div>" +
+      renderSeg(
+        "video-cover-strategy",
+        [
+          { value: "article", label: "文章封面" },
+          { value: "first_frame", label: "视频首帧" },
+          { value: "random", label: "随机视频抽帧" }
+        ],
+        vcs,
+        "视频封面默认策略"
+      ) +
+      "</div></div>"
     );
   }
 
@@ -879,20 +1031,85 @@
     root = root || document;
     var cwEl = root.querySelector ? root.querySelector("#f-cw") : document.getElementById("f-cw");
     var chEl = root.querySelector ? root.querySelector("#f-ch") : document.getElementById("f-ch");
+    var strat = readSeg(root, "video-cover-strategy");
+    var panel = readSeg(root, "cover-panel-count");
     return {
       coverWidth: ((cwEl && cwEl.value) || "720").trim(),
-      coverHeight: ((chEl && chEl.value) || "1280").trim()
+      coverHeight: ((chEl && chEl.value) || "1280").trim(),
+      videoCoverStrategy: strat || null,
+      coverPanelCount: panel != null ? clampCoverPanelCount(panel) : null
     };
   }
 
-  function collectDewatermark(root) {
-    root = root || document;
-    var el = root.querySelector ? root.querySelector("#de-wm") : document.getElementById("de-wm");
+  function readDewmSwitch(root, id) {
+    var el = root.querySelector
+      ? root.querySelector("#" + id)
+      : document.getElementById(id);
     if (!el) return null;
     if (el.getAttribute("role") === "switch") {
       return el.classList.contains("on") || el.getAttribute("aria-checked") === "true";
     }
     return !!el.checked;
+  }
+
+  /**
+   * 读去源策略。本期：图 / 视频各总开关。
+   * move/fixed 与 video 对齐写入，兼容旧字段；不暴露移动/固定分拆 UI。
+   * @returns {{ image: string, video: string, move: string, fixed: string } | null}
+   */
+  function collectDewatermarkStrategies(root) {
+    root = root || document;
+    var imgSw = readDewmSwitch(root, "sw-dewm-image");
+    var vidSw = readDewmSwitch(root, "sw-dewm-video");
+    if (imgSw != null || vidSw != null) {
+      var image = imgSw !== false ? "remove" : "keep";
+      var video = vidSw !== false ? "remove" : "keep";
+      return { image: image, video: video, move: video, fixed: video };
+    }
+    var imageSeg = readSeg(root, "dewm-image");
+    var moveSeg = readSeg(root, "dewm-move");
+    var fixedSeg = readSeg(root, "dewm-fixed");
+    if (imageSeg != null || moveSeg != null || fixedSeg != null) {
+      var move = moveSeg || "remove";
+      var fixed = fixedSeg || "remove";
+      var videoLegacy =
+        move !== "keep" || fixed !== "keep" ? "remove" : "keep";
+      return {
+        image: imageSeg || "remove",
+        video: videoLegacy,
+        move: move,
+        fixed: fixed
+      };
+    }
+    var el = root.querySelector
+      ? root.querySelector("#de-wm")
+      : document.getElementById("de-wm");
+    if (!el) return null;
+    var on =
+      el.getAttribute("role") === "switch"
+        ? el.classList.contains("on") || el.getAttribute("aria-checked") === "true"
+        : !!el.checked;
+    return on
+      ? { image: "remove", video: "remove", move: "remove", fixed: "remove" }
+      : { image: "keep", video: "keep", move: "keep", fixed: "keep" };
+  }
+
+  function collectDewatermark(root) {
+    var s = collectDewatermarkStrategies(root);
+    if (!s) return null;
+    return s.image !== "keep" || s.video !== "keep";
+  }
+
+  function applyDewatermarkStrategies(into, strategies) {
+    if (!into || !strategies) return;
+    var video = strategies.video || strategies.move || "remove";
+    into.dewatermarkImage = strategies.image || "remove";
+    into.dewatermarkVideo = video;
+    /* 兼容旧读写：视频总开关同步到移动/固定 */
+    into.dewatermarkMove = video;
+    into.dewatermarkFixed = video;
+    into.dewatermarkEnabled =
+      into.dewatermarkImage !== "keep" || video !== "keep";
   }
 
   function validateCover(cw, ch) {
@@ -1215,6 +1432,9 @@
   function bindCoverUI(root, onChange) {
     root = root || document;
     bindFieldTips(root);
+    bindSegControls(root, function () {
+      if (onChange) onChange();
+    });
     syncCoverPresetChips(root);
     root.querySelectorAll("[data-cw]").forEach(function (chip) {
       chip.addEventListener("click", function () {
@@ -1242,6 +1462,9 @@
     handlers = handlers || {};
     root = root || document;
     bindFieldTips(root);
+    bindSegControls(root, function () {
+      if (handlers.onFormChange) handlers.onFormChange();
+    });
     function toastWm(msg, kind) {
       if (handlers.toast) handlers.toast(msg, kind);
       else if (global.FZShell) FZShell.toast(msg, kind || "err");
@@ -1330,6 +1553,41 @@
         e.preventDefault();
         e.stopPropagation();
         toggleWmSwitch(sel === "#sw-wm-video" ? "video" : "image");
+      });
+    });
+    function syncDewmCards() {
+      root.querySelectorAll("[data-dewm-kind]").forEach(function (el) {
+        var kind = el.getAttribute("data-dewm-kind");
+        var sw = root.querySelector(
+          kind === "video" ? "#sw-dewm-video" : "#sw-dewm-image"
+        );
+        el.classList.toggle("is-on", !!(sw && sw.classList.contains("on")));
+      });
+    }
+    function toggleDewmSwitch(kind) {
+      var sw = root.querySelector(
+        kind === "video" ? "#sw-dewm-video" : "#sw-dewm-image"
+      );
+      if (!sw) return;
+      var on = !sw.classList.contains("on");
+      sw.classList.toggle("on", on);
+      sw.setAttribute("aria-checked", on ? "true" : "false");
+      syncDewmCards();
+      if (handlers.onFormChange) handlers.onFormChange();
+    }
+    root.querySelectorAll("[data-dewm-kind]").forEach(function (el) {
+      el.addEventListener("click", function (e) {
+        if (e.target.closest(".switch")) return;
+        toggleDewmSwitch(el.getAttribute("data-dewm-kind"));
+      });
+    });
+    ["#sw-dewm-image", "#sw-dewm-video"].forEach(function (sel) {
+      var sw = root.querySelector(sel);
+      if (!sw) return;
+      sw.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleDewmSwitch(sel === "#sw-dewm-video" ? "video" : "image");
       });
     });
     var swDewm = root.querySelector("#de-wm");
@@ -1561,12 +1819,19 @@
     fieldTip: fieldTip,
     flowLabel: flowLabel,
     normalizeArtMode: normalizeArtMode,
+    renderSeg: renderSeg,
+    readSeg: readSeg,
+    setSegValue: setSegValue,
+    bindSegControls: bindSegControls,
     renderCoverPanel: renderCoverPanel,
     renderWatermarkPanel: renderWatermarkPanel,
     renderIntroOutroPanel: renderIntroOutroPanel,
     renderArticlePanel: renderArticlePanel,
+    clampCoverPanelCount: clampCoverPanelCount,
     collectCover: collectCover,
     collectDewatermark: collectDewatermark,
+    collectDewatermarkStrategies: collectDewatermarkStrategies,
+    applyDewatermarkStrategies: applyDewatermarkStrategies,
     validateCover: validateCover,
     applyWatermarkForm: applyWatermarkForm,
     hasWmFile: hasWmFile,

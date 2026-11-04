@@ -22,19 +22,22 @@
   }
 
   /**
+   * 全员默认开通，不进勾选树、不计入岗位「权限项 / 页面」统计。
+   * 侧栏工作台仍受 hasFeature 控制，但 hasFeature 对这两项恒为 true。
+   */
+  var ALWAYS_ON = ["home.overview.view", "home.announcements.view"];
+
+  function isAlwaysOn(id) {
+    return ALWAYS_ON.indexOf(id) !== -1;
+  }
+
+  /**
    * 与 shell NAV 同构（2026-10 重构侧栏）：
-   * 工作台含概览+平台公告；采集号在 TG 采集配置，无独立 Userbot 菜单；
+   * 工作台（概览 / 平台公告）全员默认，不进本树；
+   * 采集号在 TG 采集配置，无独立 Userbot 菜单；
    * 子账号与授权页内 Tab = L3 子账号 / 岗位。
    */
   var PERM_TREE = [
-    {
-      id: "home",
-      label: "工作台",
-      children: [
-        leaf("home.overview", "概览", ["view"]),
-        leaf("home.announcements", "平台公告", ["view"])
-      ]
-    },
     {
       id: "collect",
       label: "采集中心",
@@ -124,9 +127,9 @@
     }
   ];
 
-  /** 旧扁平功能 → 新权限 id（演示迁移） */
+  /** 旧扁平功能 → 新权限 id（演示迁移）；工作台已并入 ALWAYS_ON，映射为空 */
   var LEGACY_MAP = {
-    workbench: ["home.overview.view", "home.announcements.view"],
+    workbench: [],
     project_manage: [
       "projects.list.view",
       "projects.list.create",
@@ -196,21 +199,15 @@
       var mapped = LEGACY_MAP[id];
       if (mapped) {
         mapped.forEach(function (x) {
-          if (!seen[x]) {
-            seen[x] = 1;
-            out.push(x);
-          }
+          if (!x || isAlwaysOn(x) || seen[x]) return;
+          seen[x] = 1;
+          out.push(x);
         });
-      } else if (id && !seen[id]) {
+      } else if (id && !isAlwaysOn(id) && !seen[id]) {
         seen[id] = 1;
         out.push(id);
       }
     });
-    /* 旧数据仅有概览时，补平台公告查看（同属工作台） */
-    if (seen["home.overview.view"] && !seen["home.announcements.view"]) {
-      seen["home.announcements.view"] = 1;
-      out.push("home.announcements.view");
-    }
     return out;
   }
 
@@ -351,8 +348,8 @@
       '<div class="perm-tree">' +
       '<div class="perm-tree-head">' +
       "<div><strong>菜单与功能权限</strong>" +
-      '<p class="hint" style="margin:4px 0 0">按侧栏层级勾选：一级 / 二级 / 三级菜单；末级为页面内操作（查看、新增、编辑、删除等）。勾选上级可全选其下。采集号并入「TG 采集配置」，无独立 Userbot。</p></div>' +
-      '<button type="button" class="btn btn-ghost" data-perm-clear>清空</button>' +
+      '<p class="hint" style="margin:4px 0 0">按侧栏层级勾选：一级 / 二级 / 三级菜单；末级为页面内操作（查看、新增、编辑、删除等）。勾选上级可全选其下。「概览」「平台公告」全员默认开通，无需勾选。采集号并入「TG 采集配置」，无独立 Userbot。</p></div>' +
+      '<button type="button" class="btn perm-tree-clear" data-perm-clear>清空</button>' +
       "</div>";
     PERM_TREE.forEach(function (n) {
       html += renderNode(n, 1, set);
@@ -405,6 +402,8 @@
   global.FZPerm = {
     TREE: PERM_TREE,
     ACT: ACT,
+    ALWAYS_ON: ALWAYS_ON,
+    isAlwaysOn: isAlwaysOn,
     migrateFeatures: migrateFeatures,
     render: render,
     collect: collect,

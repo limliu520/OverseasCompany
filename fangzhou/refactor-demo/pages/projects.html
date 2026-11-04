@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>项目管理 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261031prefill" />
+  <link rel="stylesheet" href="../css/app.css?v=20261104projFlat2" />
 </head>
 <body>
   <div class="app">
@@ -22,17 +22,18 @@
           <p class="proj-page-lead">
             创建时配齐配置 → 开发接入；接通后即完成。「项目详情」可改信息与查看对接材料；待接通另有对接入口。
           </p>
-          <div class="proj-list fz-card-grid" id="project-list"></div>
+          <div class="proj-list proj-card-grid" id="project-list"></div>
         </div>
         <div class="pager-dock" id="project-pager"></div>
       </div>
     </div>
   </div>
   <script src="../js/perm-tree.js?v=20261031navProj"></script>
-  <script src="../js/store.js?v=20261031poolCollect"></script>
-  <script src="../js/shell.js?v=20261031navProj"></script>
-  <script src="../js/pager.js?v=20261027pager"></script>
-  <script src="../js/project-union.js"></script>
+  <script src="../js/article-defaults.js?v=20261028wmFx2"></script>
+  <script src="../js/store.js?v=20261104wmThumb1"></script>
+  <script src="../js/shell.js?v=20261104mono4"></script>
+  <script src="../js/pager.js?v=20261104rf03"></script>
+  <script src="../js/project-union.js?v=20261104rf"></script>
   <script src="../js/novice-guide.js?v=20261031demoEdit"></script>
   <script src="../js/novice-tour-kit.js?v=20261031prefill"></script>
   <script src="../js/novice-tours.js?v=20261031prefill"></script>
@@ -51,74 +52,150 @@
         label +
         '</span><span class="proj-fact-v' +
         (valueCls ? " " + valueCls : "") +
+        '" title="' +
+        String(value).replace(/"/g, "&quot;") +
         '">' +
         value +
         "</span></div>"
       );
     }
 
-    function cardHtml(p) {
+    /** 采集号：0 / 1 名 / 多个「N 个 · 名1、名2」或「…等」 */
+    function formatCollectBots(p, state) {
+      var bots = FZStore.botsForProject
+        ? FZStore.botsForProject(state, p.id)
+        : [];
+      if (!bots.length) {
+        var ids = FZStore.projectUserbotIds
+          ? FZStore.projectUserbotIds(p)
+          : p.userbotIds || (p.userbotId ? [p.userbotId] : []);
+        bots = ids
+          .map(function (id) {
+            return (state.userbots || []).filter(function (b) {
+              return b.id === id;
+            })[0];
+          })
+          .filter(Boolean);
+      }
+      if (!bots.length) {
+        if (p.userbotName) return { text: p.userbotName, muted: false, n: 1 };
+        return { text: "未关联", muted: true, n: 0 };
+      }
+      var names = bots.map(function (b) {
+        return b.name || b.id;
+      });
+      if (names.length === 1) return { text: names[0], muted: false, n: 1 };
+      if (names.length === 2) {
+        return { text: "2 个 · " + names.join("、"), muted: false, n: 2 };
+      }
+      return {
+        text: names.length + " 个 · " + names.slice(0, 2).join("、") + " 等",
+        muted: false,
+        n: names.length
+      };
+    }
+
+    /** 推送规则摘要：各类型都有两段闸门；短剧站多「是否推全部分集」 */
+    function formatPushRules(p) {
+      var parts = [
+        p.autoToEdit ? "自动进编辑" : "人工进编辑",
+        p.autoPush ? "自动推送" : "确认后推送"
+      ];
+      if (p.siteType === "short_drama") {
+        parts.push(p.pushAllEpisodes ? "推全部分集" : "不全推分集");
+      }
+      return parts.join(" · ");
+    }
+
+    function channelStatus(p) {
+      if (p.contentActivated) return { text: "已接通", muted: false };
+      return { text: "待接通", muted: true };
+    }
+
+    function cardHtml(p, state) {
       FZProjectUnion.normalizeProject(p);
       var st = FZStore.projectStatusLabel(p);
       var type = p.siteType || "chigua";
       var typeLabel = FZProjectUnion.siteTypeLabel(type);
-      var channelOn = !!p.contentActivated;
-      var toEdit = !!p.autoToEdit;
-      var autoPush = !!p.autoPush;
       var chN = FZStore.projectChannels(p).length;
       var appId = (p.creds && p.creds.appId) || "";
-      var coverW = p.coverWidth;
-      var coverH = p.coverHeight;
+      var bots = formatCollectBots(p, state || FZStore.read());
+      var chSt = channelStatus(p);
+      /* 头图默认取图片水印；无则站点类型字标 */
+      if (window.FZArticle && FZArticle.ensureWatermarks) {
+        FZArticle.ensureWatermarks(p);
+      }
+      var wmImg = p.watermarks && p.watermarks.image;
+      var thumbUrl = wmImg && (wmImg.dataUrl || wmImg.url);
+      var thumb = thumbUrl
+        ? '<img class="proj-wm-thumb" src="' +
+          thumbUrl +
+          '" alt="图片水印" title="图片水印" />'
+        : "";
       var noviceQ = "";
       try {
         var nq = new URLSearchParams(location.search).get("novice");
         if (nq) noviceQ = "&novice=" + encodeURIComponent(nq);
       } catch (err) {}
-      var actions =
+      var actionsOpt = "";
+      if (p.status === "pending_activate") {
+        actionsOpt =
+          '<a class="btn btn-primary" href="./project-connect.html?id=' +
+          encodeURIComponent(p.id) +
+          '">对接</a>';
+      } else if (bots.n === 0) {
+        actionsOpt =
+          '<a class="btn btn-primary" href="./project-edit.html?id=' +
+          encodeURIComponent(p.id) +
+          noviceQ +
+          '&tab=channel">添加采集号</a>';
+      } else if (chN === 0 || p.status === "need_collect") {
+        actionsOpt =
+          '<a class="btn btn-primary" href="./tg-collect.html?project=' +
+          encodeURIComponent(p.id) +
+          '" title="去 TG 采集配置里绑定源频道">绑定频道</a>';
+      }
+      var actionsFix =
         '<a class="btn" href="./project-edit.html?id=' +
         encodeURIComponent(p.id) +
         noviceQ +
         '">项目详情</a>';
-      if (p.status === "pending_activate") {
-        actions +=
-          '<a class="btn btn-primary" href="./project-connect.html?id=' +
-          encodeURIComponent(p.id) +
-          '">对接</a>';
-      }
+      var actions =
+        '<div class="fz-actions-opt">' +
+        actionsOpt +
+        '</div><div class="fz-actions-fix">' +
+        actionsFix +
+        "</div>";
+      /* 扁平事实行：采集号 / 已绑频道 / 内容通道状态 / App ID / 推送规则；不加分组抬头 */
       var facts =
-        factRow("内容通道", channelOn ? "已接通" : "待接通") +
-        factRow("进编辑", toEdit ? "自动" : "人工") +
-        factRow("推业务方", autoPush ? "自动" : "待确认");
-      if (coverW && coverH) {
-        facts += factRow("封面", coverW + " × " + coverH + " px");
-      }
-      if (p.userbotName) {
-        facts += factRow("采集号", p.userbotName);
-      } else {
-        facts += factRow("采集号", "未关联", "is-muted");
-      }
-      facts += factRow("已绑频道", chN + " 个");
-      if (appId) {
-        facts += factRow("App ID", appId, "is-mono");
-      }
+        factRow("采集号", bots.text, bots.muted ? "is-muted" : "") +
+        factRow("已绑频道", chN + " 个", chN ? "" : "is-muted") +
+        factRow("内容通道状态", chSt.text, chSt.muted ? "is-muted" : "") +
+        factRow(
+          "App ID",
+          appId || "未配置",
+          appId ? "is-mono" : "is-muted"
+        ) +
+        factRow("推送规则", formatPushRules(p));
       return (
         '<article class="proj-card">' +
-        '<div class="proj-card-head">' +
-        '<div class="proj-mark is-' +
-        type +
-        '" aria-hidden="true">' +
-        (MARK[type] || "项") +
-        "</div>" +
-        '<div class="proj-card-head-main">' +
+        '<div class="proj-card-hd">' +
+        (thumb ||
+          '<div class="proj-mark is-' +
+            type +
+            '" aria-hidden="true">' +
+            (MARK[type] || "项") +
+            "</div>") +
+        '<div class="proj-card-hd-main">' +
         '<h2 class="proj-title"><a href="./project-edit.html?id=' +
         encodeURIComponent(p.id) +
         noviceQ +
         '">' +
         p.name +
         "</a></h2>" +
-        '<div class="proj-tags"><span class="proj-tag">' +
+        '<p class="proj-type">' +
         typeLabel +
-        "</span></div>" +
+        "</p>" +
         "</div>" +
         '<div class="proj-status"><span class="tag ' +
         st.cls +
@@ -126,7 +203,7 @@
         st.text +
         "</span></div>" +
         "</div>" +
-        '<div class="proj-facts">' +
+        '<div class="proj-facts proj-facts--flat">' +
         facts +
         "</div>" +
         '<div class="proj-actions">' +
@@ -159,7 +236,11 @@
       var slice = FZPager.slice(projects, page, pageSize);
       page = slice.page;
       pageSize = slice.pageSize;
-      list.innerHTML = slice.items.map(cardHtml).join("");
+      list.innerHTML = slice.items
+        .map(function (p) {
+          return cardHtml(p, s);
+        })
+        .join("");
       pagerBox.innerHTML = FZPager.html({
         total: slice.total,
         page: slice.page,

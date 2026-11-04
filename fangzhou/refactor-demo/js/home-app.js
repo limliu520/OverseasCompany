@@ -241,50 +241,154 @@
     return Math.round((num / den) * 100) + "%";
   }
 
-  function sparkBars(seriesA, seriesB, labels) {
+  function deltaPct(cur, prev) {
+    if (prev == null || prev === 0) return "";
+    var d = Math.round(((cur - prev) / prev) * 1000) / 10;
+    var sign = d > 0 ? "+" : "";
+    return sign + d + "%";
+  }
+
+  /** 近 7 日双折线：可读刻度 + 悬停提示 */
+  function sparkLines(seriesA, seriesB, labels) {
     var max = 1;
     seriesA.concat(seriesB).forEach(function (v) {
       if (v > max) max = v;
     });
-    var w = 280;
-    var h = 48;
+    max = Math.ceil(max / 10) * 10 || 10;
+    var w = 560;
+    var h = 168;
+    var padL = 28;
+    var padR = 8;
+    var padTop = 10;
+    var padBot = 20;
+    var plotH = h - padTop - padBot;
+    var plotW = w - padL - padR;
     var n = seriesA.length;
-    var gap = 4;
-    var groupW = (w - gap * (n - 1)) / n;
-    var barW = Math.max(3, (groupW - 2) / 2);
-    var bars = "";
+    var step = n <= 1 ? 0 : plotW / (n - 1);
+    var baseY = padTop + plotH;
+
+    function pt(series, i) {
+      return {
+        x: padL + i * step,
+        y: padTop + plotH * (1 - series[i] / max)
+      };
+    }
+    function ptsOf(series) {
+      var out = [];
+      for (var i = 0; i < n; i++) out.push(pt(series, i));
+      return out;
+    }
+    function smoothPath(pts) {
+      if (!pts.length) return "";
+      if (pts.length === 1) {
+        return "M " + pts[0].x.toFixed(1) + " " + pts[0].y.toFixed(1);
+      }
+      var d = "M " + pts[0].x.toFixed(1) + " " + pts[0].y.toFixed(1);
+      for (var i = 0; i < pts.length - 1; i++) {
+        var p0 = pts[i];
+        var p1 = pts[i + 1];
+        var cx = ((p0.x + p1.x) / 2).toFixed(1);
+        d +=
+          " C " +
+          cx +
+          " " +
+          p0.y.toFixed(1) +
+          ", " +
+          cx +
+          " " +
+          p1.y.toFixed(1) +
+          ", " +
+          p1.x.toFixed(1) +
+          " " +
+          p1.y.toFixed(1);
+      }
+      return d;
+    }
+    function areaPath(pts) {
+      if (!pts.length) return "";
+      var d = smoothPath(pts);
+      var last = pts[pts.length - 1];
+      var first = pts[0];
+      return (
+        d +
+        " L " +
+        last.x.toFixed(1) +
+        " " +
+        baseY +
+        " L " +
+        first.x.toFixed(1) +
+        " " +
+        baseY +
+        " Z"
+      );
+    }
+    function dots(pts, cls) {
+      return pts
+        .map(function (p) {
+          return (
+            '<circle class="' +
+            cls +
+            '" cx="' +
+            p.x.toFixed(1) +
+            '" cy="' +
+            p.y.toFixed(1) +
+            '" r="3"/>'
+          );
+        })
+        .join("");
+    }
+    var ptsA = ptsOf(seriesA);
+    var ptsB = ptsOf(seriesB);
+    /* 仅刻度文字，不要中间网格 */
+    var axisLabels = "";
+    [0, 0.5, 1].forEach(function (t) {
+      var y = (padTop + plotH * (1 - t)).toFixed(1);
+      var val = Math.round(max * t);
+      axisLabels +=
+        '<text class="wb-spark-y" x="' +
+        (padL - 4) +
+        '" y="' +
+        (Number(y) + 3) +
+        '" text-anchor="end">' +
+        val +
+        "</text>";
+    });
+    var hits = "";
     for (var i = 0; i < n; i++) {
-      var x0 = i * (groupW + gap);
-      var hA = Math.round((seriesA[i] / max) * (h - 4));
-      var hB = Math.round((seriesB[i] / max) * (h - 4));
-      bars +=
-        '<rect class="wb-spark-a" x="' +
-        x0 +
+      var hx = padL + i * step - step / 2;
+      var hw = i === 0 || i === n - 1 ? step / 2 + 4 : step;
+      if (i === 0) hx = padL - 2;
+      hits +=
+        '<rect class="wb-spark-hit" data-i="' +
+        i +
+        '" data-label="' +
+        esc(labels[i]) +
+        '" data-a="' +
+        seriesA[i] +
+        '" data-b="' +
+        seriesB[i] +
+        '" data-da="' +
+        esc(deltaPct(seriesA[i], i ? seriesA[i - 1] : null)) +
+        '" data-db="' +
+        esc(deltaPct(seriesB[i], i ? seriesB[i - 1] : null)) +
+        '" x="' +
+        Math.max(padL - 2, hx).toFixed(1) +
         '" y="' +
-        (h - hA) +
+        padTop +
         '" width="' +
-        barW +
+        hw.toFixed(1) +
         '" height="' +
-        hA +
-        '" rx="1"/>' +
-        '<rect class="wb-spark-b" x="' +
-        (x0 + barW + 2) +
-        '" y="' +
-        (h - hB) +
-        '" width="' +
-        barW +
-        '" height="' +
-        hB +
-        '" rx="1"/>';
+        plotH +
+        '" fill="transparent"/>';
     }
     var labs = labels
       .map(function (lb, i) {
-        var x = i * (groupW + gap) + groupW / 2;
+        var x = padL + i * step;
         return (
-          '<text x="' +
-          x +
+          '<text class="wb-spark-x" x="' +
+          x.toFixed(1) +
           '" y="' +
-          (h + 12) +
+          (h - 4) +
           '" text-anchor="middle">' +
           esc(lb.slice(3)) +
           "</text>"
@@ -292,18 +396,189 @@
       })
       .join("");
     return (
+      '<div class="wb-spark-wrap">' +
       '<svg class="wb-spark" viewBox="0 0 ' +
       w +
       " " +
-      (h + 16) +
-      '" preserveAspectRatio="none" aria-hidden="true">' +
-      bars +
+      h +
+      '" preserveAspectRatio="none" role="img" aria-label="近7日采集折线图">' +
+      "<defs>" +
+      '<linearGradient id="wbSparkFillA" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="#93c5fd" stop-opacity="0.18"/>' +
+      '<stop offset="100%" stop-color="#93c5fd" stop-opacity="0.01"/>' +
+      "</linearGradient>" +
+      '<linearGradient id="wbSparkFillB" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="#fcd34d" stop-opacity="0.14"/>' +
+      '<stop offset="100%" stop-color="#fcd34d" stop-opacity="0.01"/>' +
+      "</linearGradient></defs>" +
+      axisLabels +
+      '<line class="wb-spark-yaxis" x1="' +
+      padL +
+      '" y1="' +
+      padTop +
+      '" x2="' +
+      padL +
+      '" y2="' +
+      baseY +
+      '"/>' +
+      '<line class="wb-spark-base" x1="' +
+      padL +
+      '" y1="' +
+      baseY +
+      '" x2="' +
+      (w - padR) +
+      '" y2="' +
+      baseY +
+      '"/>' +
+      '<path class="wb-spark-area-a" d="' +
+      areaPath(ptsA) +
+      '" fill="url(#wbSparkFillA)"/>' +
+      '<path class="wb-spark-area-b" d="' +
+      areaPath(ptsB) +
+      '" fill="url(#wbSparkFillB)"/>' +
+      '<path class="wb-spark-line-a" d="' +
+      smoothPath(ptsA) +
+      '" fill="none"/>' +
+      '<path class="wb-spark-line-b" d="' +
+      smoothPath(ptsB) +
+      '" fill="none"/>' +
+      dots(ptsA, "wb-spark-dot-a") +
+      dots(ptsB, "wb-spark-dot-b") +
       labs +
-      "</svg>"
+      hits +
+      "</svg>" +
+      '<div class="wb-spark-tip" hidden></div>' +
+      '<div class="wb-spark-cross" hidden></div></div>'
     );
   }
 
-  function projectBars(projects) {
+  function bindSparkTips(root) {
+    if (!root) return;
+    root.querySelectorAll(".wb-spark-wrap").forEach(function (wrap) {
+      var tip = wrap.querySelector(".wb-spark-tip");
+      var cross = wrap.querySelector(".wb-spark-cross");
+      var svg = wrap.querySelector(".wb-spark");
+      if (!tip || !svg) return;
+      var dotsA = wrap.querySelectorAll(".wb-spark-dot-a");
+      var dotsB = wrap.querySelectorAll(".wb-spark-dot-b");
+      dotsA.forEach(function (d, i) {
+        d.setAttribute("data-i", String(i));
+      });
+      dotsB.forEach(function (d, i) {
+        d.setAttribute("data-i", String(i));
+      });
+      function setDots(i) {
+        dotsA.forEach(function (d) {
+          d.classList.toggle("is-on", Number(d.getAttribute("data-i")) === i);
+        });
+        dotsB.forEach(function (d) {
+          d.classList.toggle("is-on", Number(d.getAttribute("data-i")) === i);
+        });
+      }
+      wrap.querySelectorAll(".wb-spark-hit").forEach(function (hit) {
+        hit.addEventListener("mouseenter", function () {
+          var i = Number(hit.getAttribute("data-i"));
+          var label = hit.getAttribute("data-label") || "";
+          var a = hit.getAttribute("data-a");
+          var b = hit.getAttribute("data-b");
+          var da = hit.getAttribute("data-da") || "";
+          var db = hit.getAttribute("data-db") || "";
+          tip.hidden = false;
+          tip.innerHTML =
+            '<div class="wb-spark-tip-h">' +
+            esc(label) +
+            "</div>" +
+            '<div class="wb-spark-tip-row"><i class="is-a"></i><span>TG</span><strong>' +
+            esc(a) +
+            "</strong>" +
+            (da ? "<em>" + esc(da) + "</em>" : "") +
+            "</div>" +
+            '<div class="wb-spark-tip-row"><i class="is-b"></i><span>网站</span><strong>' +
+            esc(b) +
+            "</strong>" +
+            (db ? "<em>" + esc(db) + "</em>" : "") +
+            "</div>";
+          var cx =
+            Number(hit.getAttribute("x")) + Number(hit.getAttribute("width")) / 2;
+          var vb = svg.viewBox.baseVal;
+          var ratioX = svg.clientWidth / (vb.width || 1);
+          var left = cx * ratioX;
+          tip.style.left =
+            Math.min(wrap.clientWidth - 12, Math.max(12, left)) + "px";
+          if (cross) {
+            cross.hidden = false;
+            cross.style.left = left + "px";
+          }
+          setDots(i);
+        });
+        hit.addEventListener("mouseleave", function () {
+          tip.hidden = true;
+          if (cross) cross.hidden = true;
+          setDots(-1);
+        });
+      });
+    });
+  }
+
+  /** KPI 迷你柱：示意近 5 档走势，高度跟数值弱相关 */
+  function miniBars(n) {
+    var base = [0.38, 0.62, 0.48, 0.78, 0.92];
+    var bump = ((Number(n) || 0) % 9) / 30;
+    return (
+      '<span class="wb-kpi-bars" aria-hidden="true">' +
+      base
+        .map(function (f) {
+          var h = Math.round((f + bump) * 100);
+          return "<i style=\"height:" + Math.min(100, h) + '%"></i>';
+        })
+        .join("") +
+      "</span>"
+    );
+  }
+
+  function kpiIcon(kind) {
+    var paths = {
+      tg: '<path d="M4 12h16M8 8l4-4 4 4M8 16l4 4 4-4"/>',
+      web: '<circle cx="12" cy="12" r="8"/><path d="M3 12h18M12 4a14 14 0 010 16M12 4a14 14 0 000 16"/>',
+      mat: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9h8M8 13h5"/>',
+      pass: '<path d="M5 12l4 4L19 7"/>',
+      art: '<path d="M7 4h7l5 5v11a1 1 0 01-1 1H7a1 1 0 01-1-1V5a1 1 0 011-1z"/><path d="M14 4v5h5"/>',
+      push: '<path d="M5 12h10M12 7l5 5-5 5"/>',
+      pending: '<circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/>',
+      draft: '<path d="M5 19l3.5-1L18 8.5 15.5 6 5 15.5V19z"/>'
+    };
+    return (
+      '<span class="wb-kpi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+      (paths[kind] || paths.mat) +
+      "</svg></span>"
+    );
+  }
+
+  function kpiCard(c) {
+    return (
+      '<div class="wb-kpi' +
+      (c.warn ? " is-warn" : "") +
+      (c.live ? " is-live" : "") +
+      " is-" +
+      (c.tone || "t1") +
+      '">' +
+      '<div class="wb-kpi-top">' +
+      kpiIcon(c.icon) +
+      '<div class="wb-kpi-l">' +
+      esc(c.l) +
+      "</div></div>" +
+      '<div class="wb-kpi-foot"><div class="wb-kpi-val"><span class="wb-kpi-n">' +
+      c.n +
+      "</span>" +
+      (c.sub ? '<span class="wb-kpi-unit">' + esc(c.sub) + "</span>" : "") +
+      "</div>" +
+      miniBars(c.n) +
+      "</div></div>"
+    );
+  }
+
+  /** 昨日贡献 Top3：玻璃柱领奖台（2 / 1 / 3） */
+  function projectPodium(projects) {
     var rows = projects
       .map(function (p) {
         var row = DEMO_STATS[p.name] || DEMO_STATS._default;
@@ -316,32 +591,254 @@
         return b.v - a.v;
       })
       .slice(0, 3);
-    var max = 1;
-    rows.forEach(function (r) {
-      if (r.v > max) max = r.v;
-    });
     if (!rows.length) {
       return '<p class="muted wb-empty" style="margin:0">暂无项目贡献</p>';
     }
-    return rows
-      .map(function (r) {
-        var w = r.v <= 0 ? 0 : Math.max(2, Math.round((r.v / max) * 100));
-        return (
-          '<div class="wb-hbar">' +
-          '<div class="wb-hbar-lab" title="' +
-          esc(r.name) +
-          '">' +
-          esc(r.name) +
-          "</div>" +
-          '<div class="wb-hbar-track"><i style="width:' +
-          w +
-          '%"></i></div>' +
-          '<div class="wb-hbar-n">' +
-          r.v +
-          "</div></div>"
-        );
-      })
-      .join("");
+    while (rows.length < 3) {
+      rows.push({ name: "—", v: 0, empty: true });
+    }
+    var max = Math.max(rows[0].v, 1);
+    var order = [1, 0, 2];
+    var heights = [108, 148, 86];
+    var medalSvg =
+      '<svg viewBox="0 0 40 48" aria-hidden="true">' +
+      '<path class="wb-podium-ribbon" d="M14 6h12l-2 10h-8z"/>' +
+      '<circle class="wb-podium-coin" cx="20" cy="28" r="12"/>' +
+      '<path class="wb-podium-star" d="M20 20.5l2.2 4.4 4.8.7-3.5 3.4.8 4.8L20 31.5l-4.3 2.3.8-4.8-3.5-3.4 4.8-.7z"/>' +
+      "</svg>";
+    return (
+      '<div class="wb-podium">' +
+      '<div class="wb-podium-glow" aria-hidden="true"></div>' +
+      order
+        .map(function (rankIdx, vis) {
+          var r = rows[rankIdx];
+          var h =
+            r.v <= 0
+              ? 48
+              : Math.max(58, Math.round((r.v / max) * heights[vis]));
+          return (
+            '<div class="wb-podium-col is-r' +
+            (rankIdx + 1) +
+            (r.empty ? " is-empty" : "") +
+            '">' +
+            '<div class="wb-podium-medal">' +
+            medalSvg +
+            "</div>" +
+            '<div class="wb-podium-name" title="' +
+            esc(r.name) +
+            '">' +
+            esc(r.name) +
+            "</div>" +
+            '<div class="wb-podium-n">' +
+            r.v +
+            "</div>" +
+            '<div class="wb-podium-shaft" style="height:' +
+            h +
+            'px">' +
+            '<i class="is-top"></i><i class="is-face"></i><i class="is-side"></i>' +
+            "</div></div>"
+          );
+        })
+        .join("") +
+      '<div class="wb-podium-mist" aria-hidden="true"></div></div>'
+    );
+  }
+
+  /** 链路转化：倒三角分层流（参考图左右颠倒 → 上宽下窄） */
+  function funnelHtml(acc, canMat, canArt) {
+    var steps = [];
+    if (canMat) {
+      steps.push({
+        label: "收到素材",
+        n: acc.matIn,
+        rate: null
+      });
+      steps.push({
+        label: "素材通过",
+        n: acc.matPass,
+        rate: pct(acc.matPass, acc.matIn)
+      });
+    }
+    if (canArt) {
+      steps.push({
+        label: "进入文章",
+        n: acc.toArticle,
+        rate: pct(acc.toArticle, acc.matPass || acc.matIn)
+      });
+      steps.push({
+        label: "已推业务端",
+        n: acc.pushed,
+        rate: pct(acc.pushed, acc.toArticle || acc.matPass)
+      });
+    }
+    if (!steps.length) return "";
+    var W = 300;
+    var H = 210;
+    var n = steps.length;
+    var topW = 250;
+    var botW = 48;
+    var y0 = 18;
+    var y1 = H - 14;
+    var bandH = (y1 - y0) / n;
+    var fills = [
+      "rgba(253, 186, 116, 0.62)",
+      "rgba(253, 186, 116, 0.5)",
+      "rgba(254, 215, 170, 0.55)",
+      "rgba(254, 243, 226, 0.7)"
+    ];
+    var paths = "";
+    var markers = "";
+    var labels = "";
+    for (var i = 0; i < n; i++) {
+      var tA = i / n;
+      var tB = (i + 1) / n;
+      var wA = topW + (botW - topW) * tA;
+      var wB = topW + (botW - topW) * tB;
+      var ya = y0 + i * bandH;
+      var yb = y0 + (i + 1) * bandH;
+      var xaL = (W - wA) / 2;
+      var xaR = xaL + wA;
+      var xbL = (W - wB) / 2;
+      var xbR = xbL + wB;
+      var midY = (ya + yb) / 2;
+      /* 轻微外凸，更像流带 */
+      var bulge = 4 + (n - i) * 1.2;
+      paths +=
+        '<path class="wb-funnel-band" fill="' +
+        fills[i % fills.length] +
+        '" d="M' +
+        xaL.toFixed(1) +
+        " " +
+        ya.toFixed(1) +
+        " C " +
+        (xaL - bulge).toFixed(1) +
+        " " +
+        midY.toFixed(1) +
+        ", " +
+        (xbL - bulge).toFixed(1) +
+        " " +
+        midY.toFixed(1) +
+        ", " +
+        xbL.toFixed(1) +
+        " " +
+        yb.toFixed(1) +
+        " L " +
+        xbR.toFixed(1) +
+        " " +
+        yb.toFixed(1) +
+        " C " +
+        (xbR + bulge).toFixed(1) +
+        " " +
+        midY.toFixed(1) +
+        ", " +
+        (xaR + bulge).toFixed(1) +
+        " " +
+        midY.toFixed(1) +
+        ", " +
+        xaR.toFixed(1) +
+        " " +
+        ya.toFixed(1) +
+        ' Z"/>';
+      var pillW = 88;
+      var onRight = i % 2 === 0;
+      var pillX = onRight
+        ? Math.min(W - pillW - 4, xaR - 10)
+        : Math.max(4, xaL - pillW + 10);
+      var markX = onRight ? xaR - 2 : xaL + 2;
+      markers +=
+        '<line class="wb-funnel-mark" x1="' +
+        markX.toFixed(1) +
+        '" y1="' +
+        (ya + 4).toFixed(1) +
+        '" x2="' +
+        markX.toFixed(1) +
+        '" y2="' +
+        (yb - 4).toFixed(1) +
+        '"/>';
+      labels +=
+        '<g class="wb-funnel-callout" transform="translate(' +
+        pillX.toFixed(1) +
+        " " +
+        (midY - 16).toFixed(1) +
+        ')">' +
+        '<rect rx="9" ry="9" width="' +
+        pillW +
+        '" height="32" class="wb-funnel-pill"/>' +
+        '<text x="' +
+        pillW / 2 +
+        '" y="13" text-anchor="middle" class="wb-funnel-pill-n">' +
+        steps[i].n +
+        (steps[i].rate ? " · " + esc(steps[i].rate) : "") +
+        "</text>" +
+        '<text x="' +
+        pillW / 2 +
+        '" y="25" text-anchor="middle" class="wb-funnel-pill-l">' +
+        esc(steps[i].label) +
+        "</text></g>";
+    }
+    return (
+      '<div class="wb-funnel-viz">' +
+      '<svg class="wb-funnel-svg" viewBox="0 0 ' +
+      W +
+      " " +
+      H +
+      '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="链路转化倒三角">' +
+      "<defs>" +
+      '<linearGradient id="wbFunnelSheen" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="#fff" stop-opacity="0.28"/>' +
+      '<stop offset="100%" stop-color="#fff" stop-opacity="0"/>' +
+      "</linearGradient></defs>" +
+      paths +
+      '<rect width="' +
+      W +
+      '" height="' +
+      H +
+      '" fill="url(#wbFunnelSheen)" pointer-events="none"/>' +
+      markers +
+      labels +
+      "</svg></div>"
+    );
+  }
+
+  function weekSumHtml(seriesA, seriesB) {
+    function sum(arr) {
+      return (arr || []).reduce(function (a, b) {
+        return a + (b || 0);
+      }, 0);
+    }
+    var tg = sum(seriesA);
+    var web = sum(seriesB);
+    var tgDelta = deltaPct(
+      seriesA[seriesA.length - 1],
+      seriesA[seriesA.length - 2]
+    );
+    var webDelta = deltaPct(
+      seriesB[seriesB.length - 1],
+      seriesB[seriesB.length - 2]
+    );
+    function arrow(d) {
+      if (!d) return "";
+      if (d.charAt(0) === "+") return '<i class="wb-trend is-up" aria-hidden="true"></i>';
+      if (d.charAt(0) === "-") return '<i class="wb-trend is-down" aria-hidden="true"></i>';
+      return "";
+    }
+    return (
+      '<div class="wb-spark-sum">' +
+      '<div class="wb-spark-sum-i">' +
+      '<span class="wb-spark-sum-l">TG 近 7 日</span>' +
+      '<div class="wb-spark-sum-v"><strong>' +
+      tg +
+      "</strong>" +
+      arrow(tgDelta) +
+      "</div></div>" +
+      '<div class="wb-spark-sum-i">' +
+      '<span class="wb-spark-sum-l">网站 近 7 日</span>' +
+      '<div class="wb-spark-sum-v"><strong>' +
+      web +
+      "</strong>" +
+      arrow(webDelta) +
+      "</div></div></div>"
+    );
   }
 
   function overviewProjects(s) {
@@ -372,78 +869,113 @@
     var mats = canMat ? pendingMats().length : 0;
     var arts = canArt ? workArts().length : 0;
     var cards = [
-      { n: acc.tgYesterday, l: "昨日 TG 采集", need: canTg },
-      { n: acc.webYesterday, l: "昨日网站采集", need: canWeb },
-      { n: acc.matIn, l: "昨日收到素材", need: canMat },
-      { n: acc.matPass, l: "昨日素材通过", need: canMat },
-      { n: acc.toArticle, l: "昨日进入文章", need: canArt },
-      { n: acc.pushed, l: "昨日已推业务端", need: canArt },
-      { n: mats, l: "当前待审素材", need: canMat, warn: mats > 0, live: true },
-      { n: arts, l: "当前待处理稿件", need: canArt, warn: arts > 0, live: true }
+      {
+        n: acc.tgYesterday,
+        l: "昨日 TG 采集",
+        sub: "条",
+        need: canTg,
+        icon: "tg",
+        tone: "t1"
+      },
+      {
+        n: acc.webYesterday,
+        l: "昨日网站采集",
+        sub: "条",
+        need: canWeb,
+        icon: "web",
+        tone: "t2"
+      },
+      {
+        n: acc.matIn,
+        l: "昨日收到素材",
+        sub: "条",
+        need: canMat,
+        icon: "mat",
+        tone: "t3"
+      },
+      {
+        n: acc.matPass,
+        l: "昨日素材通过",
+        sub: "条",
+        need: canMat,
+        icon: "pass",
+        tone: "t4"
+      },
+      {
+        n: acc.toArticle,
+        l: "昨日进入文章",
+        sub: "篇",
+        need: canArt,
+        icon: "art",
+        tone: "t5"
+      },
+      {
+        n: acc.pushed,
+        l: "昨日已推业务端",
+        sub: "篇",
+        need: canArt,
+        icon: "push",
+        tone: "t6"
+      },
+      {
+        n: mats,
+        l: "当前待审素材",
+        sub: "条",
+        need: canMat,
+        warn: mats > 0,
+        live: true,
+        icon: "pending",
+        tone: "t7"
+      },
+      {
+        n: arts,
+        l: "当前待处理稿件",
+        sub: "篇",
+        need: canArt,
+        warn: arts > 0,
+        live: true,
+        icon: "draft",
+        tone: "t8"
+      }
     ].filter(function (c) {
       return !!c.need;
     });
     if (!cards.length) {
       box.innerHTML = empty("当前权限下暂无可汇总指标");
     } else {
-      box.innerHTML = cards
-        .map(function (c) {
-          return (
-            '<div class="wb-stat' +
-            (c.warn ? " is-warn" : "") +
-            (c.live ? " is-live" : "") +
-            '"><div class="wb-stat-n">' +
-            c.n +
-            '</div><div class="wb-stat-l">' +
-            esc(c.l) +
-            "</div></div>"
-          );
-        })
-        .join("");
+      box.innerHTML = cards.map(kpiCard).join("");
     }
     if (!extra) return;
     var panels = [];
     if (canTg || canWeb) {
       panels.push(
-        '<div class="wb-stat-panel">' +
+        '<div class="wb-stat-panel wb-stat-panel--spark">' +
           '<div class="wb-stat-panel-h">近 7 日采集' +
           '<span class="wb-spark-leg"><i class="is-a"></i>TG <i class="is-b"></i>网站</span></div>' +
-          sparkBars(DEMO_WEEK.tg, DEMO_WEEK.web, DEMO_WEEK.labels) +
+          weekSumHtml(DEMO_WEEK.tg, DEMO_WEEK.web) +
+          sparkLines(DEMO_WEEK.tg, DEMO_WEEK.web, DEMO_WEEK.labels) +
+          "</div>"
+      );
+    }
+    if (canMat || canArt) {
+      panels.push(
+        '<div class="wb-stat-panel wb-stat-panel--funnel">' +
+          '<div class="wb-stat-panel-h">链路转化</div>' +
+          funnelHtml(acc, canMat, canArt) +
           "</div>"
       );
     }
     if (canTg || canWeb || can("projects.list.view")) {
       panels.push(
-        '<div class="wb-stat-panel">' +
+        '<div class="wb-stat-panel wb-stat-panel--podium">' +
           '<div class="wb-stat-panel-h">昨日项目贡献 · Top3</div>' +
-          '<div class="wb-hbars">' +
-          projectBars(projects) +
-          "</div></div>"
-      );
-    }
-    if (canMat || canArt) {
-      panels.push(
-        '<div class="wb-stat-panel">' +
-          '<div class="wb-stat-panel-h">链路转化</div>' +
-          '<div class="wb-funnel">' +
-          (canMat
-            ? '<div class="wb-funnel-i"><span>素材通过率</span><em>' +
-              pct(acc.matPass, acc.matIn) +
-              "</em></div>"
-            : "") +
-          (canArt
-            ? '<div class="wb-funnel-i"><span>进文转化</span><em>' +
-              pct(acc.toArticle, acc.matPass) +
-              "</em></div>" +
-              '<div class="wb-funnel-i"><span>推送完成率</span><em>' +
-              pct(acc.pushed, acc.toArticle) +
-              "</em></div>"
-            : "") +
-          "</div></div>"
+          projectPodium(projects) +
+          "</div>"
       );
     }
     extra.innerHTML = panels.join("");
     extra.classList.toggle("is-sparse", panels.length < 3);
+    bindSparkTips(extra);
   }
 
   function canSeeTodos() {

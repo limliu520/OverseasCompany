@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>方舟 · 黑白 UI 规范（Draft）</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --font: "Inter", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+      --bg: #f7f7f8;
+      --surface: #ffffff;
+      --ink: #111111;
+      --ink-2: #3f3f46;
+      --muted: #71717a;
+      --muted-2: #a1a1aa;
+      --line: #e8e8ea;
+      --line-strong: #d4d4d8;
+      --fill: #f4f4f5;
+      --fill-strong: #ececee;
+      --ok: #2563eb;
+      --ok-bg: #eff6ff;
+      --danger: #ef4444;
+      --danger-bg: #fef2f2;
+      --warn: #d97706;
+      --warn-bg: #fffbeb;
+      --chart-1: #7c3aed;
+      --chart-2: #f97316;
+      --chart-3: #3b82f6;
+      --radius-sm: 8px;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-pill: 999px;
+      --shadow: 0 1px 2px rgba(17, 17, 17, 0.04);
+      --shadow-card: 0 8px 24px rgba(17, 17, 17, 0.05);
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 24px;
+      --space-6: 32px;
+      --doc-w: 1120px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      font-family: var(--font);
+      color: var(--ink);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.55;
+    }
+    a { color: var(--ink-2); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      background: var(--fill);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .top {
+      position: sticky; top: 0; z-index: 30;
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.92);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+    .top-brand { font-weight: 700; font-size: 14px; letter-spacing: -0.02em; }
+    .top-meta { font-size: 12px; color: var(--muted); margin-right: auto; }
+    .top nav { display: flex; flex-wrap: wrap; gap: 6px; }
+    .top nav a {
+      text-decoration: none;
+      font-size: 12px; font-weight: 600;
+      color: var(--ink-2);
+      padding: 6px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid transparent;
+    }
+    .top nav a:hover { background: var(--fill); }
+
+    .wrap { max-width: var(--doc-w); margin: 0 auto; padding: 28px 24px 72px; }
+    .hero {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 28px 28px 24px;
+      margin-bottom: 28px;
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      letter-spacing: -0.03em;
+      font-weight: 700;
+    }
+    .hero .lead {
+      margin: 0 0 14px;
+      max-width: 62ch;
+      color: var(--ink-2);
+      font-size: 15px;
+    }
+    .meta-row {
+      display: flex; flex-wrap: wrap; gap: 8px 16px;
+      font-size: 12px; color: var(--muted);
+    }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--fill);
+      color: var(--ink-2);
+      font-size: 12px; font-weight: 600;
+      border: 1px solid var(--line);
+    }
+
+    h2 {
+      margin: 36px 0 10px;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+    }
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    h4 {
+      margin: 14px 0 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-2);
+    }
+    p { margin: 0 0 10px; color: var(--ink-2); font-size: 14px; }
+    ul, ol { margin: 0 0 12px; padding-left: 18px; color: var(--ink-2); font-size: 14px; }
+    li { margin: 0 0 4px; }
+    .hint { color: var(--muted); font-size: 13px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 18px 20px;
+      margin: 12px 0 18px;
+    }
+    .card > .card-title {
+      margin: 0 0 12px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    table.spec {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      font-size: 13px;
+      margin: 8px 0 4px;
+    }
+    table.spec th, table.spec td {
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    table.spec th {
+      background: var(--fill);
+      font-weight: 650;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    table.spec td.tok { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+    }
+    .swatch {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .swatch-chip { height: 56px; }
+    .swatch-meta { padding: 8px 10px 10px; }
+    .swatch-name { font-size: 12px; font-weight: 700; }
+    .swatch-val { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: ui-monospace, Menlo, monospace; }
+
+    .type-stack { display: flex; flex-direction: column; gap: 14px; }
+    .type-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 12px;
+      align-items: baseline;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .type-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .type-lab { font-size: 12px; color: var(--muted); font-weight: 650; }
+    .t-display { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; color: var(--ink); }
+    .t-h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; color: var(--ink); }
+    .t-h2 { font-size: 18px; font-weight: 650; letter-spacing: -0.01em; color: var(--ink); }
+    .t-h3 { font-size: 15px; font-weight: 650; color: var(--ink); }
+    .t-body { font-size: 14px; font-weight: 400; color: var(--ink-2); }
+    .t-label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .t-caption { font-size: 12px; font-weight: 500; color: var(--muted); }
+    .t-metric { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+    .demo-row {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+      margin: 10px 0 6px;
+    }
+    .demo-col {
+      display: flex; flex-direction: column; gap: 10px;
+      align-items: flex-start;
+      margin: 10px 0;
+    }
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin: 12px 0 16px;
+      align-items: start;
+    }
+    .demo-grid-2 {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.2fr) minmax(0, 1fr);
+      gap: 16px;
+      margin: 0 0 16px;
+      align-items: start;
+    }
+    @media (max-width: 860px) {
+      .demo-grid,
+      .demo-grid-2 { grid-template-columns: 1fr; }
+    }
+    .check-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .check-row > .lab {
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--muted);
+    }
+    .check-row-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* —— 控件样例（规范即实现） —— */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      height: 36px; padding: 0 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line-strong);
+      background: var(--surface);
+      color: var(--ink);
+      font: 600 13px/1 var(--font);
+      cursor: default;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+    .btn-secondary {
+      background: var(--surface);
+      border-color: var(--line-strong);
+      color: var(--ink);
+    }
+    .btn-ghost {
+      background: transparent;
+      border-color: transparent;
+      color: var(--ink-2);
+    }
+    .btn-sm { height: 30px; padding: 0 10px; font-size: 12px; border-radius: 7px; }
+    .btn-lg { height: 40px; padding: 0 16px; font-size: 14px; border-radius: 10px; }
+    .btn-icon {
+      width: 36px; height: 36px; padding: 0;
+      border-radius: var(--radius-sm);
+    }
+    .btn[disabled], .btn.is-disabled {
+      opacity: 0.4;
+    }
+    /* 无独立图标包：规范内联 24 视框线图标（Demo 侧栏现用字符符号） */
+    .ico {
+      width: 14px;
+      height: 14px;
+      display: inline-block;
+      flex: 0 0 auto;
+      opacity: 0.9;
+      vertical-align: -2px;
+    }
+    .btn .ico { width: 15px; height: 15px; }
+    .btn-icon .ico { width: 16px; height: 16px; }
+    .nav-item .ico { opacity: 0.55; }
+    .nav-item.is-on .ico { opacity: 0.95; }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+      width: 100%;
+    }
+    .field label {
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+    .input, .search, .field select.input, .field textarea.input {
+      height: 36px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-sm);
+      padding: 0 12px;
+      background: var(--surface);
+      color: var(--ink);
+      font: 500 13px/1.4 var(--font);
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    .field textarea.input {
+      height: auto;
+      min-height: 84px;
+      padding: 10px 12px;
+      resize: vertical;
+    }
+    .field select.input {
+      appearance: auto;
+    }
+    .input::placeholder, .search::placeholder { color: var(--muted-2); }
+    .input:focus, .search:focus {
+      outline: none;
+      border-color: var(--ink);
+      box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+    }
+    .search-wrap {
+      position: relative;
+      display: flex; align-items: center;
+      width: 100%;
+      min-width: 0;
+    }
+    .search-wrap .search { padding-left: 34px; padding-right: 56px; background: var(--fill); border-color: transparent; }
+    .search-wrap .lead-ico {
+      position: absolute;
+      left: 12px;
+      width: 14px;
+      height: 14px;
+      color: var(--muted);
+      opacity: 0.85;
+      pointer-events: none;
+    }
+    .search-wrap .kbd {
+      position: absolute; right: 10px;
+      font-size: 11px; font-weight: 650; color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 2px 6px;
+    }
+
+    .tabs {
+      display: inline-flex; gap: 2px; padding: 3px;
+      background: var(--fill);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+    }
+    .tab {
+      border: 0; background: transparent;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font: 600 12px/1 var(--font);
+      color: var(--muted);
+      cursor: default;
+    }
+    .tab.is-on {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+    }
+    .tabs-underline {
+      display: flex; gap: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .tabs-underline .tab {
+      padding: 10px 0;
+      border-radius: 0;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .tabs-underline .tab.is-on {
+      background: transparent;
+      box-shadow: none;
+      border-bottom-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .nav-demo {
+      width: 240px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+    }
+    .nav-lab {
+      font-size: 11px; font-weight: 650;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted-2);
+      padding: 8px 10px 6px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 500;
+      color: var(--ink-2);
+    }
+    .nav-item.is-on {
+      background: var(--fill);
+      color: var(--ink);
+      font-weight: 650;
+    }
+    .nav-item .ico { opacity: 0.55; }
+    .nav-item.is-on .ico { opacity: 0.9; }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    @media (max-width: 860px) {
+      .metric-grid { grid-template-columns: 1fr; }
+      .type-row { grid-template-columns: 1fr; }
+    }
+    .metric-card {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .metric-card .metric-main { min-width: 0; flex: 1; }
+    .metric-card .k { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 8px; }
+    .metric-card .v { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; }
+    .metric-card .d {
+      display: inline-flex; align-items: center; gap: 4px;
+      margin-top: 8px;
+      font-size: 12px; font-weight: 650;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+    }
+    .metric-card .metric-viz {
+      flex: 0 0 auto;
+      width: 72px;
+      height: 48px;
+      margin-top: 4px;
+      color: var(--muted-2);
+    }
+    .metric-card .metric-viz svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .metric-card.is-up .metric-viz { color: var(--ok); }
+    .metric-card.is-down .metric-viz { color: var(--danger); }
+    .delta-up { background: var(--ok-bg); color: var(--ok); }
+    .delta-down { background: var(--danger-bg); color: var(--danger); }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 24px; padding: 0 10px;
+      border-radius: var(--radius-pill);
+      font-size: 12px; font-weight: 650;
+      background: var(--fill);
+      color: var(--ink-2);
+    }
+    .badge .dot {
+      width: 6px; height: 6px; border-radius: 999px; background: currentColor;
+    }
+    .badge-ok { background: var(--ok-bg); color: var(--ok); }
+    .badge-danger { background: var(--danger-bg); color: var(--danger); }
+    .badge-warn { background: var(--warn-bg); color: var(--warn); }
+    .badge-neutral { background: var(--fill); color: var(--muted); }
+
+    .table-wrap {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .data-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: var(--fill);
+      color: var(--muted);
+      font-weight: 650;
+      border-bottom: 1px solid var(--line);
+    }
+    .data-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      color: var(--ink-2);
+    }
+    .data-table tr:last-child td { border-bottom: 0; }
+    .data-table .strong { color: var(--ink); font-weight: 650; }
+
+    .avatar {
+      width: 28px; height: 28px; border-radius: 999px;
+      background: var(--fill-strong);
+      color: var(--ink);
+      display: inline-grid; place-items: center;
+      font-size: 11px; font-weight: 700;
+      border: 2px solid var(--surface);
+    }
+    .avatar-stack { display: inline-flex; }
+    .avatar-stack .avatar { margin-left: -8px; }
+    .avatar-stack .avatar:first-child { margin-left: 0; }
+
+    .tooltip-demo {
+      display: inline-block;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 10px 12px;
+      min-width: 180px;
+      font-size: 12px;
+    }
+    .tooltip-demo .tt-title { font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+    .tooltip-demo .tt-row { display: flex; justify-content: space-between; gap: 12px; color: var(--ink-2); margin: 3px 0; }
+    .tooltip-demo .tt-row strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+    .pair {
+      display: grid;
+      grid-template-columns: minmax(280px, 42%) 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 860px) { .pair { grid-template-columns: 1fr; } }
+    figure { margin: 0; }
+    figure img {
+      width: 100%; height: auto; display: block;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      cursor: zoom-in;
+      background: var(--fill);
+    }
+    figcaption { margin-top: 6px; font-size: 12px; color: var(--muted); }
+
+    .space-demo { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+    .space-box {
+      background: var(--ink);
+      opacity: 0.12;
+      border-radius: 4px;
+    }
+    .radius-demo { display: flex; gap: 12px; flex-wrap: wrap; }
+    .radius-box {
+      width: 72px; height: 72px;
+      background: var(--fill);
+      border: 1px solid var(--line-strong);
+      display: grid; place-items: center;
+      font-size: 11px; color: var(--muted); font-weight: 650;
+    }
+
+    #lightbox {
+      position: fixed; inset: 0; z-index: 1000;
+      display: none; align-items: center; justify-content: center;
+      padding: 24px; background: rgba(0, 0, 0, 0.82); cursor: zoom-out;
+    }
+    #lightbox.is-open { display: flex; }
+    #lightbox img {
+      max-width: min(96vw, 1400px); max-height: 92vh;
+      border-radius: 8px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+      cursor: default;
+    }
+
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+    }
+    .toc a {
+      text-decoration: none;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      font-size: 13px; font-weight: 600; color: var(--ink);
+    }
+    .toc a:hover { background: var(--fill); }
+    .toc a span { display: block; font-size: 11px; font-weight: 500; color: var(--muted); margin-top: 2px; }
+
+    .btn-danger {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #fff;
+    }
+    .btn-block { width: 100%; }
+    .field .hint {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .check-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      font-size: 13px; color: var(--ink-2);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .check-item input { margin-top: 2px; }
+    .switch {
+      width: 40px; height: 22px; border-radius: 999px; border: 0;
+      background: #c5c5cc; position: relative; flex-shrink: 0;
+    }
+    .switch.on { background: var(--ink); }
+    .switch i {
+      position: absolute; top: 2px; left: 2px;
+      width: 18px; height: 18px; border-radius: 50%; background: #fff;
+    }
+    .switch.on i { transform: translateX(18px); }
+    .opt-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      width: 100%; max-width: 420px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .opt-row .ot { font-size: 13px; font-weight: 650; color: var(--ink); }
+    .opt-row .od { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .modal-demo {
+      width: min(400px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow-card);
+      padding: 20px;
+    }
+    .modal-demo h3 { margin: 0 0 6px; font-size: 16px; }
+    .modal-demo .hint { margin: 0 0 14px; }
+    .modal-demo .field { margin: 0; }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+    .modal-actions.stack { flex-direction: column; }
+    .modal-actions.stack .btn { width: 100%; }
+
+    .toast-demo {
+      display: flex; flex-direction: column; gap: 8px; max-width: 320px;
+    }
+    .toast-item {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--ink);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 13px;
+      box-shadow: var(--shadow-card);
+    }
+    .toast-item.ok { border-left-color: var(--ok); }
+    .toast-item.err { border-left-color: var(--danger); }
+
+    .empty-demo {
+      border: 1.5px dashed var(--line-strong);
+      border-radius: var(--radius);
+      min-height: 100px;
+      display: grid; place-items: center;
+      color: var(--muted);
+      background: #fafafa;
+      font-size: 13px;
+      padding: 20px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .banner-demo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--fill);
+      width: 100%;
+      max-width: 720px; /* 内容栏宽度示意，不是浏览器全宽 */
+      box-sizing: border-box;
+    }
+    .banner-demo .banner-copy { min-width: 0; flex: 1; }
+    .banner-demo .bt { font-weight: 650; font-size: 13px; margin: 0 0 2px; }
+    .banner-demo .bd { margin: 0; font-size: 12px; color: var(--muted); }
+    .banner-demo .btn { flex: 0 0 auto; }
+
+    .pick-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: 100%; }
+    @media (max-width: 860px) { .pick-grid { grid-template-columns: 1fr; } }
+    .pick-card {
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .pick-card.is-on {
+      border-color: var(--ink);
+      box-shadow: 0 0 0 1px var(--ink);
+      background: var(--fill);
+    }
+    .pick-card .pn { display: block; font-weight: 700; font-size: 13px; }
+    .pick-card .pm { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .field-tip-demo {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 650;
+    }
+    .field-tip-btn {
+      width: 18px; height: 18px; border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      background: var(--fill);
+      color: var(--muted);
+      font-size: 11px; font-weight: 700;
+      display: inline-grid; place-items: center;
+    }
+
+    .wiz-demo {
+      display: grid; grid-template-columns: 160px 1fr;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      width: 100%;
+      min-height: 160px;
+    }
+    @media (max-width: 860px) { .wiz-demo { grid-template-columns: 1fr; } }
+    .wiz-steps { background: var(--fill); padding: 14px; border-right: 1px solid var(--line); }
+    .wiz-step {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px; border-radius: var(--radius-sm);
+      font-size: 12px; color: var(--muted); font-weight: 600;
+    }
+    .wiz-step.is-on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+    .wiz-step .n {
+      width: 20px; height: 20px; border-radius: 999px;
+      display: grid; place-items: center;
+      background: var(--fill-strong); font-size: 11px;
+    }
+    .wiz-step.is-on .n { background: var(--ink); color: #fff; }
+    .wiz-panel { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .wiz-foot {
+      margin-top: auto; padding-top: 12px;
+      border-top: 1px solid var(--line);
+      display: flex; justify-content: flex-end; gap: 8px; align-items: center;
+    }
+
+    .toolbar-demo {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .toolbar-demo .grow { flex: 1; min-width: 140px; }
+
+    .pager-demo {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--muted);
+    }
+
+    .kv-demo {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      width: 100%;
+      max-width: 480px;
+    }
+    .kv-row {
+      display: grid; grid-template-columns: 120px 1fr auto;
+      gap: 10px; align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .kv-row:last-child { border-bottom: 0; }
+    .kv-row .k { color: var(--muted); font-weight: 600; }
+    .kv-row .v { color: var(--ink); font-family: ui-monospace, Menlo, monospace; font-size: 12px; word-break: break-all; }
+
+    .progress-demo { width: 100%; max-width: 360px; }
+    .progress-track {
+      height: 8px; border-radius: 999px; background: var(--fill);
+      overflow: hidden; border: 1px solid var(--line);
+    }
+    .progress-bar { height: 100%; width: 62%; background: var(--ink); border-radius: 999px; }
+    .progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    .dropdown-demo {
+      position: relative;
+      width: 220px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow-card);
+      padding: 6px;
+    }
+    .dropdown-demo button {
+      display: block; width: 100%; text-align: left;
+      border: 0; background: transparent;
+      padding: 8px 10px; border-radius: 6px;
+      font: 600 13px/1.2 var(--font); color: var(--ink-2);
+    }
+    .dropdown-demo button:hover, .dropdown-demo button.is-on { background: var(--fill); color: var(--ink); }
+
+    .cov-ok { color: #15803d; font-weight: 650; }
+    .cov-new { color: var(--ink); font-weight: 650; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="top-brand">方舟 · 黑白 UI 规范</div>
+    <div class="top-meta">Draft 0.4 · Demo 已落黑白肤 · 深色对齐 Cursor · 只改视觉勿动结构</div>
+    <nav aria-label="章节">
+      <a href="#scope">范围</a>
+      <a href="#coverage">覆盖清单</a>
+      <a href="#color">颜色</a>
+      <a href="#type">字体</a>
+      <a href="#space">间距圆角</a>
+      <a href="#controls">控件</a>
+      <a href="#ref">参考图</a>
+    </nav>
+  </div>
+
+  <div class="wrap">
+    <header class="hero">
+      <h1>方舟黑白调 UI 规范</h1>
+      <p class="lead">
+        视觉参照 Trackify 白区黑白调；样例文案与场景一律取自 <code>fangzhou/refactor-demo</code>（工作台、TG 采集、素材、创建项目等），方便对照现有 Demo。外层展示紫底不在范围；重复类名在本规范统一命名。
+      </p>
+      <div class="meta-row">
+        <span class="chip">版本 Draft 0.4</span>
+        <span class="chip">适用端 · Web 运营后台</span>
+        <span class="chip">日期 · 2026-11-04</span>
+        <span class="chip">Demo · refactor-demo 已落地</span>
+        <span class="chip">参考 · Trackify 白区 + Cursor Dark</span>
+      </div>
+    </header>
+
+    <div class="toc" aria-label="目录">
+      <a href="#scope">1. 范围与原则<span>白区内、忽略外框紫</span></a>
+      <a href="#coverage">2. Demo 覆盖清单<span>已有 / 补齐 / 统一</span></a>
+      <a href="#color">3. 颜色<span>Token / 用途 / 禁止</span></a>
+      <a href="#type">4. 字体与标题<span>字号 / 字重 / 样例</span></a>
+      <a href="#space">5. 间距 · 圆角 · 阴影<span>密度与层次</span></a>
+      <a href="#controls">6. 控件规范<span>按 Demo 实际组件</span></a>
+      <a href="#ref">7. 参考图<span>可点击放大</span></a>
+    </div>
+
+    <h2 id="scope">1. 范围与原则</h2>
+    <div class="card">
+      <p>本文件定义<strong>方舟后台主界面</strong>（侧栏 + 顶栏 + 白底内容区）视觉与控件口径，覆盖重构 Demo 中已出现的通用组件。业务专属大块（素材详情布局、文章编辑器画布、TG 频道格子等）只规范其中复用的基础控件，不逐页画业务线框。</p>
+      <h4>原则</h4>
+      <ul>
+        <li>黑白灰为主：主操作黑底白字；次操作白底描边；弱操作用幽灵按钮；危险操作用红底（少用）。</li>
+        <li>简单大气：少渐变、少描边堆叠、少彩色底条；靠留白与字重建立层级。</li>
+        <li>浅底分区：选中态用浅灰填充（如 <code>#F4F4F5</code>），不用强彩色高亮整行。</li>
+        <li>圆角统一：控件约 8px，卡片 12–16px；状态标签用胶囊；分段页签外框 8 / 项 6（勿全胶囊）。</li>
+        <li>图标线性：细线描边图标，与文字同色或略浅。</li>
+        <li>落地与迭代时只改视觉（色 / 字重 / 边 / 影），不改文案、结构、位置与交互流程；新需求须参照本规范。</li>
+      </ul>
+      <h4>深色模式（已定）</h4>
+      <ul>
+        <li>对齐 Cursor Dark：侧栏 / 外框 <code>#141414</code>（更凹），主画布 <code>#181818</code>，卡片 <code>#1f1f1f</code>，边线 <code>#2b2b2b</code>，正文 <code>#e4e4e4</code> / <code>#cccccc</code>。</li>
+        <li>主按钮深色下反相：浅底深字（<code>--accent</code> ↔ <code>--on-ink</code>）。</li>
+        <li>静态对照见 <a href="./fangzhou-ui-mono-pages.html">页面预览</a>；Demo 侧栏用户菜单可切浅/深。</li>
+      </ul>
+      <h4>明确不做</h4>
+      <ul>
+        <li>不把参考图外圈的紫色展示背景当成产品画布色。</li>
+        <li>不把数据可视化用色（紫/橙/蓝）扩成全局品牌主色；现 Demo 的 <code>--accent</code> 紫在落地时应收敛为黑主色。</li>
+        <li>本期只出规范 HTML，不直接改 <code>app.css</code>。</li>
+      </ul>
+    </div>
+
+    <h2 id="coverage">2. Demo 覆盖清单与命名统一</h2>
+    <div class="card">
+      <p>对照 <code>refactor-demo</code> 页面/JS 高频类名盘点。状态：已覆盖 = 0.1 已有；0.2 补齐 = 本节新增；统一 = 多种 Demo 类名归并到同一规范名。</p>
+      <table class="spec">
+        <thead>
+          <tr><th>规范名</th><th>Demo 常见类 / 场景</th><th>状态</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Button</td><td><code>.btn</code> <code>.btn-primary</code> <code>.btn-ghost</code> <code>.btn-danger</code> <code>.btn-sm</code> <code>.btn-block</code></td><td class="cov-new">0.2 补 Danger / Block</td></tr>
+          <tr><td>Field / Input</td><td><code>.field</code> <code>input</code> <code>select</code> <code>textarea</code> <code>.hint</code></td><td class="cov-new">0.2 补 Select / Textarea / Hint</td></tr>
+          <tr><td>Search</td><td>侧栏 <code>.nav-search</code>、列表搜索框</td><td class="cov-ok">已覆盖</td></tr>
+          <tr><td>Checkbox</td><td><code>.check-item</code> <code>.check-inline</code> 多选项目/岗位</td><td class="cov-new">0.2 补齐</td></tr>
+          <tr><td>Switch</td><td><code>.switch</code> 水印/可选功能开关</td><td class="cov-new">0.2 补齐</td></tr>
+          <tr><td>Tabs（统一）</td><td><code>.tabs</code> <code>.seg-tabs</code> <code>.config-tabs</code> <code>.mat-tab</code> <code>.tg-wiz-tab</code> <code>.tg-filter-seg</code></td><td class="cov-new">统一三种形态</td></tr>
+          <tr><td>Badge / Tag（统一）</td><td><code>.badge</code> <code>.tag</code> <code>.pill</code> 状态粒</td><td class="cov-new">统一叫 Badge</td></tr>
+          <tr><td>Sidebar / Brand / User</td><td><code>.sidebar</code> <code>.nav-*</code> <code>.brand</code> <code>.user-menu</code></td><td class="cov-new">0.2 补 User 菜单</td></tr>
+          <tr><td>Topbar</td><td><code>.topbar</code></td><td class="cov-ok">已覆盖</td></tr>
+          <tr><td>Card</td><td><code>.card</code> <code>.card-pad</code> <code>.table-card</code> <code>.cfg-card</code></td><td class="cov-ok">已覆盖（补 flat）</td></tr>
+          <tr><td>Pick Card</td><td><code>.pick-card</code> <code>.ctx-card</code> <code>.site-type-card</code> 项目/类型点选</td><td class="cov-new">0.2 补齐</td></tr>
+          <tr><td>Table</td><td><code>.fz-table</code> <code>.table-card</code> 列表</td><td class="cov-ok">已覆盖</td></tr>
+          <tr><td>List Toolbar + Pager</td><td><code>.list-toolbar</code> <code>.pager-dock</code> <code>.fz-pager</code></td><td class="cov-new">0.2 补齐</td></tr>
+          <tr><td>Modal</td><td><code>.modal-mask</code> <code>.modal</code> <code>.modal-actions</code></td><td class="cov-new">0.2 补齐</td></tr>
+          <tr><td>Toast</td><td><code>.toast</code> <code>.toast.ok/.err</code></td><td class="cov-new">0.2 补齐</td></tr>
+          <tr><td>Empty</td><td><code>.empty-dash</code> <code>.mat-empty</code> <code>.sub-empty</code> <code>.pick-empty</code></td><td class="cov-new">0.2 补齐</td></tr>
+          <tr><td>Banner</td><td><code>.banner</code> 页顶提示条</td><td class="cov-new">0.2 补齐（改中性）</td></tr>
+          <tr><td>Field Tip</td><td><code>.field-tip</code> 表单项旁 ?</td><td class="cov-new">并入 Tip</td></tr>
+          <tr><td>Wizard Steps</td><td><code>.steps</code> <code>.wizard-*</code> <code>.sub-wiz-*</code> 创建项目/子账号</td><td class="cov-new">0.2 补齐</td></tr>
+          <tr><td>KV / 只读复制行</td><td><code>.kv-row</code> 通道 ID 等</td><td class="cov-new">0.2 补齐</td></tr>
+          <tr><td>Progress</td><td><code>.mat-detail-progress</code> 等进度条</td><td class="cov-new">0.2 补齐</td></tr>
+          <tr><td>Opt row + Switch</td><td><code>.opt-card</code> <code>.wc-switch-row</code></td><td class="cov-new">0.2 补齐</td></tr>
+          <tr><td>Avatar</td><td><code>.avatar</code></td><td class="cov-ok">已覆盖</td></tr>
+          <tr><td>Icon</td><td><code>.ico</code></td><td class="cov-ok">已覆盖</td></tr>
+        </tbody>
+      </table>
+      <h4>命名统一（落地时建议）</h4>
+      <ul>
+        <li><code>.tag</code> / <code>.pill</code> / <code>.badge</code> → 统一语义为 <strong>Badge</strong>（样式一套，类名可逐步收敛）。</li>
+        <li><code>.seg-tabs</code> / <code>.config-tabs</code> / <code>.mat-detail-tabs</code> / 筛选段 → 统一为 <strong>Tabs</strong> 的「浅底分段」或「下划线」两种，不要第三套彩色选中。</li>
+        <li>主色：规范用黑 <code>#111</code>；Demo 现 <code>--accent</code> 紫视为过渡，落地时 Primary = 黑。</li>
+      </ul>
+    </div>
+
+    <h2 id="color">3. 颜色</h2>
+    <div class="card">
+      <div class="card-title">基础色板（白区内）</div>
+      <div class="swatches">
+        <div class="swatch"><div class="swatch-chip" style="background:#111111"></div><div class="swatch-meta"><div class="swatch-name">主色 Ink</div><div class="swatch-val">#111111 · 主按钮 / 标题</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#3F3F46"></div><div class="swatch-meta"><div class="swatch-name">正文 Ink-2</div><div class="swatch-val">#3F3F46 · 说明正文</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#71717A"></div><div class="swatch-meta"><div class="swatch-name">辅助 Muted</div><div class="swatch-val">#71717A · 表头 / hint</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#A1A1AA"></div><div class="swatch-meta"><div class="swatch-name">占位 Muted-2</div><div class="swatch-val">#A1A1AA · placeholder</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#F4F4F5;border-bottom:1px solid #E8E8EA"></div><div class="swatch-meta"><div class="swatch-name">浅底 Fill</div><div class="swatch-val">#F4F4F5 · 侧栏选中</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#E8E8EA"></div><div class="swatch-meta"><div class="swatch-name">分割 Line</div><div class="swatch-val">#E8E8EA · 卡片边</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#FFFFFF;border-bottom:1px solid #E8E8EA"></div><div class="swatch-meta"><div class="swatch-name">表面 Surface</div><div class="swatch-val">#FFFFFF · 卡片 / 弹窗</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#F7F7F8;border-bottom:1px solid #E8E8EA"></div><div class="swatch-meta"><div class="swatch-name">画布 Canvas</div><div class="swatch-val">#F7F7F8 · 内容区底</div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">语义色（少用 · 仅状态 / 趋势）</div>
+      <div class="swatches">
+        <div class="swatch"><div class="swatch-chip" style="background:#2563EB"></div><div class="swatch-meta"><div class="swatch-name">正向</div><div class="swatch-val">#2563EB · 上升 / 正常路由</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#EF4444"></div><div class="swatch-meta"><div class="swatch-name">负向 / 危险</div><div class="swatch-val">#EF4444 · 异常 / 删除</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:#D97706"></div><div class="swatch-meta"><div class="swatch-name">警告</div><div class="swatch-val">#D97706 · 待审 / 未知</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(90deg,#7C3AED,#F97316,#3B82F6)"></div><div class="swatch-meta"><div class="swatch-name">仅图表</div><div class="swatch-val">多色折线可用 · 不进按钮</div></div></div>
+      </div>
+      <table class="spec" style="margin-top:14px">
+        <thead>
+          <tr><th>Token</th><th>值</th><th>用途</th><th>备注</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="tok">--ink</td><td>#111111</td><td>主按钮、页面标题、关键数字</td><td>等同「黑」</td></tr>
+          <tr><td class="tok">--ink-2</td><td>#3F3F46</td><td>正文、次级标题</td><td></td></tr>
+          <tr><td class="tok">--muted</td><td>#71717A</td><td>说明、表头、未选 Tab</td><td></td></tr>
+          <tr><td class="tok">--fill</td><td>#F4F4F5</td><td>侧栏选中、搜索浅底、表头底</td><td>替代彩色选中</td></tr>
+          <tr><td class="tok">--line</td><td>#E8E8EA</td><td>卡片边、分割线</td><td>尽量细、低对比</td></tr>
+          <tr><td class="tok">--surface</td><td>#FFFFFF</td><td>卡片 / 弹层 / 侧栏</td><td></td></tr>
+          <tr><td class="tok">--canvas</td><td>#F7F7F8</td><td>内容区浅灰画布</td><td>可与 surface 同白，二选一统一</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="type">4. 字体与标题</h2>
+    <div class="card">
+      <p>西文建议 <code>Inter</code>（或系统无衬线等价）；中文回落 <code>PingFang SC / Noto Sans SC</code>。字重以 400 / 500 / 600 / 700 四级即可，避免过多档。</p>
+      <div class="type-stack" style="margin-top:14px">
+        <div class="type-row"><div class="type-lab">Display / 28</div><div class="t-display">待审素材 128</div></div>
+        <div class="type-row"><div class="type-lab">H1 / 24 Bold</div><div class="t-h1">工作台</div></div>
+        <div class="type-row"><div class="type-lab">H2 / 18 Semibold</div><div class="t-h2">TG 采集配置</div></div>
+        <div class="type-row"><div class="type-lab">H3 / 15 Semibold</div><div class="t-h3">已挂频道</div></div>
+        <div class="type-row"><div class="type-lab">Body / 14</div><div class="t-body">公共池创建的 TG→TG 路由，只在公共采集池生效；业务项目只挂采集频道进料。</div></div>
+        <div class="type-row"><div class="type-lab">Label / 12</div><div class="t-label">采集中心</div></div>
+        <div class="type-row"><div class="type-lab">Caption / 12</div><div class="t-caption">已连接 · 监听中 · 更新于 11:04</div></div>
+      </div>
+      <table class="spec" style="margin-top:16px">
+        <thead>
+          <tr><th>层级</th><th>字号</th><th>字重</th><th>行高</th><th>颜色</th><th>场景</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Display / Metric</td><td>26–28px</td><td>700</td><td>1.2</td><td>--ink</td><td>工作台待审数、频道占用 29/40</td></tr>
+          <tr><td>H1 页标题</td><td>24px</td><td>700</td><td>1.25</td><td>--ink</td><td>工作台、素材管理、TG 采集配置</td></tr>
+          <tr><td>H2 区块</td><td>16–18px</td><td>650–700</td><td>1.35</td><td>--ink</td><td>面板头：TG 采集号、TG→TG 路由</td></tr>
+          <tr><td>H3 卡片</td><td>14–15px</td><td>650</td><td>1.4</td><td>--ink / --ink-2</td><td>已挂频道、配置卡标题</td></tr>
+          <tr><td>Body</td><td>13–14px</td><td>400–500</td><td>1.55</td><td>--ink-2</td><td>说明、表格单元格、弹窗正文</td></tr>
+          <tr><td>Label</td><td>11–12px</td><td>650</td><td>1.3</td><td>--muted / --muted-2</td><td>侧栏「采集中心」、表头、表单项 label</td></tr>
+          <tr><td>Button</td><td>12–13px</td><td>600</td><td>1</td><td>随按钮</td><td>添加、保存路由、确认加入</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="space">5. 间距 · 圆角 · 阴影</h2>
+    <div class="card">
+      <h4>间距刻度</h4>
+      <div class="space-demo" aria-hidden="true">
+        <div class="space-box" style="width:4px;height:24px" title="4"></div>
+        <div class="space-box" style="width:8px;height:28px" title="8"></div>
+        <div class="space-box" style="width:12px;height:32px" title="12"></div>
+        <div class="space-box" style="width:16px;height:36px" title="16"></div>
+        <div class="space-box" style="width:24px;height:40px" title="24"></div>
+        <div class="space-box" style="width:32px;height:44px" title="32"></div>
+      </div>
+      <p class="hint" style="margin-top:8px">4 / 8 / 12 / 16 / 24 / 32。卡片内边距常用 16；内容区外边距 24；控件间距 8–12。</p>
+      <h4>圆角</h4>
+      <div class="radius-demo">
+        <div class="radius-box" style="border-radius:8px">8 控件</div>
+        <div class="radius-box" style="border-radius:12px">12 卡片</div>
+        <div class="radius-box" style="border-radius:16px">16 大面板</div>
+        <div class="radius-box" style="border-radius:999px;width:96px">Pill</div>
+      </div>
+      <h4>阴影</h4>
+      <ul>
+        <li>默认卡片：极轻 <code>0 1px 2px rgba(17,17,17,.04)</code> 或 1px 边框二选一，不要又粗边又重阴影。</li>
+        <li>浮层 / Tooltip：<code>0 8px 24px rgba(17,17,17,.08)</code>。</li>
+        <li>侧栏与主区：优先分割线，不做厚重投影。</li>
+      </ul>
+    </div>
+
+    <h2 id="controls">6. 控件规范</h2>
+
+    <div class="card" id="c-button">
+      <div class="card-title">Button 按钮</div>
+      <div class="demo-row">
+        <button type="button" class="btn btn-primary"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>保存</button>
+        <button type="button" class="btn btn-secondary"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>筛选</button>
+        <button type="button" class="btn btn-ghost">取消</button>
+        <button type="button" class="btn btn-danger"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>删除</button>
+        <button type="button" class="btn btn-icon" aria-label="更多"><svg class="ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.75"/><circle cx="12" cy="12" r="1.75"/><circle cx="19" cy="12" r="1.75"/></svg></button>
+        <button type="button" class="btn btn-primary btn-sm">小尺寸</button>
+        <button type="button" class="btn btn-primary is-disabled">禁用</button>
+      </div>
+      <div class="demo-row" style="max-width:280px">
+        <button type="button" class="btn btn-primary btn-block">完成学习（块级）</button>
+      </div>
+      <table class="spec">
+        <thead>
+          <tr><th>类型</th><th>外观</th><th>高度</th><th>何时用 · Demo</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Primary</td><td>黑底 #111 · 白字</td><td>36（大 40 / 小 30）</td><td>保存、创建、添加、<code>.btn-primary</code></td></tr>
+          <tr><td>Secondary</td><td>白底 · 灰边 · 黑字</td><td>同左</td><td>筛选、次要；默认 <code>.btn</code></td></tr>
+          <tr><td>Ghost</td><td>透明 · 灰字</td><td>同左</td><td>取消、行内弱操作 <code>.btn-ghost</code></td></tr>
+          <tr><td>Danger</td><td>红底白字</td><td>同左</td><td>删除、解绑确认后主钮 <code>.btn-danger</code></td></tr>
+          <tr><td>Block</td><td>宽度 100%</td><td>—</td><td>欢迎/完成弹窗主行动 <code>.btn-block</code></td></tr>
+          <tr><td>Icon</td><td>36×36</td><td>36</td><td>关闭、更多</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li>同一视觉区 Primary 最多一个；Danger 不与 Primary 并列为双主色。</li>
+        <li>禁用：降透明度 + <code>not-allowed</code>；页脚可配 <code>.btn-foot-hint</code> 说明原因。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-input">
+      <div class="card-title">Field · Input · Select · Textarea</div>
+      <div class="demo-grid">
+        <div class="field">
+          <label>文本</label>
+          <input class="input" type="text" placeholder="项目名称" readonly />
+          <p class="hint">下方 hint：12px · --muted</p>
+        </div>
+        <div class="field">
+          <label>下拉 Select</label>
+          <select class="input" disabled>
+            <option>公共采集池</option>
+            <option>每日大赛</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>多行 Textarea</label>
+          <textarea class="input" rows="3" readonly placeholder="备注 / 驳回理由"></textarea>
+        </div>
+      </div>
+      <div class="demo-grid-2">
+        <div class="field">
+          <label>搜索</label>
+          <div class="search-wrap">
+            <svg class="lead-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input class="search" type="search" placeholder="搜索频道…" readonly />
+            <span class="kbd">⌘ F</span>
+          </div>
+        </div>
+        <div class="check-row">
+          <div class="lab">多选 Checkbox</div>
+          <div class="check-row-list">
+            <label class="check-item"><input type="checkbox" checked disabled /> 绑定项目 A</label>
+            <label class="check-item"><input type="checkbox" disabled /> 绑定项目 B</label>
+          </div>
+        </div>
+      </div>
+      <table class="spec">
+        <thead>
+          <tr><th>项</th><th>规范</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>控件高</td><td>输入/下拉约 36–40；多行按行</td></tr>
+          <tr><td>圆角</td><td>8px</td></tr>
+          <tr><td>Label</td><td>12px · --muted · 距控件 6</td></tr>
+          <tr><td>Hint</td><td>控件下 12px muted；错误态可用 danger 字色（勿整框大红铺底）</td></tr>
+          <tr><td>Checkbox 组</td><td><code>.check-item</code> 白底细边；勾选不改整卡成彩色</td></tr>
+          <tr><td>聚焦</td><td>边 --ink + 3px 8% 黑光晕（替代现 Demo 紫 focus-ring）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" id="c-tabs">
+      <div class="card-title">Tabs 分段 / 页签（统一 seg / config / mat）</div>
+      <div class="demo-col">
+        <div class="tabs" aria-label="segmented tabs">
+          <button type="button" class="tab is-on">全部</button>
+          <button type="button" class="tab">启用</button>
+          <button type="button" class="tab">停用</button>
+          <button type="button" class="tab">异常</button>
+        </div>
+        <div class="tabs-underline" aria-label="underline tabs">
+          <button type="button" class="tab is-on">全部素材</button>
+          <button type="button" class="tab">待审核</button>
+          <button type="button" class="tab">已通过</button>
+        </div>
+      </div>
+      <ul>
+        <li>形态 A「浅底分段」：外框圆角 8、项 6、白底选中。样例为 TG 频道筛选「全部 / 启用 / 停用 / 异常」；亦用于 <code>.seg-tabs</code>。</li>
+        <li>形态 B「下划线」：黑字 + 2px 底线。样例为素材列表「全部素材 / 待审核 / 已通过」；亦用于详情 <code>.mat-tab</code>。</li>
+        <li><code>.config-tabs</code>（项目详情水印/文章等）落地时归形态 A 或 B，禁止第三套「紫底 Primary 按钮假 Tab」。</li>
+        <li>未选中字色 --muted；不要彩色下划线。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-nav">
+      <div class="card-title">Sidebar Nav 侧栏导航</div>
+      <div class="pair">
+        <div class="nav-demo">
+          <div class="nav-lab">采集中心</div>
+          <div class="nav-item is-on"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg>工作台</div>
+          <div class="nav-item"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>TG 采集配置</div>
+          <div class="nav-item"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/></svg>网站采集配置</div>
+          <div class="nav-lab">内容中心</div>
+          <div class="nav-item"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-4.5-4.5L8 20"/></svg>素材管理</div>
+          <div class="nav-item"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8"/><path d="M8 17h6"/></svg>文章管理</div>
+        </div>
+        <div>
+          <table class="spec">
+            <thead>
+              <tr><th>元素</th><th>规范</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>侧栏底</td><td>白 #FFF；右边 1px --line</td></tr>
+              <tr><td>分组标题</td><td>11px · 大写追踪 · #A1A1AA</td></tr>
+              <tr><td>菜单项</td><td>高约 36 · 左右 10 · 圆角 8</td></tr>
+              <tr><td>默认</td><td>字 #3F3F46 · 图标 55% 透明度</td></tr>
+              <tr><td>选中</td><td>浅灰底 #F4F4F5 · 字 #111 · 字重 650 · 无彩色条</td></tr>
+              <tr><td>宽度</td><td>建议 220–240px</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="c-card">
+      <div class="card-title">Card 卡片</div>
+      <div class="metric-grid">
+        <div class="metric-card is-up">
+          <div class="metric-main">
+            <div class="k">待审素材</div>
+            <div class="v">128</div>
+            <span class="d delta-up">较昨日 +12</span>
+          </div>
+          <div class="metric-viz" aria-hidden="true">
+            <svg viewBox="0 0 72 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 36 L16 28 L28 32 L40 18 L52 22 L68 8" />
+              <path d="M4 36 L16 28 L28 32 L40 18 L52 22 L68 8" fill="currentColor" opacity="0.12" stroke="none" />
+            </svg>
+          </div>
+        </div>
+        <div class="metric-card is-down">
+          <div class="metric-main">
+            <div class="k">今日采集</div>
+            <div class="v">56</div>
+            <span class="d delta-down">较昨日 −8</span>
+          </div>
+          <div class="metric-viz" aria-hidden="true">
+            <svg viewBox="0 0 72 48" fill="currentColor">
+              <rect x="6" y="22" width="8" height="18" rx="2" opacity="0.35" />
+              <rect x="20" y="14" width="8" height="26" rx="2" opacity="0.45" />
+              <rect x="34" y="10" width="8" height="30" rx="2" opacity="0.55" />
+              <rect x="48" y="18" width="8" height="22" rx="2" opacity="0.4" />
+              <rect x="62" y="26" width="8" height="14" rx="2" opacity="0.3" />
+            </svg>
+          </div>
+        </div>
+        <div class="metric-card is-up">
+          <div class="metric-main">
+            <div class="k">监听中采集号</div>
+            <div class="v">3</div>
+            <span class="d delta-up">公共池 2 · 业务 1</span>
+          </div>
+          <div class="metric-viz" aria-hidden="true">
+            <svg viewBox="0 0 72 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="36" cy="24" r="14" opacity="0.25" />
+              <path d="M36 10 A14 14 0 0 1 50 24" />
+              <path d="M36 10 A14 14 0 0 0 22 24" opacity="0.45" />
+              <path d="M22 24 A14 14 0 0 0 36 38" opacity="0.7" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <ul>
+        <li>标准卡：白底 · 1px --line · 圆角 12 · 内边距 16（Demo <code>.card</code> <code>.card-pad</code>）。</li>
+        <li>KPI 卡左文右饰：右侧可放迷你折线 / 柱状 / 环图等装饰 icon（随涨跌取正向/负向色），避免大片留白。</li>
+        <li>表格容器卡可 flat：<code>.table-card</code> / <code>.card--flat</code>；配置块 <code>.cfg-card</code> 同标准卡。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-pick">
+      <div class="card-title">Pick Card 点选卡（项目 / 类型 / 上下文）</div>
+      <div class="pick-grid">
+        <button type="button" class="pick-card is-on">
+          <span class="pn">公共采集池</span>
+          <span class="pm">TG→TG · 2 个采集号</span>
+        </button>
+        <button type="button" class="pick-card">
+          <span class="pn">每日大赛</span>
+          <span class="pm">瓜站 · 1 个采集号</span>
+        </button>
+        <button type="button" class="pick-card">
+          <span class="pn">51 短剧</span>
+          <span class="pm">短剧站</span>
+        </button>
+      </div>
+      <ul>
+        <li>统一 Demo <code>.pick-card</code> / 上下文卡 / <code>.site-type-card</code>：白底细边，选中黑描边或浅灰底，不用紫晕。</li>
+        <li>标题 13 Bold；说明 12 muted；可带小 Badge 行。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-badge">
+      <div class="card-title">Badge 标签（统一 tag / pill / badge）</div>
+      <div class="demo-row">
+        <span class="badge badge-neutral"><span class="dot"></span>未分配</span>
+        <span class="badge badge-ok"><span class="dot"></span>采集</span>
+        <span class="badge badge-neutral"><span class="dot"></span>分发</span>
+        <span class="badge badge-warn"><span class="dot"></span>待审</span>
+        <span class="badge badge-danger"><span class="dot"></span>异常</span>
+      </div>
+      <ul>
+        <li>高度 24 · 胶囊 · 12 Semi · 圆点可选。</li>
+        <li>Demo 里 <code>.tag-*</code> / <code>.badge-*</code> / <code>.pill-*</code> 视觉归并为本套；业务「分发」用中性 + 点色即可。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-table">
+      <div class="card-title">Table 表格</div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>来源</th>
+              <th>项目</th>
+              <th>审核人</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="strong">晚风号 · 海外剧宣切片</td>
+              <td>@pool_source_alpha</td>
+              <td>公共采集池</td>
+              <td>
+                <span class="avatar-stack">
+                  <span class="avatar">运</span>
+                  <span class="avatar">审</span>
+                </span>
+              </td>
+              <td><span class="badge badge-warn"><span class="dot"></span>待审</span></td>
+            </tr>
+            <tr>
+              <td class="strong">每日大赛 · 开幕花絮</td>
+              <td>网站采集</td>
+              <td>每日大赛</td>
+              <td><span class="avatar">编</span></td>
+              <td><span class="badge badge-ok"><span class="dot"></span>已通过</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li>表头：浅灰底 --fill · 12–13px · --muted · 字重 650。</li>
+        <li>行高舒适（单元格上下约 12）；行间 1px --line；悬停可加极浅 --fill。</li>
+        <li>主信息列可加粗；频道名 / ID 可用等宽。</li>
+        <li>表工具条：左搜索、右刷新 / 筛选（Secondary）。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-avatar">
+      <div class="card-title">Avatar 头像</div>
+      <div class="demo-row">
+        <span class="avatar" style="width:32px;height:32px">运</span>
+        <span class="avatar-stack">
+          <span class="avatar">审</span>
+          <span class="avatar">编</span>
+          <span class="avatar" style="background:#111;color:#fff">+2</span>
+        </span>
+      </div>
+      <ul>
+        <li>默认 28–32 圆；堆叠时左边距 −8，白边 2px 压住下层。</li>
+        <li>无图时用浅灰底 + 角色字（运 / 审 / 编）；「+N」黑底白字表示更多成员。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-tooltip">
+      <div class="card-title">Tip · Tooltip · Field Tip</div>
+      <div class="demo-row" style="align-items:flex-start">
+        <div class="tooltip-demo">
+          <div class="tt-title">路由健康</div>
+          <div class="tt-row"><span>采集源</span><strong>@novice_demo_src</strong></div>
+          <div class="tt-row"><span>分发目标</span><strong>@novice_demo_tgt</strong></div>
+        </div>
+        <div class="field-tip-demo">
+          手机号 (国际格式)
+          <span class="field-tip-btn" title="字段说明">?</span>
+        </div>
+      </div>
+      <ul>
+        <li>图表 Tooltip：白底细边中阴影 · 圆角 12。</li>
+        <li>表单项 <code>.field-tip</code>：18 圆钮「?」，气泡同样白底黑字，勿用彩色问号底。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-switch">
+      <div class="card-title">Switch 开关 · Opt 行</div>
+      <div class="demo-col">
+        <div class="opt-row">
+          <div>
+            <div class="ot">自动转入编辑</div>
+            <div class="od">接通后素材可自动进编辑队列</div>
+          </div>
+          <button type="button" class="switch on" aria-label="on"><i></i></button>
+        </div>
+        <div class="opt-row">
+          <div>
+            <div class="ot">去水印</div>
+            <div class="od">关闭时保持原片水印</div>
+          </div>
+          <button type="button" class="switch" aria-label="off"><i></i></button>
+        </div>
+      </div>
+      <ul>
+        <li>开关轨 40×22；关 #C5C5CC，开 --ink（落地勿再用紫 accent）。</li>
+        <li>与说明文案横排：左标题+说明，右开关（Demo <code>.opt-card</code> / <code>.wc-switch-row</code>）。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-modal">
+      <div class="card-title">Modal 弹窗</div>
+      <div class="modal-demo">
+        <h3>加入频道</h3>
+        <p class="hint">填写 @用户名或邀请链接。遮罩点击 / Esc 可关（业务另有约定时除外）。</p>
+        <div class="field">
+          <label>频道</label>
+          <input class="input" type="text" value="@novice_demo_src" readonly />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost">取消</button>
+          <button type="button" class="btn btn-primary">确认加入</button>
+        </div>
+      </div>
+      <ul>
+        <li>遮罩：黑 35% 透明；面板宽常见 400–520，圆角 14，白底细边。</li>
+        <li>标题 16–18 Bold；说明 muted；底栏与表单区间距 ≥16–20（可加细分隔线），右对齐 Ghost + Primary。</li>
+        <li>欢迎/完成类可用 <code>.modal-actions.stack</code> + Block 主钮。</li>
+        <li>对应 Demo <code>.modal-mask</code> <code>.modal</code>；详情侧板（素材）可视为大 Modal/抽屉，控件仍用本规范。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-toast">
+      <div class="card-title">Toast 轻提示</div>
+      <div class="toast-demo">
+        <div class="toast-item ok">采集号已添加并连接会话</div>
+        <div class="toast-item err">请先完成当前教程步骤</div>
+        <div class="toast-item">已复制通道 ID</div>
+      </div>
+      <ul>
+        <li>右上或中上堆叠；白底细边；成功/失败仅左侧 3px 色条（ok / danger）。</li>
+        <li>文案完整上线口径；不替代 Modal 确认。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-empty">
+      <div class="card-title">Empty 空态</div>
+      <div class="empty-demo">
+        还没有采集号<br />
+        <span style="display:inline-block;margin-top:8px"><button type="button" class="btn btn-primary btn-sm">+ 添加</button></span>
+      </div>
+      <ul>
+        <li>虚线框 + 浅灰底 + muted 文案；可带一个 Primary 小钮。</li>
+        <li>统一 <code>.empty-dash</code> / <code>.mat-empty</code> / <code>.pick-empty</code> 视觉，避免每页一种空插画色。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-banner">
+      <div class="card-title">Banner 页顶提示</div>
+      <div class="banner-demo">
+        <div class="banner-copy">
+          <p class="bt">开发对接尚未完成</p>
+          <p class="bd">通道凭证接通前，自动推送不会真正生效。</p>
+        </div>
+        <button type="button" class="btn btn-secondary">去对接</button>
+      </div>
+      <ul>
+        <li>中性浅灰底 + 细边（落地去掉 Demo 紫底 <code>accent-soft</code>）。</li>
+        <li>布局：左文案、右行动（<code>space-between</code>）；按钮用常规高度，不要挤在文案旁显得渺小。</li>
+        <li>宽度：跟主内容栏走（示意约 ≤720），不是浏览器整页通栏；警告语义可用极浅 warn 底。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-wizard">
+      <div class="card-title">Wizard Steps 分步向导</div>
+      <div class="wiz-demo">
+        <div class="wiz-steps">
+          <div class="wiz-step is-on"><span class="n">1</span>基本信息</div>
+          <div class="wiz-step"><span class="n">2</span>封面尺寸</div>
+          <div class="wiz-step"><span class="n">3</span>可选功能</div>
+        </div>
+        <div class="wiz-panel">
+          <div class="field">
+            <label>项目名称 *</label>
+            <input class="input" type="text" value="教程演示项目" readonly />
+          </div>
+          <div class="wiz-foot">
+            <span class="hint" style="margin-right:auto">必填已预填时可点下一步</span>
+            <button type="button" class="btn btn-ghost btn-sm">上一步</button>
+            <button type="button" class="btn btn-secondary btn-sm">跳过</button>
+            <button type="button" class="btn btn-primary btn-sm">下一步</button>
+          </div>
+        </div>
+      </div>
+      <ul>
+        <li>左步骤 / 右面板（创建项目、子账号、外站向导）。选中步：白底 + 黑圆序号。</li>
+        <li>底栏：提示文案左、操作右；可选「跳过」为 Secondary。</li>
+        <li>跳步规则（已定）：侧栏只能点「已到达」的步骤回改；未走过的步锁定，禁止从第 1 步直接点到第 N 步跳过中间步。前进只靠「下一步 / 跳过」。点锁定步 → Toast「请按顺序完成前面的步骤，不能跳过」。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-toolbar">
+      <div class="card-title">List Toolbar · Pager</div>
+      <div class="demo-col" style="width:100%">
+        <div class="toolbar-demo">
+          <input class="input grow" type="search" placeholder="搜索素材标题 / 来源…" readonly />
+          <button type="button" class="btn btn-secondary btn-sm">刷新</button>
+          <button type="button" class="btn btn-secondary btn-sm">筛选</button>
+          <button type="button" class="btn btn-primary btn-sm">+ 转入编辑</button>
+        </div>
+        <div class="pager-demo">
+          <button type="button" class="btn btn-ghost btn-sm">上一页</button>
+          <span>第 1 / 12 页 · 共 230 条素材</span>
+          <button type="button" class="btn btn-ghost btn-sm">下一页</button>
+        </div>
+      </div>
+      <ul>
+        <li>工具条：一行多控件，左搜索右行动（Demo <code>.list-toolbar</code>）。</li>
+        <li>分页可贴内容底或 <code>.pager-dock</code>；文案 muted，翻页用 Ghost。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-kv">
+      <div class="card-title">KV 只读行（凭证 / ID）</div>
+      <div class="kv-demo">
+        <div class="kv-row">
+          <span class="k">通道 ID</span>
+          <span class="v">ch_9f2a…e01</span>
+          <button type="button" class="btn btn-ghost btn-sm">复制</button>
+        </div>
+        <div class="kv-row">
+          <span class="k">CMS 标识</span>
+          <span class="v">sub_cms_demo</span>
+          <button type="button" class="btn btn-ghost btn-sm">复制</button>
+        </div>
+      </div>
+      <ul>
+        <li>展示归展示：只读文案 + 复制，不用 <code>readonly input</code> 冒充展示（与 Demo「展示/编辑分离」一致）。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-progress">
+      <div class="card-title">Progress 进度</div>
+      <div class="progress-demo">
+        <div class="progress-track"><div class="progress-bar"></div></div>
+        <div class="progress-meta"><span>处理中</span><span>62%</span></div>
+      </div>
+      <ul>
+        <li>轨浅灰、条用 --ink；百分比 Caption。素材详情进度等同此。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-dropdown">
+      <div class="card-title">Dropdown / User 菜单</div>
+      <div class="dropdown-demo">
+        <button type="button" class="is-on">切换角色 · 运营</button>
+        <button type="button">账号设置</button>
+        <button type="button">退出登录</button>
+      </div>
+      <ul>
+        <li>白底细边中阴影；项高约 36，悬停/选中浅灰底。</li>
+        <li>对应侧栏底 <code>.user-menu</code>；勿做彩色菜单。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-icon">
+      <div class="card-title">Icon 图标</div>
+      <div class="demo-row" style="gap:14px;color:var(--ink-2)">
+        <svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg>
+        <svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        <svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>
+        <svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.75"/><circle cx="12" cy="12" r="1.75"/><circle cx="19" cy="12" r="1.75"/></svg>
+      </div>
+      <ul>
+        <li>仓库里<strong>没有</strong>单独的 icon 资源目录；Demo 侧栏目前是字符符号（⌂ ⇩ ✎ 等）。</li>
+        <li>本规范样例改为内联 SVG 线图标（24 视框、约 1.75 描边），颜色 <code>currentColor</code>，按钮旁约 14–16px。</li>
+        <li>落地可选：继续内联 SVG，或引入一套线图标库；禁止侧栏彩色面性图标、每个菜单一套色。</li>
+      </ul>
+    </div>
+
+    <div class="card" id="c-topbar">
+      <div class="card-title">Shell · Topbar · Brand</div>
+      <div class="toolbar-demo" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px;margin-right:auto">
+          <span class="avatar" style="width:28px;height:28px;background:#111;color:#fff;border-radius:8px">舟</span>
+          <div>
+            <div style="font-size:13px;font-weight:700">方舟</div>
+            <div style="font-size:11px;color:var(--muted)">运营后台</div>
+          </div>
+          <span style="width:1px;height:24px;background:var(--line);margin:0 4px"></span>
+          <div class="t-h3" style="margin:0">TG 采集配置</div>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm">帮助反馈</button>
+        <span class="avatar">运</span>
+        <button type="button" class="btn btn-primary btn-sm">+ 添加采集号</button>
+      </div>
+      <ul>
+        <li>Brand：方标 +「方舟」；落地用黑/灰标，勿强紫块。</li>
+        <li>顶栏左 H1（如「TG 采集配置」）；右帮助、头像、主行动。</li>
+        <li>内容区浅画布；主列卡片白底。</li>
+      </ul>
+    </div>
+
+    <h2 id="ref">7. 参考图</h2>
+    <div class="card">
+      <div class="pair">
+        <figure>
+          <img src="./ref-trackify-workspace.png" alt="Trackify 白色工作区参考" />
+          <figcaption>只取笔记本内白色 Dashboard；忽略外圈紫色展示底。</figcaption>
+        </figure>
+        <div>
+          <p>来源：Sayeed Hasan · CRM SAAS Dashboard UI Design（Trackify）。</p>
+          <p><a href="https://me.muz.li/sayeed_hasan/crm-saas-dashboard-ui-design-2" target="_blank" rel="noopener">https://me.muz.li/sayeed_hasan/crm-saas-dashboard-ui-design-2</a></p>
+          <h4>从参考图抽到本规范的要点</h4>
+          <ul>
+            <li>白卡片 + 浅灰画布，不是紫画布。</li>
+            <li>主按钮近黑；筛选为描边按钮。</li>
+            <li>侧栏选中为浅灰底，而非彩色。</li>
+            <li>KPI 用大数字 + 小趋势胶囊（Demo：待审素材、今日采集）。</li>
+            <li>图表可用多色；控件保持黑白。</li>
+          </ul>
+          <p class="hint">正文控件样例已换成方舟 Demo 文案。下一步（未做）：把 token 映射进 <code>app.css</code>，先改工作台 / TG 采集试水。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">文档信息</div>
+      <ul>
+        <li>编辑源：<code>海外项目/方舟/重构资料/ui-spec/fangzhou-ui-mono-spec.html</code></li>
+        <li>对外副本：<code>fangzhou/ui-spec/fangzhou-ui-mono-spec.html</code></li>
+        <li>状态：Draft 0.4 · <code>refactor-demo/css/app.css</code> 已落黑白 + Cursor 深色；规范继续逐步补控件细节</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="lightbox" aria-hidden="true"><img alt="" /></div>
+  <script>
+    (function () {
+      var box = document.getElementById("lightbox");
+      var img = box.querySelector("img");
+      document.querySelectorAll(".wrap img").forEach(function (node) {
+        node.addEventListener("click", function () {
+          img.src = node.src;
+          img.alt = node.alt || "";
+          box.classList.add("is-open");
+          box.setAttribute("aria-hidden", "false");
+        });
+      });
+      function close() {
+        box.classList.remove("is-open");
+        box.setAttribute("aria-hidden", "true");
+      }
+      box.addEventListener("click", close);
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") close();
+      });
+    })();
+  </script>
+</body>
+</html>

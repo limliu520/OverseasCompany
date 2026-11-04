@@ -76,9 +76,15 @@
           : b.status === "disabled"
             ? "is-off"
             : "is-warn";
-        var actions = "";
+        /* 可选左（有归属才有）· 固定右（连接/断开 + 删除） */
+        var actionsOpt = b.projectId
+          ? '<a class="btn btn-ghost" href="./project-edit.html?id=' +
+            encodeURIComponent(b.projectId) +
+            '&tab=channel">项目通道</a>'
+          : "";
+        var actionsFix = "";
         if (b.status !== "disabled") {
-          actions +=
+          actionsFix +=
             '<button type="button" class="btn' +
             (connected ? "" : " btn-primary") +
             '" data-act="toggle" data-id="' +
@@ -87,16 +93,16 @@
             (connected ? "断开" : "连接") +
             "</button>";
         }
-        actions +=
+        actionsFix +=
           '<button type="button" class="btn btn-ghost" data-act="del" data-id="' +
           esc(b.id) +
           '">删除</button>';
-        if (b.projectId) {
-          actions +=
-            '<a class="btn btn-ghost" href="./project-edit.html?id=' +
-            encodeURIComponent(b.projectId) +
-            '&tab=channel">项目通道</a>';
-        }
+        var actions =
+          '<div class="fz-actions-opt">' +
+          actionsOpt +
+          '</div><div class="fz-actions-fix">' +
+          actionsFix +
+          "</div>";
         return (
           '<article class="ub-card" data-id="' +
           esc(b.id) +

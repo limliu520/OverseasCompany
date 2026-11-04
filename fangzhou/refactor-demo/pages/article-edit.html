@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>编辑文章 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261031prefill" />
+  <link rel="stylesheet" href="../css/app.css?v=20261104mono4" />
 </head>
 <body class="page-art-edit">
   <div class="app">
@@ -111,7 +111,7 @@
               </div>
               <div class="art-rail-body" id="art-rail-body">
                 <div class="art-rail-sec">
-                  <div class="art-rail-sec-title">封面</div>
+                  <div class="art-rail-sec-title">文章封面</div>
                   <div class="art-cover-box">
                     <div class="art-cover-preview" id="art-cover-preview" title="点击放大">
                       <span>默认封面</span>
@@ -122,6 +122,21 @@
                       <button type="button" class="btn btn-sm btn-ghost" id="art-cover-custom">自定义</button>
                       <input type="file" id="art-cover-file" accept="image/*" hidden />
                       <span class="art-cover-status" id="art-cover-status">已有封面（可更换）</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="art-rail-sec">
+                  <div class="art-rail-sec-title">视频封面</div>
+                  <p class="hint art-rail-hint" id="art-vc-strategy-hint">跟随项目策略</p>
+                  <div class="art-cover-box">
+                    <div class="art-cover-preview" id="art-vc-preview" title="点击放大">
+                      <span>跟随策略</span>
+                    </div>
+                    <div class="art-cover-actions">
+                      <button type="button" class="btn btn-sm btn-ghost" id="art-vc-restore">恢复策略</button>
+                      <button type="button" class="btn btn-sm" id="art-vc-pick">上传替换</button>
+                      <input type="file" id="art-vc-file" accept="image/*" hidden />
+                      <span class="art-cover-status" id="art-vc-status">未自定义，跟随项目策略</span>
                     </div>
                   </div>
                 </div>
@@ -284,11 +299,11 @@
   </div>
 
   <script src="../js/store.js?v=20261031poolCollect"></script>
-  <script src="../js/shell.js?v=20261031navProj"></script>
+  <script src="../js/shell.js?v=20261104mono4"></script>
   <script src="../js/articles-data.js?v=20261028artact4"></script>
   <script src="../js/materials-data.js?v=20261028artact1"></script>
   <script src="../js/materials-media.js?v=20261028artact1"></script>
   <script src="../js/materials-detail.js?v=20261028artact1"></script>
-  <script src="../js/article-edit-app.js?v=20261028push1"></script>
+  <script src="../js/article-edit-app.js?v=20261104rf01"></script>
 </body>
 </html>
