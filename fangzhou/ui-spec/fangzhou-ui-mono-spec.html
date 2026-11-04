@@ -20,15 +20,15 @@
       --line-strong: #d4d4d8;
       --fill: #f4f4f5;
       --fill-strong: #ececee;
-      --ok: #2563eb;
-      --ok-bg: #eff6ff;
-      --danger: #ef4444;
-      --danger-bg: #fef2f2;
-      --warn: #d97706;
-      --warn-bg: #fffbeb;
-      --chart-1: #7c3aed;
-      --chart-2: #f97316;
-      --chart-3: #3b82f6;
+      --ok: rgba(37, 99, 235, 0.72);
+      --ok-bg: rgba(37, 99, 235, 0.1);
+      --danger: rgba(239, 68, 68, 0.72);
+      --danger-bg: rgba(239, 68, 68, 0.1);
+      --warn: rgba(217, 119, 6, 0.72);
+      --warn-bg: rgba(217, 119, 6, 0.1);
+      --chart-1: rgba(147, 197, 253, 0.72);
+      --chart-2: rgba(251, 191, 36, 0.7);
+      --chart-3: rgba(125, 211, 252, 0.7);
       --radius-sm: 8px;
       --radius: 12px;
       --radius-lg: 16px;
@@ -892,6 +892,7 @@
         <li>黑白灰为主：主操作黑底白字；次操作白底描边；弱操作用幽灵按钮；危险操作用红底（少用）。</li>
         <li>简单大气：少渐变、少描边堆叠、少彩色底条；靠留白与字重建立层级。</li>
         <li>浅底分区：选中态用浅灰填充（如 <code>#F4F4F5</code>），不用强彩色高亮整行。</li>
+        <li>彩色点缀：语义色 / Badge / 图表须带透明度（约 60%–75% 字色、更淡浅底）；禁止纯色实心色块。</li>
         <li>圆角统一：控件约 8px，卡片 12–16px；状态标签用胶囊；分段页签外框 8 / 项 6（勿全胶囊）。</li>
         <li>图标线性：细线描边图标，与文字同色或略浅。</li>
         <li>落地与迭代时只改视觉（色 / 字重 / 边 / 影），不改文案、结构、位置与交互流程；新需求须参照本规范。</li>
@@ -967,27 +968,36 @@
       </div>
     </div>
     <div class="card">
-      <div class="card-title">语义色（少用 · 仅状态 / 趋势）</div>
+      <div class="card-title">语义色（少用 · 仅状态 / 趋势 · 必须带透明度）</div>
+      <p class="hint" style="margin:0 0 12px">黑白为主。彩色只作点缀：字色 / 浅底 / 细描边均用 <code>rgba(..., ≈0.6–0.75)</code> 或更淡底 <code>≈0.08–0.12</code>。禁止纯色实心底块、禁止高饱和不透明色条占大面积。</p>
       <div class="swatches">
-        <div class="swatch"><div class="swatch-chip" style="background:#2563EB"></div><div class="swatch-meta"><div class="swatch-name">正向</div><div class="swatch-val">#2563EB · 上升 / 正常路由</div></div></div>
-        <div class="swatch"><div class="swatch-chip" style="background:#EF4444"></div><div class="swatch-meta"><div class="swatch-name">负向 / 危险</div><div class="swatch-val">#EF4444 · 异常 / 删除</div></div></div>
-        <div class="swatch"><div class="swatch-chip" style="background:#D97706"></div><div class="swatch-meta"><div class="swatch-name">警告</div><div class="swatch-val">#D97706 · 待审 / 未知</div></div></div>
-        <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(90deg,#7C3AED,#F97316,#3B82F6)"></div><div class="swatch-meta"><div class="swatch-name">仅图表</div><div class="swatch-val">多色折线可用 · 不进按钮</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:rgba(37,99,235,0.72)"></div><div class="swatch-meta"><div class="swatch-name">正向</div><div class="swatch-val">rgba(37,99,235,0.72) · 上升 / 已连接</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:rgba(239,68,68,0.72)"></div><div class="swatch-meta"><div class="swatch-name">负向 / 危险</div><div class="swatch-val">rgba(239,68,68,0.72) · 异常 / 删除</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:rgba(217,119,6,0.72)"></div><div class="swatch-meta"><div class="swatch-name">警告</div><div class="swatch-val">rgba(217,119,6,0.72) · 待审 / 未知</div></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(90deg,rgba(147,197,253,0.72),rgba(251,191,36,0.7),rgba(125,211,252,0.7))"></div><div class="swatch-meta"><div class="swatch-name">仅图表</div><div class="swatch-val">浅透明多色 · 不进按钮 · 不铺大底</div></div></div>
       </div>
       <table class="spec" style="margin-top:14px">
         <thead>
           <tr><th>Token</th><th>值</th><th>用途</th><th>备注</th></tr>
         </thead>
         <tbody>
-          <tr><td class="tok">--ink</td><td>#111111</td><td>主按钮、页面标题、关键数字</td><td>等同「黑」</td></tr>
+          <tr><td class="tok">--ink</td><td>#111111</td><td>主按钮、页面标题、关键数字</td><td>等同「黑」；主色仍用不透明墨</td></tr>
           <tr><td class="tok">--ink-2</td><td>#3F3F46</td><td>正文、次级标题</td><td></td></tr>
           <tr><td class="tok">--muted</td><td>#71717A</td><td>说明、表头、未选 Tab</td><td></td></tr>
           <tr><td class="tok">--fill</td><td>#F4F4F5</td><td>侧栏选中、搜索浅底、表头底</td><td>替代彩色选中</td></tr>
           <tr><td class="tok">--line</td><td>#E8E8EA</td><td>卡片边、分割线</td><td>尽量细、低对比</td></tr>
           <tr><td class="tok">--surface</td><td>#FFFFFF</td><td>卡片 / 弹层 / 侧栏</td><td></td></tr>
           <tr><td class="tok">--canvas</td><td>#F7F7F8</td><td>内容区浅灰画布</td><td>可与 surface 同白，二选一统一</td></tr>
+          <tr><td class="tok">--ok / --ok-bg</td><td>rgba 蓝 0.72 / 0.1</td><td>正向 Badge、已连接</td><td>禁止 #2563EB 实心底</td></tr>
+          <tr><td class="tok">--warn / --warn-bg</td><td>rgba 琥珀 0.72 / 0.1</td><td>警告 Badge</td><td>禁止纯色琥珀块</td></tr>
+          <tr><td class="tok">--danger / --danger-bg</td><td>rgba 红 0.72 / 0.1</td><td>危险 / 断开</td><td>按钮可用略高不透明度，仍忌纯 #EF4444 铺满</td></tr>
         </tbody>
       </table>
+      <ul style="margin:12px 0 0;padding-left:1.2em">
+        <li>Badge / Tag / 状态点 / 图表折线 / KPI 点缀：一律走透明语义色；白底或浅透明底 + 半透明字色。</li>
+        <li>禁止：不透明纯蓝 / 纯红 / 纯橙大色块、强饱和选中条、彩色实心圆底图标。</li>
+        <li>主按钮仍用墨黑白字（非彩色）；彩色只服务状态与数据可视化。</li>
+      </ul>
     </div>
 
     <h2 id="type">4. 字体与标题</h2>
@@ -1274,6 +1284,7 @@
       <ul>
         <li>高度 24 · 胶囊 · 12 Semi · 圆点可选。</li>
         <li>Demo 里 <code>.tag-*</code> / <code>.badge-*</code> / <code>.pill-*</code> 视觉归并为本套；业务「分发」用中性 + 点色即可。</li>
+        <li>状态色必须半透明：浅底 <code>--*-bg ≈ 0.1</code> + 字色 <code>--* ≈ 0.72</code>；不要实心纯色胶囊。</li>
       </ul>
     </div>
 

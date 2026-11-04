@@ -11,17 +11,17 @@
     {
       id: "chigua",
       title: "瓜站（内容站）",
-      desc: "图文混排（含吃瓜站）。资讯/爆料类；默认可含视频。走内容编辑或原文直推。演示项目名：每日大赛、51 吃瓜。"
+      desc: "图文混排为主（资讯、爆料等），可带视频。走内容编辑 + 文案，或原文直推。"
     },
     {
       id: "video",
       title: "视频站",
-      desc: "短视频形态；一稿一个视频。走内容编辑或原文直推。演示项目名：91 网黄、51 原创。"
+      desc: "以短视频为主，一稿通常一个视频。走内容编辑 + 文案，或原文直推。"
     },
     {
       id: "short_drama",
       title: "短剧站",
-      desc: "无文章主路径；去水印/加水印 + 分集推送（蜜果 / KiteDrama 形态）。演示项目名：51 短剧、51 短视频。"
+      desc: "不以文章为主路径；侧重去水印 / 加水印与分集媒体推送。"
     }
   ];
 
@@ -36,6 +36,57 @@
     var list = DEMO_PROJECT_NAMES[siteType] || DEMO_PROJECT_NAMES.chigua;
     var i = Number(index) || 0;
     return list[((i % list.length) + list.length) % list.length];
+  }
+
+  /** 配置项开关行（操作即生效）；表单多选仍用 checkbox */
+  function cfgSwitchRow(id, on, labelText, tipText) {
+    return (
+      '<div class="cfg-switch-row">' +
+      '<div class="cfg-switch-copy"><span class="cfg-switch-label">' +
+      esc(labelText) +
+      "</span>" +
+      (tipText ? " " + tip(tipText) : "") +
+      "</div>" +
+      '<button type="button" class="switch' +
+      (on ? " on" : "") +
+      '" id="' +
+      id +
+      '" data-cfg-switch="1" role="switch" aria-checked="' +
+      (on ? "true" : "false") +
+      '" aria-label="' +
+      esc(labelText) +
+      '"><i></i></button></div>'
+    );
+  }
+
+  function readCfgSwitch(root, id) {
+    root = root || document;
+    var el = root.getElementById
+      ? root.getElementById(id)
+      : document.getElementById(id);
+    if (!el) return null;
+    if (el.getAttribute("role") === "switch" || el.getAttribute("data-cfg-switch")) {
+      return el.classList.contains("on");
+    }
+    return !!el.checked;
+  }
+
+  function bindConfigSwitches(root, onToggle) {
+    root = root || document;
+    (root.querySelectorAll
+      ? root.querySelectorAll("[data-cfg-switch]")
+      : []
+    ).forEach(function (sw) {
+      if (sw.getAttribute("data-cfg-bound")) return;
+      sw.setAttribute("data-cfg-bound", "1");
+      sw.addEventListener("click", function (e) {
+        e.preventDefault();
+        var on = !sw.classList.contains("on");
+        sw.classList.toggle("on", on);
+        sw.setAttribute("aria-checked", on ? "true" : "false");
+        if (onToggle) onToggle(sw.id || "", on);
+      });
+    });
   }
 
   function tip(text) {
@@ -307,7 +358,7 @@
       "<li><strong>分发到内容通道</strong>（给业务方）：" +
       (short
         ? "短剧站固定<strong>不生成文章</strong>，主推分集媒体。"
-        : "瓜站/视频站走<strong>内容编辑 + AI</strong>（提示词与内链在「文章管理」步），再提交/自动推送。") +
+        : "瓜站/视频站走<strong>内容编辑 + AI</strong>（提示词与内链在「文案管理」步），再提交/自动推送。") +
       "</li>" +
       "<li>项目可同时配 TG 采集/路由与内容通道；<strong>每条素材按当次去向</strong>走一条路，不在项目里再选手选「AI / 原文」。</li>" +
       "</ul>" +
@@ -331,48 +382,55 @@
   /**
    * 内容生成规则：左右分栏。
    * 左=图片生成规则；右=视频生成规则。推送门槛归「推送规则」。
+   * 有保存时按钮放在左栏「图片生成规则」标题行（一次保存左右两栏）。
+   * @param {object} [optsOrPrefix] 旧调用可传 prefix 字符串；或 { prefix, showSave }
    */
-  function renderVideoRulesFields(p, prefix) {
-    prefix = prefix || "";
+  function renderVideoRulesFields(p, optsOrPrefix) {
+    var opts =
+      optsOrPrefix && typeof optsOrPrefix === "object" ? optsOrPrefix : {};
+    var prefix =
+      typeof optsOrPrefix === "string" ? optsOrPrefix : opts.prefix || "";
     var id = function (x) {
       return prefix + x;
     };
     var fmt = p.imageOutputFormat || "png";
+    var imgHead = opts.showSave
+      ? '<div class="cfg-card-head-row"><div><div class="cfg-card-title">图片生成规则</div>' +
+        '<div class="cfg-card-sub">出图与推送封面的编码</div></div>' +
+        '<button type="button" class="btn btn-primary tab-pane-save" id="btn-save-media">保存</button></div>'
+      : '<div class="cfg-card-head"><div class="cfg-card-title">图片生成规则</div>' +
+        '<div class="cfg-card-sub">出图与推送封面的编码</div></div>';
     return (
       '<div class="media-rules-split">' +
       '<div class="cfg-card media-rules-col">' +
-      '<div class="cfg-card-head"><div class="cfg-card-title">图片生成规则</div>' +
-      '<div class="cfg-card-sub">出图与推送封面的编码</div></div>' +
+      imgHead +
       '<div class="field" style="margin:0">' +
       label(
         "图片输出格式",
-        "生成封面 / 配图落盘与推送时的编码格式。与是否加水印无关，常驻生效。"
+        "生成封面 / 配图落盘与推送时的编码格式，与是否加水印无关，常驻生效。PNG 透明底友好；JPEG 体积通常更小；WebP 兼顾体积与画质。"
       ) +
-      '<select id="' +
-      id("img-fmt") +
-      '">' +
-      '<option value="png"' +
-      (fmt === "png" ? " selected" : "") +
-      ">PNG（透明底友好）</option>" +
-      '<option value="jpeg"' +
-      (fmt === "jpeg" ? " selected" : "") +
-      ">JPEG</option>" +
-      '<option value="webp"' +
-      (fmt === "webp" ? " selected" : "") +
-      ">WebP</option>" +
-      "</select></div></div>" +
+      (global.FZMediaConfig && FZMediaConfig.renderSeg
+        ? FZMediaConfig.renderSeg(
+            id("img-fmt"),
+            [
+              { value: "png", label: "PNG" },
+              { value: "jpeg", label: "JPEG" },
+              { value: "webp", label: "WebP" }
+            ],
+            fmt,
+            "图片输出格式"
+          )
+        : "") +
+      "</div></div>" +
       '<div class="cfg-card media-rules-col">' +
       '<div class="cfg-card-head"><div class="cfg-card-title">视频生成规则</div>' +
       '<div class="cfg-card-sub">推送前如何交付播放地址</div></div>' +
-      '<label class="check-item"><input type="checkbox" id="' +
-      id("slice") +
-      '"' +
-      (p.sliceEnabled ? " checked" : "") +
-      " /> 生成可边下边播的播放地址 " +
-      tip(
+      cfgSwitchRow(
+        id("slice"),
+        !!p.sliceEnabled,
+        "生成可边下边播的播放地址",
         "开启后推送前把视频切成适合网页/App 边下边播的格式（技术上叫 m3u8）。切片服务没配好、超时或失败时，仍只推完整视频文件，不会卡死整条推送。对方站若不需要自适应播放，可关掉。"
       ) +
-      "</label>" +
       '<p class="hint" style="margin:10px 0 0">「必须含视频」「最短时长」等出站门槛在「推送规则」。</p>' +
       "</div></div>"
     );
@@ -381,12 +439,19 @@
   function collectVideoRules(root, into, prefix) {
     root = root || document;
     prefix = prefix || "";
-    into.sliceEnabled = !!(root.getElementById(prefix + "slice") || {}).checked;
+    var sliceOn = readCfgSwitch(root, prefix + "slice");
+    if (sliceOn != null) into.sliceEnabled = sliceOn;
     if (into.minVideoSeconds == null || into.minVideoSeconds < GLOBAL_MIN_VIDEO_SEC) {
       into.minVideoSeconds = GLOBAL_MIN_VIDEO_SEC;
     }
-    var fmtEl = root.getElementById(prefix + "img-fmt");
-    var fmt = fmtEl ? String(fmtEl.value || "png") : into.imageOutputFormat || "png";
+    var fmt = null;
+    if (global.FZMediaConfig && FZMediaConfig.readSeg) {
+      fmt = FZMediaConfig.readSeg(root, prefix + "img-fmt");
+    }
+    if (!fmt) {
+      var fmtEl = root.getElementById(prefix + "img-fmt");
+      fmt = fmtEl ? String(fmtEl.value || "png") : into.imageOutputFormat || "png";
+    }
     if (["png", "jpeg", "webp"].indexOf(fmt) === -1) fmt = "png";
     into.imageOutputFormat = fmt;
   }
@@ -400,19 +465,31 @@
     collectVideoRules(root, into, prefix);
   }
 
-  /** 推送规则：两段闸门（素材→编辑 / 编辑→业务方）+ 短剧分集；技术地址在「开发对接」。 */
-  function renderPushRulesFields(p, prefix) {
-    prefix = prefix || "";
+  /**
+   * 推送规则：两段闸门（素材→编辑 / 编辑→业务方）+ 短剧分集；技术地址在「开发对接」。
+   * 有保存时按钮放在「① 素材进编辑」标题行（一次保存整页各块）。
+   * @param {object} [optsOrPrefix] 旧调用可传 prefix 字符串；或 { prefix, showSave }
+   */
+  function renderPushRulesFields(p, optsOrPrefix) {
+    var opts =
+      optsOrPrefix && typeof optsOrPrefix === "object" ? optsOrPrefix : {};
+    var prefix =
+      typeof optsOrPrefix === "string" ? optsOrPrefix : opts.prefix || "";
     var id = function (x) {
       return prefix + x;
     };
     var short = p.siteType === "short_drama";
     var toEditOn = !!p.autoToEdit;
     var pushOn = !!p.autoPush;
+    var toEditHead = opts.showSave
+      ? '<div class="cfg-card-head-row"><div><div class="cfg-card-title">① 素材进编辑</div>' +
+        '<div class="cfg-card-sub">采集加工完成之后</div></div>' +
+        '<button type="button" class="btn btn-primary tab-pane-save" id="btn-save-flow">保存</button></div>'
+      : '<div class="cfg-card-head"><div class="cfg-card-title">① 素材进编辑</div>' +
+        '<div class="cfg-card-sub">采集加工完成之后</div></div>';
     var html =
       '<div class="cfg-card" style="margin-bottom:12px">' +
-      '<div class="cfg-card-head"><div class="cfg-card-title">① 素材进编辑</div>' +
-      '<div class="cfg-card-sub">采集加工完成之后</div></div>' +
+      toEditHead +
       (global.FZMediaConfig && FZMediaConfig.renderSeg
         ? FZMediaConfig.renderSeg(
             id("to-edit-mode"),
@@ -439,19 +516,16 @@
             "推送给业务方"
           )
         : "") +
-      '<p class="hint" style="margin:10px 0 0">新建项目默认「待人工确认再推」（RF-04）；两段可分开配。收件/事件通知在「开发对接」。</p></div>' +
+      '<p class="hint" style="margin:10px 0 0">新建项目默认「待人工确认再推」（RF-04）；两段可分开配。收件/事件通知在「内容通道对接配置」。</p></div>' +
       '<div class="cfg-card" style="margin-bottom:12px">' +
       '<div class="cfg-card-head"><div class="cfg-card-title">③ 出站媒体门槛</div>' +
       '<div class="cfg-card-sub">推给业务方时校验 · 不管采集</div></div>' +
-      '<label class="check-item"><input type="checkbox" id="' +
-      id("req-video") +
-      '"' +
-      (p.requireVideo ? " checked" : "") +
-      " /> 必须含视频才可推送 " +
-      tip(
+      cfgSwitchRow(
+        id("req-video"),
+        !!p.requireVideo,
+        "必须含视频才可推送",
         "开着时无视频不推（自动推、人工点推都一样）。关掉后纯图文也可以推。采集进池不看这项。"
       ) +
-      "</label>" +
       '<div class="field" style="margin-top:12px">' +
       '<label>推送最短时长（只读） ' +
       tip(
@@ -470,11 +544,11 @@
         '<p class="muted" style="margin:0 0 12px;font-size:13px;line-height:1.5">一条稿件带上素材里的全部视频（第 1～N 集）。时长按全部分集合计，单稿最多 ' +
         GLOBAL_MAX_EPISODES +
         " 集。</p>" +
-        '<label class="check-item"><input type="checkbox" id="' +
-        id("episodes") +
-        '"' +
-        (p.pushAllEpisodes !== false ? " checked" : "") +
-        " /> 启用推送全部分集</label>" +
+        cfgSwitchRow(
+          id("episodes"),
+          p.pushAllEpisodes !== false,
+          "启用推送全部分集"
+        ) +
         '<div class="field">' +
         label(
           "分集标题格式（可选）",
@@ -524,14 +598,14 @@
     }
 
     into.autoflow = !!into.autoToEdit;
-    var reqEl = root.getElementById(prefix + "req-video");
-    if (reqEl) into.requireVideo = !!reqEl.checked;
+    var reqOn = readCfgSwitch(root, prefix + "req-video");
+    if (reqOn != null) into.requireVideo = reqOn;
     if (into.minVideoSeconds == null || into.minVideoSeconds < GLOBAL_MIN_VIDEO_SEC) {
       into.minVideoSeconds = GLOBAL_MIN_VIDEO_SEC;
     }
-    var epEl = root.getElementById(prefix + "episodes");
-    if (epEl) {
-      into.pushAllEpisodes = !!epEl.checked;
+    var epOn = readCfgSwitch(root, prefix + "episodes");
+    if (epOn != null) {
+      into.pushAllEpisodes = epOn;
       into.episodeTitleFormat = val(root, prefix + "ep-fmt");
       into.maxEpisodes = GLOBAL_MAX_EPISODES;
     } else if (into.siteType !== "short_drama") {
@@ -641,6 +715,8 @@
     collectAutoPush: collectAutoPush,
     bindSiteTypeCards: bindSiteTypeCards,
     bindGenModeCards: bindGenModeCards,
+    bindConfigSwitches: bindConfigSwitches,
+    readCfgSwitch: readCfgSwitch,
     validateConnect: validateConnect,
     validateCover: validateCover,
     validateShortCategory: validateShortCategory

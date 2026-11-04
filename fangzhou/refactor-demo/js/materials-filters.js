@@ -33,6 +33,24 @@
         .join("")
     );
   }
+  function dateField(id, label, value) {
+    var v = value || "";
+    return (
+      '<label class="fz-date-field' +
+      (v ? "" : " is-empty") +
+      '" for="' +
+      esc(id) +
+      '"><input class="input" type="date" id="' +
+      esc(id) +
+      '" aria-label="' +
+      esc(label) +
+      '" value="' +
+      esc(v) +
+      '" /><span class="fz-date-ph" aria-hidden="true">' +
+      esc(label) +
+      "</span></label>"
+    );
+  }
 
   function filterList(items, tab, f) {
     f = f || {};
@@ -142,11 +160,11 @@
     var html = '<div class="list-toolbar-row" id="mat-filter-row">';
     if (tab === "trash") {
       html +=
+        '<input class="input" id="mat-trash-content" type="search" placeholder="搜索内容 / 编号" value="' +
+        esc(f.content) +
+        '" />' +
         '<input class="input" id="mat-trash-channel" placeholder="频道名" style="max-width:130px" value="' +
         esc(f.channel) +
-        '" />' +
-        '<input class="input" id="mat-trash-content" placeholder="内容" style="max-width:160px" value="' +
-        esc(f.content) +
         '" />' +
         '<select class="input" id="mat-trash-ad" style="max-width:190px"><option value="">全部广告类别</option>' +
         AD_CATS.map(function (c) {
@@ -164,26 +182,29 @@
         '<input class="input" id="mat-trash-rule" placeholder="命中规则" style="max-width:130px" value="' +
         esc(f.hitRule) +
         '" />' +
-        '<input class="input" type="date" id="mat-trash-from" title="采集起始日期" style="max-width:150px" value="' +
-        esc(f.dateFrom) +
-        '" />' +
-        '<input class="input" type="date" id="mat-trash-to" title="采集结束日期" style="max-width:150px" value="' +
-        esc(f.dateTo) +
-        '" />' +
-        '<button type="button" class="btn" id="mat-reset">重置</button>';
+        dateField("mat-trash-from", "采集起始日期", f.dateFrom) +
+        dateField("mat-trash-to", "采集结束日期", f.dateTo) +
+        '<button type="button" class="btn" id="mat-search">搜索</button>' +
+        '<button type="button" class="btn btn-ghost" id="mat-reset">重置</button>' +
+        '<div class="list-toolbar-actions">' +
+        '<button type="button" class="btn" id="mat-refresh">刷新列表</button></div>';
     } else if (tab === "pending") {
       /* 排序改在表头点选：浏览 / 互动 / 采集时间 */
       html +=
-        '<input class="input" id="mat-q" placeholder="搜索标题/标签/编号/内容" style="max-width:240px" value="' +
+        '<input class="input" id="mat-q" type="search" placeholder="搜索标题/标签/编号/内容" value="' +
         esc(f.q) +
         '" />' +
         '<select class="input" id="mat-channel" style="max-width:180px" aria-label="来源频道">' +
         selectOptions("全部来源频道", CHANNELS, f.channel) +
-        '</select><button type="button" class="btn" id="mat-merge">消息合并</button>' +
-        '<button type="button" class="btn" id="mat-reset">重置</button>';
+        "</select>" +
+        '<button type="button" class="btn" id="mat-search">搜索</button>' +
+        '<button type="button" class="btn btn-ghost" id="mat-reset">重置</button>' +
+        '<div class="list-toolbar-actions">' +
+        '<button type="button" class="btn" id="mat-merge">消息合并</button>' +
+        '<button type="button" class="btn" id="mat-refresh">刷新列表</button></div>';
     } else {
       html +=
-        '<input class="input" id="mat-q" placeholder="搜索标题/标签/编号/内容" style="max-width:240px" value="' +
+        '<input class="input" id="mat-q" type="search" placeholder="搜索标题/标签/编号/内容" value="' +
         esc(f.q) +
         '" />' +
         '<select class="input" id="mat-status" style="max-width:160px"><option value="">全部状态</option>' +
@@ -213,25 +234,26 @@
         (f.category === "短剧" ? " selected" : "") +
         ">短剧</option></select>" +
         '<span class="mat-date-range" title="采集时间">' +
-        '<input class="input" type="date" id="mat-date-from" aria-label="采集起始日期" value="' +
-        esc(f.dateFrom) +
-        '" />' +
+        dateField("mat-date-from", "采集起始日期", f.dateFrom) +
         '<span class="mat-date-sep">至</span>' +
-        '<input class="input" type="date" id="mat-date-to" aria-label="采集截止日期" value="' +
-        esc(f.dateTo) +
-        '" /></span>' +
-        '<button type="button" class="btn" id="mat-reset">重置</button>';
+        dateField("mat-date-to", "采集截止日期", f.dateTo) +
+        "</span>" +
+        '<button type="button" class="btn" id="mat-search">搜索</button>' +
+        '<button type="button" class="btn btn-ghost" id="mat-reset">重置</button>' +
+        '<div class="list-toolbar-actions">' +
+        '<button type="button" class="btn" id="mat-refresh">刷新列表</button></div>';
     }
-    html += '<button type="button" class="btn" id="mat-refresh">刷新</button></div>';
+    html += "</div>";
     /* 全选在表头；批量操作在有勾选时出现在表上方，不再单独占一排 */
     return html;
   }
 
-  function readFilters(tab, f) {
+  /** withSearch：是否把搜索框写入 f（点「搜索」时为 true；筛选项即时生效时为 false） */
+  function readFilters(tab, f, withSearch) {
     if (!f) return;
     if (tab === "trash") {
+      if (withSearch) f.content = val("mat-trash-content");
       f.channel = val("mat-trash-channel");
-      f.content = val("mat-trash-content");
       f.adCategory = val("mat-trash-ad");
       f.hitRule = val("mat-trash-rule");
       f.dateFrom = val("mat-trash-from");
@@ -239,11 +261,11 @@
       return;
     }
     if (tab === "pending") {
-      f.q = val("mat-q");
+      if (withSearch) f.q = val("mat-q");
       f.channel = val("mat-channel");
       return;
     }
-    f.q = val("mat-q");
+    if (withSearch) f.q = val("mat-q");
     f.status = val("mat-status");
     f.category = val("mat-category");
     f.dateFrom = val("mat-date-from");

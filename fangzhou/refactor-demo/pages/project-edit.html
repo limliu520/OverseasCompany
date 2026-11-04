@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>项目详情 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261104actRR1" />
+  <link rel="stylesheet" href="../css/app.css?v=20261104kvrow3" />
 </head>
 <body>
   <div class="app">
@@ -63,12 +63,12 @@
   <script src="../js/shell.js?v=20261104mono4"></script>
   <script src="../js/novice-guide.js?v=20261031demoEdit"></script>
   <script src="../js/novice-tour-kit.js?v=20261031prefill"></script>
-  <script src="../js/novice-tours.js?v=20261031prefill"></script>
+  <script src="../js/novice-tours.js?v=20261104copyTab1"></script>
   <script src="../js/article-defaults.js?v=20261028wmFx2"></script>
-  <script src="../js/media-config.js?v=20261104dewmSw1"></script>
+  <script src="../js/media-config.js?v=20261104liveCfg1"></script>
   <script src="../js/pick-cards.js"></script>
   <script src="../js/tg-add-wizard.js?v=20261028tipAll"></script>
-  <script src="../js/project-union.js?v=20261104dewmSw1"></script>
+  <script src="../js/project-union.js?v=20261104siteDesc1"></script>
   <script>
     FZShell.boot({ active: "projects" });
     var id = new URLSearchParams(location.search).get("id");
@@ -131,14 +131,14 @@
     var ALL_TABS = [
       { id: "watermark", label: "水印管理" },
       { id: "intro", label: "片头和片尾" },
-      { id: "article", label: "文章管理" },
+      { id: "article", label: "文案管理" },
       { id: "media", label: "内容生成规则" },
-      { id: "connect", label: "开发对接配置" },
       { id: "channel", label: "TG 采集号" },
       { id: "flow", label: "推送规则" },
+      { id: "connect", label: "内容通道对接配置" },
       { id: "optional", label: "可选功能" }
     ];
-    /** 短剧站不展示「文章管理」（与创建向导 needsArticle 一致） */
+    /** 短剧站不展示「文案管理」（与创建向导 needsArticle 一致） */
     function tabsForProject(p) {
       return ALL_TABS.filter(function (t) {
         if (t.id === "article") return FZProjectUnion.needsArticle(p && p.siteType);
@@ -314,24 +314,44 @@
         : p.contentActivated
           ? "已接通（待补接口）"
           : "待配对接 / 待接通";
-      document.getElementById("topbar-cta").innerHTML =
-        '<span class="tag ' +
-        st.cls +
-        '">' +
-        st.text +
-        "</span>" +
-        (p.status === "pending_activate" && !usingNoviceDemo()
-          ? '<a class="btn btn-primary" href="./project-connect.html?id=' +
+      var botN = FZStore.projectUserbotIds(p).length;
+      var chN = FZStore.projectChannels(p).length;
+      var actionsOpt = "";
+      if (!usingNoviceDemo()) {
+        if (p.status === "pending_activate") {
+          actionsOpt =
+            '<a class="btn" href="./project-connect.html?id=' +
             encodeURIComponent(p.id) +
-            '">去对接</a>'
-          : "");
+            '">对接</a>';
+        } else if (botN === 0) {
+          actionsOpt =
+            '<button type="button" class="btn" id="btn-hero-add-bot">添加采集号</button>';
+        } else if (chN === 0 || p.status === "need_collect") {
+          actionsOpt =
+            '<a class="btn" href="./tg-collect.html?project=' +
+            encodeURIComponent(p.id) +
+            '" title="去 TG 采集配置里绑定源频道">绑定频道</a>';
+        }
+      }
+      document.getElementById("topbar-cta").innerHTML = "";
       return (
         '<div class="detail-hero">' +
         '<div class="detail-hero-top">' +
-        "<div><h2>" +
+        "<div><div class=\"detail-hero-title\">" +
+        "<h2>" +
         (p.name || "未命名项目") +
-        '</h2><div class="muted" style="font-size:13px">只读摘要。修改请点「编辑基本信息」或下方各 Tab 内保存。一个项目 = 一套内容通道（方舟规范对接）；推送带上子账号「CMS 标识」，不做多账号分发。</div></div>' +
-        '<button type="button" class="btn btn-primary" id="btn-edit-basic">编辑基本信息</button></div>' +
+        '</h2><span class="tag ' +
+        st.cls +
+        '">' +
+        st.text +
+        "</span></div>" +
+        '<div class="muted" style="font-size:13px">只读摘要。名称 / 类型 / 封面请点「编辑基本信息」；下方配置 Tab 操作即生效。一个项目 = 一套内容通道；推送带上子账号「CMS 标识」。</div></div>' +
+        '<div class="proj-actions detail-hero-actions">' +
+        '<div class="fz-actions-opt">' +
+        actionsOpt +
+        '</div><div class="fz-actions-fix">' +
+        '<button type="button" class="btn btn-primary" id="btn-edit-basic">编辑基本信息</button>' +
+        "</div></div></div>" +
         '<div class="detail-meta">' +
         '<div><div class="label">站点类型</div><div class="value">' +
         typeLabel +
@@ -392,9 +412,8 @@
       return (
         '<div class="card card-pad">' +
         FZMediaConfig.renderWatermarkPanel(p.watermarks, {
-          lead: "上下两块：去源水印（图 / 视频总开关），添加水印（叠自己的图/视频）。片头片尾见「片头和片尾」Tab。",
           allowDefault: false,
-          showSave: true,
+          showSave: false,
           dewatermarkEnabled: p.dewatermarkEnabled !== false,
           dewatermarkImage: p.dewatermarkImage,
           dewatermarkVideo: p.dewatermarkVideo,
@@ -411,8 +430,7 @@
       return (
         '<div class="card card-pad">' +
         FZMediaConfig.renderIntroOutroPanel(p.watermarks, {
-          lead: "整段拼在原片前/后，不是叠层水印。有上传才拼接；可只配一端。",
-          showSave: true
+          showSave: false
         }) +
         "</div>"
       );
@@ -422,14 +440,13 @@
       if (!FZProjectUnion.needsArticle(p.siteType)) {
         return (
           '<div class="card card-pad">' +
-          '<p class="muted" style="margin:0;font-size:13px">短剧站不配文章管理。分集与出站门槛在「推送规则」；图片编码 / 边下边播在「内容生成规则」。</p></div>'
+          '<p class="muted" style="margin:0;font-size:13px">短剧站不配文案管理。分集与出站门槛在「推送规则」；图片编码 / 边下边播在「内容生成规则」。</p></div>'
         );
       }
       return (
         '<div class="card card-pad">' +
         FZMediaConfig.renderArticlePanel(p.article, {
-          lead: "顶栏切换「AI 文章提示词管理 / 文案内链管理」。提示词默认优先自定义；点卡片切换，开关开才展开（可同开，不可同关）。文案内链独立，与提示词无关。",
-          showSave: true,
+          showSave: false,
           showLinks: true,
           artSection: artSection,
           artView: artView
@@ -438,32 +455,16 @@
       );
     }
 
-    function paneToolbar(lead, saveId, saveLabel) {
-      return (
-        '<div class="tab-pane-toolbar">' +
-        '<p class="muted media-lead" style="margin:0">' +
-        lead +
-        "</p>" +
-        '<button type="button" class="btn btn-primary tab-pane-save" id="' +
-        saveId +
-        '">' +
-        saveLabel +
-        "</button></div>"
-      );
-    }
-
     function paneConnect(p) {
       var c = p.creds || {};
       return (
         '<div class="card card-pad" style="margin-bottom:14px">' +
-        paneToolbar(
-          "开发联调用：方舟签发凭证 + 对方收件接口 / 事件通知地址。运营创建时不填；推送身份用子账号「CMS 标识」，不配对方登录账号。",
-          "btn-save-connect",
-          "保存对接配置"
-        ) +
-        '<div class="kv-block">' +
+        '<div class="cfg-card-head"><div class="cfg-card-title">① 方舟签发凭证</div>' +
+        '<div class="cfg-card-sub">给对方对接方舟用 · 只读复制</div></div>' +
+        '<div class="kv-block kv-block--row3">' +
         kvRow("App ID", c.appId, "c-appid") +
         kvRow("App Secret", c.appSecret, "c-secret") +
+        kvRow("站点代码", p.siteCode || "—", "c-scode") +
         "</div>" +
         (p.status === "pending_activate"
           ? '<a class="btn" style="margin-top:12px" href="./project-connect.html?id=' +
@@ -471,8 +472,14 @@
             '">打开开发对接页</a>'
           : "") +
         "</div>" +
+        '<div class="card card-pad" style="margin-bottom:14px">' +
+        '<div class="cfg-card-head"><div class="cfg-card-title">② 开发对接文档</div>' +
+        '<div class="cfg-card-sub">协议与示例见独立文档 · 本 Tab 不内嵌正文</div></div>' +
+        '<button type="button" class="btn" id="btn-dev-docs">查看开发对接文档</button>' +
+        "</div>" +
         '<div class="card card-pad" id="union-connect-root">' +
-        "<strong style=\"display:block;margin-bottom:10px\">对方收件与事件通知</strong>" +
+        '<div class="cfg-card-head"><div class="cfg-card-title">③ 对方反填（收件与事件通知）</div>' +
+        '<div class="cfg-card-sub">推送身份用子账号「CMS 标识」，不配对方登录账号</div></div>' +
         FZProjectUnion.renderConnectFields(p) +
         "</div>"
       );
@@ -481,11 +488,6 @@
     function paneMedia(p) {
       return (
         '<div class="card card-pad" id="union-media-root">' +
-        paneToolbar(
-          "左栏「图片生成规则」、右栏「视频生成规则」。必须含视频、最短时长在「推送规则」。封面在「编辑基本信息」，水印在「水印管理」。",
-          "btn-save-media",
-          "保存内容生成规则"
-        ) +
         FZProjectUnion.renderVideoRulesFields(p) +
         "</div>"
       );
@@ -538,11 +540,11 @@
                   " 个频道</p>" +
                   "</div></div>" +
                   '<div class="ub-actions">' +
-                  '<div class="fz-actions-opt"></div>' +
-                  '<div class="fz-actions-fix">' +
-                  '<button type="button" class="btn btn-ghost" data-detach-bot="' +
+                  '<div class="fz-actions-opt">' +
+                  '<button type="button" class="btn" data-detach-bot="' +
                   b.id +
-                  '">移出本项目</button>' +
+                  '">移出本项目</button></div>' +
+                  '<div class="fz-actions-fix">' +
                   '<a class="btn btn-primary" href="' +
                   tgHref +
                   "&bot=" +
@@ -555,14 +557,14 @@
       return (
         '<div class="ch-wrap">' +
         '<div class="ch-sec-head" style="margin-bottom:12px">' +
-        "<div><p class=\"ch-lead\" style=\"margin:0\">本页只展示采集号核心信息（状态、挂载数）。频道明细与连接/监听请到「采集中心 → TG 采集」。此处可新建采集号。</p>" +
+        "<div><div class=\"cfg-card-title\">TG 采集号</div>" +
         '<p class="ch-sec-sub">本项目 ' +
         bots.length +
         " / " +
         lim.maxBotsPerProject +
-        " 个</p></div>" +
+        " 个 · 频道与连接/监听在「采集中心 → TG 采集」</p></div>" +
         '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-        '<button type="button" class="btn btn-primary" id="btn-new-bot">+ 添加采集号</button>' +
+        '<button type="button" class="btn btn-create" id="btn-new-bot">+ 添加采集号</button>' +
         '<a class="btn" href="' +
         tgHref +
         '">打开 TG 采集</a></div></div>' +
@@ -574,11 +576,6 @@
     function paneFlow(p) {
       return (
         '<div class="card card-pad" id="union-flow-root">' +
-        paneToolbar(
-          "两段分开配：① 素材要不要自动进编辑；② 编辑就绪后要不要自动推业务方。短剧站还可配分集。对接地址在「开发对接配置」。",
-          "btn-save-flow",
-          "保存推送规则"
-        ) +
         FZProjectUnion.renderPushRulesFields(p) +
         "</div>"
       );
@@ -587,7 +584,6 @@
     function paneOptional(p) {
       return (
         '<div class="card card-pad">' +
-        '<p class="muted" style="margin:0 0 14px;font-size:13px">项目可开通下列可选能力。本期点「开通」仅提示设计中，入口必须可见。</p>' +
         FZArticle.OPTIONAL_PACKS.map(function (pack) {
           var on = !!(p.optionalPacks && p.optionalPacks[pack.id]);
           return (
@@ -637,15 +633,28 @@
       bind();
     }
 
-    function saveProject(mutator, okMsg) {
+    /**
+     * @param {function} mutator
+     * @param {{ okMsg?: string, toast?: boolean, rerender?: boolean, toastKind?: string }} [opts]
+     * 配置 Tab：操作即生效 → toast 可关、默认不整页重绘（避免输入失焦）
+     */
+    function persistProject(mutator, opts) {
+      opts = opts || {};
+      var doToast = opts.toast !== false;
+      var doRender = !!opts.rerender;
       var st = FZStore.read();
       if (usingNoviceDemo()) {
         if (!noviceDemoProject) noviceDemoProject = makeNoviceDemoProject();
         FZArticle.ensureWatermarks(noviceDemoProject);
         FZArticle.ensureArticle(noviceDemoProject);
         mutator(noviceDemoProject, st);
-        FZShell.toast((okMsg || "已保存") + "（教程演示，未写入真实项目）", "ok");
-        render();
+        if (doToast) {
+          FZShell.toast(
+            (opts.okMsg || "已更新") + "（教程演示，未写入真实项目）",
+            opts.toastKind || "ok"
+          );
+        }
+        if (doRender) render();
         return;
       }
       var p = FZStore.findProject(st, id);
@@ -654,8 +663,25 @@
       mutator(p, st);
       FZStore.upsertProject(st, p);
       FZStore.write(st);
-      FZShell.toast(okMsg || "已保存", "ok");
-      render();
+      if (doToast) FZShell.toast(opts.okMsg || "已更新", opts.toastKind || "ok");
+      if (doRender) render();
+    }
+
+    /** 需刷新 UI 的写操作（上传、增删链接等） */
+    function saveProject(mutator, okMsg) {
+      persistProject(mutator, { okMsg: okMsg || "已保存", toast: true, rerender: true });
+    }
+
+    var configSaveTimer = null;
+    function scheduleConfigPersist(mutator, okMsg) {
+      clearTimeout(configSaveTimer);
+      configSaveTimer = setTimeout(function () {
+        persistProject(mutator, {
+          okMsg: okMsg || "已更新",
+          toast: true,
+          rerender: false
+        });
+      }, 320);
     }
 
     function bind() {
@@ -696,10 +722,28 @@
           document.getElementById("basic-modal").hidden = false;
         });
       }
+      var heroAddBot = document.getElementById("btn-hero-add-bot");
+      if (heroAddBot) {
+        heroAddBot.addEventListener("click", function () {
+          tab = "channel";
+          history.replaceState(null, "", editPageUrl(tab));
+          render();
+        });
+      }
 
-      var saveConnect = document.getElementById("btn-save-connect");
-      if (saveConnect) {
-        saveConnect.addEventListener("click", function () {
+      function persistWmForm() {
+        scheduleConfigPersist(function (p) {
+          var dewmS = FZMediaConfig.collectDewatermarkStrategies(document);
+          if (dewmS) FZMediaConfig.applyDewatermarkStrategies(p, dewmS);
+          FZMediaConfig.applyWatermarkForm(p.watermarks, document);
+          var wav = document.getElementById("wm-add-view");
+          if (wav) wmAddView = wav.value || "image";
+        }, "水印已更新");
+      }
+
+      var connectRoot = document.getElementById("union-connect-root");
+      if (connectRoot) {
+        function persistConnect() {
           var draft = {};
           FZProjectUnion.collectConnect(document, draft);
           var err = FZProjectUnion.validateConnect(draft);
@@ -707,18 +751,37 @@
             FZShell.toast(err, "err");
             return;
           }
-          saveProject(function (p) {
+          scheduleConfigPersist(function (p) {
             FZProjectUnion.collectConnect(document, p);
             p.webhook = !!p.webhookUrl;
-          }, "对接配置已保存");
+          }, "对接配置已更新");
+        }
+        connectRoot.querySelectorAll("input, select, textarea").forEach(function (el) {
+          el.addEventListener("change", persistConnect);
+          el.addEventListener("input", persistConnect);
         });
       }
-      var saveMedia = document.getElementById("btn-save-media");
-      if (saveMedia) {
-        saveMedia.addEventListener("click", function () {
-          saveProject(function (p) {
-            FZProjectUnion.collectVideoRules(document, p);
-          }, "内容生成规则已保存");
+      var docsBtn = document.getElementById("btn-dev-docs");
+      if (docsBtn) {
+        docsBtn.addEventListener("click", function () {
+          var docsUrl = "";
+          if (!docsUrl) {
+            FZShell.toast("开发对接文档暂未配置，请联系管理员", "err");
+            return;
+          }
+          window.open(docsUrl, "_blank", "noopener");
+        });
+      }
+
+      function persistMedia() {
+        scheduleConfigPersist(function (p) {
+          FZProjectUnion.collectVideoRules(document, p);
+        }, "内容生成规则已更新");
+      }
+      var mediaRoot = document.getElementById("union-media-root");
+      if (mediaRoot) {
+        mediaRoot.querySelectorAll("input, select").forEach(function (el) {
+          el.addEventListener("change", persistMedia);
         });
       }
 
@@ -728,6 +791,7 @@
           onSubChange: function (which) {
             wmAddView = which;
           },
+          onFormChange: persistWmForm,
           onUpload: function (key, file) {
             var reader = new FileReader();
             reader.onload = function () {
@@ -747,18 +811,6 @@
             }, "已清除");
           }
         });
-        var swm = document.getElementById("btn-save-wm");
-        if (swm) {
-          swm.addEventListener("click", function () {
-            saveProject(function (p) {
-              var dewmS = FZMediaConfig.collectDewatermarkStrategies(document);
-              if (dewmS) FZMediaConfig.applyDewatermarkStrategies(p, dewmS);
-              FZMediaConfig.applyWatermarkForm(p.watermarks, document);
-              var wav = document.getElementById("wm-add-view");
-              if (wav) wmAddView = wav.value || "image";
-            }, "水印配置已保存");
-          });
-        }
       }
 
       var ioRoot = document.querySelector("[data-media-io]");
@@ -781,19 +833,29 @@
             }, "已清除");
           }
         });
-        var sio = document.getElementById("btn-save-io");
-        if (sio) {
-          sio.addEventListener("click", function () {
-            saveProject(function (p) {
-              if (FZArticle.ensureWatermarks) FZArticle.ensureWatermarks(p);
-              FZMediaConfig.syncIntroOutroEnabled(p.watermarks);
-            }, "片头片尾已保存");
-          });
-        }
       }
 
       var artRoot = document.querySelector("[data-media-art]");
       if (artRoot) {
+        function persistArtForm() {
+          var draft = FZMediaConfig.readArticleForm(document);
+          var ctx = loadProject();
+          draft.templates = ((ctx && ctx.p.article && ctx.p.article.templates) || []).map(
+            function (t) {
+              return {
+                id: t.id,
+                on: Object.prototype.hasOwnProperty.call(draft.tplOns, t.id)
+                  ? draft.tplOns[t.id]
+                  : t.on
+              };
+            }
+          );
+          var err = FZMediaConfig.validateArticle(draft);
+          if (err) return;
+          scheduleConfigPersist(function (p) {
+            FZMediaConfig.applyArticleForm(p.article, document);
+          }, "文案配置已更新");
+        }
         FZMediaConfig.bindArticleUI(artRoot, {
           onChange: function () {
             var s = document.getElementById("art-section");
@@ -801,6 +863,7 @@
             var v = document.getElementById("art-view");
             if (v) artView = v.value || "custom";
           },
+          onFormChange: persistArtForm,
           onAddLink: function () {
             artSection = "links";
             var kw = ((document.getElementById("link-kw") || {}).value || "").trim();
@@ -831,28 +894,6 @@
             }, "已删除链接");
           }
         });
-        var saveArt = document.getElementById("btn-save-art");
-        if (saveArt) {
-          saveArt.addEventListener("click", function () {
-            var draft = FZMediaConfig.readArticleForm(document);
-            draft.templates = (loadProject().p.article.templates || []).map(function (t) {
-              return {
-                id: t.id,
-                on: Object.prototype.hasOwnProperty.call(draft.tplOns, t.id)
-                  ? draft.tplOns[t.id]
-                  : t.on
-              };
-            });
-            var err = FZMediaConfig.validateArticle(draft);
-            if (err) {
-              FZShell.toast(err, "err");
-              return;
-            }
-            saveProject(function (p) {
-              FZMediaConfig.applyArticleForm(p.article, document);
-            }, "提示词配置已保存");
-          });
-        }
       }
 
       /* TG 采集号：展示 + 新建；频道操作去采集配置 */
@@ -878,16 +919,35 @@
       var nb = document.getElementById("btn-new-bot");
       if (nb) nb.addEventListener("click", openNewBot);
 
-      var sf = document.getElementById("btn-save-flow");
-      if (sf)
-        sf.addEventListener("click", function () {
-          saveProject(function (p) {
-            FZProjectUnion.collectPushRules(document, p);
-            if (p.contentActivated) p.status = FZStore.deriveStatus(p);
-          }, "已保存");
+      function persistFlow() {
+        scheduleConfigPersist(function (p) {
+          FZProjectUnion.collectPushRules(document, p);
+          if (p.contentActivated) p.status = FZStore.deriveStatus(p);
+        }, "推送规则已更新");
+      }
+      var flowRoot = document.getElementById("union-flow-root");
+      if (flowRoot) {
+        flowRoot.querySelectorAll("input, select, textarea").forEach(function (el) {
+          el.addEventListener("change", persistFlow);
+          el.addEventListener("input", persistFlow);
         });
+      }
 
-      FZMediaConfig.bindSegControls(document.getElementById("root"));
+      FZMediaConfig.bindSegControls(document.getElementById("root"), function (name) {
+        var n = String(name || "");
+        if (n.indexOf("to-edit") !== -1 || n.indexOf("push-mode") !== -1) {
+          persistFlow();
+        } else if (n.indexOf("img-fmt") !== -1) {
+          persistMedia();
+        }
+      });
+      FZProjectUnion.bindConfigSwitches(document.getElementById("root"), function (sid) {
+        var n = String(sid || "");
+        if (n.indexOf("slice") !== -1) persistMedia();
+        else if (n.indexOf("req-video") !== -1 || n.indexOf("episodes") !== -1) {
+          persistFlow();
+        }
+      });
 
       document.querySelectorAll("[data-opt]").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -970,7 +1030,7 @@
           "将站点类型改为「" +
             FZProjectUnion.siteTypeLabel(nextType) +
             "」？\n\n" +
-            "• 会按新类型调整后续默认规则（如短剧分集、是否配文章管理）。\n" +
+            "• 会按新类型调整后续默认规则（如短剧分集、是否配文案管理）。\n" +
             "• 已生成的历史文章/素材不会自动重跑或改写。\n" +
             "• 未完成队列仍按新类型规则继续处理。"
         );

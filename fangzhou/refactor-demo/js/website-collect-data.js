@@ -10,13 +10,13 @@ window.FZWebCollectData = {
   },
   /*
    * 站点状态（配置级，非单次采集任务）：
-   * 创建 → 接入中 →（Admin 完成）生效中
+   * 创建 → 技术接入中 →（Admin 完成）生效中
    *                 →（接入失败）无法接入（不可操作）
    * 生效中 ↔ 已暂停；生效/暂停可「重新配置生效」
-   * 接入中：不可改配置内容
+   * 技术接入中：不可改配置内容
    */
   STATUS: {
-    connecting: { label: "接入中", cls: "badge-info" },
+    connecting: { label: "技术接入中", cls: "badge-info" },
     failed: { label: "无法接入", cls: "badge-danger" },
     active: { label: "生效中", cls: "badge-ok" },
     paused: { label: "已暂停", cls: "badge-warn" }
@@ -80,7 +80,8 @@ window.FZWebCollectData = {
       dedup: true,
       interval: 60,
       nextAt: "—",
-      notes: "源站反爬，无法接入",
+      notes: "",
+      failReason: "源站开启反爬 / 访问探测失败，技术侧无法完成接入。",
       targets: []
     },
     {

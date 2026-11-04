@@ -535,7 +535,7 @@
     paintFilter();
     page = 1;
     render();
-    FZShell.toast("已清空筛选", "ok");
+    FZShell.toast("已重置筛选", "ok");
   }
 
   paintFilter();
@@ -545,20 +545,16 @@
     readFilter();
     page = 1;
     render();
-    FZShell.toast("已按条件筛选", "ok");
   });
   document.getElementById("art-f-clear").addEventListener("click", clearFilter);
   document.getElementById("art-f-refresh").addEventListener("click", function () {
-    /* 刷新 = 重置本列表演示数据（失败/已推送等种子态），筛选条件保留 */
-    if (typeof FZArticles.reset === "function") FZArticles.reset();
-    paintFilter();
-    page = 1;
     render();
-    FZShell.toast("已重置并刷新本列表", "ok");
+    FZShell.toast("已刷新", "ok");
   });
   ["art-f-project", "art-f-status"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", function () {
-      readFilter();
+      filter.projectId = document.getElementById("art-f-project").value;
+      filter.status = document.getElementById("art-f-status").value;
       page = 1;
       render();
     });

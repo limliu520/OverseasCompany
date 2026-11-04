@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>开发对接 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261104mono4" />
+  <link rel="stylesheet" href="../css/app.css?v=20261104kvrow3" />
 </head>
 <body>
   <div class="app">
@@ -13,8 +13,8 @@
       <div class="topbar">
         <h1>开发对接</h1>
         <div class="topbar-actions">
-          <a class="btn btn-ghost" id="btn-edit" href="#">项目编辑</a>
-          <button type="button" class="btn btn-ghost" id="btn-close">关闭</button>
+          <a class="btn" id="btn-edit" href="#">项目详情</a>
+          <button type="button" class="btn" id="btn-close">关闭</button>
           <div id="top-user"></div>
         </div>
       </div>
@@ -110,10 +110,6 @@
       if (!p.creds) p.creds = FZStore.issueProjectCreds(p.id);
       var status = FZStore.projectStatusLabel(p);
       var creds = p.creds || {};
-      var doneHint = p.contentActivated
-        ? '<p class="muted" style="margin:0;font-size:13px">通道已接通。前置配置已按意向生效。本页供开发继续查凭证与收件配置。</p>'
-        : '<p class="muted" style="margin:0;font-size:13px">给<strong>开发</strong>用：方舟签发的凭证（对方来接我们）+ 可选对方收件地址（我们推到对方）。运营创建流程里不再填这些。接通后可用下方 Demo 按钮模拟。</p>';
-
       document.getElementById("root").innerHTML =
         '<div class="card card-pad" style="margin-bottom:14px">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">' +
@@ -126,14 +122,18 @@
         status.cls +
         '">' +
         status.text +
-        "</span></div>" +
-        '<div style="margin-top:12px">' +
-        doneHint +
-        "</div></div>" +
+        "</span></div></div>" +
         '<div class="card card-pad" style="margin-bottom:14px">' +
-        "<h2 style=\"margin:0 0 8px;font-size:16px\">① 方舟签发的通道凭证（只读）</h2>" +
-        '<p class="muted" style="margin:0 0 12px;font-size:13px">交给业务方用来调方舟接口。展示 + 复制，不可编辑。一项目一套通道；推送身份用子账号「CMS 标识」。</p>' +
-        '<div class="kv-block">' +
+        '<div class="cfg-card-head-row" style="margin-bottom:8px;align-items:flex-start">' +
+        "<div><h2 style=\"margin:0;font-size:16px\">① 方舟签发的通道凭证（只读）</h2>" +
+        '<p class="muted" style="margin:6px 0 0;font-size:13px">交给业务方用来调方舟接口。展示 + 复制，不可编辑。一项目一套通道；推送身份用子账号「CMS 标识」。</p></div>' +
+        (p.contentActivated
+          ? '<a class="btn btn-primary" style="flex-shrink:0" href="./project-edit.html?id=' +
+            encodeURIComponent(id) +
+            '">查看项目</a>'
+          : '<button type="button" class="btn btn-primary" id="btn-test" style="flex-shrink:0">接通测试</button>') +
+        "</div>" +
+        '<div class="kv-block kv-block--row3">' +
         kvCopyRow("App ID", creds.appId, "conn-appid") +
         kvCopyRow("App Secret", creds.appSecret, "conn-secret") +
         kvCopyRow("站点代码", p.siteCode || "—", "conn-scode") +
@@ -141,40 +141,17 @@
         '<div class="muted" style="font-size:12px;margin-top:10px">通道状态：' +
         (p.contentActivated ? "已接通" : "待接通") +
         "</div></div>" +
-        '<div class="card card-pad" style="margin-bottom:14px" id="dev-connect-form">' +
-        "<h2 style=\"margin:0 0 8px;font-size:16px\">② 对方收件与签名（开发填写）</h2>" +
-        '<p class="muted" style="margin:0 0 12px;font-size:13px">需要方舟<strong>推内容到对方</strong>时再填对方接口；仅对方来调方舟时可留空。与项目详情「内容通道对接」同一套字段。</p>' +
-        FZProjectUnion.renderConnectFields(p) +
-        '<button type="button" class="btn btn-primary" id="btn-save-connect" style="margin-top:12px">保存对接参数</button></div>' +
         '<div class="card card-pad" style="margin-bottom:14px">' +
-        "<strong>接入方案（占位）</strong>" +
-        '<div class="code-block" style="margin-top:12px"><pre style="margin:0;white-space:pre-wrap">' +
-        "# 对方 → 方舟（用上方 App ID / Secret）\n" +
-        "Authorization: Bearer " +
-        (creds.appSecret || "…") +
-        "\n" +
-        "POST /v1/projects/" +
-        (creds.appId || "…") +
-        "/content\n" +
-        "# body 可带 cmsIdentity = 子账号 CMS 标识\n\n" +
-        "# 方舟 → 对方（若已配收件地址）\n" +
-        (p.apiBaseUrl
-          ? p.apiBaseUrl + (p.apiPrefix || "/oash/v1")
-          : "# （未配对方收件地址）") +
-        "\n" +
-        "# 事件通知（Webhook）：" +
-        (p.webhookUrl || "未配置") +
-        "\n" +
-        "</pre></div>" +
-        '<div class="placeholder-doc" style="margin-top:12px"><strong>对接文档链接（占位）</strong>正式环境提供规范与示例工程。</div>' +
+        "<h2 style=\"margin:0 0 8px;font-size:16px\">② 开发对接文档</h2>" +
+        '<p class="muted" style="margin:0 0 12px;font-size:13px">接口协议、鉴权示例、错误码与示例工程见独立文档。本页只维护本项目凭证与对方反填，不内嵌协议正文。</p>' +
+        '<button type="button" class="btn" id="btn-dev-docs">查看开发对接文档</button>' +
         "</div>" +
-        '<div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap">' +
-        '<button type="button" class="btn btn-ghost" id="btn-close-2">关闭</button>' +
-        (p.contentActivated
-          ? '<a class="btn btn-primary" href="./project-edit.html?id=' +
-            encodeURIComponent(id) +
-            '">查看项目</a>'
-          : '<button type="button" class="btn btn-primary" id="btn-test">模拟接通成功</button>') +
+        '<div class="card card-pad" style="margin-bottom:14px" id="dev-connect-form">' +
+        '<div class="cfg-card-head-row" style="margin-bottom:8px;align-items:flex-start">' +
+        "<div><h2 style=\"margin:0;font-size:16px\">③ 对方反填（收件与事件通知）</h2>" +
+        '<p class="muted" style="margin:6px 0 0;font-size:13px">需要方舟推内容到对方时再填对方接口；仅对方来调方舟时可留空。与项目详情「内容通道对接配置」同一套字段。</p></div>' +
+        '<button type="button" class="btn btn-primary" id="btn-save-connect" style="flex-shrink:0">保存对接参数</button></div>' +
+        FZProjectUnion.renderConnectFields(p) +
         "</div>";
 
       document.querySelectorAll("[data-copy-text]").forEach(function (btn) {
@@ -210,7 +187,18 @@
           render();
         });
       }
-      document.getElementById("btn-close-2").addEventListener("click", closePage);
+      var docsBtn = document.getElementById("btn-dev-docs");
+      if (docsBtn) {
+        docsBtn.addEventListener("click", function () {
+          /* 正式环境改为环境级文档 URL；Demo 暂未配置真实地址 */
+          var docsUrl = "";
+          if (!docsUrl) {
+            FZShell.toast("开发对接文档暂未配置，请联系管理员", "err");
+            return;
+          }
+          window.open(docsUrl, "_blank", "noopener");
+        });
+      }
       var testBtn = document.getElementById("btn-test");
       if (testBtn) {
         testBtn.addEventListener("click", function () {
@@ -221,8 +209,8 @@
           FZStore.write(s2);
           FZShell.toast(
             proj.status === "need_collect"
-              ? "已接通；自动流意向将生效，但仍缺采集源（演示）"
-              : "已接通，前置配置生效，项目创建完成"
+              ? "接通测试通过；自动流意向将生效，但仍缺采集源"
+              : "接通测试通过，前置配置生效，项目创建完成"
           );
           location.href = "./projects.html";
         });

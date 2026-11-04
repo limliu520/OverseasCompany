@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>网站采集配置 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261104mono4" />
+  <link rel="stylesheet" href="../css/app.css?v=20261104createBlk1" />
 </head>
 <body>
   <div class="app">
@@ -13,19 +13,14 @@
       <div class="topbar">
         <h1>网站采集配置</h1>
         <div class="topbar-actions">
-          <button type="button" class="btn btn-primary" id="btn-add-site">+ 添加网站</button>
+          <button type="button" class="btn btn-create" id="btn-add-site">+ 申请添加采集网站</button>
           <div id="top-user"></div>
         </div>
       </div>
       <div class="content content--dock-pager">
         <div class="page-scroll">
-          <p class="proj-page-lead">
-            上方为站点配置（低频）；点选某站后下方看该站采集记录。一站一种类型：瓜/视频/短剧绑同类型项目（最多 5 个），或选「公共素材池」不绑项目、料进公共素材池。状态机与「启动采集」开关分开；同一页面不可进两条配置。
-          </p>
-
-          <div class="wc-card-head">
-            <span class="wc-card-head-title">网站采集配置</span>
-            <span class="muted" style="font-size:12px">一排约 5 张；点卡片筛记录，编辑进弹窗</span>
+          <div class="wc-sites-head">
+            <h2 class="wc-section-title">采集网站</h2>
           </div>
           <div class="wc-site-grid" id="wc-sites"></div>
 
@@ -98,6 +93,7 @@
       <div class="field" id="wc-f-status-row" hidden>
         <label>申请状态</label>
         <div id="wc-f-status-text" class="muted" style="font-size:13px"></div>
+        <div id="wc-f-fail-reason" class="wc-fail-reason" hidden></div>
       </div>
       <div class="modal-actions" id="wc-site-modal-actions"></div>
     </div>
@@ -115,15 +111,15 @@
   </div>
 
   <script src="../js/store.js?v=20261031poolCollect"></script>
-  <script src="../js/shell.js?v=20261104mono4"></script>
+  <script src="../js/shell.js?v=20261104techConn1"></script>
   <script src="../js/pager.js?v=20261104rf03"></script>
-  <script src="../js/website-collect-data.js?v=20261031matPool"></script>
-  <script src="../js/website-collect-render.js?v=20261031matPool"></script>
+  <script src="../js/website-collect-data.js?v=20261104failReason1"></script>
+  <script src="../js/website-collect-render.js?v=20261104searchW1"></script>
   <script src="../js/website-collect-form.js?v=20261031matPool"></script>
-  <script src="../js/website-collect-modal.js?v=20261031matPool"></script>
+  <script src="../js/website-collect-modal.js?v=20261104failReason1"></script>
   <script src="../js/novice-guide.js?v=20261031tour7"></script>
   <script src="../js/novice-tour-kit.js?v=20261031prefill"></script>
   <script src="../js/novice-tours.js?v=20261031prefill"></script>
-  <script src="../js/website-collect-app.js?v=20261031tour7"></script>
+  <script src="../js/website-collect-app.js?v=20261104wcSearch2"></script>
 </body>
 </html>

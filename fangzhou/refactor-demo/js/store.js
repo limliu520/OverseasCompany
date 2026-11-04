@@ -262,23 +262,35 @@
     };
   }
 
-  /** 演示用图片水印 SVG（列表头图对齐现网取 watermark_images） */
-  function demoImageWmDataUrl(label, fill) {
+  /** 演示用图片水印 SVG：浅底深字（主色已是墨黑，占位勿再铺黑块） */
+  function demoImageWmDataUrl(label, fill, ink) {
     var ch = String(label || "项").charAt(0);
     var svg =
       '<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">' +
       '<rect width="96" height="96" rx="16" fill="' +
-      (fill || "#222") +
-      '"/>' +
-      '<text x="48" y="58" text-anchor="middle" fill="#fff" font-size="36" font-weight="700" font-family="system-ui,-apple-system,sans-serif">' +
+      (fill || "#f4f4f5") +
+      '" stroke="#e8e8ea" stroke-width="2"/>' +
+      '<text x="48" y="58" text-anchor="middle" fill="' +
+      (ink || "#3f3f46") +
+      '" font-size="36" font-weight="650" font-family="system-ui,-apple-system,sans-serif">' +
       ch +
       "</text></svg>";
     return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   }
 
+  function isLegacyDarkWm(dataUrl) {
+    if (!dataUrl) return false;
+    try {
+      var raw = decodeURIComponent(String(dataUrl).split(",")[1] || "");
+      return /fill=["']#(?:222|222222|111|000|3d6ef5|c45a2a)["']/i.test(raw);
+    } catch (err) {
+      return /%23(?:222|222222|111|000|3d6ef5|c45a2a)/i.test(String(dataUrl));
+    }
+  }
+
   /**
    * 确保项目有图片水印可供列表展示。
-   * 已有 dataUrl 不覆盖；演示项目或 watermarkDone 时补默认图。
+   * 已有非旧版深色 dataUrl 不覆盖；演示项目或 watermarkDone 时补浅色占位。
    */
   function seedProjectImageWm(p) {
     if (!p || p.isPublicPool) return false;
@@ -304,24 +316,28 @@
       };
     }
     var img = p.watermarks.image;
-    if (img.dataUrl) {
+    var isDemo = String(p.id || "").indexOf("proj_demo_") === 0;
+    var legacy = isLegacyDarkWm(img.dataUrl);
+    if (img.dataUrl && !legacy) {
       if (!img.enabled) {
         img.enabled = true;
         return true;
       }
       return false;
     }
-    var isDemo = String(p.id || "").indexOf("proj_demo_") === 0;
-    if (!isDemo && !p.watermarkDone) return false;
-    var fill =
-      p.siteType === "video"
-        ? "#3d6ef5"
-        : p.siteType === "short_drama"
-          ? "#c45a2a"
-          : "#222222";
+    if (!isDemo && !p.watermarkDone && !legacy) return false;
+    var fill = "#f4f4f5";
+    var ink = "#3f3f46";
+    if (p.siteType === "video") {
+      fill = "rgba(147,197,253,0.22)";
+      ink = "rgba(37,99,235,0.72)";
+    } else if (p.siteType === "short_drama") {
+      fill = "rgba(251,191,36,0.2)";
+      ink = "rgba(180,83,9,0.75)";
+    }
     img.enabled = true;
     img.name = "project-logo.svg";
-    img.dataUrl = demoImageWmDataUrl(p.name || "项", fill);
+    img.dataUrl = demoImageWmDataUrl(p.name || "项", fill, ink);
     if (!img.position) img.position = "top-right";
     return true;
   }

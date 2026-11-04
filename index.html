@@ -43,20 +43,21 @@
   strong { display: block; font-size: 16px; }
   span, .empty { color: var(--muted); font-size: 13px; }
 
-  /* 文件夹样式：与普通需求卡片区分 */
-  .folder {
+  /* 文件夹入口：单条可点，与下方「文件」白卡片区分 */
+  a.folder-link {
+    position: relative;
+    margin-top: 14px;
+    padding: 16px 16px 14px 48px;
     background: linear-gradient(180deg, #f0ebe3 0%, #e8e2d8 100%);
     border: 1px solid #d4cdc2;
     border-radius: 0 12px 12px 12px;
-    padding: 12px;
-    position: relative;
-    margin-top: 10px;
+    box-shadow: none;
   }
-  .folder::before {
+  a.folder-link::before {
     content: "";
     position: absolute;
     top: -14px;
-    left: 0;
+    left: -1px;
     width: 132px;
     height: 14px;
     background: #e0d8cc;
@@ -65,53 +66,29 @@
     border-radius: 8px 10px 0 0;
     clip-path: polygon(0 0, 88% 0, 100% 100%, 0 100%);
   }
-  .folder-head {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    margin: 2px 4px 12px;
-  }
-  .folder-head .folder-icon {
-    flex-shrink: 0;
-    width: 18px;
-    height: 14px;
-    margin-top: 2px;
-    background: #c4a574;
-    border-radius: 2px 2px 1px 1px;
-    position: relative;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
-  }
-  .folder-head .folder-icon::before {
+  a.folder-link::after {
     content: "";
     position: absolute;
-    top: -4px;
-    left: 0;
-    width: 7px;
-    height: 4px;
-    background: #b89560;
-    border-radius: 2px 2px 0 0;
+    left: 16px;
+    top: 50%;
+    margin-top: -5px;
+    width: 20px;
+    height: 15px;
+    background: #c4a574;
+    border-radius: 2px 2px 1px 1px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
   }
-  .folder-head strong {
-    font-size: 15px;
+  a.folder-link:hover {
+    border-color: var(--accent);
+  }
+  a.folder-link strong {
     color: #4a3f32;
+    font-size: 15px;
   }
-  .folder-head span {
-    font-size: 12px;
+  a.folder-link span {
     color: #7a6f62;
+    font-size: 12px;
   }
-  .folder ul {
-    gap: 8px;
-  }
-  .folder a {
-    background: var(--paper);
-    border-color: #ddd6cb;
-    border-radius: 10px;
-    padding: 12px 14px;
-    box-shadow: 0 1px 0 rgba(255,255,255,.6);
-  }
-  .folder a:hover { border-color: var(--accent); }
-  .folder a strong { font-size: 15px; }
-  .section-rest { margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -151,50 +128,11 @@
 
   <section>
     <h2>方舟</h2>
-    <div class="folder" aria-label="方舟重构材料目录">
-      <div class="folder-head">
-        <i class="folder-icon" aria-hidden="true"></i>
-        <strong>方舟重构材料目录</strong>
-        <span>脑图 / IA / 泳道 / UI 探索 / Demo 增值</span>
-      </div>
-      <ul>
-        <li>
-          <a href="fangzhou/index.html">
-            <strong>重构材料总览</strong>
-            <span>现网脑图、To-Be IA/权限、主流程泳道、四模块架构、运营点选路径</span>
-          </a>
-        </li>
-        <li>
-          <a href="fangzhou/ui-spec/fangzhou-ui-mono-spec.html">
-            <strong>方舟 · 黑白 UI 规范</strong>
-            <span>黑白 Token / 控件口径 · Draft 0.4 · refactor-demo 已落地 · 深色可切</span>
-          </a>
-        </li>
-        <li>
-          <a href="fangzhou/ui-spec/fangzhou-ui-mono-pages.html">
-            <strong>方舟 · 黑白 UI 页面预览</strong>
-            <span>静态套规范：五页主界面 · 浅色 / 深色可切</span>
-          </a>
-        </li>
-        <li>
-          <a href="fangzhou/refactor-demo/tg-collect-ui-skins.html">
-            <strong>视觉 UI 对照风格 · TG 采集</strong>
-            <span>静态换皮：现行 / 墨蓝 / 石色 / 控制台 / 纸面 / 薰紫 SaaS / 青柠金融（仅 UI，无功能）</span>
-          </a>
-        </li>
-        <li>
-          <a href="fangzhou/fangzhou-demo-workbench-help-guide-prd.html">
-            <strong>工作台 / 帮助反馈 / 引导</strong>
-            <span>重构 Demo 增值：通用工作台四块、右下角帮助与二级反馈、登录选角色、菜单二级引导</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-    <ul class="section-rest">
+    <ul>
       <li>
-        <a href="fangzhou/md-view.html?f=fangzhou-refactor-ops-survey-backlog.md">
-          <strong>运营访谈 → 重构优化清单</strong>
-          <span>视频封面策略 · 去水印交叉配置 · 素材列表 100 条 · 新建默认手动推送</span>
+        <a class="folder-link" href="fangzhou/index.html">
+          <strong>方舟重构材料目录</strong>
+          <span>脑图 / IA / 泳道 / UI 探索 / 重构方案 PRD · 点进查看</span>
         </a>
       </li>
       <li>
@@ -205,20 +143,20 @@
       </li>
       <li>
         <a href="fangzhou/fangzhou-watermark-intro-prd.html">
-          <strong>水印与片头片尾优化</strong>
-          <span>编辑项目 · 水印开关/翻转/间歇/速度 · 出图格式 · 片头片尾 · PRD 与 Demo</span>
+          <strong>方舟 · 水印与片头片尾优化 PRD</strong>
+          <span>编辑项目 · 水印开关/翻转/间歇/速度 · 出图格式 · 片头片尾</span>
         </a>
       </li>
       <li>
         <a href="fangzhou/fangzhou-list-refresh-editor-prd.html">
-          <strong>列表刷新与正文编辑优化</strong>
+          <strong>方舟 · 列表刷新与正文编辑优化 PRD</strong>
           <span>素材/文章列表状态刷新 · 图片描述 · 加行焦点 · 图片宽度</span>
         </a>
       </li>
       <li>
         <a href="fangzhou/文章生成设置.html">
-          <strong>文章生成设置</strong>
-          <span>文案提示词与关键词链接 · PRD 与原型</span>
+          <strong>方舟 · 文章生成设置 PRD</strong>
+          <span>文案提示词与关键词链接 · 含可点原型</span>
         </a>
       </li>
     </ul>
@@ -229,8 +167,8 @@
     <ul>
       <li>
         <a href="51VIDEO/product-purchase-limit-prerequisite-prd.html">
-          <strong>51视频 · 商品限购 / 前置条件 / 有效时间</strong>
-          <span>产品管理限购数、前置条件、有效时间 · PRD 与 Demo</span>
+          <strong>51视频 · 商品限购 / 前置条件 / 有效时间 PRD</strong>
+          <span>产品管理限购数、前置条件、有效时间 · 含可点 Demo</span>
         </a>
       </li>
     </ul>
@@ -247,8 +185,8 @@
       </li>
       <li>
         <a href="51chigua/51吃瓜-渠道推广链接与数据统计-prd-demo.html">
-          <strong>渠道推广链接与数据统计</strong>
-          <span>品宣网 · 渠道配置与数据统计 · PRD 与 Demo</span>
+          <strong>51吃瓜 · 渠道推广链接与数据统计 PRD</strong>
+          <span>品宣网 · 渠道配置与数据统计 · 含可点 Demo</span>
         </a>
       </li>
     </ul>

@@ -458,22 +458,32 @@
     return html;
   }
 
-  /** 说明文案在左、保存在右上（避免滚到底才看见） */
-  function paneTopBar(lead, opts) {
-    opts = opts || {};
-    if (!opts.saveId) {
-      return '<p class="muted media-lead">' + lead + "</p>";
+  /** 模块标题行；有保存时标题左、按钮右（不再单独套 toolbar 提醒层） */
+  function cfgHead(title, sub, saveOpts) {
+    var left =
+      "<div><div class=\"cfg-card-title\">" +
+      title +
+      "</div>" +
+      (sub ? '<div class="cfg-card-sub">' + sub + "</div>" : "") +
+      "</div>";
+    if (saveOpts && saveOpts.id) {
+      return (
+        '<div class="cfg-card-head-row">' +
+        left +
+        '<button type="button" class="btn btn-primary tab-pane-save" id="' +
+        saveOpts.id +
+        '">' +
+        (saveOpts.label || "保存") +
+        "</button></div>"
+      );
     }
     return (
-      '<div class="tab-pane-toolbar">' +
-      '<p class="muted media-lead" style="margin:0">' +
-      lead +
-      "</p>" +
-      '<button type="button" class="btn btn-primary tab-pane-save" id="' +
-      opts.saveId +
-      '">' +
-      (opts.saveLabel || "保存") +
-      "</button></div>"
+      '<div class="cfg-card-head">' +
+      '<div class="cfg-card-title">' +
+      title +
+      "</div>" +
+      (sub ? '<div class="cfg-card-sub">' + sub + "</div>" : "") +
+      "</div>"
     );
   }
 
@@ -532,9 +542,11 @@
 
     return (
       '<div class="cfg-card wm-add-card">' +
-      '<div class="cfg-card-head"><div class="cfg-card-title">添加水印</div>' +
-      '<div class="cfg-card-sub">叠层能力 · 图片水印 / 视频水印可同开；片头片尾请到独立页配置</div></div>' +
-      '<p class="muted" style="margin:0 0 12px;font-size:13px;line-height:1.5">开关开才展开下方配置。视频水印三种类型左中右并排，可同开。</p>' +
+      cfgHead(
+        "添加水印",
+        "叠层能力 · 图片水印 / 视频水印可同开；片头片尾请到独立页配置",
+        opts.showSave ? { id: "btn-save-wm", label: "保存" } : null
+      ) +
       '<input type="hidden" id="wm-add-view" value="' +
       view +
       '" />' +
@@ -660,8 +672,8 @@
   }
 
   /**
-   * 水印管理：上「去源水印」（图 / 视频总开关），下「添加水印」。
-   * 本期暂不拆移动/固定；后续有细项时再「开开关 → 展开配置」。
+   * 水印管理：上「去源水印」，下「添加水印」。
+   * 两块一次保存：按钮放在「添加水印」标题行（配置主战场）；去源开关一并写入。
    */
   function renderWatermarkPanel(watermarks, opts) {
     opts = opts || {};
@@ -677,19 +689,15 @@
       (keepAll ? "keep" : "remove");
     var imgOn = image !== "keep";
     var videoOn = video !== "keep";
-    var lead =
-      opts.lead ||
-      (showDewm
-        ? "上下两块：先定要不要抹原站水印，再定要不要叠自己的水印。片头片尾不在本页。"
-        : "配置本项目叠加水印。");
     var removePane =
       '<div class="cfg-card wm-dewm-card">' +
-      '<div class="cfg-card-head"><div class="cfg-card-title">去源水印</div>' +
-      '<div class="cfg-card-sub">抹掉素材自带的水印 · 与下方「添加水印」无关 · 默认都开 ' +
-      fieldTip(
-        "图片、视频各一个总开关。开=去源水印，关=保留原站水印。本期不区分视频移动/固定；后续细项会在开关打开后展开。"
+      cfgHead(
+        "去源水印",
+        "抹掉素材自带的水印 · 与下方「添加水印」无关 · 默认都开 " +
+          fieldTip(
+            "图片、视频各一个总开关。开=去源水印，关=保留原站水印。本期不区分视频移动/固定；后续细项会在开关打开后展开。"
+          )
       ) +
-      "</div></div>" +
       '<div class="art-modes" style="margin-bottom:0">' +
       '<button type="button" class="art-mode-sub' +
       (imgOn ? " is-on" : "") +
@@ -712,7 +720,10 @@
       (videoOn ? "true" : "false") +
       '" aria-label="视频去源水印"><i></i></span></div></button></div></div>';
     var addPane =
-      renderAddWmSection(watermarks, { wmAddView: opts.wmAddView }) +
+      renderAddWmSection(watermarks, {
+        wmAddView: opts.wmAddView,
+        showSave: !!opts.showSave
+      }) +
       (opts.allowDefault
         ? '<div class="media-sec-actions">' +
           '<button type="button" class="btn btn-ghost" id="btn-wm-default">套用默认添加水印素材，稍后在项目详情改</button>' +
@@ -720,26 +731,24 @@
         : "");
     return (
       '<div class="media-mod media-mod--wide" data-media-wm>' +
-      paneTopBar(lead, opts.showSave ? { saveId: "btn-save-wm", saveLabel: "保存水印配置" } : null) +
       (showDewm ? removePane : "") +
       addPane +
       "</div>"
     );
   }
 
-  /** 片头和片尾：整段拼接，独立于水印 */
+  /** 片头和片尾：整段拼接，独立于水印；有保存时放在模块标题行右侧 */
   function renderIntroOutroPanel(watermarks, opts) {
     opts = opts || {};
     var io = (watermarks && watermarks.introOutro) || {};
-    var lead =
-      opts.lead ||
-      "整段视频拼在原片前面（片头）和/或后面（片尾）。不是叠层水印；不填则不拼接。";
     return (
       '<div class="media-mod media-mod--wide" data-media-io>' +
-      paneTopBar(lead, opts.showSave ? { saveId: "btn-save-io", saveLabel: "保存片头片尾" } : null) +
       '<div class="cfg-card">' +
-      '<div class="cfg-card-head"><div class="cfg-card-title">片头和片尾</div>' +
-      '<div class="cfg-card-sub">横屏 / 竖屏各一套 · 上传完整视频片段 · 可只配一端或某一方向</div></div>' +
+      cfgHead(
+        "片头和片尾",
+        "横屏 / 竖屏各一套 · 上传完整视频片段 · 可只配一端或某一方向",
+        opts.showSave ? { id: "btn-save-io", label: "保存" } : null
+      ) +
       renderIntroOutroFields(io) +
       "</div></div>"
     );
@@ -752,7 +761,7 @@
 
   /**
    * 封面配置：文章封面（尺寸 + 拼图）+ 视频封面策略。内容生成规则另页，不并入。
-   * @param opts {{ lead?: string, videoCoverStrategy?: string, coverPanelCount?: number }}
+   * @param opts {{ videoCoverStrategy?: string, coverPanelCount?: number }}
    */
   function renderCoverPanel(coverWidth, coverHeight, opts) {
     opts = opts || {};
@@ -760,10 +769,6 @@
     var panel = clampCoverPanelCount(opts.coverPanelCount);
     return (
       '<div class="media-mod" data-media-cover>' +
-      '<p class="muted media-lead">' +
-      (opts.lead ||
-        "封面含文章封面与视频封面两块。图片编码与边下边播在「内容生成规则」；出站门槛在「推送规则」。") +
-      "</p>" +
       '<div class="cfg-card">' +
       '<div class="cfg-card-head"><div class="cfg-card-title">文章封面尺寸</div>' +
       '<div class="cfg-card-sub">生成与推送同一规格 · 单边 200–4096px</div></div>' +
@@ -857,9 +862,9 @@
   }
 
   /**
-   * 文章管理：顶栏「AI 文章提示词管理 / 文案内链管理」；
+   * 文案管理：子 Tab「AI 文章提示词管理 / 文案内链管理」；有保存时与子 Tab 同行右对齐。
    * 提示词内再分「自定义提示词 / 模板提示词」（自定义优先，与文案内链无关）。
-   * @param opts {{ lead?: string, showSave?: boolean, showLinks?: boolean, artSection?: string, artView?: string }}
+   * @param opts {{ showSave?: boolean, showLinks?: boolean, artSection?: string, artView?: string }}
    */
   function renderArticlePanel(article, opts) {
     opts = opts || {};
@@ -983,34 +988,35 @@
       (linkRows || '<tr><td colspan="3" class="muted">暂无链接（不填则不加链）</td></tr>') +
       "</tbody></table></div></div>";
 
-    var artLead =
-      opts.lead ||
-      "两大块独立配置：AI 文章提示词管理（自定义优先 / 模板其次）与文案内链管理。顶栏切换；提示词内点卡片切换，右侧开关开才展开下方配置（可同开，不可同关）。";
+    var subtabs = showLinks
+      ? '<div class="wm-subtabs" role="tablist" aria-label="文案管理">' +
+        '<button type="button" class="btn' +
+        (section === "prompt" ? " btn-primary" : "") +
+        '" data-art-section="prompt" role="tab" aria-selected="' +
+        (section === "prompt" ? "true" : "false") +
+        '">AI 文章提示词管理</button>' +
+        '<button type="button" class="btn' +
+        (section === "links" ? " btn-primary" : "") +
+        '" data-art-section="links" role="tab" aria-selected="' +
+        (section === "links" ? "true" : "false") +
+        '">文案内链管理</button></div>'
+      : "";
+    var saveBtn = opts.showSave
+      ? '<button type="button" class="btn btn-primary tab-pane-save" id="btn-save-art">保存</button>'
+      : "";
+    var artBar =
+      subtabs || saveBtn
+        ? '<div class="art-subtabs-bar">' + subtabs + saveBtn + "</div>"
+        : "";
     return (
       '<div class="media-mod" data-media-art>' +
-      paneTopBar(
-        artLead,
-        opts.showSave ? { saveId: "btn-save-art", saveLabel: "保存提示词配置" } : null
-      ) +
+      artBar +
       '<input type="hidden" id="art-section" value="' +
       section +
       '" />' +
       '<input type="hidden" id="art-view" value="' +
       view +
       '" />' +
-      (showLinks
-        ? '<div class="wm-subtabs" role="tablist" aria-label="文章管理">' +
-          '<button type="button" class="btn' +
-          (section === "prompt" ? " btn-primary" : "") +
-          '" data-art-section="prompt" role="tab" aria-selected="' +
-          (section === "prompt" ? "true" : "false") +
-          '">AI 文章提示词管理</button>' +
-          '<button type="button" class="btn' +
-          (section === "links" ? " btn-primary" : "") +
-          '" data-art-section="links" role="tab" aria-selected="' +
-          (section === "links" ? "true" : "false") +
-          '">文案内链管理</button></div>'
-        : "") +
       '<div data-art-pane="prompt"' +
       (section === "prompt" ? "" : " hidden") +
       ">" +
@@ -1753,6 +1759,7 @@
       syncFlow();
       syncArtPanels();
       if (handlers.onChange) handlers.onChange();
+      if (handlers.onFormChange) handlers.onFormChange();
     }
     root.querySelectorAll("[data-art-section]").forEach(function (el) {
       el.addEventListener("click", function () {
@@ -1777,6 +1784,7 @@
     root.querySelectorAll("[data-tpl]").forEach(function (box) {
       box.addEventListener("change", function () {
         if (handlers.onChange) handlers.onChange();
+        if (handlers.onFormChange) handlers.onFormChange();
       });
     });
     ["#art-min", "#art-max", "#art-abs", "#art-presets", "#art-custom-text"].forEach(
@@ -1785,6 +1793,7 @@
         if (!el) return;
         el.addEventListener("input", function () {
           if (handlers.onChange) handlers.onChange();
+          if (handlers.onFormChange) handlers.onFormChange();
         });
       }
     );

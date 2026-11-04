@@ -271,8 +271,8 @@
     }
     syncChecks();
   }
-  function applyFiltersAndPaint() {
-    Fil.readFilters(tab, F[tab]);
+  function applyFiltersAndPaint(withSearch) {
+    Fil.readFilters(tab, F[tab], !!withSearch);
     if (tab === "all") F.all.scope = scope;
     page = 1;
     paintTable();
@@ -316,12 +316,12 @@
     var bar = document.getElementById("mat-toolbar");
     bar.addEventListener("click", function (e) {
       if (e.target.id === "mat-refresh") {
-        if (window.FZMatData && typeof FZMatData.reset === "function") {
-          FZMatData.reset();
-        }
-        page = 1;
-        applyFiltersAndPaint();
-        FZShell.toast("已重置并刷新本列表（筛选与 Tab 保留）", "ok");
+        paintTable();
+        FZShell.toast("已刷新", "ok");
+        return;
+      }
+      if (e.target.id === "mat-search") {
+        applyFiltersAndPaint(true);
         return;
       }
       if (e.target.id === "mat-reset") {
@@ -329,7 +329,7 @@
         if (tab === "all") F.all.scope = scope;
         page = 1;
         paint();
-        FZShell.toast("已重置筛选条件", "ok");
+        FZShell.toast("已重置筛选", "ok");
         return;
       }
       if (e.target.id === "mat-merge") {
@@ -338,13 +338,30 @@
     });
     bar.addEventListener("change", function (e) {
       if (!e.target.closest("#mat-filter-row")) return;
-      applyFiltersAndPaint();
+      if (e.target.id === "mat-q" || e.target.id === "mat-trash-content") return;
+      if (e.target.type === "date") {
+        var wrap = e.target.closest(".fz-date-field");
+        if (wrap) {
+          if (e.target.value) wrap.classList.remove("is-empty");
+          else wrap.classList.add("is-empty");
+        }
+      }
+      applyFiltersAndPaint(false);
     });
     bar.addEventListener("input", function (e) {
       if (!e.target.closest("#mat-filter-row")) return;
       if (e.target.tagName === "SELECT") return;
+      if (e.target.id === "mat-q" || e.target.id === "mat-trash-content") return;
       clearTimeout(bar._t);
-      bar._t = setTimeout(applyFiltersAndPaint, 250);
+      bar._t = setTimeout(function () {
+        applyFiltersAndPaint(false);
+      }, 250);
+    });
+    bar.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      if (e.target.id !== "mat-q" && e.target.id !== "mat-trash-content") return;
+      e.preventDefault();
+      applyFiltersAndPaint(true);
     });
     if (window.FZPager) {
       window.FZPager.bind(document.getElementById("mat-pager"), {

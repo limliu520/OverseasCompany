@@ -142,12 +142,16 @@
     });
     document.getElementById("wc-filters").addEventListener("click", function (e) {
       if (e.target.id === "wc-refresh") {
-        if (typeof D.resetDemo === "function") D.resetDemo();
         sites = D.sites.slice();
         records = D.records;
-        page = 1;
         paint();
-        FZShell.toast("已重置并刷新本列表（筛选保留）", "ok");
+        FZShell.toast("已刷新", "ok");
+      }
+      if (e.target.id === "wc-search") {
+        var qEl = document.getElementById("wc-q");
+        filterQ = ((qEl && qEl.value) || "").trim();
+        page = 1;
+        paintRecords();
       }
       if (e.target.id === "wc-reset") {
         filterQ = "";
@@ -170,12 +174,12 @@
         paint();
       }
     });
-    document.getElementById("wc-filters").addEventListener("input", function (e) {
-      if (e.target.id === "wc-q") {
-        filterQ = e.target.value.trim();
-        page = 1;
-        paintRecords();
-      }
+    document.getElementById("wc-filters").addEventListener("keydown", function (e) {
+      if (e.key !== "Enter" || e.target.id !== "wc-q") return;
+      e.preventDefault();
+      filterQ = (e.target.value || "").trim();
+      page = 1;
+      paintRecords();
     });
     P.bind(document.getElementById("wc-pager"), {
       getState: function () {

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>子账号与授权 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261104roleSize1" />
+  <link rel="stylesheet" href="../css/app.css?v=20261104subH248" />
 </head>
 <body>
   <div class="app">
@@ -13,7 +13,6 @@
       <div class="topbar">
         <h1>子账号与授权</h1>
         <div class="topbar-actions">
-          <button type="button" class="btn btn-primary" id="btn-primary-act">+ 创建子账号</button>
           <div id="top-user"></div>
         </div>
       </div>
@@ -23,12 +22,8 @@
             <button type="button" class="btn" id="tab-subs" data-tab="subs" role="tab">子账号</button>
             <button type="button" class="btn" id="tab-roles" data-tab="roles" role="tab">岗位</button>
           </div>
-          <p class="muted" id="tab-desc" style="margin:0 0 14px"></p>
-          <div class="sub-list-bar" id="sub-list-bar" hidden>
-            <label class="sub-list-filter">
-              <span class="muted">按项目</span>
-              <select id="sub-filter-proj" class="input" aria-label="按项目筛选子账号"></select>
-            </label>
+          <div class="list-toolbar">
+            <div class="list-toolbar-row" id="sub-toolbar"></div>
           </div>
           <div class="fz-card-grid sub-card-grid" id="list-box"></div>
         </div>
@@ -170,6 +165,6 @@
   <script src="../js/novice-guide.js?v=20261031tour7"></script>
   <script src="../js/novice-tour-kit.js?v=20261031prefill"></script>
   <script src="../js/novice-tours.js?v=20261031prefill"></script>
-  <script src="../js/subs-app.js?v=20261104roleSize1"></script>
+  <script src="../js/subs-app.js?v=20261104noDesc1"></script>
 </body>
 </html>

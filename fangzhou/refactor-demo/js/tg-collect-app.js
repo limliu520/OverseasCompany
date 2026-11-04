@@ -83,22 +83,20 @@
       chPage: chPage
     });
 
-    function bindSearch(el, apply) {
+    function bindSearchEnter(el, apply) {
       if (!el) return;
-      el.oninput = function () {
-        var val = this.value;
-        clearTimeout(el._fzTimer);
-        el._fzTimer = setTimeout(function () {
-          apply(val);
-          paint();
-        }, 180);
+      el.onkeydown = function (e) {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        apply(el.value);
+        paint();
       };
     }
-    bindSearch(document.getElementById("tg-ch-search"), function (val) {
+    bindSearchEnter(document.getElementById("tg-ch-search"), function (val) {
       chQuery = val;
       chPage = 1;
     });
-    bindSearch(document.getElementById("tg-route-search"), function (val) {
+    bindSearchEnter(document.getElementById("tg-route-search"), function (val) {
       routeQuery = val;
     });
     if (keepCh) {
@@ -126,6 +124,35 @@
   }
 
   function onWorkspaceClick(e) {
+    if (e.target.id === "tg-ch-search-btn") {
+      var chEl = document.getElementById("tg-ch-search");
+      chQuery = chEl ? chEl.value : "";
+      chPage = 1;
+      paint();
+      return;
+    }
+    if (e.target.id === "tg-ch-reset") {
+      chQuery = "";
+      chRole = "all";
+      chStatus = "";
+      chPage = 1;
+      paint();
+      FZShell.toast("已重置筛选", "ok");
+      return;
+    }
+    if (e.target.id === "tg-route-search-btn") {
+      var rrEl = document.getElementById("tg-route-search");
+      routeQuery = rrEl ? rrEl.value : "";
+      paint();
+      return;
+    }
+    if (e.target.id === "tg-route-reset") {
+      routeQuery = "";
+      routeHealth = "";
+      paint();
+      FZShell.toast("已重置筛选", "ok");
+      return;
+    }
     var viewBtn = e.target.closest("[data-route-view]");
     if (viewBtn) {
       routeView =

@@ -130,8 +130,8 @@
       },
       {
         id: "article_tab",
-        title: "打开文章管理",
-        tip: "点「确认了解」切换到文章管理并完成本教程。",
+        title: "打开文案管理",
+        tip: "点「确认了解」切换到文案管理并完成本教程。",
         allow: "",
         spotlight: '.config-tabs [data-tab="article"]',
         strict: true,

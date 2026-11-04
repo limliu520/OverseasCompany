@@ -548,7 +548,7 @@
       draft: '<path d="M5 19l3.5-1L18 8.5 15.5 6 5 15.5V19z"/>'
     };
     return (
-      '<span class="wb-kpi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+      '<span class="wb-kpi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
       (paths[kind] || paths.mat) +
       "</svg></span>"
     );
@@ -1098,7 +1098,7 @@
         type: "入驻",
         statusHtml: statusTag("需创建", "tag-warn"),
         act:
-          '<a class="btn btn-sm btn-primary" href="./project-setup.html?new=1">创建</a>',
+          '<a class="btn btn-sm btn-create" href="./project-setup.html?new=1">+ 创建</a>',
         rank: 0
       });
     }

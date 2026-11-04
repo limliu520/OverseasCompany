@@ -3,25 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>项目管理 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261104projFlat2" />
+  <title>项目列表 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css?v=20261104createBlk1" />
 </head>
 <body>
   <div class="app">
     <aside class="sidebar" id="sidebar"></aside>
     <div class="main">
       <div class="topbar">
-        <h1>项目管理</h1>
+        <h1>项目列表</h1>
         <div class="topbar-actions">
-          <a class="btn btn-primary" href="./project-setup.html?new=1">新建项目</a>
           <div id="top-user"></div>
         </div>
       </div>
       <div class="content content--dock-pager">
         <div class="page-scroll">
-          <p class="proj-page-lead">
-            创建时配齐配置 → 开发接入；接通后即完成。「项目详情」可改信息与查看对接材料；待接通另有对接入口。
-          </p>
+          <div class="list-toolbar proj-list-toolbar">
+            <div class="list-toolbar-row">
+              <input
+                class="input"
+                id="proj-f-q"
+                type="search"
+                placeholder="搜索项目名称 / App ID…"
+                aria-label="搜索项目"
+              />
+              <select class="input" id="proj-f-type" aria-label="站点类型">
+                <option value="">全部类型</option>
+                <option value="chigua">瓜站（内容站）</option>
+                <option value="video">视频站</option>
+                <option value="short_drama">短剧站</option>
+              </select>
+              <select class="input" id="proj-f-status" aria-label="项目状态">
+                <option value="">全部状态</option>
+                <option value="pending_activate">待接通</option>
+                <option value="ready">已完成</option>
+                <option value="need_collect">缺采集源</option>
+              </select>
+              <button type="button" class="btn" id="proj-f-search">搜索</button>
+              <button type="button" class="btn btn-ghost" id="proj-f-clear">重置</button>
+              <div class="list-toolbar-actions">
+                <a class="btn btn-create" id="proj-f-new" href="./project-setup.html?new=1">+ 新建项目</a>
+              </div>
+            </div>
+          </div>
           <div class="proj-list proj-card-grid" id="project-list"></div>
         </div>
         <div class="pager-dock" id="project-pager"></div>
@@ -30,7 +54,7 @@
   </div>
   <script src="../js/perm-tree.js?v=20261031navProj"></script>
   <script src="../js/article-defaults.js?v=20261028wmFx2"></script>
-  <script src="../js/store.js?v=20261104wmThumb1"></script>
+  <script src="../js/store.js?v=20261104wmLight1"></script>
   <script src="../js/shell.js?v=20261104mono4"></script>
   <script src="../js/pager.js?v=20261104rf03"></script>
   <script src="../js/project-union.js?v=20261104rf"></script>
@@ -39,7 +63,27 @@
   <script src="../js/novice-tours.js?v=20261031prefill"></script>
   <script>
     FZShell.boot({ active: "projects" });
-    var MARK = { chigua: "瓜", video: "视", short_drama: "剧" };
+    var COVER_POOL = {
+      chigua: [
+        "../assets/project-covers/cover-chigua-1.jpg",
+        "../assets/project-covers/cover-chigua-2.jpg"
+      ],
+      video: [
+        "../assets/project-covers/cover-video-1.jpg",
+        "../assets/project-covers/cover-video-2.jpg"
+      ],
+      short_drama: [
+        "../assets/project-covers/cover-drama-1.jpg",
+        "../assets/project-covers/cover-drama-2.jpg"
+      ]
+    };
+    function coverForProject(p, type) {
+      var pool = COVER_POOL[type] || COVER_POOL.chigua;
+      var key = String((p && p.id) || (p && p.name) || "0");
+      var sum = 0;
+      for (var i = 0; i < key.length; i++) sum += key.charCodeAt(i);
+      return pool[sum % pool.length];
+    }
     var list = document.getElementById("project-list");
     var pagerBox = document.getElementById("project-pager");
     var page = 1;
@@ -121,17 +165,12 @@
       var appId = (p.creds && p.creds.appId) || "";
       var bots = formatCollectBots(p, state || FZStore.read());
       var chSt = channelStatus(p);
-      /* 头图默认取图片水印；无则站点类型字标 */
-      if (window.FZArticle && FZArticle.ensureWatermarks) {
-        FZArticle.ensureWatermarks(p);
-      }
-      var wmImg = p.watermarks && p.watermarks.image;
-      var thumbUrl = wmImg && (wmImg.dataUrl || wmImg.url);
-      var thumb = thumbUrl
-        ? '<img class="proj-wm-thumb" src="' +
-          thumbUrl +
-          '" alt="图片水印" title="图片水印" />'
-        : "";
+      /* 头图：按站点类型用 Demo 封面池（不再用水印缩略图） */
+      var coverUrl = coverForProject(p, type);
+      var coverInner =
+        '<img class="proj-card-cover-img" src="' +
+        coverUrl +
+        '" alt="" loading="lazy" />';
       var noviceQ = "";
       try {
         var nq = new URLSearchParams(location.search).get("novice");
@@ -140,23 +179,23 @@
       var actionsOpt = "";
       if (p.status === "pending_activate") {
         actionsOpt =
-          '<a class="btn btn-primary" href="./project-connect.html?id=' +
+          '<a class="btn" href="./project-connect.html?id=' +
           encodeURIComponent(p.id) +
           '">对接</a>';
       } else if (bots.n === 0) {
         actionsOpt =
-          '<a class="btn btn-primary" href="./project-edit.html?id=' +
+          '<a class="btn" href="./project-edit.html?id=' +
           encodeURIComponent(p.id) +
           noviceQ +
           '&tab=channel">添加采集号</a>';
       } else if (chN === 0 || p.status === "need_collect") {
         actionsOpt =
-          '<a class="btn btn-primary" href="./tg-collect.html?project=' +
+          '<a class="btn" href="./tg-collect.html?project=' +
           encodeURIComponent(p.id) +
           '" title="去 TG 采集配置里绑定源频道">绑定频道</a>';
       }
       var actionsFix =
-        '<a class="btn" href="./project-edit.html?id=' +
+        '<a class="btn btn-primary" href="./project-edit.html?id=' +
         encodeURIComponent(p.id) +
         noviceQ +
         '">项目详情</a>';
@@ -166,73 +205,113 @@
         '</div><div class="fz-actions-fix">' +
         actionsFix +
         "</div>";
-      /* 扁平事实行：采集号 / 已绑频道 / 内容通道状态 / App ID / 推送规则；不加分组抬头 */
+      /* 扁平事实行：App ID / 采集号 / 已绑频道 / 内容通道状态 / 推送规则 */
       var facts =
-        factRow("采集号", bots.text, bots.muted ? "is-muted" : "") +
-        factRow("已绑频道", chN + " 个", chN ? "" : "is-muted") +
-        factRow("内容通道状态", chSt.text, chSt.muted ? "is-muted" : "") +
         factRow(
           "App ID",
           appId || "未配置",
           appId ? "is-mono" : "is-muted"
         ) +
+        factRow("采集号", bots.text, bots.muted ? "is-muted" : "") +
+        factRow("已绑频道", chN + " 个", chN ? "" : "is-muted") +
+        factRow("内容通道状态", chSt.text, chSt.muted ? "is-muted" : "") +
         factRow("推送规则", formatPushRules(p));
       return (
         '<article class="proj-card">' +
-        '<div class="proj-card-hd">' +
-        (thumb ||
-          '<div class="proj-mark is-' +
-            type +
-            '" aria-hidden="true">' +
-            (MARK[type] || "项") +
-            "</div>") +
-        '<div class="proj-card-hd-main">' +
+        '<div class="proj-card-cover">' +
+        coverInner +
+        '<div class="proj-card-cover-status"><span class="tag ' +
+        st.cls +
+        '">' +
+        st.text +
+        "</span></div>" +
+        '<div class="proj-card-cover-foot">' +
+        '<div class="proj-card-title-row">' +
         '<h2 class="proj-title"><a href="./project-edit.html?id=' +
         encodeURIComponent(p.id) +
         noviceQ +
         '">' +
         p.name +
         "</a></h2>" +
-        '<p class="proj-type">' +
-        typeLabel +
-        "</p>" +
-        "</div>" +
-        '<div class="proj-status"><span class="tag ' +
-        st.cls +
+        '<p class="proj-type is-' +
+        type +
         '">' +
-        st.text +
-        "</span></div>" +
-        "</div>" +
+        typeLabel +
+        "</p></div></div></div>" +
+        '<div class="proj-card-body">' +
         '<div class="proj-facts proj-facts--flat">' +
         facts +
         "</div>" +
         '<div class="proj-actions">' +
         actions +
-        "</div></article>"
+        "</div></div></article>"
       );
+    }
+
+    var filterQ = "";
+    var filterType = "";
+    var filterStatus = "";
+
+    function readSearch() {
+      filterQ = ((document.getElementById("proj-f-q") || {}).value || "")
+        .trim()
+        .toLowerCase();
+    }
+    function readSelectFilters() {
+      filterType = (document.getElementById("proj-f-type") || {}).value || "";
+      filterStatus = (document.getElementById("proj-f-status") || {}).value || "";
+    }
+
+    function matchProject(p) {
+      if (filterType && (p.siteType || "chigua") !== filterType) return false;
+      if (filterStatus) {
+        var st = FZStore.deriveStatus ? FZStore.deriveStatus(p) : p.status;
+        if (st !== filterStatus) return false;
+      }
+      if (filterQ) {
+        var name = String(p.name || "").toLowerCase();
+        var appId = String((p.creds && p.creds.appId) || "").toLowerCase();
+        if (name.indexOf(filterQ) === -1 && appId.indexOf(filterQ) === -1) {
+          return false;
+        }
+      }
+      return true;
     }
 
     function paint() {
       var s = FZStore.read();
-      var projects = FZStore.businessProjects
+      var all = FZStore.businessProjects
         ? FZStore.businessProjects(s)
         : (s.projects || []).filter(function (p) {
             return !p.isPublicPool;
           });
-      if (!projects.length) {
-        var canCreate =
-          !FZStore.hasFeature || FZStore.hasFeature(s, "projects.list.create");
+      var canCreate =
+        !FZStore.hasFeature || FZStore.hasFeature(s, "projects.list.create");
+      var newBtn = document.getElementById("proj-f-new");
+      if (newBtn) newBtn.hidden = !canCreate;
+
+      if (!all.length) {
         list.innerHTML =
           '<div class="wb-empty-card wb-empty-card--lg">' +
           "<strong>创建你的第一个项目</strong>" +
           "<p>配齐基本信息与媒体配置后创建，再交给开发对接内容通道。接通后配置自动生效。</p>" +
           (canCreate
-            ? '<a class="btn btn-primary" href="./project-setup.html?new=1">新建项目</a>'
+            ? '<a class="btn btn-create" href="./project-setup.html?new=1">+ 新建项目</a>'
             : '<p class="muted" style="margin:0">当前角色无新建权限，请联系主账号。</p>') +
           "</div>";
         pagerBox.innerHTML = "";
         return;
       }
+
+      var projects = all.filter(matchProject);
+      if (!projects.length) {
+        list.innerHTML =
+          '<div class="wb-empty-card"><strong>没有匹配的项目</strong>' +
+          "<p>试试调整搜索词或筛选条件。</p></div>";
+        pagerBox.innerHTML = "";
+        return;
+      }
+
       var slice = FZPager.slice(projects, page, pageSize);
       page = slice.page;
       pageSize = slice.pageSize;
@@ -248,6 +327,18 @@
       });
     }
 
+    function applySearch() {
+      readSearch();
+      readSelectFilters();
+      page = 1;
+      paint();
+    }
+    function applySelectFilters() {
+      readSelectFilters();
+      page = 1;
+      paint();
+    }
+
     FZPager.bind(pagerBox, {
       getState: function () {
         return { page: page, pageSize: pageSize };
@@ -258,6 +349,37 @@
       },
       onChange: paint
     });
+
+    var qEl = document.getElementById("proj-f-q");
+    var typeEl = document.getElementById("proj-f-type");
+    var statusEl = document.getElementById("proj-f-status");
+    var searchBtn = document.getElementById("proj-f-search");
+    var clearBtn = document.getElementById("proj-f-clear");
+    if (searchBtn) searchBtn.addEventListener("click", applySearch);
+    if (typeEl) typeEl.addEventListener("change", applySelectFilters);
+    if (statusEl) statusEl.addEventListener("change", applySelectFilters);
+    if (qEl) {
+      qEl.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          applySearch();
+        }
+      });
+    }
+    if (clearBtn) {
+      clearBtn.addEventListener("click", function () {
+        if (qEl) qEl.value = "";
+        if (typeEl) typeEl.value = "";
+        if (statusEl) statusEl.value = "";
+        filterQ = "";
+        filterType = "";
+        filterStatus = "";
+        page = 1;
+        paint();
+        FZShell.toast("已重置筛选", "ok");
+      });
+    }
+
     paint();
   </script>
 </body>

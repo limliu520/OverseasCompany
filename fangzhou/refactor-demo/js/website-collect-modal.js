@@ -34,7 +34,33 @@ window.FZWebCollectModal = (function () {
     else typeSel.value = type;
     F.fillTargets(type, s ? s.targets : []);
     document.getElementById("wc-f-status-row").hidden = !s;
-    if (s) document.getElementById("wc-f-status-text").textContent = R.statusLabel(s.status);
+    var stEl = document.getElementById("wc-f-status-text");
+    var failEl = document.getElementById("wc-f-fail-reason");
+    if (s) {
+      var lab = R.statusLabel(s.status);
+      stEl.textContent = lab;
+      if (s.status === "failed") {
+        stEl.className = "wc-status-failed";
+        var reason = String(s.failReason || s.notes || "").trim();
+        if (reason) {
+          failEl.hidden = false;
+          failEl.textContent = "无法接入原因：" + reason;
+        } else {
+          failEl.hidden = false;
+          failEl.textContent = "无法接入原因：未说明";
+        }
+      } else {
+        stEl.className = "muted";
+        stEl.style.fontSize = "13px";
+        failEl.hidden = true;
+        failEl.textContent = "";
+      }
+    } else {
+      stEl.textContent = "";
+      stEl.className = "muted";
+      failEl.hidden = true;
+      failEl.textContent = "";
+    }
   }
 
   function open(id, mode, sites, done) {
@@ -46,16 +72,16 @@ window.FZWebCollectModal = (function () {
     var st = s ? s.status : "";
     var titles = { create: "添加网站", view: "网站采集详情", edit: "编辑网站采集配置" };
     var hints = {
-      create: "创建后进入「接入中」；完成→生效中，失败→无法接入。",
+      create: "创建后进入「技术接入中」；完成→生效中，失败→无法接入。",
       view: "只读展示。点「编辑」进入编辑态；启动/暂停在卡片上操作。",
       edit: "类型不可改。保存编辑后写回配置；删除将移除本站配置。"
     };
-    if (modalMode === "view" && st === "connecting") hints.view = "接入中不可改配置。";
+    if (modalMode === "view" && st === "connecting") hints.view = "技术接入中不可改配置。";
     if (modalMode === "view" && st === "failed") {
-      hints.view = "无法接入：可编辑后重新提交，再次进入接入中。";
+      hints.view = "无法接入：可编辑后重新提交，再次进入技术接入中。";
     }
     if (modalMode === "edit" && st === "failed") {
-      hints.edit = "修改后点「重新提交」，状态回到接入中，等待 Admin 再次接入。";
+      hints.edit = "修改后点「重新提交」，状态回到技术接入中，等待技术再次接入。";
     }
     document.getElementById("wc-site-modal-title").textContent = titles[modalMode];
     document.getElementById("wc-site-modal-hint").textContent = hints[modalMode];
@@ -73,7 +99,7 @@ window.FZWebCollectModal = (function () {
         })
       : null;
     if (cur0 && cur0.status === "connecting") {
-      FZShell.toast("接入中不可修改配置", "err");
+      FZShell.toast("技术接入中不可修改配置", "err");
       return;
     }
     var typeVal = cur0 ? cur0.type : document.getElementById("wc-f-type").value;
@@ -125,7 +151,7 @@ window.FZWebCollectModal = (function () {
         notes: notes,
         targets: picks
       });
-      FZShell.toast("已提交申请，状态为「接入中」", "ok");
+      FZShell.toast("已提交申请，状态为「技术接入中」", "ok");
       document.getElementById("wc-site-modal").hidden = true;
       if (window.FZNoviceTours) FZNoviceTours.notify("web_collect", "site_saved");
       if (onDone) onDone(sitesRef);
@@ -142,7 +168,7 @@ window.FZWebCollectModal = (function () {
     if (cur0.status === "failed") {
       cur0.status = "connecting";
       cur0.nextAt = "—";
-      FZShell.toast("已重新提交，状态为「接入中」", "ok");
+      FZShell.toast("已重新提交，状态为「技术接入中」", "ok");
     } else if (cur0.status === "paused" || cur0.status === "active") {
       cur0.status = "active";
       cur0.nextAt = "待调度";

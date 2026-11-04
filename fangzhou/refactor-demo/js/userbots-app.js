@@ -76,27 +76,30 @@
           : b.status === "disabled"
             ? "is-off"
             : "is-warn";
-        /* 可选左（有归属才有）· 固定右（连接/断开 + 删除） */
-        var actionsOpt = b.projectId
-          ? '<a class="btn btn-ghost" href="./project-edit.html?id=' +
+        /* 次要左白底 · 重要右黑底 */
+        var actionsOpt = "";
+        if (b.projectId) {
+          actionsOpt +=
+            '<a class="btn" href="./project-edit.html?id=' +
             encodeURIComponent(b.projectId) +
-            '&tab=channel">项目通道</a>'
-          : "";
+            '&tab=channel">项目通道</a>';
+        }
+        actionsOpt +=
+          '<button type="button" class="btn" data-act="del" data-id="' +
+          esc(b.id) +
+          '">删除</button>';
         var actionsFix = "";
         if (b.status !== "disabled") {
-          actionsFix +=
-            '<button type="button" class="btn' +
-            (connected ? "" : " btn-primary") +
-            '" data-act="toggle" data-id="' +
+          actionsFix =
+            '<button type="button" class="btn btn-primary" data-act="toggle" data-id="' +
             esc(b.id) +
             '">' +
             (connected ? "断开" : "连接") +
             "</button>";
+        } else {
+          actionsFix =
+            '<button type="button" class="btn btn-primary" disabled title="已停用">已停用</button>';
         }
-        actionsFix +=
-          '<button type="button" class="btn btn-ghost" data-act="del" data-id="' +
-          esc(b.id) +
-          '">删除</button>';
         var actions =
           '<div class="fz-actions-opt">' +
           actionsOpt +

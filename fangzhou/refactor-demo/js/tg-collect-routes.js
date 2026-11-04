@@ -217,7 +217,7 @@ window.FZTgCollectRoutes = (function () {
     return (
       '<section class="tg-panel"><div class="tg-panel-head"><h3>TG→TG 路由</h3>' +
       '<div class="tg-panel-actions">' +
-      '<button type="button" class="btn btn-sm btn-primary" data-add-route="' +
+      '<button type="button" class="btn btn-sm btn-create" data-add-route="' +
       esc(bot.id) +
       '"' +
       (connected ? "" : " disabled") +
@@ -231,11 +231,13 @@ window.FZTgCollectRoutes = (function () {
       '<button type="button" class="btn btn-sm' +
       (view === "by_target" ? " is-active" : "") +
       '" data-route-view="by_target">按分发</button></div></div>' +
-      '<div class="tg-route-controls">' +
+      '<div class="tg-route-controls list-toolbar-row">' +
       '<input type="search" class="input tg-route-search" id="tg-route-search" placeholder="搜索源/分发频道…" value="' +
       esc(opts.routeQuery || "") +
       '" />' +
       healthChips(all, opts.routeHealth) +
+      '<button type="button" class="btn" id="tg-route-search-btn">搜索</button>' +
+      '<button type="button" class="btn btn-ghost" id="tg-route-reset">重置</button>' +
       "</div>" +
       '<p class="hint" style="margin:0 0 10px">' +
       (view === "by_source"

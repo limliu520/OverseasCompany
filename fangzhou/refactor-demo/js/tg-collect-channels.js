@@ -288,19 +288,21 @@ window.FZTgCollectChannels = (function () {
       '"' +
       (connected ? "" : " disabled title=\"请先连接会话\"") +
       ' title="模拟从 Telegram 拉取；公共池会生成若干「未分配」频道">拉取频道</button>' +
-      '<button type="button" class="btn btn-sm btn-primary" data-add-ch="' +
+      '<button type="button" class="btn btn-sm btn-create" data-add-ch="' +
       esc(bot.id) +
       '" data-role="collect"' +
       (connected ? "" : " disabled title=\"请先连接会话\"") +
       ">+ 加入频道</button></div></div>";
 
     html +=
-      '<div class="tg-ch-toolbar">' +
+      '<div class="tg-ch-toolbar list-toolbar-row">' +
       '<input type="search" class="input tg-ch-search" id="tg-ch-search" placeholder="搜索频道…" value="' +
       esc(opts.q || "") +
       '" />' +
       statusFilter(opts.status || "") +
       typeFilter(role, !!isPool) +
+      '<button type="button" class="btn" id="tg-ch-search-btn">搜索</button>' +
+      '<button type="button" class="btn btn-ghost" id="tg-ch-reset">重置</button>' +
       "</div>";
 
     if (!chs.length) {

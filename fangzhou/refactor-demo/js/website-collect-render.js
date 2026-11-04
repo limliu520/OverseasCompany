@@ -213,17 +213,24 @@ window.FZWebCollectRender = (function () {
 
   function filters(filterQ, filterStatus, filterDate) {
     return (
-      '<input class="input" type="search" id="wc-q" placeholder="搜索标题 / 链接 / ID" style="max-width:200px" value="' +
+      '<input class="input" type="search" id="wc-q" placeholder="搜索标题 / 链接 / ID" value="' +
       esc(filterQ) +
-      '" /><input class="input" type="date" id="wc-date" title="采集日期" style="max-width:150px" value="' +
+      '" />' +
+      '<label class="fz-date-field' +
+      (filterDate ? "" : " is-empty") +
+      '" for="wc-date">' +
+      '<input class="input" type="date" id="wc-date" aria-label="采集时间" value="' +
       esc(filterDate || "") +
-      '" /><select class="input" id="wc-st" style="max-width:140px"><option value="">全部状态</option>' +
+      '" /><span class="fz-date-ph" aria-hidden="true">采集时间</span></label>' +
+      '<select class="input" id="wc-st" style="max-width:140px"><option value="">全部状态</option>' +
       '<option value="pending">待采集</option>' +
       '<option value="running">采集中</option><option value="processing">处理中</option>' +
       '<option value="completed">已完成</option><option value="failed">失败</option>' +
       '<option value="retry_requested">准备重试</option></select>' +
-      '<button type="button" class="btn" id="wc-reset">重置</button>' +
-      '<button type="button" class="btn" id="wc-refresh">刷新</button>'
+      '<button type="button" class="btn" id="wc-search">搜索</button>' +
+      '<button type="button" class="btn btn-ghost" id="wc-reset">重置</button>' +
+      '<div class="list-toolbar-actions">' +
+      '<button type="button" class="btn" id="wc-refresh">刷新列表</button></div>'
     );
   }
 

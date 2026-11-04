@@ -13,6 +13,8 @@
   var subFarthest = 1;
   var subSelectedProjects = [];
   var filterProjId = "";
+  var filterQSubs = "";
+  var filterQRoles = "";
   var page = 1;
   var pageSize = window.FZPager ? window.FZPager.DEFAULT : 20;
 
@@ -30,40 +32,53 @@
       "btn" + (tab === "subs" ? " btn-primary" : "");
     document.getElementById("tab-roles").className =
       "btn" + (tab === "roles" ? " btn-primary" : "");
-    document.getElementById("tab-desc").textContent =
-      tab === "subs"
-        ? "创建/编辑走三步：个人信息 → 负责项目（可多选）→ 岗位与权限。岗位包在「岗位」Tab 维护。"
-        : "岗位 = 菜单层级 + 页内操作的权限包。建子号时第 3 步可套用后再微调。";
-    document.getElementById("btn-primary-act").textContent =
-      tab === "subs" ? "+ 创建子账号" : "+ 新建岗位";
-    var bar = document.getElementById("sub-list-bar");
-    if (bar) bar.hidden = tab !== "subs";
-    if (tab === "subs") paintSubFilter();
+    paintToolbar();
     renderList();
   }
 
-  function paintSubFilter() {
-    var sel = document.getElementById("sub-filter-proj");
-    if (!sel) return;
-    var s = FZStore.read();
-    var list =
-      typeof FZStore.businessProjects === "function"
-        ? FZStore.businessProjects(s)
-        : (s.projects || []).filter(function (p) {
-            return !FZStore.isPublicPool(p);
-          });
-    var html = '<option value="">全部项目</option>';
-    list.forEach(function (p) {
-      html +=
-        '<option value="' +
-        esc(p.id) +
-        '"' +
-        (filterProjId === p.id ? " selected" : "") +
-        ">" +
-        esc(p.name) +
-        "</option>";
-    });
-    sel.innerHTML = html;
+  function paintToolbar() {
+    var box = document.getElementById("sub-toolbar");
+    if (!box) return;
+    if (tab === "subs") {
+      var s = FZStore.read();
+      var list =
+        typeof FZStore.businessProjects === "function"
+          ? FZStore.businessProjects(s)
+          : (s.projects || []).filter(function (p) {
+              return !FZStore.isPublicPool(p);
+            });
+      var opts = '<option value="">全部项目</option>';
+      list.forEach(function (p) {
+        opts +=
+          '<option value="' +
+          esc(p.id) +
+          '"' +
+          (filterProjId === p.id ? " selected" : "") +
+          ">" +
+          esc(p.name) +
+          "</option>";
+      });
+      box.innerHTML =
+        '<input class="input" type="search" id="sub-f-q" placeholder="搜索显示名 / 登录名 / CMS 标识" value="' +
+        esc(filterQSubs) +
+        '" aria-label="搜索子账号" />' +
+        '<select class="input" id="sub-filter-proj" aria-label="按项目筛选子账号">' +
+        opts +
+        "</select>" +
+        '<button type="button" class="btn" id="sub-f-search">搜索</button>' +
+        '<button type="button" class="btn btn-ghost" id="sub-f-reset">重置</button>' +
+        '<div class="list-toolbar-actions">' +
+        '<button type="button" class="btn btn-create" id="btn-primary-act">+ 创建子账号</button></div>';
+    } else {
+      box.innerHTML =
+        '<input class="input" type="search" id="sub-f-q" placeholder="搜索岗位名称" value="' +
+        esc(filterQRoles) +
+        '" aria-label="搜索岗位" />' +
+        '<button type="button" class="btn" id="sub-f-search">搜索</button>' +
+        '<button type="button" class="btn btn-ghost" id="sub-f-reset">重置</button>' +
+        '<div class="list-toolbar-actions">' +
+        '<button type="button" class="btn btn-create" id="btn-primary-act">+ 新建岗位</button></div>';
+    }
   }
 
   function paintPager(total) {
@@ -151,19 +166,6 @@
     );
   }
 
-  /** 子账号卡片：相关信息成组竖排，避免双列把关联项拆散 */
-  function subFactGroup(title, rowsHtml) {
-    return (
-      '<div class="sub-fact-group">' +
-      '<div class="sub-fact-group-title">' +
-      esc(title) +
-      "</div>" +
-      '<div class="sub-fact-group-body">' +
-      rowsHtml +
-      "</div></div>"
-    );
-  }
-
   function renderSubs() {
     var s = FZStore.read();
     var box = document.getElementById("list-box");
@@ -180,9 +182,22 @@
         return (u.projects || []).indexOf(filterProjId) !== -1;
       });
     }
+    if (filterQSubs) {
+      var q = filterQSubs.toLowerCase();
+      rows = rows.filter(function (u) {
+        var blob = (
+          (u.displayName || "") +
+          " " +
+          (u.username || "") +
+          " " +
+          (u.cmsId || "")
+        ).toLowerCase();
+        return blob.indexOf(q) !== -1;
+      });
+    }
     if (!rows.length) {
       box.innerHTML =
-        '<div class="card card-pad muted sub-empty">当前项目下没有子账号。可改筛选，或创建时把该项目勾进「负责项目」。</div>';
+        '<div class="card card-pad muted sub-empty">没有匹配的子账号。可改搜索词或项目筛选，或点「创建子账号」。</div>';
       paintPager(0);
       return;
     }
@@ -219,34 +234,29 @@
           (on ? "启用中" : "已停用") +
           "</span></div>" +
           '<div class="sub-facts">' +
-          subFactGroup(
-            "岗位与权限",
-            factRow("岗位", u.roleName || "自定义权限") +
-              factRow("权限", featureStats(u.features), "is-muted")
+          factRow("岗位", u.roleName || "自定义权限") +
+          factRow("权限", featureStats(u.features), "is-muted") +
+          factRow(
+            "CMS 标识",
+            u.cmsId || "未填写",
+            u.cmsId ? "is-mono" : "is-muted"
           ) +
-          subFactGroup(
-            "对接与项目",
-            factRow(
-              "CMS 标识",
-              u.cmsId || "未填写",
-              u.cmsId ? "is-mono" : "is-muted"
-            ) + factRow("负责项目", projectNames(u.projects, s.projects))
-          ) +
+          factRow("负责项目", projectNames(u.projects, s.projects)) +
           "</div>" +
           '<div class="proj-actions">' +
-          '<div class="fz-actions-opt"></div>' +
-          '<div class="fz-actions-fix">' +
-          '<button type="button" class="btn" data-edit-sub="' +
-          esc(u.id) +
-          '">编辑</button>' +
-          '<button type="button" class="btn btn-ghost" data-reset="' +
+          '<div class="fz-actions-opt">' +
+          '<button type="button" class="btn" data-reset="' +
           esc(u.id) +
           '">重置密码</button>' +
-          '<button type="button" class="btn btn-ghost" data-disable="' +
+          '<button type="button" class="btn" data-disable="' +
           esc(u.id) +
           '">' +
           (on ? "停用" : "启用") +
-          "</button></div></div></article>"
+          "</button></div>" +
+          '<div class="fz-actions-fix">' +
+          '<button type="button" class="btn btn-primary" data-edit-sub="' +
+          esc(u.id) +
+          '">编辑</button></div></div></article>'
         );
       })
       .join("");
@@ -309,13 +319,28 @@
     box.className = "fz-card-grid sub-card-grid";
     if (!s.roles.length) {
       box.innerHTML =
-        '<div class="card card-pad muted sub-empty">还没有岗位。先建一个权限包，创建子账号时可选。</div>';
+        '<div class="card card-pad muted sub-empty">还没有岗位。点「新建岗位」建一个权限包，创建子账号时可选。</div>';
+      paintPager(0);
+      return;
+    }
+    var roles = s.roles;
+    if (filterQRoles) {
+      var rq = filterQRoles.toLowerCase();
+      roles = roles.filter(function (r) {
+        return String(r.name || "")
+          .toLowerCase()
+          .indexOf(rq) !== -1;
+      });
+    }
+    if (!roles.length) {
+      box.innerHTML =
+        '<div class="card card-pad muted sub-empty">没有匹配的岗位。可改搜索词，或点「新建岗位」。</div>';
       paintPager(0);
       return;
     }
     var slice = window.FZPager
-      ? FZPager.slice(s.roles, page, pageSize)
-      : { items: s.roles, total: s.roles.length, page: 1, pageSize: s.roles.length };
+      ? FZPager.slice(roles, page, pageSize)
+      : { items: roles, total: roles.length, page: 1, pageSize: roles.length };
     page = slice.page;
     pageSize = slice.pageSize;
     box.innerHTML = slice.items
@@ -353,14 +378,14 @@
           factRow("覆盖", roleCoverPages(r.features), "is-muted") +
           "</div>" +
           '<div class="proj-actions">' +
-          '<div class="fz-actions-opt"></div>' +
-          '<div class="fz-actions-fix">' +
-          '<button type="button" class="btn" data-edit="' +
-          esc(r.id) +
-          '">编辑</button>' +
+          '<div class="fz-actions-opt">' +
           '<button type="button" class="btn" data-del="' +
           esc(r.id) +
-          '">删除</button></div></div></article>'
+          '">删除</button></div>' +
+          '<div class="fz-actions-fix">' +
+          '<button type="button" class="btn btn-primary" data-edit="' +
+          esc(r.id) +
+          '">编辑</button></div></div></article>'
         );
       })
       .join("");
@@ -749,10 +774,53 @@
   document.getElementById("tab-roles").addEventListener("click", function () {
     setTab("roles");
   });
-  document.getElementById("btn-primary-act").addEventListener("click", function () {
-    if (tab === "roles") openRoleModal(null);
-    else openSubModal(null);
-  });
+  (function bindToolbar() {
+    var bar = document.getElementById("sub-toolbar");
+    if (!bar) return;
+    bar.addEventListener("click", function (e) {
+      if (e.target.id === "btn-primary-act") {
+        if (tab === "roles") openRoleModal(null);
+        else openSubModal(null);
+        return;
+      }
+      if (e.target.id === "sub-f-search") {
+        var qEl = document.getElementById("sub-f-q");
+        var q = ((qEl && qEl.value) || "").trim();
+        if (tab === "roles") filterQRoles = q;
+        else filterQSubs = q;
+        page = 1;
+        renderList();
+        return;
+      }
+      if (e.target.id === "sub-f-reset") {
+        if (tab === "roles") {
+          filterQRoles = "";
+        } else {
+          filterQSubs = "";
+          filterProjId = "";
+        }
+        page = 1;
+        paintToolbar();
+        renderList();
+        FZShell.toast("已重置筛选", "ok");
+      }
+    });
+    bar.addEventListener("change", function (e) {
+      if (e.target.id !== "sub-filter-proj") return;
+      filterProjId = e.target.value || "";
+      page = 1;
+      renderList();
+    });
+    bar.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter" || e.target.id !== "sub-f-q") return;
+      e.preventDefault();
+      var q = (e.target.value || "").trim();
+      if (tab === "roles") filterQRoles = q;
+      else filterQSubs = q;
+      page = 1;
+      renderList();
+    });
+  })();
 
   function notifySubWizardDone() {
     if (window.FZNoviceTours) FZNoviceTours.notify("subs", "sub_wizard_done");
@@ -968,14 +1036,6 @@
         if (next.pageSize != null) pageSize = next.pageSize;
       },
       onChange: renderList
-    });
-  }
-  var filterSel = document.getElementById("sub-filter-proj");
-  if (filterSel) {
-    filterSel.addEventListener("change", function () {
-      filterProjId = filterSel.value || "";
-      page = 1;
-      renderList();
     });
   }
   setTab(tab);

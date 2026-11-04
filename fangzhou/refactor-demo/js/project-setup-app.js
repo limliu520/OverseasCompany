@@ -48,7 +48,7 @@
       { id: "cover", title: "封面", required: true },
       { id: "watermark", title: "水印", hasDefaults: true },
       { id: "intro", title: "片头和片尾" },
-      { id: "article", title: "文章管理" },
+      { id: "article", title: "文案管理" },
       { id: "media", title: "内容生成规则", hasDefaults: true },
       { id: "userbot", title: "采集号" },
       { id: "flow", title: "推送规则", hasDefaults: true }
@@ -136,12 +136,12 @@
   function renderSummary() {
     var typeLabel = FZProjectUnion.siteTypeLabel(draft.siteType);
     var artLine = FZProjectUnion.needsArticle(draft.siteType)
-      ? "<div>文章管理：" +
+      ? "<div>文案管理：" +
         (draft.articleConfigured || (draft.article && draft.article.templateOn)
           ? "已就绪"
           : "未配 / 可跳过") +
         "</div>"
-      : "<div>文章管理：短剧站跳过</div>";
+      : "<div>文案管理：短剧站跳过</div>";
     document.getElementById("summary").innerHTML =
       "<div>名称：" +
       (draft.name || "未填") +
@@ -187,7 +187,7 @@
   function panelBasic() {
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">基本信息</h2>' +
-      '<p class="muted" style="margin:0 0 14px">先定项目是谁、做什么站。站点类型会决定后面是否出现「文章管理」、短剧分集等。Token 在点「创建项目」后才生成。</p>' +
+      '<p class="muted" style="margin:0 0 14px">先定项目是谁、做什么站。站点类型会决定后面是否出现「文案管理」、短剧分集等。Token 在点「创建项目」后才生成。</p>' +
       '<div class="field"><label>项目名称 *</label><input id="f-name" value="' +
       esc(draft.name) +
       '" placeholder="例如：出海内容站 A" /></div>' +
@@ -230,7 +230,7 @@
       '<div id="pending-bots" style="margin-bottom:12px">' +
       rows +
       "</div>" +
-      '<button type="button" class="btn" id="btn-new-bot">+ 为本项目添加采集号</button>'
+      '<button type="button" class="btn btn-create" id="btn-new-bot">+ 为本项目添加采集号</button>'
     );
   }
 
@@ -238,7 +238,6 @@
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">封面</h2>' +
       FZMediaConfig.renderCoverPanel(draft.coverWidth, draft.coverHeight, {
-        lead: "项目身份已定。这一步定封面长什么样：文章封面尺寸 / 拼图，以及视频封面策略。",
         videoCoverStrategy: draft.videoCoverStrategy || "article",
         coverPanelCount: draft.coverPanelCount || 3
       })
@@ -248,7 +247,6 @@
   function panelMedia() {
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">内容生成规则</h2>' +
-      '<p class="muted" style="margin:0 0 14px">出图、加工与文案已定。这一步定交付形态：下方分「图片生成规则」与「视频生成规则」，均有默认值，确认后直接「下一步」。出站门槛（必须含视频、最短时长）在「推送规则」。</p>' +
       FZProjectUnion.renderVideoRulesFields(draft)
     );
   }
@@ -258,7 +256,6 @@
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">水印</h2>' +
       FZMediaConfig.renderWatermarkPanel(draft.watermarks, {
-        lead: "封面规格已定。这一步确认去源水印（图 / 视频各一开关，默认都开），再决定要不要叠自己的水印。默认可直接「下一步」；片头片尾下一步单独配。",
         allowDefault: true,
         showSave: false,
         dewatermarkEnabled: draft.dewatermarkEnabled !== false,
@@ -277,7 +274,6 @@
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">片头和片尾</h2>' +
       FZMediaConfig.renderIntroOutroPanel(draft.watermarks, {
-        lead: "水印是叠层；片头片尾是整段拼在原片前/后。可跳过；有上传才拼接。",
         showSave: false
       })
     );
@@ -285,9 +281,8 @@
 
   function panelArticle() {
     return (
-      '<h2 style="margin:0 0 8px;font-size:18px">文章管理</h2>' +
+      '<h2 style="margin:0 0 8px;font-size:18px">文案管理</h2>' +
       FZMediaConfig.renderArticlePanel(draft.article, {
-        lead: "封面与媒体加工已配完。这一步定进内容通道后的文案：AI 提示词与文案内链。短剧站不会出现本步。",
         showSave: false,
         showLinks: true,
         artSection: draft.artSection || "prompt",
@@ -299,7 +294,6 @@
   function panelFlow() {
     return (
       '<h2 style="margin:0 0 8px;font-size:18px">推送规则</h2>' +
-      '<p class="muted" style="margin:0 0 14px">采集来源已选（或已跳过）。这一步定流转与出站门槛：① 素材何时进编辑；② 何时推业务方；③ 必须含视频 / 最短时长。各项有默认（新建默认「待人工确认再推」），确认后直接创建。短剧站可配分集。对接地址创建后在「开发对接」填。</p>' +
       FZProjectUnion.renderPushRulesFields(draft)
     );
   }
@@ -510,6 +504,7 @@
     FZProjectUnion.bindGenModeCards(document);
     bindMedia();
     FZMediaConfig.bindSegControls(document.getElementById("panel"), afterPick);
+    FZProjectUnion.bindConfigSwitches(document.getElementById("panel"), afterPick);
   }
 
   function stepHasContent(stepId) {
@@ -885,6 +880,54 @@
       createProject();
     }
   });
+
+  /** 创建成功前离开向导须二次确认；成功弹层出现后不再拦截 */
+  function needsLeaveConfirm() {
+    return !createdProjectId;
+  }
+
+  function requestLeave(go) {
+    if (!needsLeaveConfirm()) {
+      go();
+      return;
+    }
+    FZShell.confirm({
+      title: "离开创建项目",
+      message: "当前项目尚未创建，离开后已填写内容将不会保存。确定离开吗？",
+      okText: "离开",
+      cancelText: "继续创建",
+      danger: true,
+      onOk: go
+    });
+  }
+
+  var leaveBtn = document.getElementById("btn-leave-setup");
+  if (leaveBtn) {
+    leaveBtn.addEventListener("click", function () {
+      requestLeave(function () {
+        if (isNoviceCreate()) {
+          location.href = "./home.html";
+          return;
+        }
+        location.href = "./projects.html";
+      });
+    });
+  }
+
+  document.getElementById("sidebar").addEventListener(
+    "click",
+    function (e) {
+      var a = e.target.closest && e.target.closest("a.nav-item");
+      if (!a || !needsLeaveConfirm()) return;
+      var href = a.getAttribute("href");
+      if (!href || href === "#" || href.indexOf("project-setup") !== -1) return;
+      e.preventDefault();
+      requestLeave(function () {
+        location.href = href;
+      });
+    },
+    true
+  );
 
   document.getElementById("success-go").addEventListener("click", function () {
     if (isNoviceCreate()) {
