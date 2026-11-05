@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>51吃瓜 · 卡片、搜索与说明页 PRD</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: #f6f5f3; color: #1c1c1f; font: 15px/1.65 "PingFang SC", "Noto Sans SC", sans-serif; }
+  .bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10000; height: 52px;
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 20px; background: #fff; border-bottom: 1px solid #e4e2de;
+  }
+  .bar .brand { font-size: 13px; color: #5e5e66; }
+  .tab {
+    border: 1px solid transparent; background: transparent; color: #5e5e66;
+    border-radius: 8px; padding: 6px 14px; font: inherit; text-decoration: none;
+  }
+  .tab.on { color: #1c1c1f; background: #f6f5f3; border-color: #e4e2de; }
+  .pane { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; overflow: auto; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px 64px; }
+  h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
+  h2 { font-size: 18px; margin: 28px 0 10px; }
+  h3 { font-size: 15px; margin: 0 0 8px; }
+  h4 { font-size: 13px; margin: 12px 0 6px; color: #5e5e66; font-weight: 650; }
+  .meta { color: #5e5e66; font-size: 13px; margin-bottom: 12px; }
+  p { margin: 0 0 10px; }
+  ul, ol { margin: 0 0 10px; padding-left: 18px; }
+  li { margin: 4px 0; }
+  table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin: 8px 0 16px; }
+  th, td { border: 1px solid #e4e2de; padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #f3f0f2; }
+  .id { font-size: 12px; color: #c45c12; margin-bottom: 4px; }
+  .pair {
+    display: grid; grid-template-columns: minmax(280px, 42%) 1fr; gap: 20px;
+    background: #fff; border: 1px solid #e4e2de; border-radius: 12px;
+    padding: 16px; margin: 16px 0;
+  }
+  .shots { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  figure { margin: 0; }
+  .pair img { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid #e4e2de; cursor: zoom-in; }
+  figcaption { color: #5e5e66; font-size: 12px; margin-top: 6px; }
+  @media (max-width: 800px) { .pair { grid-template-columns: 1fr; } }
+  .lightbox {
+    position: fixed; inset: 0; z-index: 20000; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(0,0,0,.82); cursor: zoom-out;
+  }
+  .lightbox.is-open { display: flex; }
+  .lightbox img { max-width: min(96vw, 1400px); max-height: 92vh; border-radius: 8px; cursor: default; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <span class="brand">卡片 / 搜索 / 说明页</span>
+  <span class="tab on">PRD</span>
+  <a class="tab" href="feed-card-search-official-demo.html">Demo</a>
+</div>
+<div class="pane">
+  <div class="wrap">
+    <h1>51吃瓜 · 首页卡片、搜索与说明页</h1>
+    <p class="meta">版本 1.0 · 2026-11-05 · 适用端：51吃瓜 Web。截图可点击放大。顶栏「Demo」打开可点原型。</p>
+
+    <h2>版本目的 / 需求背景</h2>
+    <p>首页卡片把作者、长日期、多个分类和「热门」挤在一行，热门只是红字，评论数看不到。搜索页只有「包含关键字 xxx 的文章」，没有总条数，也不能按最新 / 最热重排；标题对不上关键词时，用户看不出为什么命中。</p>
+    <p>说明页模板不统一。常见问题是独立的 faq 模板，没有评论和应用广告。关于我们、加入我们走普通页面，正文前会压上广告，页底还有评论。说明页的任务是把话说完，不是再导一屏广告或收评论。</p>
+    <p>本期做：重排首页与搜索结果卡片；搜索展示总条数，并提供最新 / 最热；标题未命中时给出摘要；说明页统一为「正文在前、最新地址在后、无评论、无正文前广告」。</p>
+    <p>本期不做：搜索「综合」排序；搜索无结果空态；文章详情页改版；把评论数做成第二个封面角标；为说明页补评论或补顶部广告。首页原有分页、分类频道仍在，本期只改卡片信息结构，不改频道信息架构。</p>
+    <p>业务对象：来吃瓜的读者，以及维护关于我们、常见问题、加入我们、协议和回家的路的运营。预期：扫卡片能分清热门、时间和讨论热度；搜索能知道有多少条、为什么是这条；打开说明页先看到正文。</p>
+
+    <h2>需求功能矩阵</h2>
+    <table>
+      <thead><tr><th>功能ID</th><th>模块</th><th>名称</th><th>描述</th></tr></thead>
+      <tbody>
+        <tr><td>FC-01</td><td>列表</td><td>首页与搜索卡片</td><td>封面左上角热门胶囊；底部两行：标题，以及同一行里的分类标签和作者、短日期、评 N。</td></tr>
+        <tr><td>FC-02</td><td>搜索</td><td>条数与排序</td><td>标题写找到 N 条；排序仅最新、最热，默认最新。</td></tr>
+        <tr><td>FC-03</td><td>搜索</td><td>命中摘要</td><td>标题未含关键词时，在第二行下方展示摘要，并把关键词标出。</td></tr>
+        <tr><td>FC-04</td><td>说明页</td><td>官方说明页结构</td><td>关于我们、常见问题、加入我们、协议、回家的路：正文前无广告，无评论，最新地址在正文后。</td></tr>
+      </tbody>
+    </table>
+
+    <div class="pair" id="fc-01">
+      <div class="shots">
+        <figure>
+          <img src="feed-prd-screens/fc-01-home.png" alt="首页卡片" />
+          <figcaption>首页：热门在封面左上角。底部两行，标题一行，分类标签与作者、时间同一行。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">FC-01</div>
+        <h3>首页与搜索卡片</h3>
+        <h4>功能逻辑</h4>
+        <p>首页信息流和搜索结果使用同一张卡片。封面图区域左上角只放「热门」。封面底部两行：第一行标题，第二行左侧分类标签、右侧作者和时间。搜索命中摘要接在这一行下面，规则见 FC-03。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>封面比例沿用现网 1920×565，宽扁横幅。标题、元信息、分类叠在封面底部，不在封面下方再垫一块等高区域。</li>
+          <li>热门角标：运营标记为热门时，封面左上角显示红底白字胶囊「热门」。未标记不占位。</li>
+          <li>热门角标不跟评论数挂钩，也不参与「最热」排序的计算。「最热」读站内已有热度分，见 FC-02。</li>
+          <li>封面底部固定两行。第一行是标题，最多两行，超出省略。</li>
+          <li>第二行左侧是分类标签，样式为描边胶囊，按文章已挂分类的配置顺序全部展示。现网一篇可以挂到 4 个，也可以更多。这一侧排满后标签换行，不改成纯文字。</li>
+          <li>第二行右侧是作者、短日期、评 N，顺序固定，短日期为月-日，例如 11-05。评论数为 0 时不显示「评 0」。</li>
+          <li>作者、日期、分类、「热门」不再写进同一句灰色小字。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>首页列表顺序沿用现网，按发布时间倒序。</li>
+          <li>卡片点击进入该文现网文章详情。本期不改详情页。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>封面图加载失败：保留底部信息区和热门角标，封面区用深色底，标题仍完整按两行规则展示。</li>
+          <li>无作者：元信息作者位显示「匿名」。</li>
+          <li>无分类：第二行只保留作者、短日期、评 N。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>卡片读标题、作者、发布时间、评论数、分类列表、热门标记。评论数用已对读者可见的评论条数。热门标记由运营字段单独下发。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="fc-02">
+      <div class="shots">
+        <figure>
+          <img src="feed-prd-screens/fc-02-search-new.png" alt="搜索最新" />
+          <figcaption>搜索默认「最新」：标题给出总条数，标题未命中的卡片带摘要。</figcaption>
+        </figure>
+        <figure>
+          <img src="feed-prd-screens/fc-02-search-hot.png" alt="搜索最热" />
+          <figcaption>切到「最热」后同一批结果按热度分重排，条数不变。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">FC-02</div>
+        <h3>搜索条数与排序</h3>
+        <h4>功能逻辑</h4>
+        <p>提交关键词后进入搜索结果。页头写清总条数，结果用 FC-01 卡片。排序只有「最新」和「最热」，进入搜索时默认「最新」。切换排序只改变同一批结果的顺序。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>页头文案：「找到 N 条与「关键词」相关的内容」。N 为全部命中条数，不是当前页条数。</li>
+          <li>有分页时，页码条另写「第 A–B 条，共 N 条」。</li>
+          <li>「最新」：按发布时间倒序。同一天再按热度分降序。</li>
+          <li>「最热」：按站内已有热度分降序。同分按发布时间倒序。</li>
+          <li>切换排序回到第 1 页，关键词不变，N 不变。</li>
+          <li>空关键词点搜索：不进入结果页。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>顶栏搜索图标展开输入框。输入后点「搜索」或回车，打开结果并默认选中「最新」。</li>
+          <li>点「最新」或「最热」立即重排，当前项高亮。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>未输入关键词就搜索：Toast「先输入关键词」，停留在当前页，不发请求。</li>
+          <li>搜索接口失败：结果区改为「搜索失败，请再试一次」，保留关键词和输入框，排序不切换。</li>
+          <li>请求返回后关键词已被用户改掉：丢弃这次结果，不覆盖当前输入。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>请求带关键词、排序和页码。响应给总条数、热度分和卡片字段。总条数以本次过滤后的全集为准，翻页不重新计数。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="fc-03">
+      <div class="shots">
+        <figure>
+          <img src="feed-prd-screens/fc-02-search-new.png" alt="搜索命中摘要" />
+          <figcaption>标题未含关键词时，第二行下方给出摘要，关键词用主题色标出。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">FC-03</div>
+        <h3>命中摘要</h3>
+        <h4>功能逻辑</h4>
+        <p>一条结果只要标题、分类或正文命中关键词即可出现。标题里已经有关键词时，卡片不再加摘要。标题没有、正文有时，在第二行下方给一行摘要，并把关键词标出。只有分类命中时，摘要写分类名。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>命中范围：标题、分类名、正文。不区分大小写。</li>
+          <li>标题包含关键词：不展示摘要行。</li>
+          <li>标题不包含、正文包含：摘要截取命中处前后约一句，关键词用主题色标出。前后被截断时加省略号。</li>
+          <li>仅分类包含：摘要文案为「分类包含「分类名」」。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>摘要只在搜索结果卡片出现，首页卡片不出现。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>关键词只命中已下线或不可见正文：不计入 N，不出现在列表。</li>
+          <li>摘要原文超长：仍只保留命中处前后一句，不展开全文。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>检索在可见内容上完成。摘要由正文命中位置现截，不另存一份摘要字段。</p>
+      </div>
+    </div>
+
+    <div class="pair" id="fc-04">
+      <div class="shots">
+        <figure>
+          <img src="feed-prd-screens/fc-04-about.png" alt="关于我们" />
+          <figcaption>关于我们：先正文，最新地址在文末，无评论、无正文前广告。</figcaption>
+        </figure>
+        <figure>
+          <img src="feed-prd-screens/fc-04-faq.png" alt="常见问题" />
+          <figcaption>常见问题与关于我们同一套说明页结构。</figcaption>
+        </figure>
+      </div>
+      <div>
+        <div class="id">FC-04</div>
+        <h3>官方说明页</h3>
+        <h4>功能逻辑</h4>
+        <p>关于我们、常见问题、加入我们、用户协议、隐私政策、回家的路同属说明页。读者打开后先看正文，读完再看到「最新地址」。说明页不承接评论，也不在正文前插入应用广告。</p>
+        <h4>业务规则</h4>
+        <ul>
+          <li>适用页面：关于我们、常见问题、加入我们、用户协议、隐私政策、回家的路。</li>
+          <li>正文前不放应用广告墙、导航外链墙或其它导流图。</li>
+          <li>页面不提供评论列表，也不提供发表框。</li>
+          <li>文末固定一块「最新地址」，放在正文之后。字段为国内地址、邮箱、海外地址、永久地址，文案读站内现有配置。</li>
+          <li>常见问题正文里如果某一条本身在回答地址，保留该条；文末「最新地址」仍然要有，作为全站说明页的统一收口。</li>
+          <li>吃瓜正文页继续使用现有的广告、相关热瓜和评论，不套这套说明页。</li>
+        </ul>
+        <h4>页面交互</h4>
+        <ul>
+          <li>从顶栏或页脚进入说明页，直接落在正文标题。</li>
+          <li>「最新地址」里的链接按现网方式打开。</li>
+        </ul>
+        <h4>异常</h4>
+        <ul>
+          <li>某一条地址配置为空：该行不展示，其它行照常。四条都空时不渲染整块「最新地址」。</li>
+          <li>说明页被误配成带评论的普通文章：前台仍不渲染评论区。</li>
+        </ul>
+        <h4>数据流转</h4>
+        <p>说明页读各自正文。最新地址读全站地址配置，不写进某一篇文章的正文里才能显示。评论接口对说明页不请求。</p>
+      </div>
+    </div>
+
+    <h2>验收</h2>
+    <table>
+      <thead><tr><th>功能ID</th><th>验收标准</th></tr></thead>
+      <tbody>
+        <tr><td>FC-01</td><td>□ 封面比例 1920×565 □ 热门为封面左上角红底白字；非热门不占位 □ 底部两行：标题，以及同一行的描边分类标签和作者、月-日、评 N □ 0 条评论不显示 □ 分类按已挂数量全部展示，排满换行</td></tr>
+        <tr><td>FC-02</td><td>□ 页头为找到 N 条 □ 默认最新，可切最热 □ 最热按热度分，同分按时间 □ 空关键词 Toast「先输入关键词」</td></tr>
+        <tr><td>FC-03</td><td>□ 标题已含关键词无摘要 □ 仅正文命中有带标色的摘要 □ 仅分类命中写「分类包含「分类名」」</td></tr>
+        <tr><td>FC-04</td><td>□ 六类说明页正文前无广告、无评论 □ 最新地址在正文后 □ 吃瓜正文页仍保留广告与评论</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="lightbox" id="lightbox"><img alt="" /></div>
+<script>
+const box = document.getElementById("lightbox");
+const boxImg = box.querySelector("img");
+document.body.addEventListener("click", (e) => {
+  const img = e.target.closest(".pair img");
+  if (img) {
+    boxImg.src = img.src;
+    box.classList.add("is-open");
+  } else if (e.target === box) {
+    box.classList.remove("is-open");
+  }
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") box.classList.remove("is-open");
+});
+</script>
+</body>
+</html>

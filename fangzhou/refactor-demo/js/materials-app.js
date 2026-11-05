@@ -194,19 +194,13 @@
       return;
     }
     el.hidden = false;
-    var poolOn = scope === "pool";
     var parts = [
-      '<div class="mat-scope-platform' +
-        (poolOn ? " is-on" : "") +
-        '"><button type="button" class="mat-v2-scope mat-v2-scope--pool' +
-        (poolOn ? " is-on" : "") +
-        '" data-scope="pool"><span class="mat-v2-scope-kicker">全平台</span><span class="mat-v2-scope-name">平台公共素材池</span><span class="mat-v2-scope-n">' +
+      '<span class="mat-scope-label">全平台</span>' +
+        '<button type="button" class="mat-v2-scope' +
+        (scope === "pool" ? " is-on" : "") +
+        '" data-scope="pool"><span class="mat-v2-scope-name">平台公共素材池</span><span class="mat-v2-scope-n">' +
         Fil.scopeCount(ITEMS, "pool") +
-        "</span></button><p class=\"mat-v2-scope-lead\">" +
-        (poolOn
-          ? "含各主账号、各项目的素材。进了项目的、只进了 TG 的、只留在池里的，都在这里。"
-          : "上面是全平台的池。下面只是其中某个项目的一份，这些素材同时仍在平台公共素材池。") +
-        "</p></div><div class=\"mat-scope-projects\"><span class=\"mat-scope-label\">项目</span>"
+        '</span></button><span class="mat-scope-label">项目</span>'
     ];
     PROJECTS.forEach(function (name) {
       var key = "proj:" + name;
@@ -234,7 +228,6 @@
           "</span></button>"
       );
     });
-    parts.push("</div>");
     el.innerHTML = parts.join("");
   }
   function paintToolbar() {

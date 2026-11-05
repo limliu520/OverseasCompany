@@ -6111,51 +6111,14 @@ select.input {
 .mat-v2-banner { display: none; }
 .mat-v2-scopes {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.mat-scope-platform {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 16px;
-  padding: 10px 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: 12px;
-  background: var(--paper);
-}
-.mat-scope-platform.is-on {
-  border-color: var(--ink);
-}
-.mat-v2-scope-kicker {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--ink-2);
-}
-.mat-scope-platform.is-on .mat-v2-scope-kicker {
-  color: var(--ink);
-}
-.mat-v2-scope-lead {
-  margin: 0;
-  flex: 1;
-  min-width: 220px;
-  font-size: 12.5px;
-  line-height: 1.45;
-  color: var(--ink-2);
-}
-.mat-scope-projects {
-  display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  margin-bottom: 12px;
 }
 .mat-scope-label {
   font-size: 12px;
   color: var(--muted);
-  margin-right: 2px;
 }
 .mat-v2-scope {
   display: inline-flex;
@@ -6178,10 +6141,6 @@ select.input {
   background: var(--fill);
   color: var(--ink);
   font-weight: 600;
-}
-.mat-v2-scope--pool {
-  border-color: var(--ink);
-  background: var(--fill);
 }
 .mat-v2-scope-type {
   font-size: 11px;

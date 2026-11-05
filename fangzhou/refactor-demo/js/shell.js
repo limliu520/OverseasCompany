@@ -272,7 +272,7 @@
           done: true,
           need: "collect.materials.view",
           tourTip:
-            "处理采进来的素材。顶部切换「待审核 / 全部 / 垃圾」。全部素材第一行是「平台公共素材池」，含各主账号、各项目的料；进了项目的也留在池里。下面的项目只是其中一份。垃圾可恢复。"
+            "处理采进来的素材。顶部切换「待审核 / 全部 / 垃圾」。全部素材里「全平台」只有「平台公共素材池」，含各主账号、各项目的料；进了项目的也留在池里。后面「项目」是其中一份。垃圾可恢复。"
         }
       ]
     },
@@ -654,7 +654,7 @@
       }
     }
     if (global.FZHelpCenter) mountHelp();
-    else loadScriptOnce("js/help-center.js?v=20261105pool1", mountHelp);
+    else loadScriptOnce("js/help-center.js?v=20261105pool2", mountHelp);
     function mountNovice() {
       if (global.FZNovice && typeof FZNovice.consumeQuery === "function") {
         FZNovice.consumeQuery();
