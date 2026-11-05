@@ -242,6 +242,18 @@
       disabled: false
     },
     {
+      id: "sub_demo_tg",
+      username: "ops_tg",
+      displayName: "阿凯",
+      password: "demo1234",
+      cmsId: "cms_partner_tg",
+      tgPhone: "+8613800138000",
+      totpBound: true,
+      features: DEMO_ROLES[0].features.slice(),
+      roleName: "采集运营",
+      disabled: false
+    },
+    {
       id: "sub_demo_old",
       username: "ops_retired",
       displayName: "已停用 · 旧号",
@@ -1186,6 +1198,10 @@
           hit.disabled = !!seed.disabled;
           changed = true;
         }
+        if (seed.tgPhone && !hit.tgPhone) {
+          hit.tgPhone = seed.tgPhone;
+          changed = true;
+        }
       }
     });
 
@@ -1879,7 +1895,10 @@
       state.accountKind = "owner";
       state.accountId = profile;
       state.username = "demo_owner";
-      state.displayName = profile === "owner_empty" ? "主账号 · 新号" : "主账号演示";
+      state.profileNames = state.profileNames || {};
+      state.displayName =
+        state.profileNames[profile] ||
+        (profile === "owner_empty" ? "主账号 · 新号" : "主账号演示");
       state.features = flattenOwnerFeatures();
       if (profile === "owner_empty") {
         if (!state._projectsBackup) {

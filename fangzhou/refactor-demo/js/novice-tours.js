@@ -268,7 +268,7 @@
       {
         id: "tabs",
         title: "认识素材视图",
-        tip: "顶部有三个视图。本教程只走「全部素材 → 公共素材池」，点「下一步」继续。",
+        tip: "顶部有三个视图。本教程只走「全部素材 → 平台公共素材池」，点「下一步」继续。",
         allow: "",
         spotlight: "#mat-tabs",
         strict: true,
@@ -278,7 +278,7 @@
       {
         id: "open_detail",
         title: "打开素材详情",
-        tip: "已切到公共素材池并标出示例行。点「下一步」自动打开详情，无需手点表格。",
+        tip: "已切到平台公共素材池并标出示例行。点「下一步」自动打开详情，无需手点表格。",
         allow: "",
         spotlight: "#mat-root tbody tr[data-tour-hit]",
         waitEvent: "detail_open",

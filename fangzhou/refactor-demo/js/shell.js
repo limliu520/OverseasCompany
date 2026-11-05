@@ -272,7 +272,7 @@
           done: true,
           need: "collect.materials.view",
           tourTip:
-            "处理采进来的素材。顶部切换「待审核 / 全部 / 垃圾」：待审可在详情通过、驳回或转编辑。全部素材下「公共素材池」含全部入池料（含项目自采）；转编辑进项目后池内仍保留。也可按项目看子集。垃圾可恢复。"
+            "处理采进来的素材。顶部切换「待审核 / 全部 / 垃圾」。全部素材第一行是「平台公共素材池」，含各主账号、各项目的料；进了项目的也留在池里。下面的项目只是其中一份。垃圾可恢复。"
         }
       ]
     },
@@ -614,8 +614,13 @@
               } catch (eClr) {}
               location.href = BASE + "login.html";
             }
-          } else if (act === "pwd") toast("修改密码 · 设计中");
-          else if (act === "profile") toast("个人资料 · 设计中");
+          } else if (act === "pwd" || act === "profile") {
+            loadScriptOnce("js/account-self.js?v=20261105acct1", function () {
+              if (!global.FZAccount) return;
+              if (act === "pwd") global.FZAccount.openPassword();
+              else global.FZAccount.openProfile();
+            });
+          }
         });
       });
     }
@@ -649,7 +654,7 @@
       }
     }
     if (global.FZHelpCenter) mountHelp();
-    else loadScriptOnce("js/help-center.js?v=20261105fbKind", mountHelp);
+    else loadScriptOnce("js/help-center.js?v=20261105pool1", mountHelp);
     function mountNovice() {
       if (global.FZNovice && typeof FZNovice.consumeQuery === "function") {
         FZNovice.consumeQuery();

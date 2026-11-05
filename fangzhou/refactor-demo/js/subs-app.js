@@ -190,7 +190,9 @@
           " " +
           (u.username || "") +
           " " +
-          (u.cmsId || "")
+          (u.cmsId || "") +
+          " " +
+          (u.tgPhone || "")
         ).toLowerCase();
         return blob.indexOf(q) !== -1;
       });
@@ -241,6 +243,11 @@
             u.cmsId || "未填写",
             u.cmsId ? "is-mono" : "is-muted"
           ) +
+          factRow(
+            "Telegram",
+            u.tgPhone || "未填写",
+            u.tgPhone ? "is-mono" : "is-muted"
+          ) +
           factRow("负责项目", projectNames(u.projects, s.projects)) +
           "</div>" +
           '<div class="proj-actions">' +
@@ -248,6 +255,9 @@
           '<button type="button" class="btn" data-reset="' +
           esc(u.id) +
           '">重置密码</button>' +
+          '<button type="button" class="btn" data-reset-totp="' +
+          esc(u.id) +
+          '">重置验证器</button>' +
           '<button type="button" class="btn" data-disable="' +
           esc(u.id) +
           '">' +
@@ -269,6 +279,11 @@
     box.querySelectorAll("[data-reset]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         openResetPassModal(btn.getAttribute("data-reset"));
+      });
+    });
+    box.querySelectorAll("[data-reset-totp]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        resetSubTotp(btn.getAttribute("data-reset-totp"));
       });
     });
     box.querySelectorAll("[data-disable]").forEach(function (btn) {
@@ -620,6 +635,11 @@
         FZShell.toast("请填写显示名", "err");
         return false;
       }
+      var tg = document.getElementById("sub-tg").value.trim().replace(/[\s-]/g, "");
+      if (tg && !/^\+\d{8,15}$/.test(tg)) {
+        FZShell.toast("Telegram 须为带国家码的手机号，例如 +8613800000000", "err");
+        return false;
+      }
       return true;
     }
     if (step === 2) {
@@ -673,6 +693,31 @@
     if (!pass || pass.length < 8) return "新密码至少 8 位";
     if (pass !== confirm) return "两次输入的密码不一致";
     return "";
+  }
+
+  function resetSubTotp(subId) {
+    var u = (FZStore.read().subs || []).filter(function (x) {
+      return x.id === subId;
+    })[0];
+    if (!u) return;
+    var name = u.displayName || u.username || "该子账号";
+    FZShell.confirm({
+      title: "重置谷歌验证",
+      message: "确定重置「" + name + "」的谷歌验证器？对方下次登录须重新扫码绑定。",
+      okText: "重置验证器",
+      danger: true,
+      onOk: function () {
+        var st = FZStore.read();
+        st.subs = (st.subs || []).map(function (row) {
+          if (row.id !== subId) return row;
+          row.totpBound = false;
+          return row;
+        });
+        FZStore.write(st);
+        renderList();
+        FZShell.toast("已重置谷歌验证，对方下次登录须重新绑定", "ok");
+      }
+    });
   }
 
   function openResetPassModal(subId) {
@@ -735,11 +780,13 @@
       document.getElementById("sub-user-ro-text").textContent = "@" + sub.username;
       document.getElementById("sub-name").value = sub.displayName || "";
       document.getElementById("sub-cms").value = sub.cmsId || "";
+      document.getElementById("sub-tg").value = sub.tgPhone || "";
     } else {
       document.getElementById("sub-user").value = "";
       document.getElementById("sub-name").value = "";
       document.getElementById("sub-pass").value = "Changeme1";
       document.getElementById("sub-cms").value = "";
+      document.getElementById("sub-tg").value = "";
     }
     subSelectedProjects = sub && sub.projects ? sub.projects.slice() : [];
     subPresetId = detectPreset(sub, s.roles);
@@ -877,6 +924,7 @@
     var username = isEdit ? "" : document.getElementById("sub-user").value.trim();
     var displayName = document.getElementById("sub-name").value.trim();
     var cmsId = document.getElementById("sub-cms").value.trim();
+    var tgPhone = document.getElementById("sub-tg").value.trim().replace(/[\s-]/g, "");
     var features = FZPerm.collect(document.getElementById("sub-feats"));
     var projects = subSelectedProjects.slice();
     var st = FZStore.read();
@@ -892,6 +940,7 @@
         if (u.id !== editingSubId) return u;
         u.displayName = displayName;
         u.cmsId = cmsId;
+        u.tgPhone = tgPhone;
         u.features = features;
         u.projects = projects;
         u.roleName = roleName;
@@ -919,6 +968,8 @@
       displayName: displayName,
       password: initPass,
       cmsId: cmsId,
+      tgPhone: tgPhone,
+      totpBound: true,
       features: features,
       projects: projects,
       roleName: roleName,

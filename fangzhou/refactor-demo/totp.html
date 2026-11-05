@@ -34,7 +34,7 @@
     </main>
   </div>
   <script src="./js/perm-tree.js?v=20261031navProj"></script>
-  <script src="./js/store.js?v=20261104alwaysOn"></script>
+  <script src="./js/store.js?v=20261105acct1"></script>
   <script>
     (function () {
       var s = FZStore.read();
@@ -67,8 +67,17 @@
         st.totpBound = true;
         st.totpBindMode = "verify";
         st.totpDemoSecret = "FZ-NEW-" + tail;
+        var phone = "";
+        if (st.accountKind === "sub") {
+          (st.subs || []).forEach(function (u) {
+            if (u.id !== st.accountId) return;
+            u.totpBound = true;
+            phone = u.tgPhone || "";
+          });
+        }
         FZStore.write(st);
-        location.href = "./pages/home.html";
+        if (phone) location.href = "./login.html?step=tg";
+        else location.href = "./pages/home.html";
       });
     })();
   </script>

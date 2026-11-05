@@ -12,7 +12,7 @@
       <div>
         <div style="opacity:.7;font-size:13px;margin-bottom:24px">FANGZHOU · REFACTOR DEMO</div>
         <h2>更轻的业务端，从入驻开始重建</h2>
-        <p>先选演示角色。新号入驻会走密码 + 首次绑定谷歌验证；其他角色用账号密码与验证码直接进入。</p>
+        <p>先选演示角色。新号走首次绑定谷歌验证；登记了 Telegram 的子账号，登录时再多一步验证码。</p>
       </div>
       <div style="opacity:.55;font-size:12px">退出登录后回到本页重选角色</div>
     </aside>
@@ -49,11 +49,31 @@
           </form>
           <p class="hint" id="creds-hint" style="margin-top:16px"></p>
         </div>
+
+        <div id="step-tg" hidden>
+          <button type="button" class="btn btn-ghost login-back" id="btn-tg-back">← 返回登录</button>
+          <h1>验证 Telegram</h1>
+          <p class="muted" id="tg-lead" style="margin:0 0 16px">验证码发到该子账号登记的 Telegram。请确认手机号后发送。</p>
+          <div class="field">
+            <label>手机号</label>
+            <input id="tg-phone" inputmode="tel" autocomplete="tel" placeholder="+8613800000000" />
+            <p class="hint">带 + 和国家码，须与创建子账号时填写的号码一致。</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <div class="field" style="flex:1;margin:0">
+              <label>验证码</label>
+              <input id="tg-code" inputmode="numeric" maxlength="6" placeholder="6 位验证码" autocomplete="one-time-code" />
+            </div>
+            <button type="button" class="btn" id="btn-tg-send">发送验证码</button>
+          </div>
+          <p class="hint" id="tg-msg" hidden style="color:var(--danger);margin-top:10px"></p>
+          <button class="btn btn-primary" type="button" id="btn-tg-ok" style="width:100%;padding:12px;margin-top:16px">验证并进入</button>
+        </div>
       </div>
     </main>
   </div>
   <script src="./js/perm-tree.js?v=20261031navProj"></script>
-  <script src="./js/store.js?v=20261104alwaysOn"></script>
+  <script src="./js/store.js?v=20261105acct1"></script>
   <script>
     (function () {
       var selected = "owner";
@@ -93,6 +113,13 @@
           desc: "项目与全局配置向，内容侧权限较少。",
           user: "pm_chen",
           pass: "demo1234"
+        },
+        {
+          id: "sub_demo_tg",
+          title: "子账号 · 阿凯（Telegram 验证）",
+          desc: "登录时除谷歌验证外，还要验证登记的 Telegram 手机号。",
+          user: "ops_tg",
+          pass: "demo1234"
         }
       ];
 
@@ -106,6 +133,10 @@
       var box = document.getElementById("login-roles");
       var stepRoles = document.getElementById("step-roles");
       var stepCreds = document.getElementById("step-creds");
+      var stepTg = document.getElementById("step-tg");
+      var pendingLogin = null;
+      var tgExpected = "";
+      var tgSent = false;
 
       box.innerHTML = roles
         .map(function (r) {
@@ -136,18 +167,63 @@
         });
       });
 
-      function resolvePass(r) {
-        if (!r || r.isNew || String(r.id).indexOf("sub_") !== 0) return r.pass;
+      function findSub(id) {
         var st = FZStore.read();
-        var sub = (st.subs || []).filter(function (u) {
-          return u.id === r.id;
-        })[0];
-        return (sub && sub.password) || r.pass || "demo1234";
+        return (st.subs || []).filter(function (u) {
+          return u.id === id;
+        })[0] || null;
+      }
+
+      function normPhone(v) {
+        return String(v || "").replace(/[\s-]/g, "");
+      }
+
+      function resolvePass(r) {
+        if (!r) return "";
+        if (r.isNew) return r.pass;
+        if (String(r.id).indexOf("sub_") === 0) {
+          var sub = findSub(r.id);
+          return (sub && sub.password) || r.pass || "demo1234";
+        }
+        var st = FZStore.read();
+        var map = st.accountPasswords || {};
+        return map[r.id] || r.pass || "demo1234";
+      }
+
+      function needsEnroll(r) {
+        if (!r) return false;
+        if (r.isNew) return true;
+        var sub = findSub(r.id);
+        return !!(sub && sub.totpBound === false);
+      }
+
+      function showRoles() {
+        stepTg.hidden = true;
+        stepCreds.hidden = true;
+        stepRoles.hidden = false;
+        pendingLogin = null;
+        tgSent = false;
+      }
+
+      function showTg(phone) {
+        tgExpected = normPhone(phone);
+        tgSent = false;
+        stepRoles.hidden = true;
+        stepCreds.hidden = true;
+        stepTg.hidden = false;
+        document.getElementById("tg-phone").value = phone || "";
+        document.getElementById("tg-code").value = "";
+        var msg = document.getElementById("tg-msg");
+        msg.hidden = true;
+        msg.textContent = "";
+        document.getElementById("tg-phone").focus();
       }
 
       function showCreds() {
         var r = roleById(selected);
+        var sub = findSub(r.id);
         stepRoles.hidden = true;
+        stepTg.hidden = true;
         stepCreds.hidden = false;
         document.getElementById("f-user").value = r.user;
         document.getElementById("f-pass").value = resolvePass(r);
@@ -157,20 +233,30 @@
         var lead = document.getElementById("creds-lead");
         var hint = document.getElementById("creds-hint");
         var submit = document.getElementById("btn-submit");
-        if (r.isNew) {
+        var enroll = needsEnroll(r);
+        if (enroll && r.isNew) {
           totpField.hidden = true;
           document.getElementById("f-totp").required = false;
           title.textContent = "新号登录";
           lead.textContent = "输入密码后，将进入首次谷歌验证绑定（新二维码）。";
           hint.textContent = "演示：密码任意非空即可，下一步扫描绑定二维码。";
           submit.textContent = "登录并绑定验证器";
+        } else if (enroll) {
+          totpField.hidden = true;
+          document.getElementById("f-totp").required = false;
+          title.textContent = "重新绑定验证器";
+          lead.textContent = "谷歌验证已重置。确认密码后进入绑定页，扫描新的二维码。";
+          hint.textContent = "绑定完成前无法进入工作台。";
+          submit.textContent = "登录并绑定验证器";
         } else if (String(r.id).indexOf("sub_") === 0) {
           totpField.hidden = false;
           document.getElementById("f-totp").required = true;
           title.textContent = "登录";
-          lead.textContent = "子账号：密码须与「子账号与授权」里当前密码一致；验证码填任意 6 位即可。";
+          lead.textContent = sub && sub.tgPhone
+            ? "子账号：密码与谷歌验证码通过后，还要验证登记的 Telegram。"
+            : "子账号：密码须与「子账号与授权」里当前密码一致；验证码填任意 6 位即可。";
           hint.textContent = "若刚重置过密码，请使用新密码登录。";
-          submit.textContent = "登录并进入";
+          submit.textContent = sub && sub.tgPhone ? "下一步" : "登录并进入";
         } else {
           totpField.hidden = false;
           document.getElementById("f-totp").required = true;
@@ -182,6 +268,19 @@
         document.getElementById("f-pass").focus();
       }
 
+      function enterHome(profileId, username) {
+        var s = FZStore.read();
+        FZStore.applyLoginProfile(s, profileId);
+        s.username = username;
+        s.totpBound = true;
+        s.totpBindMode = "verify";
+        (s.subs || []).forEach(function (u) {
+          if (u.id === profileId) u.totpBound = true;
+        });
+        FZStore.write(s);
+        location.href = "./pages/home.html";
+      }
+
       document.getElementById("btn-next").addEventListener("click", function () {
         if (!selected) {
           alert("请选择演示角色");
@@ -191,8 +290,75 @@
       });
 
       document.getElementById("btn-back").addEventListener("click", function () {
-        stepCreds.hidden = true;
-        stepRoles.hidden = false;
+        showRoles();
+      });
+
+      document.getElementById("btn-tg-back").addEventListener("click", function () {
+        if (pendingLogin && pendingLogin.fromSession) {
+          var st = FZStore.read();
+          st.loggedIn = false;
+          FZStore.write(st);
+        }
+        pendingLogin = null;
+        showRoles();
+      });
+
+      document.getElementById("btn-tg-send").addEventListener("click", function () {
+        var phone = normPhone(document.getElementById("tg-phone").value);
+        var msg = document.getElementById("tg-msg");
+        if (!/^\+\d{8,15}$/.test(phone)) {
+          msg.hidden = false;
+          msg.style.color = "var(--danger)";
+          msg.textContent = "请填写带国家码的手机号，例如 +8613800138000";
+          tgSent = false;
+          return;
+        }
+        if (phone !== tgExpected) {
+          msg.hidden = false;
+          msg.style.color = "var(--danger)";
+          msg.textContent = "该手机号未在此账号登记，请联系主账号";
+          tgSent = false;
+          return;
+        }
+        tgSent = true;
+        msg.hidden = false;
+        msg.style.color = "var(--ink-2)";
+        msg.textContent = "验证码已发到 Telegram（演示）。任意 6 位数字即可。";
+        document.getElementById("tg-code").focus();
+      });
+
+      document.getElementById("btn-tg-ok").addEventListener("click", function () {
+        var msg = document.getElementById("tg-msg");
+        if (!tgSent) {
+          msg.hidden = false;
+          msg.style.color = "var(--danger)";
+          msg.textContent = "请先发送验证码";
+          return;
+        }
+        var phone = normPhone(document.getElementById("tg-phone").value);
+        if (phone !== tgExpected) {
+          msg.hidden = false;
+          msg.style.color = "var(--danger)";
+          msg.textContent = "该手机号未在此账号登记，请联系主账号";
+          return;
+        }
+        var code = (document.getElementById("tg-code").value || "").trim();
+        if (!/^\d{6}$/.test(code)) {
+          msg.hidden = false;
+          msg.style.color = "var(--danger)";
+          msg.textContent = "请输入 6 位验证码";
+          return;
+        }
+        if (!pendingLogin) {
+          alert("登录状态已失效，请重新登录");
+          showRoles();
+          return;
+        }
+        if (pendingLogin.fromSession) {
+          location.href = "./pages/home.html";
+          return;
+        }
+        enterHome(pendingLogin.profileId, pendingLogin.username);
       });
 
       document.getElementById("login-form").addEventListener("submit", function (e) {
@@ -208,7 +374,8 @@
           alert("请输入密码");
           return;
         }
-        if (!r.isNew) {
+        var enroll = needsEnroll(r);
+        if (!enroll) {
           var code = (document.getElementById("f-totp").value || "").trim();
           if (!/^\d{6}$/.test(code)) {
             alert("请输入 6 位谷歌验证码");
@@ -217,10 +384,9 @@
         }
 
         var s = FZStore.read();
+        var subAcc = null;
         if (String(selected).indexOf("sub_") === 0) {
-          var subAcc = (s.subs || []).filter(function (u) {
-            return u.id === selected;
-          })[0];
+          subAcc = findSub(selected);
           if (!subAcc) {
             alert("子账号不存在");
             return;
@@ -234,22 +400,47 @@
             alert("密码错误");
             return;
           }
+        } else if (!r.isNew) {
+          var ownerExpect = resolvePass(r);
+          if (pass !== ownerExpect) {
+            alert("密码错误");
+            return;
+          }
         }
-        FZStore.applyLoginProfile(s, selected);
-        s.username = user;
-        if (r.isNew) {
-          /* 新号：强制走绑定页，展示新二维码 */
+
+        if (enroll) {
+          FZStore.applyLoginProfile(s, selected);
+          s.username = user;
           s.totpBound = false;
           s.totpBindMode = "enroll";
           FZStore.write(s);
           location.href = "./totp.html?mode=enroll";
           return;
         }
-        s.totpBound = true;
-        s.totpBindMode = "verify";
-        FZStore.write(s);
-        location.href = "./pages/home.html";
+
+        if (subAcc && subAcc.tgPhone) {
+          pendingLogin = { profileId: selected, username: user, fromSession: false };
+          showTg(subAcc.tgPhone);
+          return;
+        }
+
+        enterHome(selected, user);
       });
+
+      (function openTgFromBind() {
+        var params = new URLSearchParams(location.search);
+        if (params.get("step") !== "tg") return;
+        var s = FZStore.read();
+        if (!s.loggedIn || s.accountKind !== "sub") return;
+        var sub = findSub(s.accountId);
+        if (!sub || !sub.tgPhone) {
+          location.href = "./pages/home.html";
+          return;
+        }
+        selected = s.accountId;
+        pendingLogin = { profileId: s.accountId, username: s.username, fromSession: true };
+        showTg(sub.tgPhone);
+      })();
     })();
   </script>
 </body>

@@ -1780,7 +1780,8 @@ textarea.afield,
       tag: "综艺", tags: ["综艺", "复盘", "合集"], likes: 31, status: "ended", mine: false, time: "上周",
       user: "复盘党", anonymous: false, category: "复盘",
       comments: [
-        { id: "cw6a", user: "路人", text: "这帖征集已结束", time: "上周", likes: 1 }
+        { id: "cw6a", user: "路人", text: "这帖征集已结束，评论还在", time: "上周", likes: 16, status: "online", createdAt: 1761000000000 },
+        { id: "cw6b", user: "路过", text: "只能看不能再评了", time: "上周", likes: 2, status: "online", createdAt: 1761001000000 }
       ]
     },
     {
@@ -2056,14 +2057,17 @@ textarea.afield,
     </div>`;
   }
 
-  /* 信息流：卡片预览只出已上线的神评 / 点赞过阈；N = 已上线条数 */
+  /* 信息流：卡片预览只出已上线的神评 / 点赞过阈；N = 已上线条数。已结束同样预览，但不引导发评 */
   function commentsPreview(p) {
     const online = publicComments(p);
     const cCount = online.length;
     const preview = commentPreviewList(online);
+    const closed = p.status === "ended";
     let body = "";
     if (!cCount) {
-      body = `<div class="hc-empty">
+      body = closed
+        ? `<div class="hc-empty"><p>暂无评论</p></div>`
+        : `<div class="hc-empty">
           <p>还没人评，来说两句</p>
           <button type="button" class="hc-sofa" data-post-detail="${p.id}">去抢首评</button>
         </div>`;
@@ -2212,7 +2216,7 @@ textarea.afield,
     const dreamArticle = p.articleId ? ARTICLES.find((a) => a.id === p.articleId) : null;
     const catBadge = p.category ? `<span class="tag">${escapeHtml(p.category)}</span>` : "";
     let commentsBlock = "";
-    if (canComment) commentsBlock = commentsPreview(p);
+    if (canComment || p.status === "ended") commentsBlock = commentsPreview(p);
     else if (p.status === "arranged") commentsBlock = commentsEntryOnly(p);
     const footExtra = p.status === "arranged" && p.articleId
       ? `<div class="dream-cta">
@@ -2220,7 +2224,7 @@ textarea.afield,
           <button type="button" class="dream-title" data-detail="${p.articleId}">${escapeHtml(dreamArticle ? dreamArticle.title : "相关内容")}</button>
         </div>`
       : (p.status === "ended"
-        ? `<div class="foot"><span class="meta">征集已结束，不再接收新互动</span></div>`
+        ? `<div class="foot"><span class="meta">征集已结束，不再接收新评论</span></div>`
         : (previewSelf
           ? `<div class="foot"><span class="meta">审核中，仅自己可见；通过后才会公开</span></div>`
           : (p.status === "rejected" ? `<div class="foot"><span class="meta">未通过，仅自己可见</span></div>` : "")));
