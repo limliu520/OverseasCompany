@@ -4,7 +4,7 @@
   --bg: var(--paper);
   --sidebar: #f4f4f5;
   --side: #f4f4f5;
-  --paper: var(--paper);
+  --paper: #ffffff;
   --ink: #111111;
   --on-ink: #ffffff;
   --ink-2: #3f3f46;
@@ -6303,6 +6303,12 @@ select.input {
   position: relative;
   display: inline-flex;
 }
+/* 表格按行绘制，后一行会盖住前一行溢出的菜单；打开时把本格抬到上层 */
+.fz-table--art td.td-actions:has(.art-more-menu:not([hidden])) {
+  position: relative;
+  z-index: 8;
+  overflow: visible;
+}
 .art-more-btn {
   min-width: 28px;
   padding-left: 6px;
@@ -6315,7 +6321,7 @@ select.input {
   position: absolute;
   right: 0;
   top: calc(100% + 4px);
-  z-index: 20;
+  z-index: 8;
   min-width: 120px;
   padding: 4px;
   border-radius: 10px;
@@ -7559,24 +7565,25 @@ select.input {
   gap: 8px;
   min-width: 0;
   padding: 10px 8px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 10px;
-  background: var(--fill);
+  background: var(--paper);
   text-decoration: none;
   color: var(--ink);
   transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
 }
 .wb-novice-card:hover {
   border-color: var(--ink);
-  background: var(--fill-strong);
+  background: var(--paper);
   box-shadow: var(--shadow);
 }
 .wb-novice-card.is-focus {
   border-color: var(--ink);
-  background: var(--fill-strong);
+  background: var(--paper);
 }
 .wb-novice-card.is-done {
-  opacity: 0.88;
+  background: var(--fill);
+  border-color: var(--line);
 }
 .wb-novice-idx {
   flex: 0 0 auto;
@@ -7588,8 +7595,8 @@ select.input {
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
-  background: var(--fill-strong);
-  color: var(--ink);
+  background: var(--ink);
+  color: var(--on-ink);
 }
 .wb-novice-card.is-done .wb-novice-idx {
   background: var(--ok-bg);
@@ -7613,8 +7620,11 @@ select.input {
   flex: 0 0 auto;
   font-size: 12px;
   font-weight: 650;
-  color: var(--ink-2);
+  color: var(--ink);
   white-space: nowrap;
+}
+.wb-novice-card.is-done .wb-novice-go {
+  color: var(--ink-2);
 }
 .wb-band { min-width: 0; }
 .wb-mod h2,
@@ -8822,18 +8832,20 @@ body.is-novice-tour .content {
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: rgba(24, 24, 27, 0.28);
+  background: transparent;
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
   padding: 24px;
   padding-left: calc(var(--sidebar-w) + 16px);
+  pointer-events: none;
 }
 .fz-help-mask[hidden] { display: none !important; }
 .fz-help-panel {
   width: min(400px, 100%);
-  max-height: min(640px, calc(100vh - 48px));
+  height: min(640px, calc(100vh - 48px));
   background: var(--paper);
+  pointer-events: auto;
   border-radius: 14px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
   display: flex;
@@ -8846,36 +8858,34 @@ body.is-novice-tour .content {
   gap: 8px;
   padding: 10px 12px;
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, var(--fill) 0%, var(--paper) 100%);
+  background: var(--paper);
+  box-shadow: none;
 }
-.fz-help-head-main {
+.fz-help-tabs {
   flex: 1;
   min-width: 0;
   display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.fz-help-head-main.is-fb .fz-help-avatar { display: none; }
-.fz-help-avatar {
-  width: 32px;
-  height: 32px;
+  gap: 4px;
+  padding: 3px;
   border-radius: 10px;
-  background: linear-gradient(145deg, #6366f1, #4f46e5);
-  color: var(--on-ink);
-  display: grid;
-  place-items: center;
-  font-size: 13px;
-  font-weight: 700;
-  flex-shrink: 0;
+  background: var(--fill);
 }
-.fz-help-head strong { display: block; font-size: 14px; line-height: 1.2; }
-.fz-help-status {
-  display: block;
-  font-size: 11px;
-  color: var(--muted);
-  font-weight: 500;
+.fz-help-tab {
+  flex: 1;
+  min-height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-2);
+  font: 600 13px/1 var(--font);
+  cursor: pointer;
 }
-.fz-help-back { flex-shrink: 0; }
+.fz-help-tab:hover { color: var(--ink); }
+.fz-help-tab.is-on {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
 .fz-help-x {
   border: none;
   background: transparent;
@@ -8896,7 +8906,43 @@ body.is-novice-tour .content {
 }
 .fz-help-body[hidden] { display: none !important; }
 .fz-help-body--chat { background: var(--fill); }
-.fz-help-lead { margin: 0; font-size: 12px; }
+.fz-help-body--fb { background: var(--paper); }
+.fz-fb-kind-field { flex: 0 0 auto; margin-bottom: 0; }
+.fz-fb-kinds {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--fill);
+}
+.fz-fb-kind {
+  flex: 1;
+  min-height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-2);
+  font: 600 13px/1 var(--font);
+  cursor: pointer;
+}
+.fz-fb-kind:hover { color: var(--ink); }
+.fz-fb-kind.is-on {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+.fz-help-body--fb .fz-fb-text-field {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+.fz-help-body--fb .fz-fb-text-field textarea {
+  flex: 1;
+  min-height: 120px;
+  resize: none;
+}
 .fz-help-suggest-lab {
   display: block;
   font-size: 11px;
@@ -9016,7 +9062,11 @@ body.is-novice-tour .content {
   box-sizing: border-box;
 }
 .fz-fb-shot { display: flex; align-items: center; gap: 8px; font-size: 13px; }
-.fz-fb-actions { margin-top: 8px; }
+.fz-fb-actions { margin-top: 0; }
+.fz-fb-actions .btn {
+  width: 100%;
+  box-sizing: border-box;
+}
 
 /* 引导：遮罩只盖主区，侧栏抬起；气泡贴在选中菜单右侧 */
 .fz-tour-layer {

@@ -1141,14 +1141,16 @@
       });
     }
 
+    var ticketKind = { bug: "Bug", ui: "UI", idea: "建议", other: "其他" };
     (s.tickets || []).forEach(function (t) {
       var done = t.status === "done";
       var text = String(t.text || "");
       var short = text.slice(0, 48) + (text.length > 48 ? "…" : "");
+      var kindLabel = ticketKind[t.kind] || "";
       items.push({
         matter: short || "（空反馈）",
         tip: (t.by ? "提交人 " + t.by + " · " : "") + text,
-        type: "反馈工单",
+        type: kindLabel ? "反馈 · " + kindLabel : "反馈工单",
         statusHtml: done
           ? statusTag("已处理", "tag-ok")
           : statusTag("待处理", "tag-warn"),

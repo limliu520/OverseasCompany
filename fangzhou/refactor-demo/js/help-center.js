@@ -301,18 +301,15 @@
     root.id = "fz-help-root";
     root.innerHTML =
       '<div class="fz-help-mask" id="fz-help-mask" hidden>' +
-      '<div class="fz-help-panel" role="dialog" aria-labelledby="fz-help-title">' +
+      '<div class="fz-help-panel" role="dialog" aria-label="帮助与反馈">' +
       '<div class="fz-help-head">' +
-      '<button type="button" class="btn btn-ghost fz-help-back" id="fz-help-back" hidden>← 返回对话</button>' +
-      '<div class="fz-help-head-main" id="fz-help-head-main">' +
-      '<span class="fz-help-avatar" aria-hidden="true">舟</span>' +
-      '<div class="fz-help-head-txt">' +
-      '<strong id="fz-help-title">方舟助手</strong>' +
-      '<span class="fz-help-status" id="fz-help-status">在线 · Demo Agent</span></div></div>' +
-      '<button type="button" class="btn btn-ghost" id="fz-help-to-fb">快速反馈</button>' +
+      '<div class="fz-help-tabs" role="tablist" aria-label="帮助与反馈">' +
+      '<button type="button" class="fz-help-tab is-on" id="fz-help-tab-home" role="tab" aria-selected="true" aria-controls="fz-help-home" data-help-tab="home">帮助</button>' +
+      '<button type="button" class="fz-help-tab" id="fz-help-tab-fb" role="tab" aria-selected="false" aria-controls="fz-help-fb" data-help-tab="fb">反馈</button>' +
+      "</div>" +
       '<button type="button" class="fz-help-x" id="fz-help-close" aria-label="关闭">×</button>' +
       "</div>" +
-      '<div class="fz-help-body fz-help-body--chat" id="fz-help-home">' +
+      '<div class="fz-help-body fz-help-body--chat" id="fz-help-home" role="tabpanel" aria-labelledby="fz-help-tab-home">' +
       '<div class="fz-help-chat" id="fz-help-chat"></div>' +
       '<div class="fz-help-suggest">' +
       '<span class="fz-help-suggest-lab" id="fz-help-suggest-lab">猜你想问</span>' +
@@ -322,9 +319,15 @@
       '<form class="fz-help-compose" id="fz-help-form">' +
       '<input id="fz-help-input" placeholder="向助手提问…" autocomplete="off" />' +
       '<button type="submit" class="btn btn-primary">发送</button></form></div>' +
-      '<div class="fz-help-body fz-help-body--fb" id="fz-help-fb" hidden>' +
-      '<p class="muted fz-help-lead">提交后会出现在工作台「项目待办」里的反馈工单；Admin 侧可查看（Demo 本地保存）。</p>' +
-      '<div class="field"><label>反馈说明</label>' +
+      '<div class="fz-help-body fz-help-body--fb" id="fz-help-fb" role="tabpanel" aria-labelledby="fz-help-tab-fb" hidden>' +
+      '<div class="field fz-fb-kind-field"><label>反馈类型</label>' +
+      '<div class="fz-fb-kinds" role="radiogroup" aria-label="反馈类型">' +
+      '<button type="button" class="fz-fb-kind is-on" role="radio" aria-checked="true" data-fb-kind="bug">Bug</button>' +
+      '<button type="button" class="fz-fb-kind" role="radio" aria-checked="false" data-fb-kind="ui">UI</button>' +
+      '<button type="button" class="fz-fb-kind" role="radio" aria-checked="false" data-fb-kind="idea">建议</button>' +
+      '<button type="button" class="fz-fb-kind" role="radio" aria-checked="false" data-fb-kind="other">其他</button>' +
+      "</div></div>" +
+      '<div class="field fz-fb-text-field"><label>反馈说明</label>' +
       '<textarea id="fz-fb-text" rows="4" placeholder="描述遇到的问题或建议"></textarea></div>' +
       '<label class="fz-fb-shot"><input type="checkbox" id="fz-fb-shot" checked /> 附带当前页示意截图（Demo 占位）</label>' +
       '<div class="fz-fb-actions">' +
@@ -346,42 +349,33 @@
     var mask = document.getElementById("fz-help-mask");
     var home = document.getElementById("fz-help-home");
     var fb = document.getElementById("fz-help-fb");
-    var back = document.getElementById("fz-help-back");
-    var title = document.getElementById("fz-help-title");
-    var headMain = document.getElementById("fz-help-head-main");
+    var tabHome = document.getElementById("fz-help-tab-home");
+    var tabFb = document.getElementById("fz-help-tab-fb");
     var chat = document.getElementById("fz-help-chat");
     var faqBox = document.getElementById("fz-help-faq");
     var suggestLab = document.getElementById("fz-help-suggest-lab");
     var welcomed = false;
     var lastHelpPage = "";
 
+    function setTab(which) {
+      var isHelp = which !== "fb";
+      home.hidden = !isHelp;
+      fb.hidden = isHelp;
+      tabHome.classList.toggle("is-on", isHelp);
+      tabFb.classList.toggle("is-on", !isHelp);
+      tabHome.setAttribute("aria-selected", isHelp ? "true" : "false");
+      tabFb.setAttribute("aria-selected", isHelp ? "false" : "true");
+      if (isHelp) syncPageChrome();
+    }
     function showHome() {
-      home.hidden = false;
-      fb.hidden = true;
-      back.hidden = true;
-      if (headMain) headMain.classList.remove("is-fb");
-      title.textContent = "方舟助手";
-      var st = document.getElementById("fz-help-status");
-      if (st) st.hidden = false;
-      document.getElementById("fz-help-to-fb").hidden = false;
-      syncPageChrome();
+      setTab("home");
     }
     function showFb() {
-      home.hidden = true;
-      fb.hidden = false;
-      back.hidden = false;
-      if (headMain) headMain.classList.add("is-fb");
-      title.textContent = "快速反馈";
-      var st = document.getElementById("fz-help-status");
-      if (st) st.hidden = true;
-      document.getElementById("fz-help-to-fb").hidden = true;
+      setTab("fb");
     }
 
     function syncPageChrome() {
-      var key = pageKey();
-      var label = pageLabel(key);
-      var st = document.getElementById("fz-help-status");
-      if (st) st.textContent = "当前页 · " + label;
+      var label = pageLabel(pageKey());
       if (suggestLab) suggestLab.textContent = "猜你想问 · " + label;
       var input = document.getElementById("fz-help-input");
       if (input) input.placeholder = "问「" + label + "」相关问题…";
@@ -399,7 +393,7 @@
           "bot",
           "你好，我是方舟助手。你当前在「" +
             esc(label) +
-            "」，下方预设问题已按本页功能准备。也可以直接输入提问；需要人工跟进时点「快速反馈」。"
+            "」，下方预设问题已按本页功能准备。也可以直接输入提问；需要人工跟进时切到「反馈」。"
         );
       } else if (lastHelpPage && lastHelpPage !== key) {
         bubble(
@@ -557,14 +551,35 @@
     })();
     document.getElementById("fz-help-tour").addEventListener("click", startMenuTour);
     document.getElementById("fz-help-close").addEventListener("click", close);
-    mask.addEventListener("click", function (e) {
-      if (e.target === mask) close();
+    document.addEventListener("click", function (e) {
+      if (mask.hidden) return;
+      if (mask.contains(e.target)) return;
+      if (e.target.closest && e.target.closest("#fz-help-fab")) return;
+      close();
     });
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && !mask.hidden) close();
     });
-    document.getElementById("fz-help-to-fb").addEventListener("click", showFb);
-    back.addEventListener("click", showHome);
+    tabHome.addEventListener("click", function () {
+      showHome();
+      var input = document.getElementById("fz-help-input");
+      if (input) input.focus();
+    });
+    tabFb.addEventListener("click", function () {
+      showFb();
+      var ta = document.getElementById("fz-fb-text");
+      if (ta) ta.focus();
+    });
+    var kindBox = document.querySelector("#fz-help-fb .fz-fb-kinds");
+    kindBox.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-fb-kind]");
+      if (!btn || !kindBox.contains(btn)) return;
+      kindBox.querySelectorAll("[data-fb-kind]").forEach(function (el) {
+        var on = el === btn;
+        el.classList.toggle("is-on", on);
+        el.setAttribute("aria-checked", on ? "true" : "false");
+      });
+    });
 
     document.getElementById("fz-help-form").addEventListener("submit", function (e) {
       e.preventDefault();
@@ -581,7 +596,7 @@
             "bot",
             "这个问题我暂时没有现成说明。你可以点下方与「" +
               esc(pageLabel(pageKey())) +
-              "」相关的预设问题，或点右上角「快速反馈」提交工单。"
+              "」相关的预设问题，或切到「反馈」提交工单。"
           );
         }, 220);
       }
@@ -597,9 +612,12 @@
       }
       submitting = true;
       var shot = document.getElementById("fz-fb-shot").checked;
+      var kindBtn = document.querySelector("#fz-help-fb .fz-fb-kind.is-on");
+      var kind = kindBtn ? kindBtn.getAttribute("data-fb-kind") : "bug";
       var s = FZStore.read();
       FZStore.addTicket(s, {
         id: FZStore.uid("tk"),
+        kind: kind,
         text: text,
         withShot: shot,
         status: "pending",
@@ -609,6 +627,11 @@
       });
       FZStore.write(s);
       document.getElementById("fz-fb-text").value = "";
+      kindBox.querySelectorAll("[data-fb-kind]").forEach(function (el) {
+        var on = el.getAttribute("data-fb-kind") === "bug";
+        el.classList.toggle("is-on", on);
+        el.setAttribute("aria-checked", on ? "true" : "false");
+      });
       FZShell.toast("已提交反馈", "ok");
       submitting = false;
       showHome();

@@ -649,7 +649,7 @@
       }
     }
     if (global.FZHelpCenter) mountHelp();
-    else loadScriptOnce("js/help-center.js?v=20261104mono4", mountHelp);
+    else loadScriptOnce("js/help-center.js?v=20261105fbKind", mountHelp);
     function mountNovice() {
       if (global.FZNovice && typeof FZNovice.consumeQuery === "function") {
         FZNovice.consumeQuery();
