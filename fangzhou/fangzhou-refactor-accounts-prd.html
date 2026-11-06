@@ -53,6 +53,38 @@
     margin: 16px 0;
   }
   .id { font-size: 12px; color: #5e5e66; margin: 0 0 4px; }
+  .shots { display: flex; flex-direction: column; gap: 14px; margin: 0 0 14px; }
+  figure { margin: 0; }
+  .shots img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border: 1px solid #e4e2de;
+    border-radius: 8px;
+    background: #f6f5f3;
+    cursor: zoom-in;
+  }
+  figcaption { color: #5e5e66; font-size: 12.5px; margin-top: 6px; }
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.82);
+    cursor: zoom-out;
+  }
+  .lightbox.is-open { display: flex; }
+  .lightbox img {
+    max-width: min(96vw, 1400px);
+    max-height: 92vh;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    cursor: default;
+  }
   .check { width: 2.2em; text-align: center; }
   code {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -67,9 +99,9 @@
 <div class="wrap">
   <h1>方舟重构 · 登录 / 子账号 / 权限</h1>
   <p class="meta">
-    版本 v0.1.4 · 2026-11-05 · 适用端：方舟后台运营端；主账号开户在方舟 Admin ·
+    版本 v0.2.0 · 2026-11-06 · 适用端：方舟后台运营端；主账号开户在方舟 Admin ·
     交互对照：<code>fangzhou/refactor-demo/</code> ·
-    本稿先写文字，截图后补 · 编辑源：海外项目/方舟/方舟重构方案/
+    截图来自 Demo 关键态，点击可放大 · 编辑源：海外项目/方舟/方舟重构方案/
   </p>
 
   <h2>文档索引</h2>
@@ -263,6 +295,12 @@
   <div class="block" id="fz-a-01">
     <p class="id">FZ-A-01</p>
     <h3>登录</h3>
+    <div class="shots">
+    <figure>
+      <img src="prd-screens/fz-a01-login.png" alt="登录：账号、密码与谷歌验证码" />
+      <figcaption>已绑定验证器的登录页。填写账号、密码和 6 位谷歌验证码后进入。左侧紫色区是 Demo 引导，正式环境不出现「选择演示角色」。</figcaption>
+    </figure>
+    </div>
     <h4>功能逻辑</h4>
     <p>
       未登录访问业务页时进入登录页。登录页使用方舟现有登录版式（浅色分栏），不使用深色「绑定 Telegram」那套皮肤。
@@ -305,6 +343,20 @@
   <div class="block" id="fz-a-02">
     <p class="id">FZ-A-02</p>
     <h3>谷歌验证绑定与重置</h3>
+    <div class="shots">
+    <figure>
+      <img src="prd-screens/fz-a02-enroll-login.png" alt="未绑定验证器时的登录" />
+      <figcaption>尚未绑定验证器时不出现动态码。密码通过后进入绑定页，绑定完成前不能进工作台。</figcaption>
+    </figure>
+    <figure>
+      <img src="prd-screens/fz-a02-totp-bind.png" alt="首次绑定谷歌验证二维码" />
+      <figcaption>绑定页。使用验证器 App 扫描新二维码，再填写 6 位动态码。图中二维码为 Demo 占位，不是真实密钥。</figcaption>
+    </figure>
+    <figure>
+      <img src="prd-screens/fz-a02-reset-totp.png" alt="重置子账号的谷歌验证器" />
+      <figcaption>子账号卡片上的「重置验证器」。确认后只影响该子账号，对方下次登录须重新扫码。本人重置入口在个人资料，见 FZ-A-04。</figcaption>
+    </figure>
+    </div>
     <h4>功能逻辑</h4>
     <p>
       绑定页展示新的二维码和演示密钥尾号，用户在验证器 App 扫码后填写 6 位动态码，或按页上说明直接完成绑定。完成后验证器状态改为已绑定。
@@ -346,6 +398,12 @@
   <div class="block" id="fz-a-03">
     <p class="id">FZ-A-03</p>
     <h3>Telegram 登录验证</h3>
+    <div class="shots">
+    <figure>
+      <img src="prd-screens/fz-a03-tg-login.png" alt="登录中的 Telegram 验证步骤" />
+      <figcaption>谷歌验证通过后的 Telegram 步骤。手机号须带国家码，且与该子账号登记号码一致。只给仍负责老项目的子账号。Demo 接受任意 6 位数字，正式环境须与下发的 6 位一致。</figcaption>
+    </figure>
+    </div>
     <h4>功能逻辑</h4>
     <p>
       本步骤只给老项目做兼容。老项目指本期上线前已经接通、并且当时登录要验 Telegram 的项目。本期之后新接的项目都不使用 Telegram 登录验证，密码和谷歌验证通过后直接进入工作台。
@@ -394,6 +452,16 @@
   <div class="block" id="fz-a-04">
     <p class="id">FZ-A-04</p>
     <h3>修改密码与个人资料</h3>
+    <div class="shots">
+    <figure>
+      <img src="prd-screens/fz-a04-password.png" alt="修改当前账号密码" />
+      <figcaption>左下角账号菜单进入「修改密码」。须填当前密码，新密码至少 8 位，且两次一致，不能与当前密码相同。</figcaption>
+    </figure>
+    <figure>
+      <img src="prd-screens/fz-a04-profile.png" alt="个人资料与重置自己的谷歌验证" />
+      <figcaption>个人资料。显示名可改，登录名只读。主账号可在此重置自己的谷歌验证，重置后当前会话进入绑定页。</figcaption>
+    </figure>
+    </div>
     <h4>功能逻辑</h4>
     <p>
       已登录后，左下角账号菜单有「修改密码」和「个人资料」。两条都打开弹层，不是侧栏页面。
@@ -433,6 +501,20 @@
   <div class="block" id="fz-a-05">
     <p class="id">FZ-A-05</p>
     <h3>子账号列表、创建与编辑</h3>
+    <div class="shots">
+    <figure>
+      <img src="prd-screens/fz-a05-subs.png" alt="子账号列表" />
+      <figcaption>子账号列表。有菜单者看到本主账号全部子账号。卡片展示岗位、权限、CMS 标识、Telegram 和负责项目。操作整组靠右：重置密码、重置验证器、停用在左，编辑在右。</figcaption>
+    </figure>
+    <figure>
+      <img src="prd-screens/fz-a05-create.png" alt="创建子账号第一步" />
+      <figcaption>创建子账号第一步：登录名、显示名、初始密码、CMS 标识，以及选填的 Telegram 手机号。正文约定该字段只在第 2 步勾选了老项目时出现。Demo 目前在第一步始终展示，评审以正文为准。</figcaption>
+    </figure>
+    <figure>
+      <img src="prd-screens/fz-a05-projects.png" alt="创建子账号时选择负责项目" />
+      <figcaption>第二步选择负责项目，至少一项。候选项是业务项目，公共池不在这里勾选。</figcaption>
+    </figure>
+    </div>
     <h4>功能逻辑</h4>
     <p>
       侧栏「子账号与授权」进入子账号列表。有此菜单的人看到本主账号下的全部子账号，包含自己和其他人创建的。
@@ -480,6 +562,20 @@
   <div class="block" id="fz-a-06">
     <p class="id">FZ-A-06</p>
     <h3>停用、重置他人密码与谷歌验证</h3>
+    <div class="shots">
+    <figure>
+      <img src="prd-screens/fz-a06-reset-pass.png" alt="为子账号设置新密码" />
+      <figcaption>重置他人密码。新密码至少 8 位，两次输入一致。已停用的子账号须先启用。</figcaption>
+    </figure>
+    <figure>
+      <img src="prd-screens/fz-a06-pass-done.png" alt="重置成功后展示一次明文密码" />
+      <figcaption>重置成功后展示一次明文，可复制。关闭后不能再查看明文。</figcaption>
+    </figure>
+    <figure>
+      <img src="prd-screens/fz-a06-disable.png" alt="停用子账号确认" />
+      <figcaption>停用确认。确认后该子账号立即不能登录。启用后按原权限恢复。</figcaption>
+    </figure>
+    </div>
     <h4>功能逻辑</h4>
     <p>
       这三项都在子账号卡片上，作用于别人，不作用于当前登录人自己的密码和验证器。自己的密码和验证器走 FZ-A-04、FZ-A-02。
@@ -518,6 +614,16 @@
   <div class="block" id="fz-a-07">
     <p class="id">FZ-A-07</p>
     <h3>菜单权限</h3>
+    <div class="shots">
+    <figure>
+      <img src="prd-screens/fz-a07-perms.png" alt="创建子账号时勾选菜单权限" />
+      <figcaption>第三步选择岗位或自定义权限。勾选不能超出操作者自己拥有的菜单。未勾选的页面不出现在对方侧栏。</figcaption>
+    </figure>
+    <figure>
+      <img src="prd-screens/fz-a07-sub-menu.png" alt="采集运营子账号的侧栏" />
+      <figcaption>采集运营子账号登录后的侧栏，只有工作台、TG 采集、网站采集和素材管理。没有文章、审核和项目列表。</figcaption>
+    </figure>
+    </div>
     <h4>功能逻辑</h4>
     <p>
       菜单权限决定功能能力：侧栏是否出现入口，页内是否出现对应动作。它不决定数据行的范围。数据范围见 FZ-A-08 及之后各节。
@@ -618,6 +724,12 @@
   <div class="block" id="fz-a-09">
     <p class="id">FZ-A-09</p>
     <h3>TG 采集的数据范围</h3>
+    <div class="shots">
+    <figure>
+      <img src="prd-screens/fz-a09-tg.png" alt="TG 采集配置：公共池与项目" />
+      <figcaption>TG 采集配置。公共采集池与各项目同一排切换。有菜单即可看本主账号整份公共池配置，不按负责项目再拆开。</figcaption>
+    </figure>
+    </div>
     <h4>功能逻辑</h4>
     <p>
       TG 采集页里有两堆数据。公共池配置是主账号共享配置：采集号、频道和推送路由不按负责项目拆开。绑在业务项目上的采集号和频道是项目数据，跟着那个项目走。
@@ -653,6 +765,12 @@
   <div class="block" id="fz-a-10">
     <p class="id">FZ-A-10</p>
     <h3>网站采集的数据范围</h3>
+    <div class="shots">
+    <figure>
+      <img src="prd-screens/fz-a10-website.png" alt="网站采集：一个网站一行" />
+      <figcaption>网站采集。一个网站一行，可同时绑定多个项目。有菜单即可看本主账号全部网站和采集记录，列表不按项目拆开。</figcaption>
+    </figure>
+    </div>
     <h4>功能逻辑</h4>
     <p>
       网站按「一个网站一行」管理，一个网站可以同时勾选多个项目，所以列表不按项目拆开，也不按负责项目隐藏行。
@@ -689,6 +807,16 @@
   <div class="block" id="fz-a-11">
     <p class="id">FZ-A-11</p>
     <h3>素材的数据范围</h3>
+    <div class="shots">
+    <figure>
+      <img src="prd-screens/fz-a11-pool.png" alt="全部素材：平台公共素材池与项目同一排" />
+      <figcaption>全部素材。范围条同一排：「全平台」只有「平台公共素材池」，后面是「项目」和各项目。进了项目的料仍留在池里，池的条数不少于任一项目。</figcaption>
+    </figure>
+    <figure>
+      <img src="prd-screens/fz-a11-pending.png" alt="待审核素材列表" />
+      <figcaption>待审核素材。只看来源是本主账号、且触发了人工复核的料。图中 Demo 行内仍有「驳回」；本期待审核操作以正文为准，是「审核通过」和「转编辑」。</figcaption>
+    </figure>
+    </div>
     <h4>功能逻辑</h4>
     <p>
       不论来自 TG 还是网站，不论配置人是主账号还是子账号，采进来的素材先做审核判定，不是一律进入「待审核素材」。判定沿用现网广告过滤和初筛。TG 在入库前还会用正文加评论文本打一次广告分。网站素材入库后走同一套初筛。
@@ -749,6 +877,16 @@
   <div class="block" id="fz-a-12">
     <p class="id">FZ-A-12</p>
     <h3>权限对工作台与其余业务数据的影响</h3>
+    <div class="shots">
+    <figure>
+      <img src="prd-screens/fz-a12-home.png" alt="主账号工作台上的项目范围" />
+      <figcaption>主账号工作台。数字、异常和待办只覆盖自己的项目和本主账号的 TG 公共池。平台公共素材池的全平台总量不出现在这里。工作台页面本身不在本期，此图只说明权限落到工作台上的范围。</figcaption>
+    </figure>
+    <figure>
+      <img src="prd-screens/fz-a07-sub-menu.png" alt="子账号工作台上的菜单与统计" />
+      <figcaption>子账号工作台。侧栏和统计都跟着自己的菜单与负责项目走。未分配的菜单和项目不出现。</figcaption>
+    </figure>
+    </div>
     <h4>功能逻辑</h4>
     <p>
       这里只定数据权限切到工作台上的范围。项目类数字、异常和待办只覆盖当前用户负责的项目，加上本主账号的 TG 公共池。待审核数量只计来源是本主账号、且按 FZ-A-11 处于待审核的素材。平台公共素材池的全平台总量不进入工作台统计。
@@ -863,8 +1001,37 @@
     对照原型：<code>fangzhou/refactor-demo/login.html</code>、<code>totp.html</code>、
     <code>pages/subs.html</code>、<code>pages/materials.html</code>、<code>pages/home.html</code>。
     项目配置见 <code>fangzhou/fangzhou-refactor-projects-prd.html</code>。
-    同步副本：仓库 <code>fangzhou/fangzhou-refactor-accounts-prd.html</code>；入口挂在 <code>fangzhou/index.html</code>「重构方案」分区。截图后补，目录 <code>prd-screens/</code>。
+    同步副本：仓库 <code>fangzhou/fangzhou-refactor-accounts-prd.html</code>；入口挂在 <code>fangzhou/index.html</code>「重构方案」分区。截图目录 <code>prd-screens/</code>。
   </p>
 </div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="图片放大">
+  <img alt="" />
+</div>
+<script>
+(function () {
+  var box = document.getElementById("lightbox");
+  var big = box.querySelector("img");
+  function open(src, alt) {
+    big.src = src;
+    big.alt = alt || "";
+    box.classList.add("is-open");
+  }
+  function close() {
+    box.classList.remove("is-open");
+    big.removeAttribute("src");
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    if (t === box) { close(); return; }
+    if (t.tagName !== "IMG") return;
+    if (!t.closest(".shots")) return;
+    open(t.currentSrc || t.src, t.alt);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") close();
+  });
+})();
+</script>
 </body>
 </html>
