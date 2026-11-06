@@ -216,7 +216,7 @@
 
   function pendingMats() {
     if (isNewEmpty()) return [];
-    if (!can("collect.materials.view") && !can("collect.materials.approve")) {
+    if (!can("collect.materials.view")) {
       return [];
     }
     return ((global.FZMatData && FZMatData.ITEMS) || []).filter(function (m) {
@@ -863,7 +863,7 @@
     var canTg = can("collect.tg.view");
     var canWeb = can("collect.web.view");
     var canMat =
-      can("collect.materials.view") || can("collect.materials.approve");
+      can("collect.materials.view");
     var canArt = can("content.article.view");
     var acc = sumStats(projects);
     var mats = canMat ? pendingMats().length : 0;
@@ -979,11 +979,11 @@
   }
 
   function canSeeTodos() {
-    return can("projects.list.view") || can("projects.list.create");
+    return can("projects.list.view");
   }
 
   function canSeeMats() {
-    return can("collect.materials.view") || can("collect.materials.approve");
+    return can("collect.materials.view");
   }
 
   function canSeeArts() {
@@ -999,28 +999,28 @@
     if (!box) return;
     var items = [
       {
-        need: "projects.list.create",
+        need: "projects.list.proj_new",
         label: "新建项目",
         href: "./project-setup.html?new=1",
         primary: true
       },
       {
-        need: "collect.tg.create",
+        need: "collect.tg.bot_add",
         label: "添加采集号",
         href: "./tg-collect.html?action=add_bot"
       },
       {
-        need: "collect.tg.edit",
+        need: "collect.tg.ch_join",
         label: "添加频道",
         href: "./tg-collect.html?action=add_channel"
       },
       {
-        need: "collect.web.create",
+        need: "collect.web.site_apply",
         label: "添加网站",
         href: "./website-collect.html?new=1"
       },
       {
-        need: "collect.tg.edit",
+        need: "collect.tg.route_add",
         label: "增加路由",
         href: "./tg-collect.html?action=add_route"
       }
@@ -1089,9 +1089,9 @@
   function buildTodoItems(s) {
     var items = [];
     var projects = FZStore.businessProjects(s);
-    var canProj = can("projects.list.view") || can("projects.list.create");
+    var canProj = can("projects.list.view");
 
-    if (canProj && !projects.length && can("projects.list.create")) {
+    if (canProj && !projects.length && can("projects.list.proj_new")) {
       items.push({
         matter: "创建首个业务项目",
         tip: "新号入驻",
@@ -1109,7 +1109,7 @@
         var btn = "";
         var stText = "";
         var stCls = "tag-warn";
-        if (p.status === "pending_activate" && can("projects.list.connect")) {
+        if (p.status === "pending_activate" && can("projects.list.proj_connect")) {
           matter = "内容通道待接通 · " + p.name;
           href = "./project-connect.html?id=" + encodeURIComponent(p.id);
           btn = "对接";
@@ -1121,7 +1121,7 @@
           btn = "配置";
           stText = "待完善";
           stCls = "tag-muted";
-        } else if (!p.watermarkDone && can("projects.list.config")) {
+        } else if (!p.watermarkDone && can("projects.list.wm")) {
           matter = "媒体配置待完善 · " + p.name;
           href = "./project-edit.html?id=" + encodeURIComponent(p.id);
           btn = "完善";
@@ -1191,7 +1191,7 @@
     if (!box) return;
     bindTodoActions(box);
     bindWorkbenchPagers();
-    var canProj = can("projects.list.view") || can("projects.list.create");
+    var canProj = can("projects.list.view");
     var items = buildTodoItems(s);
     if (!canProj && !(s.tickets || []).length) {
       box.innerHTML =
@@ -1466,7 +1466,7 @@
     if (!box) return;
     bindMatReview();
     bindWorkbenchPagers();
-    if (!can("collect.materials.view") && !can("collect.materials.approve")) {
+    if (!can("collect.materials.view")) {
       if (nEl) nEl.textContent = "";
       box.innerHTML = empty("无素材权限");
       return;

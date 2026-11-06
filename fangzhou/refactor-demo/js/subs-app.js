@@ -636,7 +636,11 @@
         return false;
       }
       var tg = document.getElementById("sub-tg").value.trim().replace(/[\s-]/g, "");
-      if (tg && !/^\+\d{8,15}$/.test(tg)) {
+      if (!tg) {
+        FZShell.toast("请填写 Telegram 手机号", "err");
+        return false;
+      }
+      if (!/^\+\d{8,15}$/.test(tg)) {
         FZShell.toast("Telegram 须为带国家码的手机号，例如 +8613800000000", "err");
         return false;
       }

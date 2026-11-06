@@ -25,7 +25,7 @@
         q: "如何创建第一个项目？",
         a: "点新手教程「创建项目」，或侧栏项目管理新建。教程为独立演示，不会写入真实项目数据。",
         href: "pages/project-setup.html?new=1",
-        need: "projects.list.create"
+        need: "projects.list.proj_new"
       }
     ],
     projects: [
@@ -45,7 +45,7 @@
         q: "如何新建项目？",
         a: "点「新建项目」进入创建向导，逐步填写后创建。",
         href: "pages/project-setup.html?new=1",
-        need: "projects.list.create"
+        need: "projects.list.proj_new"
       }
     ],
     "project-setup": [
@@ -53,17 +53,17 @@
         q: "创建步骤哪些必填？",
         a: "「项目名称」「封面」必填。有默认配置的步（水印、内容生成规则、推送规则）确认后直接「下一步 / 创建」，不提供跳过。真正可跳过的只有：片头片尾、文案管理、采集号。",
         href: "pages/project-setup.html?new=1",
-        need: "projects.list.create"
+        need: "projects.list.proj_new"
       },
       {
         q: "创建成功后做什么？",
         a: "正式流程会提示去「开发对接」或稍后处理。若在新手教程中，只会弹出「学习完成」并回工作台，不进入真实对接。",
-        need: "projects.list.create"
+        need: "projects.list.proj_new"
       },
       {
         q: "水印和文章要在创建时配完吗？",
         a: "水印、内容生成、推送都有默认，确认即可（无跳过）。文案管理可跳过（自定义提示词须粘贴才算配完）。片头片尾、采集号也可跳过。创建后都可在项目详情再改。",
-        need: "projects.list.create"
+        need: "projects.list.proj_new"
       }
     ],
     "project-edit": [

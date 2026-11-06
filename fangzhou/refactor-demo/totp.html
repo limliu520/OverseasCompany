@@ -33,8 +33,8 @@
       </div>
     </main>
   </div>
-  <script src="./js/perm-tree.js?v=20261031navProj"></script>
-  <script src="./js/store.js?v=20261105acct1"></script>
+  <script src="./js/perm-tree.js?v=20261106view1"></script>
+  <script src="./js/store.js?v=20261106perm2"></script>
   <script>
     (function () {
       var s = FZStore.read();
@@ -74,6 +74,8 @@
             u.totpBound = true;
             phone = u.tgPhone || "";
           });
+        } else {
+          phone = (st.tgPhones && st.tgPhones[st.accountId]) || "";
         }
         FZStore.write(st);
         if (phone) location.href = "./login.html?step=tg";

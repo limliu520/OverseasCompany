@@ -615,7 +615,7 @@
               location.href = BASE + "login.html";
             }
           } else if (act === "pwd" || act === "profile") {
-            loadScriptOnce("js/account-self.js?v=20261105acct1", function () {
+            loadScriptOnce("js/account-self.js?v=20261106tg1", function () {
               if (!global.FZAccount) return;
               if (act === "pwd") global.FZAccount.openPassword();
               else global.FZAccount.openProfile();
@@ -654,7 +654,7 @@
       }
     }
     if (global.FZHelpCenter) mountHelp();
-    else loadScriptOnce("js/help-center.js?v=20261105pool2", mountHelp);
+    else loadScriptOnce("js/help-center.js?v=20261106perm2", mountHelp);
     function mountNovice() {
       if (global.FZNovice && typeof FZNovice.consumeQuery === "function") {
         FZNovice.consumeQuery();

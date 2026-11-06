@@ -133,8 +133,11 @@
     );
     if (sub) {
       html += ro("CMS 标识", sub.cmsId || "未填写");
-      html += ro("Telegram", sub.tgPhone || "未填写");
     }
+    var tgPhone = sub
+      ? sub.tgPhone
+      : ((s.tgPhones || {})[s.accountId] || "");
+    html += ro("Telegram", tgPhone || "未填写");
     html +=
       '<div class="field" style="margin-bottom:0">' +
       '<label>谷歌验证</label>' +

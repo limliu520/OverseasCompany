@@ -1,60 +1,107 @@
 /**
- * 权限树：对齐侧栏 L1 → L2（→ L3）+ 页内操作（查看/新增/编辑/删除…）
- * 存盘用扁平 id，如 projects.list.create
+ * 权限树：侧栏层级 + 页内真实按钮。
+ * 存盘用扁平 id，如 collect.tg.bot_add。
  */
 (function (global) {
-  var ACT = {
-    view: "查看",
-    create: "新增",
-    edit: "编辑",
-    delete: "删除",
-    enable: "启用/停用",
-    reset: "重置密码",
-    connect: "对接接通",
-    config: "改配置",
-    publish: "提交/推送",
-    approve: "审核通过/驳回",
-    export: "导出"
-  };
+  var ACT = { view: "查看" };
 
-  function leaf(id, label, acts) {
-    return { id: id, label: label, actions: acts };
+  function pair(id, label) {
+    ACT[id] = label;
+    return [id, label];
   }
 
-  /**
-   * 全员默认开通，不进勾选树、不计入岗位「权限项 / 页面」统计。
-   * 侧栏工作台仍受 hasFeature 控制，但 hasFeature 对这两项恒为 true。
-   */
+  function leaf(id, label, spec, note) {
+    var groups = [];
+    var flat = [];
+    var actions = [];
+    (spec || []).forEach(function (item) {
+      if (item && item.g) {
+        groups.push({ label: item.g, actions: item.a });
+        item.a.forEach(function (p) {
+          actions.push(p[0]);
+        });
+      } else {
+        flat.push(item);
+        actions.push(item[0]);
+      }
+    });
+    return {
+      id: id,
+      label: label,
+      actions: actions,
+      flat: flat,
+      groups: groups,
+      note: note || ""
+    };
+  }
+
   var ALWAYS_ON = ["home.overview.view", "home.announcements.view"];
 
   function isAlwaysOn(id) {
     return ALWAYS_ON.indexOf(id) !== -1;
   }
 
-  /**
-   * 与 shell NAV 同构（2026-10 重构侧栏）：
-   * 工作台（概览 / 平台公告）全员默认，不进本树；
-   * 采集号在 TG 采集配置，无独立 Userbot 菜单；
-   * 子账号与授权页内 Tab = L3 子账号 / 岗位。
-   */
+  var V = pair("view", "查看");
+
+  /** 与 shell NAV 同构。工作台两项全员默认，不进本树。 */
   var PERM_TREE = [
     {
       id: "collect",
       label: "采集中心",
       children: [
-        leaf("collect.tg", "TG 采集配置", ["view", "create", "edit", "delete"]),
+        leaf("collect.tg", "TG 采集配置", [
+          {
+            g: "采集号",
+            a: [
+              pair("bot_add", "添加采集号"),
+              pair("sess", "连接/断开"),
+              pair("monitor", "开始/停止监听")
+            ]
+          },
+          {
+            g: "频道",
+            a: [
+              pair("ch_pull", "拉取频道"),
+              pair("ch_join", "加入频道"),
+              pair("ch_assign", "标记用途"),
+              pair("ch_toggle", "启用/停用"),
+              pair("ch_unbind", "解绑")
+            ]
+          },
+          {
+            g: "路由",
+            a: [pair("route_add", "新建路由"), pair("route_remove", "移除路由")]
+          }
+        ]),
         leaf("collect.web", "网站采集配置", [
-          "view",
-          "create",
-          "edit",
-          "delete",
-          "enable"
+          {
+            g: "网站",
+            a: [
+              pair("site_apply", "申请添加网站"),
+              pair("site_edit", "编辑网站"),
+              pair("site_del", "删除网站"),
+              pair("site_toggle", "启动/暂停")
+            ]
+          },
+          {
+            g: "采集记录",
+            a: [pair("rec_stop", "停止任务"), pair("rec_retry", "重试任务")]
+          }
         ]),
         leaf("collect.materials", "素材管理", [
-          "view",
-          "approve",
-          "edit",
-          "delete"
+          {
+            g: "待审核",
+            a: [pair("mat_pass", "通过"), pair("mat_reject", "驳回")]
+          },
+          {
+            g: "素材池",
+            a: [
+              pair("mat_edit", "转编辑"),
+              pair("mat_title", "编辑标题"),
+              pair("mat_dl", "下载")
+            ]
+          },
+          { g: "垃圾素材", a: [pair("mat_restore", "手动通过")] }
         ])
       ]
     },
@@ -63,28 +110,42 @@
       label: "内容中心",
       children: [
         leaf("content.article", "文章管理", [
-          "view",
-          "create",
-          "edit",
-          "delete",
-          "publish"
+          {
+            g: "稿件",
+            a: [
+              pair("art_edit", "编辑"),
+              pair("art_save", "保存"),
+              pair("art_push", "推送"),
+              pair("art_reopen", "重新编辑"),
+              pair("art_del", "删除")
+            ]
+          },
+          {
+            g: "失败处理",
+            a: [pair("art_retry", "重试"), pair("art_release", "释放占用")]
+          }
         ]),
-        leaf("content.ai_cmt", "AI 评论", ["view", "create", "edit", "enable"]),
-        leaf("content.pull_wm", "拉取加水印", [
-          "view",
-          "create",
-          "edit",
-          "enable"
-        ])
+        leaf(
+          "content.ai_cmt",
+          "AI 评论",
+          [V],
+          "页面尚未落地，按钮出来后再补操作项"
+        ),
+        leaf(
+          "content.pull_wm",
+          "拉取加水印",
+          [V],
+          "页面尚未落地，按钮出来后再补操作项"
+        )
       ]
     },
     {
       id: "review",
       label: "审核中心",
       children: [
-        leaf("review.comment", "评论审核", ["view", "approve", "edit"]),
-        leaf("review.user", "用户审核", ["view", "approve", "enable"]),
-        leaf("review.post", "帖子审核", ["view", "approve", "delete"])
+        leaf("review.comment", "评论审核", [V], "页面尚未落地，按钮出来后再补操作项"),
+        leaf("review.user", "用户审核", [V], "页面尚未落地，按钮出来后再补操作项"),
+        leaf("review.post", "帖子审核", [V], "页面尚未落地，按钮出来后再补操作项")
       ]
     },
     {
@@ -92,11 +153,21 @@
       label: "项目管理",
       children: [
         leaf("projects.list", "项目列表", [
-          "view",
-          "create",
-          "edit",
-          "config",
-          "connect"
+          { g: "列表", a: [pair("proj_new", "新建项目"), pair("proj_connect", "对接")] },
+          {
+            g: "详情",
+            a: [
+              pair("proj_basic", "编辑基本信息"),
+              pair("wm", "水印管理"),
+              pair("intro", "片头和片尾"),
+              pair("copy", "文案管理"),
+              pair("media", "内容生成规则"),
+              pair("proj_tg", "TG 采集号"),
+              pair("flow", "推送规则"),
+              pair("channel_cfg", "内容通道对接配置"),
+              pair("optional", "可选功能")
+            ]
+          }
         ])
       ]
     },
@@ -109,17 +180,16 @@
           label: "子账号与授权",
           children: [
             leaf("global.subs.accounts", "子账号", [
-              "view",
-              "create",
-              "edit",
-              "enable",
-              "reset"
+              pair("sub_create", "创建子账号"),
+              pair("sub_edit", "编辑"),
+              pair("sub_reset", "重置密码"),
+              pair("sub_totp", "重置验证器"),
+              pair("sub_toggle", "停用/启用")
             ]),
             leaf("global.subs.roles", "岗位", [
-              "view",
-              "create",
-              "edit",
-              "delete"
+              pair("role_create", "新建岗位"),
+              pair("role_edit", "编辑"),
+              pair("role_del", "删除")
             ])
           ]
         }
@@ -127,66 +197,88 @@
     }
   ];
 
-  /** 旧扁平功能 → 新权限 id（演示迁移）；工作台已并入 ALWAYS_ON，映射为空 */
+  /** 旧扁平功能、以及上一版笼统动作 → 当前按钮 id */
   var LEGACY_MAP = {
     workbench: [],
-    project_manage: [
-      "projects.list.view",
-      "projects.list.create",
-      "projects.list.edit"
-    ],
-    project_config: ["projects.list.view", "projects.list.config"],
-    collect_web: [
-      "collect.web.view",
-      "collect.web.create",
-      "collect.web.edit",
-      "collect.web.delete"
-    ],
-    collect_tg: [
-      "collect.tg.view",
-      "collect.tg.create",
-      "collect.tg.edit",
-      "collect.tg.delete"
-    ],
-    review_material: [
-      "collect.materials.view",
-      "collect.materials.approve",
-      "collect.materials.edit"
-    ],
-    edit_article: [
-      "content.article.view",
-      "content.article.create",
-      "content.article.edit",
-      "content.article.publish"
-    ],
-    /* 旧「修片 / 发布任务」已撤出侧栏；迁移到文章管理查看即可 */
+    project_manage: ["projects.list.view", "projects.list.proj_new", "projects.list.proj_basic"],
+    project_config: ["projects.list.view", "projects.list.wm", "projects.list.flow"],
+    collect_web: ["collect.web.view", "collect.web.site_apply", "collect.web.site_edit"],
+    collect_tg: ["collect.tg.view", "collect.tg.bot_add", "collect.tg.ch_join", "collect.tg.route_add"],
+    review_material: ["collect.materials.view", "collect.materials.mat_pass", "collect.materials.mat_reject"],
+    edit_article: ["content.article.view", "content.article.art_edit", "content.article.art_save", "content.article.art_push"],
     edit_media: ["content.article.view"],
-    publish_ext: ["content.article.view", "content.article.publish"],
-    interact: [
-      "content.ai_cmt.view",
-      "review.comment.view",
-      "review.user.view",
-      "review.post.view"
-    ],
-    /* 独立 Userbot 菜单已废，采集号权限并入 TG 采集配置 */
-    userbot_cfg: [
-      "collect.tg.view",
-      "collect.tg.create",
-      "collect.tg.edit"
-    ],
+    publish_ext: ["content.article.view", "content.article.art_push"],
+    interact: ["content.ai_cmt.view", "review.comment.view", "review.user.view", "review.post.view"],
+    userbot_cfg: ["collect.tg.view", "collect.tg.bot_add", "collect.tg.sess"],
     "global.userbot.view": ["collect.tg.view"],
-    "global.userbot.create": ["collect.tg.create"],
-    "global.userbot.edit": ["collect.tg.edit"],
-    "global.userbot.enable": ["collect.tg.edit"],
+    "global.userbot.create": ["collect.tg.bot_add"],
+    "global.userbot.edit": ["collect.tg.sess", "collect.tg.monitor"],
+    "global.userbot.enable": ["collect.tg.sess"],
     sub_manage: [
       "global.subs.accounts.view",
-      "global.subs.accounts.create",
-      "global.subs.accounts.edit",
+      "global.subs.accounts.sub_create",
+      "global.subs.accounts.sub_edit",
       "global.subs.roles.view",
-      "global.subs.roles.create",
-      "global.subs.roles.edit"
-    ]
+      "global.subs.roles.role_create",
+      "global.subs.roles.role_edit"
+    ],
+    "collect.tg.create": ["collect.tg.bot_add", "collect.tg.ch_join", "collect.tg.route_add"],
+    "collect.tg.edit": ["collect.tg.sess", "collect.tg.monitor", "collect.tg.ch_pull", "collect.tg.ch_assign", "collect.tg.ch_toggle"],
+    "collect.tg.delete": ["collect.tg.ch_unbind", "collect.tg.route_remove"],
+    "collect.web.create": ["collect.web.site_apply"],
+    "collect.web.edit": ["collect.web.site_edit"],
+    "collect.web.delete": ["collect.web.site_del"],
+    "collect.web.enable": ["collect.web.site_toggle"],
+    "collect.materials.approve": ["collect.materials.mat_pass", "collect.materials.mat_reject"],
+    "collect.materials.edit": ["collect.materials.mat_edit", "collect.materials.mat_title"],
+    "collect.materials.delete": ["collect.materials.mat_reject"],
+    "content.article.create": ["content.article.art_edit"],
+    "content.article.edit": ["content.article.art_edit", "content.article.art_save", "content.article.art_reopen"],
+    "content.article.delete": ["content.article.art_del"],
+    "content.article.publish": ["content.article.art_push"],
+    "content.ai_cmt.create": [],
+    "content.ai_cmt.edit": [],
+    "content.ai_cmt.enable": [],
+    "content.pull_wm.create": [],
+    "content.pull_wm.edit": [],
+    "content.pull_wm.enable": [],
+    "review.comment.approve": [],
+    "review.comment.edit": [],
+    "review.user.approve": [],
+    "review.user.enable": [],
+    "review.post.approve": [],
+    "review.post.delete": [],
+    "projects.list.create": ["projects.list.proj_new"],
+    "projects.list.edit": ["projects.list.proj_basic"],
+    "projects.list.config": [
+      "projects.list.wm",
+      "projects.list.intro",
+      "projects.list.copy",
+      "projects.list.media",
+      "projects.list.proj_tg",
+      "projects.list.flow",
+      "projects.list.optional"
+    ],
+    "projects.list.connect": ["projects.list.proj_connect", "projects.list.channel_cfg"],
+    "global.subs.accounts.create": ["global.subs.accounts.sub_create"],
+    "global.subs.accounts.edit": ["global.subs.accounts.sub_edit"],
+    "global.subs.accounts.enable": ["global.subs.accounts.sub_toggle"],
+    "global.subs.accounts.reset": ["global.subs.accounts.sub_reset", "global.subs.accounts.sub_totp"],
+    "global.subs.roles.create": ["global.subs.roles.role_create"],
+    "global.subs.roles.edit": ["global.subs.roles.role_edit"],
+    "global.subs.roles.delete": ["global.subs.roles.role_del"]
   };
+
+  var KNOWN = {};
+  function walkKnown(nodes) {
+    (nodes || []).forEach(function (n) {
+      (n.actions || []).forEach(function (a) {
+        KNOWN[n.id + "." + a] = 1;
+      });
+      walkKnown(n.children);
+    });
+  }
+  walkKnown(PERM_TREE);
 
   function actionLabel(a) {
     return ACT[a] || a;
@@ -195,19 +287,18 @@
   function migrateFeatures(ids) {
     var out = [];
     var seen = {};
-    (ids || []).forEach(function (id) {
+    function take(id) {
+      if (!id || seen[id]) return;
       var mapped = LEGACY_MAP[id];
       if (mapped) {
-        mapped.forEach(function (x) {
-          if (!x || isAlwaysOn(x) || seen[x]) return;
-          seen[x] = 1;
-          out.push(x);
-        });
-      } else if (id && !isAlwaysOn(id) && !seen[id]) {
-        seen[id] = 1;
-        out.push(id);
+        mapped.forEach(take);
+        return;
       }
-    });
+      if (isAlwaysOn(id) || !KNOWN[id]) return;
+      seen[id] = 1;
+      out.push(id);
+    }
+    (ids || []).forEach(take);
     return out;
   }
 
@@ -215,11 +306,26 @@
     return !!set[id];
   }
 
+  function actsHtml(pageId, pairs, selectedSet) {
+    var html = "";
+    pairs.forEach(function (p) {
+      var pid = pageId + "." + p[0];
+      html +=
+        '<label class="perm-act">' +
+        '<input type="checkbox" data-perm="' +
+        pid +
+        '"' +
+        (isChecked(selectedSet, pid) ? " checked" : "") +
+        " />" +
+        p[1] +
+        "</label>";
+    });
+    return html;
+  }
+
   function renderNode(node, depth, selectedSet) {
     var kids = node.children || [];
-    var acts = node.actions || [];
     var html = '<div class="perm-node depth-' + depth + '">';
-
     if (kids.length) {
       html +=
         '<div class="perm-row perm-group">' +
@@ -241,35 +347,63 @@
         html += renderNode(c, depth + 1, selectedSet);
       });
       html += "</div>";
-    } else if (acts.length) {
-      html +=
-        '<div class="perm-row perm-page">' +
-        '<label class="perm-check">' +
-        '<input type="checkbox" data-page="' +
-        node.id +
-        '" />' +
-        '<span class="perm-label">' +
-        '<span class="perm-lvl">L' +
-        depth +
-        "</span>" +
-        node.label +
-        "</span></label>" +
-        '<div class="perm-acts">';
-      acts.forEach(function (a) {
-        var pid = node.id + "." + a;
+    } else if ((node.actions || []).length) {
+      var viewOnly =
+        node.actions.length === 1 &&
+        node.actions[0] === "view" &&
+        !(node.groups && node.groups.length);
+      if (viewOnly) {
+        var vid = node.id + ".view";
         html +=
-          '<label class="perm-act">' +
+          '<div class="perm-row perm-page">' +
+          '<label class="perm-check">' +
           '<input type="checkbox" data-perm="' +
-          pid +
+          vid +
           '"' +
-          (isChecked(selectedSet, pid) ? " checked" : "") +
+          (isChecked(selectedSet, vid) ? " checked" : "") +
           " />" +
-          actionLabel(a) +
-          "</label>";
-      });
-      html += "</div></div>";
+          '<span class="perm-label">' +
+          '<span class="perm-lvl">L' +
+          depth +
+          "</span>" +
+          node.label +
+          "</span></label>" +
+          (node.note ? '<span class="perm-note">' + node.note + "</span>" : "") +
+          "</div>";
+      } else {
+        var flat = (node.flat || []).filter(function (p) {
+          return p[0] !== "view";
+        });
+        html +=
+          '<div class="perm-row perm-page">' +
+          '<label class="perm-check">' +
+          '<input type="checkbox" data-page="' +
+          node.id +
+          '" />' +
+          '<span class="perm-label">' +
+          '<span class="perm-lvl">L' +
+          depth +
+          "</span>" +
+          node.label +
+          "</span></label>" +
+          (flat.length
+            ? '<div class="perm-acts">' + actsHtml(node.id, flat, selectedSet) + "</div>"
+            : "") +
+          "</div>";
+        if (node.groups && node.groups.length) {
+          html += '<div class="perm-op-groups">';
+          node.groups.forEach(function (g) {
+            html +=
+              '<div class="perm-op-line"><span class="perm-op-name">' +
+              g.label +
+              '</span><div class="perm-acts">' +
+              actsHtml(node.id, g.actions, selectedSet) +
+              "</div></div>";
+          });
+          html += "</div>";
+        }
+      }
     }
-
     html += "</div>";
     return html;
   }
@@ -336,7 +470,6 @@
     });
   }
 
-  /** opts.onChange：用户改勾选后回调（程序化套用岗位时勿依赖） */
   function render(mount, selectedIds, opts) {
     if (!mount) return;
     opts = opts || {};
@@ -348,7 +481,7 @@
       '<div class="perm-tree">' +
       '<div class="perm-tree-head">' +
       "<div><strong>菜单与功能权限</strong>" +
-      '<p class="hint" style="margin:4px 0 0">按侧栏层级勾选：一级 / 二级 / 三级菜单；末级为页面内操作（查看、新增、编辑、删除等）。勾选上级可全选其下。「概览」「平台公告」全员默认开通，无需勾选。采集号并入「TG 采集配置」，无独立 Userbot。</p></div>' +
+      '<p class="hint" style="margin:4px 0 0">按侧栏层级勾选。末级是该页真实按钮，按页面上的区域分组。勾了任一按钮就能进入该页，进入不单独勾选。勾选页面名称即全选其下按钮。还没有按钮的页面，勾选页面名称即可进入。「概览」「平台公告」全员默认开通，无需勾选。</p></div>' +
       '<button type="button" class="btn perm-tree-clear" data-perm-clear>清空</button>' +
       "</div>";
     PERM_TREE.forEach(function (n) {

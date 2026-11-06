@@ -5,7 +5,7 @@
       id: "create_project",
       title: "创建项目",
       desc: "分步体验：看步骤条 → 填写创建 → 看到成功。",
-      need: "projects.list.create"
+      need: "projects.list.proj_new"
     },
     {
       id: "edit_project",

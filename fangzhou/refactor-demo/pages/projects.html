@@ -52,10 +52,10 @@
       </div>
     </div>
   </div>
-  <script src="../js/perm-tree.js?v=20261031navProj"></script>
+  <script src="../js/perm-tree.js?v=20261106view1"></script>
   <script src="../js/article-defaults.js?v=20261028wmFx2"></script>
-  <script src="../js/store.js?v=20261105acct1"></script>
-  <script src="../js/shell.js?v=20261105acct1"></script>
+  <script src="../js/store.js?v=20261106perm2"></script>
+  <script src="../js/shell.js?v=20261106perm2"></script>
   <script src="../js/pager.js?v=20261104rf03"></script>
   <script src="../js/project-union.js?v=20261104rf"></script>
   <script src="../js/novice-guide.js?v=20261031demoEdit"></script>
@@ -286,7 +286,7 @@
             return !p.isPublicPool;
           });
       var canCreate =
-        !FZStore.hasFeature || FZStore.hasFeature(s, "projects.list.create");
+        !FZStore.hasFeature || FZStore.hasFeature(s, "projects.list.proj_new");
       var newBtn = document.getElementById("proj-f-new");
       if (newBtn) newBtn.hidden = !canCreate;
 

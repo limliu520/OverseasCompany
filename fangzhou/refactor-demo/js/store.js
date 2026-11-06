@@ -157,29 +157,34 @@
       id: "role_demo_ops",
       name: "采集运营",
       features: [
-        "collect.web.view",
-        "collect.web.create",
-        "collect.web.edit",
-        "collect.tg.view",
-        "collect.tg.create",
-        "collect.tg.edit",
-        "collect.materials.view",
-        "collect.materials.approve"
+        "collect.web.site_apply",
+        "collect.web.site_edit",
+        "collect.web.site_toggle",
+        "collect.tg.bot_add",
+        "collect.tg.sess",
+        "collect.tg.monitor",
+        "collect.tg.ch_pull",
+        "collect.tg.ch_join",
+        "collect.tg.ch_assign",
+        "collect.tg.ch_toggle",
+        "collect.tg.route_add",
+        "collect.materials.mat_pass",
+        "collect.materials.mat_reject"
       ]
     },
     {
       id: "role_demo_editor",
       name: "内容编辑",
       features: [
-        "collect.materials.view",
-        "collect.materials.approve",
-        "content.article.view",
-        "content.article.create",
-        "content.article.edit",
-        "content.article.publish",
+        "collect.materials.mat_pass",
+        "collect.materials.mat_reject",
+        "collect.materials.mat_edit",
+        "content.article.art_edit",
+        "content.article.art_save",
+        "content.article.art_push",
+        "content.article.art_reopen",
         "content.ai_cmt.view",
         "review.comment.view",
-        "review.comment.approve",
         "review.user.view",
         "review.post.view"
       ]
@@ -188,23 +193,31 @@
       id: "role_demo_pm",
       name: "项目管理",
       features: [
-        "projects.list.view",
-        "projects.list.create",
-        "projects.list.edit",
-        "projects.list.config",
-        "projects.list.connect",
-        "collect.tg.view",
-        "collect.tg.create",
-        "collect.tg.edit",
-        "content.article.view",
-        "content.article.publish",
+        "projects.list.proj_new",
+        "projects.list.proj_connect",
+        "projects.list.proj_basic",
+        "projects.list.wm",
+        "projects.list.intro",
+        "projects.list.copy",
+        "projects.list.media",
+        "projects.list.proj_tg",
+        "projects.list.flow",
+        "projects.list.channel_cfg",
+        "projects.list.optional",
+        "collect.tg.bot_add",
+        "collect.tg.sess",
+        "collect.tg.monitor",
+        "collect.tg.ch_pull",
+        "collect.tg.ch_join",
+        "collect.tg.ch_assign",
+        "collect.tg.ch_toggle",
+        "collect.tg.route_add",
+        "content.article.art_push",
         "content.pull_wm.view",
-        "global.subs.accounts.view",
-        "global.subs.accounts.create",
-        "global.subs.accounts.edit",
-        "global.subs.roles.view",
-        "global.subs.roles.create",
-        "global.subs.roles.edit"
+        "global.subs.accounts.sub_create",
+        "global.subs.accounts.sub_edit",
+        "global.subs.roles.role_create",
+        "global.subs.roles.role_edit"
       ]
     }
   ];
@@ -217,6 +230,7 @@
       displayName: "小王",
       password: "demo1234",
       cmsId: "cms_partner_xiaowang",
+      tgPhone: "+8613800138011",
       features: DEMO_ROLES[0].features.slice(),
       roleName: "采集运营",
       disabled: false
@@ -227,6 +241,7 @@
       displayName: "李丽",
       password: "demo1234",
       cmsId: "cms_partner_lili",
+      tgPhone: "+8613800138012",
       features: DEMO_ROLES[1].features.slice(),
       roleName: "内容编辑",
       disabled: false
@@ -237,6 +252,7 @@
       displayName: "陈晨",
       password: "demo1234",
       cmsId: "",
+      tgPhone: "+8613800138013",
       features: DEMO_ROLES[2].features.slice(),
       roleName: "项目管理",
       disabled: false
@@ -259,6 +275,7 @@
       displayName: "已停用 · 旧号",
       password: "demo1234",
       cmsId: "cms_partner_old",
+      tgPhone: "+8613800138014",
       features: ["collect.tg.view"],
       roleName: "",
       disabled: true
@@ -704,6 +721,11 @@
     projects: JSON.parse(JSON.stringify(DEMO_PROJECTS)),
     roles: JSON.parse(JSON.stringify(DEMO_ROLES)),
     subs: JSON.parse(JSON.stringify(DEMO_SUBS)),
+    /** 主账号登录用的 Telegram 手机号。子账号号码在 subs[].tgPhone */
+    tgPhones: {
+      owner: "+8613800138001",
+      owner_empty: "+8613800138002"
+    },
     /** 备份：新号登录前的业务项目快照 */
     _projectsBackup: null
   };
@@ -715,6 +737,15 @@
   /** 合并缺失的演示资产（不清空用户自建） */
   function ensureDemoAssets(state) {
     var changed = false;
+    if (!state.tgPhones) state.tgPhones = {};
+    if (!state.tgPhones.owner) {
+      state.tgPhones.owner = "+8613800138001";
+      changed = true;
+    }
+    if (!state.tgPhones.owner_empty) {
+      state.tgPhones.owner_empty = "+8613800138002";
+      changed = true;
+    }
     if (!state.tickets) {
       state.tickets = [];
       changed = true;
@@ -1836,7 +1867,7 @@
     }
     walk(tree);
     if (!out.length) {
-      out = ["projects.list.view", "projects.list.create"];
+      out = ["projects.list.proj_new"];
     }
     return out;
   }
@@ -1856,12 +1887,26 @@
       return true;
     }
     /* 未标记子账号的一律按主账号（全量或 features 列表） */
+    var feats =
+      !state || state.accountKind !== "sub"
+        ? state && state.features
+        : state.features || [];
+    /* 主账号未写入权限列表时视为全量 */
     if (!state || state.accountKind !== "sub") {
-      var feats = state && state.features;
       if (!feats || !feats.length) return true;
-      return feats.indexOf(featureId) !== -1;
     }
-    return (state.features || []).indexOf(featureId) !== -1;
+    return featureGranted(feats || [], featureId);
+  }
+
+  /** 进入页面不单独占一项：该页任一按钮即包含查看 */
+  function featureGranted(feats, featureId) {
+    if (feats.indexOf(featureId) !== -1) return true;
+    if (featureId.slice(-5) !== ".view") return false;
+    var prefix = featureId.slice(0, -4);
+    for (var i = 0; i < feats.length; i++) {
+      if (String(feats[i]).indexOf(prefix) === 0) return true;
+    }
+    return false;
   }
 
   function accountKey(state) {

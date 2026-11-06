@@ -1574,6 +1574,32 @@ button { cursor: pointer; }
   flex: 1;
   min-width: 200px;
 }
+.perm-op-groups {
+  margin: 0 12px 10px 36px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  overflow: hidden;
+}
+.perm-op-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-top: 1px dashed var(--line);
+}
+.perm-op-line:first-child { border-top: none; }
+.perm-op-name {
+  flex: 0 0 64px;
+  font-size: 12px;
+  color: var(--muted);
+  padding-top: 6px;
+}
+.perm-note {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 28px;
+}
 .perm-act {
   display: inline-flex;
   align-items: center;
