@@ -177,9 +177,9 @@ const PAGE_SIZE = 4;
 const POSTS = [
   { id: "p1", title: "顶流演唱会官宣加场 票务页面两小时改了三次", body: "官宣文案写两个城市，购票页一度只挂出一场，客服口径到晚上才对齐。", cats: ["今日吃瓜", "明星爆料", "热门大瓜", "吃瓜新闻"], author: "瓜小哥", date: "2026-11-05", comments: 128, hot: true, heat: 980 },
   { id: "p2", title: "品牌联名海报被指出用错季节", body: "彩排现场的背景板和最终成片不是同一套，评论区把两张图排在了一起。", cats: ["网红黑料"], author: "瓜瓜", date: "2026-11-04", comments: 0, hot: false, heat: 120 },
-  { id: "p3", title: "晚会直播镜头穿帮 两版成片被网友对上", body: "直播切镜时主持人还站在旧机位，回放成片已经换成了另一侧。", cats: ["今日吃瓜", "吃瓜新闻"], author: "瓜农", date: "2026-11-03", comments: 36, hot: true, heat: 860 },
+  { id: "p3", title: "晚会直播镜头穿帮 两版成片被网友对上", body: "直播切镜时主持人还站在旧机位，回放成片已经换成了另一侧。", cats: ["今日吃瓜", "吃瓜新闻"], author: "瓜农", date: "2026-11-03", comments: 36, commentTexts: ["这组镜头有人说像彩排"], hot: true, heat: 860 },
   { id: "p4", title: "发布会提问环节突然中断 主办方只给了一句说明", body: "中断前主持人刚念到下一问，随即切成了品牌片。会后说明只有时间不足六个字。", cats: ["明星爆料"], author: "瓜嫂", date: "2026-11-02", comments: 15, hot: false, heat: 400 },
-  { id: "p5", title: "短视频账号一夜清空置顶 评论区还留着旧公告", body: "置顶三条都撤了，最早一条公告的评论还停在上周。", cats: ["网红黑料", "今日吃瓜"], author: "瓜小哥", date: "2026-11-01", comments: 8, hot: false, heat: 210 },
+  { id: "p5", title: "短视频账号一夜清空置顶 彩排旧公告还在", body: "置顶三条都撤了，最早一条公告的评论还停在上周。", cats: ["网红黑料", "今日吃瓜"], author: "瓜小哥", date: "2026-11-01", comments: 8, hot: false, heat: 210 },
   { id: "p6", title: "机场随拍被指是摆拍 同一机位隔天又出现", body: "网友把彩排照和这组随拍放在一起，背景里的指示牌位置几乎重合。", cats: ["明星爆料"], author: "瓜瓜", date: "2026-10-28", comments: 64, hot: true, heat: 1100 },
   { id: "p7", title: "综艺嘉宾名单提前流出 制作组回应是旧表", body: "流出的表格日期停在上个月，制作组说正式名单尚未锁定。", cats: ["吃瓜新闻", "今日吃瓜", "明星爆料"], author: "瓜农", date: "2026-10-20", comments: 3, hot: false, heat: 90 },
   { id: "p8", title: "城市灯光秀倒计时出错 现场广播循环了两分钟", body: "倒计时归零后又跳回十秒，广播把同一句欢迎词放了四遍。", cats: ["吃瓜新闻"], author: "瓜嫂", date: "2026-10-12", comments: 22, hot: false, heat: 300 }
@@ -199,7 +199,7 @@ const FAQ = [
   ["官网最新地址", "App 与网页版最新地址、永久网址，以本页文末「最新地址」一栏为准。"]
 ];
 
-const state = { view: "home", q: "", sort: "new", page: 1, searchOpen: false };
+const state = { view: "home", q: "", sort: "mix", page: 1, searchOpen: false };
 
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -215,36 +215,54 @@ function toast(msg) {
   clearTimeout(toast._t);
   toast._t = setTimeout(() => el.classList.remove("on"), 2200);
 }
-function hitScore(post, q) {
-  const raw = q.toLowerCase();
-  if (!raw) return 0;
-  if (post.title.toLowerCase().includes(raw)) return 3;
-  if (post.cats.some((c) => c.toLowerCase().includes(raw))) return 2;
-  if (post.body.toLowerCase().includes(raw)) return 1;
-  return 0;
+function normQuery(q) {
+  return String(q).toLowerCase().replace(/[^\u4e00-\u9fffa-z0-9]/g, "");
+}
+function has(text, q) {
+  const n = normQuery(q);
+  if (!n) return false;
+  return String(text).toLowerCase().includes(n);
+}
+function relevance(post, q) {
+  let score = 0;
+  if (has(post.title, q)) score += 100;
+  if (has(post.body, q)) score += 50;
+  if ((post.commentTexts || []).some((text) => has(text, q))) score += 20;
+  if (post.cats.some((cat) => has(cat, q))) score += 10;
+  return score;
+}
+function markQuery(text, q) {
+  const safe = esc(text);
+  const n = normQuery(q);
+  if (!n) return safe;
+  const re = new RegExp(n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "ig");
+  return safe.replace(re, (m) => "<mark>" + m + "</mark>");
+}
+function clip(text, q) {
+  const n = normQuery(q);
+  const i = String(text).toLowerCase().indexOf(n);
+  const start = Math.max(0, i - 8);
+  const end = Math.min(text.length, i + n.length + 14);
+  return (start > 0 ? "…" : "") + text.slice(start, end) + (end < text.length ? "…" : "");
 }
 function snippet(post, q) {
-  if (post.title.toLowerCase().includes(q.toLowerCase())) return "";
-  const body = post.body;
-  const i = body.toLowerCase().indexOf(q.toLowerCase());
-  if (i < 0) {
-    const cat = post.cats.find((c) => c.toLowerCase().includes(q.toLowerCase()));
-    return cat ? "分类包含「" + cat + "」" : "";
-  }
-  const start = Math.max(0, i - 10);
-  const end = Math.min(body.length, i + q.length + 16);
-  const slice = (start > 0 ? "…" : "") + body.slice(start, end) + (end < body.length ? "…" : "");
-  const safe = esc(slice);
-  const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "ig");
-  return safe.replace(re, (m) => "<mark>" + m + "</mark>");
+  if (has(post.title, q)) return "";
+  if (has(post.body, q)) return markQuery(clip(post.body, q), q);
+  const cat = post.cats.find((item) => has(item, q));
+  if (cat) return "分类包含「" + esc(cat) + "」";
+  const comment = (post.commentTexts || []).find((text) => has(text, q));
+  if (comment) return "评论：" + markQuery(clip(comment, q), q);
+  return "";
 }
 function matched() {
   const q = state.q.trim();
-  let list = POSTS.filter((p) => hitScore(p, q) > 0);
+  const list = POSTS.filter((post) => relevance(post, q) > 0);
   if (state.sort === "hot") {
     list.sort((a, b) => b.heat - a.heat || b.date.localeCompare(a.date));
-  } else {
+  } else if (state.sort === "new") {
     list.sort((a, b) => b.date.localeCompare(a.date));
+  } else {
+    list.sort((a, b) => relevance(b, q) - relevance(a, q) || b.date.localeCompare(a.date));
   }
   return list;
 }
@@ -308,7 +326,8 @@ function render() {
     const list = matched();
     const slice = list.slice((state.page - 1) * PAGE_SIZE, state.page * PAGE_SIZE);
     app.innerHTML = '<div class="page-head"><h1>找到 ' + list.length + " 条与「" + esc(q) + '」相关的内容</h1></div>' +
-      '<div class="sorts"><button type="button" data-sort="new"' + (state.sort === "new" ? ' class="on"' : "") + '>最新</button>' +
+      '<div class="sorts"><button type="button" data-sort="mix"' + (state.sort === "mix" ? ' class="on"' : "") + '>综合</button>' +
+      '<button type="button" data-sort="new"' + (state.sort === "new" ? ' class="on"' : "") + '>最新</button>' +
       '<button type="button" data-sort="hot"' + (state.sort === "hot" ? ' class="on"' : "") + ">最热</button></div>" +
       '<div class="feed">' + slice.map((p) => cardHtml(p, q)).join("") + "</div>" + pager(list.length);
     return;
@@ -355,7 +374,7 @@ function readHash() {
   const h = location.hash.replace(/^#/, "");
   if (h.startsWith("search=")) {
     const q = decodeURIComponent((h.match(/^search=([^&]*)/) || [])[1] || "");
-    const sort = (h.match(/sort=(hot|new)/) || [])[1] || "new";
+    const sort = (h.match(/sort=(mix|hot|new)/) || [])[1] || "mix";
     go("search", { q, sort, searchOpen: true });
     return;
   }
@@ -371,7 +390,7 @@ document.getElementById("searchForm").addEventListener("submit", (e) => {
   e.preventDefault();
   const q = document.getElementById("q").value.trim();
   if (!q) return toast("先输入关键词");
-  go("search", { q, sort: "new", searchOpen: true });
+  go("search", { q, sort: "mix", searchOpen: true });
 });
 document.getElementById("app").addEventListener("click", (e) => {
   if (e.target.closest(".card")) toast("文章详情沿用现网，本 Demo 不改详情页");
