@@ -285,14 +285,10 @@ window.FZTgCollectChannels = (function () {
       '</span></h3><div class="tg-panel-actions">' +
       '<button type="button" class="btn btn-sm" data-sync-ch="' +
       esc(bot.id) +
-      '"' +
-      (connected ? "" : " disabled title=\"请先连接会话\"") +
-      ' title="模拟从 Telegram 拉取；公共池会生成若干「未分配」频道">拉取频道</button>' +
+      '" title="模拟从 Telegram 拉取；公共池会生成若干「未分配」频道">拉取频道</button>' +
       '<button type="button" class="btn btn-sm btn-create" data-add-ch="' +
       esc(bot.id) +
-      '" data-role="collect"' +
-      (connected ? "" : " disabled title=\"请先连接会话\"") +
-      ">+ 加入频道</button></div></div>";
+      '" data-role="collect">+ 加入频道</button></div></div>";
 
     html +=
       '<div class="tg-ch-toolbar list-toolbar-row">' +

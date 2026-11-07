@@ -13,7 +13,7 @@ window.FZTgCollectRender = (function () {
     var mon = bots.filter(function (b) {
       return b.monitoring;
     }).length;
-    return { bots: bots.length, channels: chN, monitoring: mon };
+    return { bots: bots.length, channels: chN, collecting: mon };
   }
 
   var SITE_TYPE_SHORT = {
@@ -45,7 +45,7 @@ window.FZTgCollectRender = (function () {
           " 个采集号 · " +
           s.channels +
           " 个频道" +
-          (s.monitoring ? " · " + s.monitoring + " 监听中" : "");
+          (s.collecting ? " · " + s.collecting + " 采集中" : "");
         return (
           '<button type="button" class="tg-ctx-card' +
           (p.id === selectedId ? " is-active" : "") +
@@ -56,7 +56,9 @@ window.FZTgCollectRender = (function () {
           esc(p.id) +
           '" title="' +
           esc(title + (typeLabel ? " · " + typeLabel : "")) +
-          '"><span class="tg-ctx-card-name">' +
+          '">' +
+          (isPool ? '<span class="tg-ctx-card-badge">公共</span>' : "") +
+          '<span class="tg-ctx-card-name">' +
           esc(title) +
           "</span>" +
           (typeLabel
@@ -76,46 +78,23 @@ window.FZTgCollectRender = (function () {
     }
     return bots
       .map(function (b) {
-        var on = b.status === "connected" || b.status === "ok";
-        var mon = !!b.monitoring;
-        var st = (on ? "已连接" : "已断开") + (mon ? " · 监听中" : " · 未监听");
-        var sess =
-          b.status === "disabled"
-            ? ""
-            : '<button type="button" class="btn btn-sm tg-bot-sess' +
-              (on ? "" : " btn-primary") +
-              '" data-toggle="' +
-              esc(b.id) +
-              '" title="' +
-              (on
-                ? "断开会话（运维）：退出登录，监听也会停"
-                : "连接会话（运维）：登录后方可监听与进群") +
-              '">' +
-              (on ? "断开" : "连接") +
-              "</button>";
+        var collecting = !!b.monitoring;
+        var disabled = b.status === "disabled";
+        var st = disabled ? "已停用" : collecting ? "采集中" : "已停止";
         return (
           '<div class="tg-bot-row' +
           (b.id === selectedId ? " is-active" : "") +
           '"><button type="button" class="tg-bot-item" data-pick-bot="' +
           esc(b.id) +
           '"><span class="tg-bot-dot ' +
-          (on ? "is-on" : "is-off") +
-          (on && mon ? " is-mon" : "") +
+          (collecting ? "is-on is-mon" : disabled ? "is-off" : "is-off") +
           '" title="' +
-          esc(
-            on && mon
-              ? "全部畅通：已连接且监听中"
-              : on
-                ? "部分畅通：已连接、未监听"
-                : "完全不畅通：已断开"
-          ) +
+          esc(st) +
           '"></span><span class="tg-bot-item-main"><span class="tg-bot-item-name">' +
           esc(b.name) +
           '</span><span class="tg-bot-item-meta">' +
           esc(st) +
-          "</span></span></button>" +
-          sess +
-          "</div>"
+          "</span></span></button></div>"
         );
       })
       .join("");
@@ -130,22 +109,19 @@ window.FZTgCollectRender = (function () {
     var chs = (ctx.boundChannels || []).filter(function (c) {
       return c.botId === bot.id;
     });
-    var connected = bot.status === "connected" || bot.status === "ok";
-    var monitoring = !!bot.monitoring;
-    var sessBadge = connected
-      ? '<span class="badge badge-ok">已连接</span>'
-      : bot.status === "disabled"
-        ? '<span class="badge badge-muted">已停用</span>'
-        : '<span class="badge badge-warn">已断开</span>';
-    var monBadge = monitoring
-      ? '<span class="badge badge-info">监听中</span>'
-      : '<span class="badge badge-muted">未监听</span>';
+    var collecting = !!bot.monitoring;
+    var disabled = bot.status === "disabled";
+    var sessAlive = bot.status === "connected" || bot.status === "ok";
+    var statusBadge = disabled
+      ? '<span class="badge badge-muted">已停用</span>'
+      : collecting
+        ? '<span class="badge badge-ok">采集中</span>'
+        : '<span class="badge badge-muted">已停止</span>';
     var html =
       '<div class="tg-detail-head"><div class="tg-detail-identity"><h2 class="tg-detail-title">' +
       esc(bot.name) +
       '</h2><div class="tg-detail-meta">' +
-      sessBadge +
-      monBadge +
+      statusBadge +
       (bot.phoneHint
         ? '<span class="tg-detail-info">' + esc(bot.phoneHint) + "</span>"
         : "") +
@@ -154,21 +130,35 @@ window.FZTgCollectRender = (function () {
       " / " +
       lim.maxChannelsPerBot +
       "</span></div></div>" +
-      '<div class="tg-detail-actions">' +
-      '<button type="button" class="btn' +
-      (monitoring ? "" : " btn-primary") +
-      '" data-monitor="' +
-      esc(bot.id) +
-      '"' +
-      (connected ? "" : " disabled title=\"请先在左侧连接会话\"") +
-      ">" +
-      (monitoring ? "停止监听" : "开始监听") +
-      "</button></div></div>";
+      '<div class="tg-detail-actions">';
 
-    /* 先频道后路由：配完频道再配转发 */
+    if (!disabled) {
+      html +=
+        '<button type="button" class="btn' +
+        (collecting ? "" : " btn-primary") +
+        '" data-collect="' +
+        esc(bot.id) +
+        '" title="' +
+        (collecting
+          ? "停止采集：不再收新消息，会话默认保留"
+          : "开始采集：系统按需建连并收启用中的采集频道") +
+        '">' +
+        (collecting ? "停止采集" : "开始采集") +
+        "</button>";
+      if (sessAlive) {
+        html +=
+          '<button type="button" class="btn btn-ghost" data-force-disconnect="' +
+          esc(bot.id) +
+          '" title="排障用：释放会话；日常请用停止采集">强制断开</button>';
+      }
+    }
+
+    html += "</div></div>";
+
+    /* 先频道后路由：配完频道再配转发。会话由操作时按需建连，按钮不因未连接灰掉。 */
     var chPanel =
       window.FZTgCollectChannels &&
-      FZTgCollectChannels.panel(bot, chs, connected, isPool, {
+      FZTgCollectChannels.panel(bot, chs, true, isPool, {
         q: opts.chQuery,
         role: opts.chRole,
         status: opts.chStatus,
@@ -176,14 +166,14 @@ window.FZTgCollectRender = (function () {
       });
     if (chPanel) html += chPanel;
     if (isPool && window.FZTgCollectRoutes) {
-      html += FZTgCollectRoutes.panel(ctx, bot, connected, {
+      html += FZTgCollectRoutes.panel(ctx, bot, true, {
         routeView: opts.routeView,
         routeQuery: opts.routeQuery,
         routeHealth: opts.routeHealth
       });
     } else if (!isPool) {
       html +=
-        '<p class="hint tg-project-hint">业务项目：只挂采集频道 → 监听收料进本项目。无分发频道、无路由（路由只在公共池）。</p>';
+        '<p class="hint tg-project-hint">业务项目：只挂采集频道 → 开始采集后收料进本项目。无分发频道、无路由（路由只在公共池）。</p>';
     }
     return html;
   }

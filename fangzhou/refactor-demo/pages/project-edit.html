@@ -460,26 +460,30 @@
       return (
         '<div class="card card-pad" style="margin-bottom:14px">' +
         '<div class="cfg-card-head"><div class="cfg-card-title">① 方舟签发凭证</div>' +
-        '<div class="cfg-card-sub">给对方对接方舟用 · 只读复制</div></div>' +
+        '<div class="cfg-card-sub">App Secret 默认打码 · 查看/复制/轮换见开发对接页</div></div>' +
         '<div class="kv-block kv-block--row3">' +
         kvRow("App ID", c.appId, "c-appid") +
-        kvRow("App Secret", c.appSecret, "c-secret") +
+        kvRow("App Secret", FZProjectUnion.maskSecret(c.appSecret), "c-secret") +
         kvRow("站点代码", p.siteCode || "—", "c-scode") +
         "</div>" +
-        (p.status === "pending_activate"
-          ? '<a class="btn" style="margin-top:12px" href="./project-connect.html?id=' +
-            encodeURIComponent(p.id) +
-            '">打开开发对接页</a>'
-          : "") +
+        '<a class="btn" style="margin-top:12px" href="./project-connect.html?id=' +
+        encodeURIComponent(p.id) +
+        '">打开开发对接页</a>' +
         "</div>" +
         '<div class="card card-pad" style="margin-bottom:14px">' +
-        '<div class="cfg-card-head"><div class="cfg-card-title">② 开发对接文档</div>' +
+        '<div class="cfg-card-head"><div class="cfg-card-title">② 推送签名密钥</div>' +
+        '<div class="cfg-card-sub">方舟生成 · 出站必签 · 字段 pushSignKey</div></div>' +
+        '<div class="kv-block">' +
+        kvRow("推送签名密钥", FZProjectUnion.maskSecret(p.pushSignKey), "c-push-sign") +
+        "</div></div>" +
+        '<div class="card card-pad" style="margin-bottom:14px">' +
+        '<div class="cfg-card-head"><div class="cfg-card-title">③ 开发对接文档</div>' +
         '<div class="cfg-card-sub">协议与示例见独立文档 · 本 Tab 不内嵌正文</div></div>' +
         '<button type="button" class="btn" id="btn-dev-docs">查看开发对接文档</button>' +
         "</div>" +
         '<div class="card card-pad" id="union-connect-root">' +
-        '<div class="cfg-card-head"><div class="cfg-card-title">③ 对方反填（收件与事件通知）</div>' +
-        '<div class="cfg-card-sub">推送身份用子账号「CMS 标识」，不配对方登录账号</div></div>' +
+        '<div class="cfg-card-head"><div class="cfg-card-title">④ 对方反填（收件与事件通知）</div>' +
+        '<div class="cfg-card-sub">签名密钥不在此手填；推送 CMS 用子账号或项目默认</div></div>' +
         FZProjectUnion.renderConnectFields(p) +
         "</div>"
       );
@@ -500,7 +504,7 @@
         "./tg-collect.html?project=" + encodeURIComponent(p.id);
       var cards =
         bots.length === 0
-          ? '<p class="ch-empty">本项目还没有采集号。可在此新建；挂频道、连接/监听请到「采集中心 → TG 采集」。</p>'
+          ? '<p class="ch-empty">本项目还没有采集号。可在此新建；挂频道、开始/停止采集请到「采集中心 → TG 采集」。</p>'
           : '<div class="fz-card-grid ch-bot-cards">' +
             bots
               .map(function (b) {
@@ -508,8 +512,8 @@
                 var chs = (p.boundChannels || []).filter(function (c) {
                   return c.botId === b.id;
                 });
-                var connected = b.status === "connected" || b.status === "ok";
-                var markCls = connected
+                var collecting = !!b.monitoring;
+                var markCls = collecting
                   ? "is-on"
                   : b.status === "disabled"
                     ? "is-off"
@@ -528,7 +532,6 @@
                   markCls +
                   '">' +
                   lab.text +
-                  (b.monitoring ? " · 监听中" : " · 未监听") +
                   "</p>" +
                   '<p class="ub-phone">' +
                   (b.phoneHint || "") +
@@ -562,7 +565,7 @@
         bots.length +
         " / " +
         lim.maxBotsPerProject +
-        " 个 · 频道与连接/监听在「采集中心 → TG 采集」</p></div>" +
+        " 个 · 频道与开始/停止采集在「采集中心 → TG 采集」</p></div>" +
         '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
         '<button type="button" class="btn btn-create" id="btn-new-bot">+ 添加采集号</button>' +
         '<a class="btn" href="' +

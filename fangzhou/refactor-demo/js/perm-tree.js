@@ -54,8 +54,8 @@
             g: "采集号",
             a: [
               pair("bot_add", "添加采集号"),
-              pair("sess", "连接/断开"),
-              pair("monitor", "开始/停止监听")
+              pair("collect", "开始/停止采集"),
+              pair("sess", "强制断开")
             ]
           },
           {
@@ -209,11 +209,12 @@
     edit_media: ["content.article.view"],
     publish_ext: ["content.article.view", "content.article.art_push"],
     interact: ["content.ai_cmt.view", "review.comment.view", "review.user.view", "review.post.view"],
-    userbot_cfg: ["collect.tg.view", "collect.tg.bot_add", "collect.tg.sess"],
+    userbot_cfg: ["collect.tg.view", "collect.tg.bot_add", "collect.tg.collect", "collect.tg.sess"],
     "global.userbot.view": ["collect.tg.view"],
     "global.userbot.create": ["collect.tg.bot_add"],
-    "global.userbot.edit": ["collect.tg.sess", "collect.tg.monitor"],
+    "global.userbot.edit": ["collect.tg.collect", "collect.tg.sess"],
     "global.userbot.enable": ["collect.tg.sess"],
+    "collect.tg.monitor": ["collect.tg.collect"],
     sub_manage: [
       "global.subs.accounts.view",
       "global.subs.accounts.sub_create",
@@ -223,7 +224,7 @@
       "global.subs.roles.role_edit"
     ],
     "collect.tg.create": ["collect.tg.bot_add", "collect.tg.ch_join", "collect.tg.route_add"],
-    "collect.tg.edit": ["collect.tg.sess", "collect.tg.monitor", "collect.tg.ch_pull", "collect.tg.ch_assign", "collect.tg.ch_toggle"],
+    "collect.tg.edit": ["collect.tg.collect", "collect.tg.sess", "collect.tg.ch_pull", "collect.tg.ch_assign", "collect.tg.ch_toggle"],
     "collect.tg.delete": ["collect.tg.ch_unbind", "collect.tg.route_remove"],
     "collect.web.create": ["collect.web.site_apply"],
     "collect.web.edit": ["collect.web.site_edit"],

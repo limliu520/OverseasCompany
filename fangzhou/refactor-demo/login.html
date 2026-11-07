@@ -404,22 +404,22 @@
         if (String(selected).indexOf("sub_") === 0) {
           subAcc = findSub(selected);
           if (!subAcc) {
-            alert("子账号不存在");
-            return;
-          }
-          if (subAcc.disabled) {
-            alert("该子账号已停用，无法登录");
+            alert("账号或密码错误");
             return;
           }
           var expect = subAcc.password || "demo1234";
           if (pass !== expect) {
-            alert("密码错误");
+            alert("账号或密码错误");
+            return;
+          }
+          if (subAcc.disabled) {
+            alert("该账号已停用，无法登录");
             return;
           }
         } else if (!r.isNew) {
           var ownerExpect = resolvePass(r);
           if (pass !== ownerExpect) {
-            alert("密码错误");
+            alert("账号或密码错误");
             return;
           }
         }

@@ -137,39 +137,37 @@
     transition: opacity .2s;
   }
   .toast.on { opacity: 1; }
+  .feat-list { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
+  .feat-item {
+    display: grid; grid-template-columns: 160px 1fr; gap: 16px;
+    padding: 14px; border-radius: 12px; background: var(--bg-elev); border: 1px solid var(--line);
+  }
+  .feat-cover { border-radius: 10px; min-height: 96px; background: linear-gradient(120deg,#3a1d4a,#c44b7a 55%,#1b2438); }
+  .feat-item h2 { margin: 0 0 6px; font-size: 18px; }
+  .feat-item p { margin: 0; color: var(--muted); }
+  .feat-item .tags { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .feat-item .tags i {
+    font-style: normal; font-size: 12px; border: 1px solid rgba(255,255,255,.28);
+    border-radius: 999px; padding: 1px 8px;
+  }
+  .site-foot {
+    margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
+    display: flex; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 13px;
+  }
+  .site-foot a.on { color: #fff; }
+  @media (max-width: 640px) {
+    .feat-item { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 <div class="mode-bar">
-  <span class="brand">卡片 / 搜索 / 说明页</span>
+  <span class="brand">卡片 / 搜索 / 品牌中心</span>
   <a class="tab" href="feed-card-search-official-prd.html">PRD</a>
-  <span class="tab on">Demo</span>
+  <a class="tab" href="#home" data-go="home" id="tabFeed">吃瓜站</a>
+  <a class="tab" href="#featured" data-go="featured" id="tabBrand">品牌中心</a>
 </div>
-<header class="top">
-  <div class="top-inner">
-    <a class="logo" href="#home" data-go="home"><span>51</span>吃瓜</a>
-    <nav class="nav">
-      <a href="#home" data-go="home" data-nav="home">首页</a>
-      <button type="button" data-stub="今日吃瓜">今日吃瓜</button>
-      <button type="button" data-stub="吃瓜热门">吃瓜热门</button>
-      <button type="button" data-stub="娱乐天地">娱乐天地</button>
-      <a href="#about" data-go="about">关于我们</a>
-      <a href="#faq" data-go="faq">常见问题</a>
-    </nav>
-    <div class="tools">
-      <button class="icon-btn" id="openSearch" type="button" aria-label="搜索">搜</button>
-      <span class="avatar" aria-hidden="true">游</span>
-    </div>
-  </div>
-  <div class="top-inner">
-    <div class="search-pop" id="searchPop">
-      <form class="search-row" id="searchForm">
-        <input id="q" type="search" placeholder="输入你想搜索的关键词..." autocomplete="off" />
-        <button type="submit">搜索</button>
-      </form>
-    </div>
-  </div>
-</header>
+<header class="top" id="siteHeader"></header>
 <main class="wrap" id="app"></main>
 <div class="toast" id="toast"></div>
 <script>
@@ -198,8 +196,16 @@ const FAQ = [
   ["电报群提示内容敏感、看不了正常内容？", "需要在电报账号里关闭敏感内容过滤。步骤以官方频道公布的说明为准。"],
   ["官网最新地址", "App 与网页版最新地址、永久网址，以本页文末「最新地址」一栏为准。"]
 ];
+const FEATURED = [
+  { title: "城市灯光秀倒计时出错 广播循环了两分钟", summary: "倒计时归零后又跳回十秒，现场把同一句欢迎词放了四遍。", tag: "今日吃瓜", heat: "86.2万" },
+  { title: "品牌联名海报被指出用错季节", summary: "彩排背景板和成片不是同一套，评论区把两张图排在一起。", tag: "网红黑料", heat: "42.1万" },
+  { title: "顶流演唱会官宣加场 票务页两小时改了三次", summary: "官宣写了两个城市，购票页一度只挂出一场。", tag: "明星爆料", heat: "128.5万" }
+];
 
 const state = { view: "home", q: "", sort: "mix", page: 1, searchOpen: false };
+function isBrand(view) {
+  return view === "featured" || view === "terms" || view === "privacy" || view === "brand";
+}
 
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -310,10 +316,87 @@ function addrHtml() {
     "<li>国内：https://51cge24.com</li><li>邮箱：chigua.com@pm.me</li>" +
     "<li>海外：https://51cg1.com</li><li>永久：https://chigua.com</li></ul></aside>";
 }
+function brandFoot() {
+  return '<footer class="site-foot">' +
+    '<a href="#terms" data-go="terms"' + (state.view === "terms" ? ' class="on"' : "") + ">用户协议</a>" +
+    '<a href="#privacy" data-go="privacy"' + (state.view === "privacy" ? ' class="on"' : "") + ">隐私政策</a>" +
+    "<span>官方地址入口</span></footer>";
+}
+function renderHeader() {
+  const header = document.getElementById("siteHeader");
+  const brandOn = isBrand(state.view);
+  document.getElementById("tabFeed").classList.toggle("on", !brandOn);
+  document.getElementById("tabBrand").classList.toggle("on", brandOn);
+  if (brandOn) {
+    header.innerHTML = '<div class="top-inner"><a class="logo" href="#brand" data-go="brand"><span>51</span>吃瓜</a>' +
+      '<nav class="nav">' +
+      '<a href="#brand" data-go="brand"' + (state.view === "brand" ? ' class="on"' : "") + ">首页</a>" +
+      '<button type="button" data-stub="什么是51">什么是51</button>' +
+      '<a href="#featured" data-go="featured"' + (state.view === "featured" ? ' class="on"' : "") + ">精选热点</a>" +
+      '<button type="button" data-stub="官方社区与渠道">官方社区与渠道</button>' +
+      '<button type="button" data-stub="品牌动态">品牌动态</button>' +
+      '<button type="button" data-stub="帮助中心">帮助中心</button>' +
+      "</nav></div>";
+    return;
+  }
+  header.innerHTML = '<div class="top-inner"><a class="logo" href="#home" data-go="home"><span>51</span>吃瓜</a>' +
+    '<nav class="nav"><a href="#home" data-go="home"' + (state.view === "home" ? ' class="on"' : "") + ">首页</a>" +
+    '<button type="button" data-stub="今日吃瓜">今日吃瓜</button>' +
+    '<button type="button" data-stub="吃瓜热门">吃瓜热门</button>' +
+    '<button type="button" data-stub="娱乐天地">娱乐天地</button>' +
+    '<a href="#about" data-go="about"' + (state.view === "about" ? ' class="on"' : "") + ">关于我们</a>" +
+    '<a href="#faq" data-go="faq"' + (state.view === "faq" ? ' class="on"' : "") + ">常见问题</a></nav>" +
+    '<div class="tools"><button class="icon-btn" id="openSearch" type="button" aria-label="搜索">搜</button>' +
+    '<span class="avatar" aria-hidden="true">游</span></div></div>' +
+    '<div class="top-inner"><div class="search-pop" id="searchPop">' +
+    '<form class="search-row" id="searchForm"><input id="q" type="search" placeholder="输入你想搜索的关键词..." autocomplete="off" />' +
+    '<button type="submit">搜索</button></form></div></div>';
+  document.getElementById("searchPop").classList.toggle("on", state.searchOpen || state.view === "search");
+  document.getElementById("q").value = state.q;
+  document.getElementById("openSearch").addEventListener("click", () => {
+    state.searchOpen = !state.searchOpen;
+    render();
+    if (state.searchOpen) document.getElementById("q").focus();
+  });
+  document.getElementById("searchForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const q = document.getElementById("q").value.trim();
+    if (!q) return toast("先输入关键词");
+    go("search", { q, sort: "mix", searchOpen: true });
+  });
+}
 function render() {
   const app = document.getElementById("app");
-  document.getElementById("searchPop").classList.toggle("on", state.searchOpen || state.view === "search");
-  document.querySelectorAll("[data-nav]").forEach((el) => el.classList.toggle("on", el.dataset.nav === "home" && state.view === "home"));
+  renderHeader();
+  if (state.view === "featured") {
+    app.innerHTML = '<div class="page-head"><h1>精选热点</h1><p>从热点事件到品牌动态，集中展示精选内容。本页为独立二级页，地址不再是首页锚点。</p></div>' +
+      '<div class="feat-list">' + FEATURED.map((item) =>
+        '<article class="feat-item"><div class="feat-cover"></div><div><h2>' + esc(item.title) + "</h2><p>" + esc(item.summary) +
+        '</p><div class="tags"><i>' + esc(item.tag) + "</i><i>" + esc(item.heat) + "</i></div></div></article>"
+      ).join("") + "</div>" + brandFoot();
+    return;
+  }
+  if (state.view === "terms") {
+    app.innerHTML = '<article class="doc"><h1>用户协议</h1>' +
+      "<p>欢迎使用 51吃瓜官方品牌中心。使用本站即表示你已阅读并同意本协议。</p>" +
+      "<h2>服务说明</h2><p>本站提供品牌介绍、精选内容入口、帮助与官方渠道信息。具体吃瓜正文仍以吃瓜站为准。</p>" +
+      "<h2>用户行为</h2><p>不得利用本站从事违法违规活动，不得仿冒官方入口或散布虚假下载链接。</p>" +
+      "<h2>协议更新</h2><p>我们可能更新本协议。更新后继续使用本站，即视为接受更新后的内容。</p></article>" + brandFoot();
+    return;
+  }
+  if (state.view === "privacy") {
+    app.innerHTML = '<article class="doc"><h1>隐私政策</h1>' +
+      "<p>本政策说明官方品牌中心如何收集与使用信息。</p>" +
+      "<h2>我们收集的信息</h2><p>可能包括你主动提交的联系方式、设备与访问日志，用于客服与安全防护。</p>" +
+      "<h2>信息使用</h2><p>仅用于提供服务、排查故障、防止仿冒与诈骗，不会出售给你的个人信息。</p>" +
+      "<h2>联系我们</h2><p>隐私相关问题可发送至 chigua.com@pm.me。</p></article>" + brandFoot();
+    return;
+  }
+  if (state.view === "brand") {
+    app.innerHTML = '<div class="page-head"><h1>官方品牌中心</h1><p>Demo 只演示精选热点独立页，以及用户协议、隐私政策独立页。</p></div>' +
+      '<p><a href="#featured" data-go="featured" style="color:var(--pink)">进入精选热点 →</a></p>' + brandFoot();
+    return;
+  }
   if (state.view === "home") {
     const list = POSTS.slice().sort((a, b) => b.date.localeCompare(a.date));
     const slice = list.slice((state.page - 1) * PAGE_SIZE, state.page * PAGE_SIZE);
@@ -366,7 +449,6 @@ function go(view, extra) {
     ? "#search=" + encodeURIComponent(state.q) + "&sort=" + state.sort
     : "#" + view;
   if (location.hash !== hash) history.replaceState(null, "", hash);
-  document.getElementById("q").value = state.q;
   render();
   window.scrollTo(0, 0);
 }
@@ -378,22 +460,11 @@ function readHash() {
     go("search", { q, sort, searchOpen: true });
     return;
   }
-  if (h === "about" || h === "faq" || h === "home") go(h);
+  if (h === "about" || h === "faq" || h === "home" || h === "featured" || h === "terms" || h === "privacy" || h === "brand") go(h);
   else go("home");
 }
-document.getElementById("openSearch").addEventListener("click", () => {
-  state.searchOpen = !state.searchOpen;
-  render();
-  if (state.searchOpen) document.getElementById("q").focus();
-});
-document.getElementById("searchForm").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const q = document.getElementById("q").value.trim();
-  if (!q) return toast("先输入关键词");
-  go("search", { q, sort: "mix", searchOpen: true });
-});
 document.getElementById("app").addEventListener("click", (e) => {
-  if (e.target.closest(".card")) toast("文章详情沿用现网，本 Demo 不改详情页");
+  if (e.target.closest(".card") || e.target.closest(".feat-item")) toast("文章详情沿用现网，本 Demo 不改详情页");
   const pageBtn = e.target.closest("[data-page]");
   if (pageBtn && !pageBtn.disabled) {
     state.page = Number(pageBtn.dataset.page);
@@ -410,7 +481,7 @@ document.getElementById("app").addEventListener("click", (e) => {
 });
 document.body.addEventListener("click", (e) => {
   const stub = e.target.closest("[data-stub]");
-  if (stub) toast("本 Demo 只覆盖首页、搜索、关于我们和常见问题");
+  if (stub) toast("本 Demo 只覆盖已列出的页面");
   const to = e.target.closest("[data-go]");
   if (to) {
     e.preventDefault();

@@ -1,4 +1,4 @@
-/* 采集号：按项目归属；连接 / 断开 / 删除（非全局共用池） */
+/* 采集号：按项目归属；开始/停止采集 · 强制断开 · 删除（非全局共用池） */
 (function () {
   var filterProjectId = "";
 
@@ -54,7 +54,7 @@
         lim.maxChannelsPerBot +
         "；同频道最多 " +
         lim.maxBotsPerChannel +
-        " 个号。上限由 Admin 配置。连接 / 断开 / 删除。";
+        " 个号。上限由 Admin 配置。开始/停止采集 · 强制断开 · 删除。";
     }
     paintFilter(st);
     if (!box) return;
@@ -70,12 +70,13 @@
       .map(function (b) {
         var stLab = FZStore.userbotStatusLabel(b);
         var chN = FZStore.userbotBoundChannelCount(st, b);
-        var connected = b.status === "connected" || b.status === "ok";
-        var markCls = connected
+        var collecting = !!b.monitoring;
+        var markCls = collecting
           ? "is-on"
           : b.status === "disabled"
             ? "is-off"
             : "is-warn";
+        var sessAlive = b.status === "connected" || b.status === "ok";
         /* 次要左白底 · 重要右黑底 */
         var actionsOpt = "";
         if (b.projectId) {
@@ -84,6 +85,12 @@
             encodeURIComponent(b.projectId) +
             '&tab=channel">项目通道</a>';
         }
+        if (sessAlive && b.status !== "disabled") {
+          actionsOpt +=
+            '<button type="button" class="btn" data-act="force-disconnect" data-id="' +
+            esc(b.id) +
+            '" title="排障用：释放会话">强制断开</button>';
+        }
         actionsOpt +=
           '<button type="button" class="btn" data-act="del" data-id="' +
           esc(b.id) +
@@ -91,10 +98,10 @@
         var actionsFix = "";
         if (b.status !== "disabled") {
           actionsFix =
-            '<button type="button" class="btn btn-primary" data-act="toggle" data-id="' +
+            '<button type="button" class="btn btn-primary" data-act="collect" data-id="' +
             esc(b.id) +
             '">' +
-            (connected ? "断开" : "连接") +
+            (collecting ? "停止采集" : "开始采集") +
             "</button>";
         } else {
           actionsFix =
@@ -154,20 +161,44 @@
       FZShell.toast("采集号不存在", "err");
       return;
     }
-    if (act === "toggle") {
-      var connected = bot.status === "connected" || bot.status === "ok";
-      if (connected) {
-        bot.status = "disconnected";
-        FZStore.write(st);
-        FZShell.toast("已断开会话（演示）", "ok");
-      } else if (bot.status === "disabled") {
-        FZShell.toast("已停用的采集号不可连接", "err");
+    if (act === "collect") {
+      if (bot.status === "disabled") {
+        FZShell.toast("已停用的采集号不可采集", "err");
         return;
-      } else {
-        bot.status = "connected";
-        FZStore.write(st);
-        FZShell.toast("已连接（演示）", "ok");
       }
+      if (bot.monitoring) {
+        bot.monitoring = false;
+        FZStore.write(st);
+        FZShell.toast("已停止采集", "ok");
+        render();
+        return;
+      }
+      if (bot.status !== "connected" && bot.status !== "ok") {
+        bot.status = "connected";
+      }
+      var proj = bot.projectId ? FZStore.findProject(st, bot.projectId) : null;
+      var hasCollect = ((proj && proj.boundChannels) || []).some(function (ch) {
+        return (
+          ch.botId === bot.id &&
+          ch.role === "collect" &&
+          ch.active !== false
+        );
+      });
+      if (!hasCollect) {
+        FZShell.toast("请先在 TG 采集配置加入并启用至少一个采集频道，再开始采集", "err");
+        return;
+      }
+      bot.monitoring = true;
+      FZStore.write(st);
+      FZShell.toast("已开始采集", "ok");
+      render();
+      return;
+    }
+    if (act === "force-disconnect") {
+      bot.status = "disconnected";
+      bot.monitoring = false;
+      FZStore.write(st);
+      FZShell.toast("已强制断开会话", "ok");
       render();
       return;
     }
@@ -238,7 +269,7 @@
           FZStore.attachBotToProject(s2, p2, bot);
           FZStore.write(s2);
           filterProjectId = pid;
-          FZShell.toast("采集号已添加到本项目并连接", "ok");
+          FZShell.toast("采集号已添加。到 TG 采集配置挂频道后即可开始采集", "ok");
           render();
         }
       });

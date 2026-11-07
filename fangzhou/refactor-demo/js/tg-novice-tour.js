@@ -361,7 +361,7 @@
       '<div class="fz-tg-novice-main">' +
       '<p class="fz-tg-novice-step" id="fz-tg-novice-step"></p>' +
       '<p class="fz-tg-novice-tip" id="fz-tg-novice-tip"></p>' +
-      '<p class="fz-tg-novice-aside">旁白：连接/断开、启用停用、筛选分页等是基础能力，本教程不强制点；跟着高亮旁按钮走即可。</p>' +
+      '<p class="fz-tg-novice-aside">旁白：开始/停止采集、启用停用、筛选分页等是基础能力，本教程不强制点；跟着高亮旁按钮走即可。</p>' +
       "</div>" +
       '<div class="fz-tg-novice-side">' +
       '<button type="button" class="btn btn-sm fz-tg-novice-exit" id="fz-tg-novice-exit">退出教程</button>' +

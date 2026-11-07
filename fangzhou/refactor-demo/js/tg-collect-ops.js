@@ -1,5 +1,26 @@
 /* TG 采集 · 详情区内写 store 的操作 */
 window.FZTgCollectOps = (function () {
+  function ensureSession(bot) {
+    if (!bot) return { ok: false, error: "采集号不存在" };
+    if (bot.status === "disabled") {
+      return { ok: false, error: "采集号已停用" };
+    }
+    if (bot.status !== "connected" && bot.status !== "ok") {
+      bot.status = "connected";
+    }
+    return { ok: true };
+  }
+
+  function hasActiveCollect(ctx, botId) {
+    return (ctx.boundChannels || []).some(function (ch) {
+      return (
+        ch.botId === botId &&
+        ch.role === "collect" &&
+        ch.active !== false
+      );
+    });
+  }
+
   function handle(t, api) {
     if (!t) return false;
     if (t.disabled) {
@@ -14,6 +35,14 @@ window.FZTgCollectOps = (function () {
     var M = api.modal;
 
     if (t.getAttribute("data-sync-ch")) {
+      var syncBot = (st.userbots || []).find(function (b) {
+        return b.id === t.getAttribute("data-sync-ch");
+      });
+      var ready = ensureSession(syncBot);
+      if (!ready.ok) {
+        FZShell.toast(ready.error || "会话连接失败，请重试", "err");
+        return true;
+      }
       var syncRes = FZStore.syncChannelsFromTelegram(
         st,
         t.getAttribute("data-sync-ch"),
@@ -35,42 +64,42 @@ window.FZTgCollectOps = (function () {
       paint();
       return true;
     }
-    if (t.getAttribute("data-toggle")) {
-      var bot = (st.userbots || []).find(function (b) {
-        return b.id === t.getAttribute("data-toggle");
+    if (t.getAttribute("data-collect")) {
+      var mb = (st.userbots || []).find(function (b) {
+        return b.id === t.getAttribute("data-collect");
       });
-      if (!bot) return true;
-      var on = bot.status === "connected" || bot.status === "ok";
-      bot.status = on ? "disconnected" : "connected";
-      if (on) bot.monitoring = false;
+      if (!mb) return true;
+      if (mb.monitoring) {
+        mb.monitoring = false;
+        FZStore.write(st);
+        FZShell.toast("已停止采集", "ok");
+        paint();
+        return true;
+      }
+      var startReady = ensureSession(mb);
+      if (!startReady.ok) {
+        FZShell.toast(startReady.error || "会话连接失败，请重试或强制断开后重新登录", "err");
+        return true;
+      }
+      if (!hasActiveCollect(c, mb.id)) {
+        FZShell.toast("请先加入并启用至少一个采集频道，再开始采集", "err");
+        return true;
+      }
+      mb.monitoring = true;
       FZStore.write(st);
-      FZShell.toast(on ? "已断开会话（监听已停）" : "会话已连接", "ok");
+      FZShell.toast("已开始采集", "ok");
       paint();
       return true;
     }
-    if (t.getAttribute("data-monitor")) {
-      var mb = (st.userbots || []).find(function (b) {
-        return b.id === t.getAttribute("data-monitor");
+    if (t.getAttribute("data-force-disconnect")) {
+      var fb = (st.userbots || []).find(function (b) {
+        return b.id === t.getAttribute("data-force-disconnect");
       });
-      if (!mb) return true;
-      if (mb.status !== "connected" && mb.status !== "ok") {
-        FZShell.toast("请先连接会话", "err");
-        return true;
-      }
-      var hasCollect = (c.boundChannels || []).some(function (ch) {
-        return (
-          ch.botId === mb.id &&
-          ch.role === "collect" &&
-          ch.active !== false
-        );
-      });
-      if (!mb.monitoring && !hasCollect) {
-        FZShell.toast("请先加入并启用至少一个采集频道，再开始监听", "err");
-        return true;
-      }
-      mb.monitoring = !mb.monitoring;
+      if (!fb) return true;
+      fb.status = "disconnected";
+      fb.monitoring = false;
       FZStore.write(st);
-      FZShell.toast(mb.monitoring ? "已开始监听采集频道" : "已停止监听", "ok");
+      FZShell.toast("已强制断开会话", "ok");
       paint();
       return true;
     }
@@ -176,7 +205,7 @@ window.FZTgCollectOps = (function () {
           var st2 = FZStore.read();
           var c2 = api.getCtx(st2);
           if (!c2) return;
-          c2.routingRules = (c2.routingRules || [])
+          c2.routingRules = c2.routingRules
             .map(function (r) {
               if (r.id !== rid) return r;
               if (!onlyTarget) return null;
@@ -197,5 +226,5 @@ window.FZTgCollectOps = (function () {
     return false;
   }
 
-  return { handle: handle };
+  return { handle: handle, ensureSession: ensureSession };
 })();

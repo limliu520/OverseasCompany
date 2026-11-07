@@ -132,8 +132,9 @@
       siteCode: "",
       apiBaseUrl: "",
       apiPrefix: "/oash/v1",
-      appSecret: "",
+      pushSignKey: "",
       channelNotes: "",
+      defaultCmsId: "",
       generationMode: short ? "none" : "ai",
       requireVideo: true,
       dewatermarkEnabled: true,
@@ -190,6 +191,14 @@
     Object.keys(d).forEach(function (k) {
       if (p[k] == null) p[k] = d[k];
     });
+    /* 旧 Demo 把推送签名密钥误存在 appSecret；迁移到 pushSignKey，避免与 creds.appSecret 同名 */
+    if (!p.pushSignKey && p.appSecret && !(p.creds && p.creds.appSecret === p.appSecret)) {
+      p.pushSignKey = p.appSecret;
+    }
+    if (!p.pushSignKey && global.FZStore && typeof global.FZStore.issuePushSignKey === "function") {
+      p.pushSignKey = global.FZStore.issuePushSignKey(p.id);
+    }
+    if (p.appSecret != null && p.creds) delete p.appSecret;
     /* 两段闸门：autoToEdit=素材→编辑；autoPush=编辑→业务方。旧数据曾混在 autoflow/autoPush */
     if (p.autoToEdit == null) {
       p.autoToEdit = !!(p.autoflow || p.autoPush);
@@ -301,18 +310,18 @@
       '" /></div>' +
       '<div class="field">' +
       label(
-        "签名密钥（可选）",
-        "配了则推送请求带签名；不配不签。不是对方登录密码。"
+        "推送签名密钥",
+        "方舟生成，出站必签。默认打码；查看 / 复制 / 轮换在凭证区操作。字段名 pushSignKey，勿与 App Secret 混淆。"
       ) +
       '<input id="' +
-      id("api-secret") +
+      id("push-sign") +
       '" value="' +
-      esc(p.appSecret) +
-      '" placeholder="对方提供的签名密钥；可不填" autocomplete="off" /></div>' +
+      esc(maskSecret(p.pushSignKey || "")) +
+      '" readonly autocomplete="off" /></div>' +
       '<div class="field">' +
       label(
         "事件通知地址（Webhook，可选）",
-        "状态变更等事件通知对方；与上面「收件接口」不同：收件接口推内容，这里推事件。未接通前不生效。"
+        "状态变更等事件通知对方；与上面「收件接口」不同：收件接口推内容，这里推事件。未接通前不生效。出站同样必签。"
       ) +
       '<input id="' +
       id("hook") +
@@ -326,8 +335,25 @@
       '" value="' +
       esc(p.channelNotes) +
       '" placeholder="对接方名称、环境等" /></div>' +
-      '<p class="hint">本块给开发联调：凭证给对方来接方舟；收件接口 / 事件通知按需填。不配对方登录账号；推送身份用子账号「CMS 标识」。</p>'
+      '<div class="field">' +
+      label(
+        "默认 CMS 标识",
+        "主账号操作或自动推送时使用；子账号手动推送优先用子账号自己的 CMS 标识。"
+      ) +
+      '<input id="' +
+      id("default-cms") +
+      '" value="' +
+      esc(p.defaultCmsId || "") +
+      '" placeholder="对方后台复制的 CMS 标识；主账号 / 自动推送时使用" /></div>' +
+      '<p class="hint">本块给开发联调：凭证给对方来接方舟；出站推送必签（pushSignKey 由方舟生成）；收件接口 / 事件通知按需填。不配对方登录账号；推送 CMS：子账号有则用子账号，否则用本项目默认 CMS 标识。</p>'
     );
+  }
+
+  function maskSecret(raw) {
+    var s = String(raw || "");
+    if (!s) return "";
+    if (s.length <= 4) return "••••";
+    return "••••••••" + s.slice(-4);
   }
 
   function collectConnect(root, into, prefix) {
@@ -336,9 +362,9 @@
     into.siteCode = val(root, prefix + "site-code");
     into.apiBaseUrl = val(root, prefix + "api-base");
     into.apiPrefix = val(root, prefix + "api-prefix") || "/oash/v1";
-    into.appSecret = val(root, prefix + "api-secret");
     into.webhookUrl = val(root, prefix + "hook");
     into.channelNotes = val(root, prefix + "ch-notes");
+    into.defaultCmsId = val(root, prefix + "default-cms");
   }
 
   /**
@@ -698,6 +724,7 @@
     defaultsForType: defaultsForType,
     applyTypeDefaults: applyTypeDefaults,
     normalizeProject: normalizeProject,
+    maskSecret: maskSecret,
     needsArticle: needsArticle,
     needsEpisodes: needsEpisodes,
     renderSiteTypeCards: renderSiteTypeCards,

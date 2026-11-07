@@ -126,7 +126,7 @@
         '<div class="card card-pad" style="margin-bottom:14px">' +
         '<div class="cfg-card-head-row" style="margin-bottom:8px;align-items:flex-start">' +
         "<div><h2 style=\"margin:0;font-size:16px\">① 方舟签发的通道凭证（只读）</h2>" +
-        '<p class="muted" style="margin:6px 0 0;font-size:13px">交给业务方用来调方舟接口。展示 + 复制，不可编辑。一项目一套通道；推送身份用子账号「CMS 标识」。</p></div>' +
+        '<p class="muted" style="margin:6px 0 0;font-size:13px">交给业务方用来调方舟接口。App Secret 默认打码；查看 / 复制 / 轮换须敏感操作二次验证（Demo 用确认框示意）。</p></div>' +
         (p.contentActivated
           ? '<a class="btn btn-primary" style="flex-shrink:0" href="./project-edit.html?id=' +
             encodeURIComponent(id) +
@@ -135,21 +135,35 @@
         "</div>" +
         '<div class="kv-block kv-block--row3">' +
         kvCopyRow("App ID", creds.appId, "conn-appid") +
-        kvCopyRow("App Secret", creds.appSecret, "conn-secret") +
+        kvCopyRow("App Secret", FZProjectUnion.maskSecret(creds.appSecret), "conn-secret") +
         kvCopyRow("站点代码", p.siteCode || "—", "conn-scode") +
+        "</div>" +
+        '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">' +
+        '<button type="button" class="btn" id="btn-reveal-app-secret">显示 App Secret</button>' +
+        '<button type="button" class="btn" id="btn-rotate-app-secret">轮换 App Secret</button>' +
         "</div>" +
         '<div class="muted" style="font-size:12px;margin-top:10px">通道状态：' +
         (p.contentActivated ? "已接通" : "待接通") +
         "</div></div>" +
         '<div class="card card-pad" style="margin-bottom:14px">' +
-        "<h2 style=\"margin:0 0 8px;font-size:16px\">② 开发对接文档</h2>" +
+        "<h2 style=\"margin:0 0 8px;font-size:16px\">② 推送签名密钥（方舟生成 · 出站必签）</h2>" +
+        '<p class="muted" style="margin:0 0 12px;font-size:13px">字段名 pushSignKey，与 App Secret 分开。默认打码；查看 / 复制 / 轮换同样走二次验证。</p>' +
+        '<div class="kv-block">' +
+        kvCopyRow("推送签名密钥", FZProjectUnion.maskSecret(p.pushSignKey), "conn-push-sign") +
+        "</div>" +
+        '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">' +
+        '<button type="button" class="btn" id="btn-reveal-push-sign">显示推送签名密钥</button>' +
+        '<button type="button" class="btn" id="btn-rotate-push-sign">轮换推送签名密钥</button>' +
+        "</div></div>" +
+        '<div class="card card-pad" style="margin-bottom:14px">' +
+        "<h2 style=\"margin:0 0 8px;font-size:16px\">③ 开发对接文档</h2>" +
         '<p class="muted" style="margin:0 0 12px;font-size:13px">接口协议、鉴权示例、错误码与示例工程见独立文档。本页只维护本项目凭证与对方反填，不内嵌协议正文。</p>' +
         '<button type="button" class="btn" id="btn-dev-docs">查看开发对接文档</button>' +
         "</div>" +
         '<div class="card card-pad" style="margin-bottom:14px" id="dev-connect-form">' +
         '<div class="cfg-card-head-row" style="margin-bottom:8px;align-items:flex-start">' +
-        "<div><h2 style=\"margin:0;font-size:16px\">③ 对方反填（收件与事件通知）</h2>" +
-        '<p class="muted" style="margin:6px 0 0;font-size:13px">需要方舟推内容到对方时再填对方接口；仅对方来调方舟时可留空。与项目详情「内容通道对接配置」同一套字段。</p></div>' +
+        "<div><h2 style=\"margin:0;font-size:16px\">④ 对方反填（收件与事件通知）</h2>" +
+        '<p class="muted" style="margin:6px 0 0;font-size:13px">需要方舟推内容到对方时再填对方接口；仅对方来调方舟时可留空。签名密钥由方舟生成，不在此手填。</p></div>' +
         '<button type="button" class="btn btn-primary" id="btn-save-connect" style="flex-shrink:0">保存对接参数</button></div>' +
         FZProjectUnion.renderConnectFields(p) +
         "</div>";
@@ -176,15 +190,83 @@
           proj.siteCode = draft.siteCode || proj.siteCode;
           proj.apiBaseUrl = draft.apiBaseUrl;
           proj.apiPrefix = draft.apiPrefix;
-          proj.appSecret = draft.appSecret;
           proj.webhookUrl = draft.webhookUrl;
           proj.webhook = !!draft.webhookUrl;
           proj.channelNotes = draft.channelNotes;
+          proj.defaultCmsId = draft.defaultCmsId;
           FZStore.upsertProject(s2, proj);
           FZStore.write(s2);
           p = proj;
           FZShell.toast("对接参数已保存", "ok");
           render();
+        });
+      }
+      function sensitiveGate(actionLabel, onOk) {
+        if (
+          !window.confirm(
+            "敏感操作二次验证（Demo）\n\n正式环境须校验当前账号动态码或登录密码。\n确定继续「" +
+              actionLabel +
+              "」？"
+          )
+        ) {
+          FZShell.toast("验证未通过", "err");
+          return;
+        }
+        onOk();
+      }
+      function revealInto(elId, raw, label) {
+        sensitiveGate("显示 " + label, function () {
+          var el = document.getElementById(elId);
+          if (el) el.textContent = raw || "—";
+          FZShell.toast(label + "已显示（Demo；正式环境记审计）", "ok");
+        });
+      }
+      function rotateSecret(kind) {
+        sensitiveGate("轮换 " + kind, function () {
+          if (
+            !window.confirm(
+              "轮换后旧密钥将在并存窗口结束后失效，对方须改用新密钥。确定轮换？"
+            )
+          ) {
+            return;
+          }
+          var s2 = FZStore.read();
+          var proj = FZStore.findProject(s2, id);
+          if (kind === "App Secret") {
+            if (!proj.creds) proj.creds = FZStore.issueProjectCreds(proj.id);
+            proj.creds = FZStore.issueProjectCreds(proj.id);
+          } else {
+            proj.pushSignKey = FZStore.issuePushSignKey(proj.id);
+          }
+          FZStore.upsertProject(s2, proj);
+          FZStore.write(s2);
+          p = proj;
+          FZShell.toast(kind + " 已轮换", "ok");
+          render();
+        });
+      }
+      var revealApp = document.getElementById("btn-reveal-app-secret");
+      if (revealApp) {
+        revealApp.addEventListener("click", function () {
+          revealInto("conn-secret", (p.creds || {}).appSecret, "App Secret");
+        });
+      }
+      var rotApp = document.getElementById("btn-rotate-app-secret");
+      if (rotApp) {
+        rotApp.addEventListener("click", function () {
+          rotateSecret("App Secret");
+        });
+      }
+      var revealPush = document.getElementById("btn-reveal-push-sign");
+      if (revealPush) {
+        revealPush.addEventListener("click", function () {
+          revealInto("conn-push-sign", p.pushSignKey, "推送签名密钥");
+        });
+      }
+      var rotPush = document.getElementById("btn-rotate-push-sign");
+      if (rotPush) {
+        rotPush.addEventListener("click", function () {
+          rotateSecret("推送签名密钥");
         });
       }
       var docsBtn = document.getElementById("btn-dev-docs");
@@ -202,6 +284,17 @@
       var testBtn = document.getElementById("btn-test");
       if (testBtn) {
         testBtn.addEventListener("click", function () {
+          if (!(p.apiBaseUrl || "").trim()) {
+            FZShell.toast("请先填写对方收件接口地址", "err");
+            return;
+          }
+          if (
+            !window.confirm(
+              "接通测试（Demo 模拟双向验签）\n\n正式版须：① 方舟带签名挑战对方 → 对方验签回显；② 对方带签名挑战方舟 → 方舟验签。两步都过才接通。\n\nDemo 将模拟两步都通过，确定继续？"
+            )
+          ) {
+            return;
+          }
           var s2 = FZStore.read();
           var proj = FZStore.findProject(s2, id);
           FZStore.markContentConnected(proj);
@@ -209,8 +302,8 @@
           FZStore.write(s2);
           FZShell.toast(
             proj.status === "need_collect"
-              ? "接通测试通过；自动流意向将生效，但仍缺采集源"
-              : "接通测试通过，前置配置生效，项目创建完成"
+              ? "接通测试通过（Demo 模拟）；自动流意向将生效，但仍缺采集源"
+              : "接通测试通过（Demo 模拟双向验签），通道已接通"
           );
           location.href = "./projects.html";
         });

@@ -52,9 +52,17 @@ window.FZTgCollectModal = (function () {
     var bot = (st.userbots || []).find(function (b) {
       return b.id === botId;
     });
-    if (!bot || (bot.status !== "connected" && bot.status !== "ok")) {
-      FZShell.toast("请先连接会话，再加入频道", "err");
+    if (!bot) {
+      FZShell.toast("采集号不存在", "err");
       return;
+    }
+    if (bot.status === "disabled") {
+      FZShell.toast("采集号已停用", "err");
+      return;
+    }
+    if (bot.status !== "connected" && bot.status !== "ok") {
+      bot.status = "connected";
+      FZStore.write(st);
     }
     pendingChBotId = botId;
     var isPool = c && FZStore.isPublicPool(c);
@@ -64,8 +72,8 @@ window.FZTgCollectModal = (function () {
     setRole(isPool && role === "push" ? "push" : "collect");
     document.getElementById("tg-ch-role-field").hidden = !isPool;
     document.getElementById("tg-ch-hint").textContent = isPool
-      ? "公共池：先选用途（采集进料 / 分发作 TG→TG 目标），再填频道；开监听后才收消息。"
-      : "业务项目只挂采集频道，料进本项目；无分发频道、无路由。开监听后才收消息。";
+      ? "公共池：先选用途（采集进料 / 分发作 TG→TG 目标），再填频道；开始采集后才收消息。"
+      : "业务项目只挂采集频道，料进本项目；无分发频道、无路由。开始采集后才收消息。";
     document.getElementById("tg-ch-link").value = "";
     document.getElementById("tg-ch-modal").hidden = false;
     document.getElementById("tg-ch-link").focus();
@@ -129,9 +137,17 @@ window.FZTgCollectModal = (function () {
     var bot = (st.userbots || []).find(function (b) {
       return b.id === botId;
     });
-    if (!bot || (bot.status !== "connected" && bot.status !== "ok")) {
-      FZShell.toast("请先连接会话", "err");
+    if (!bot) {
+      FZShell.toast("采集号不存在", "err");
       return;
+    }
+    if (bot.status === "disabled") {
+      FZShell.toast("采集号已停用", "err");
+      return;
+    }
+    if (bot.status !== "connected" && bot.status !== "ok") {
+      bot.status = "connected";
+      FZStore.write(st);
     }
     var mine = (c.boundChannels || []).filter(function (ch) {
       return ch.botId === botId;

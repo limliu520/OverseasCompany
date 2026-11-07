@@ -86,13 +86,13 @@
   };
 
   /**
-   * 采集号演示：归属项目（projectId）；connected=已连接可采。
-   * 对齐现网卡片：仅连接 / 断开 / 删除。
+   * 采集号演示：归属项目（projectId）。
+   * 用户态看 monitoring（采集中/已停止）；status 由开采集与频道操作按需建连，强制断开才释放。
    */
   /** 公共池：与业务项目同级，专管 TG→TG；非项目料进此池 */
   var PUBLIC_POOL_ID = "proj_public_pool";
 
-  /** 名称只作标签，不含连接/监听状态（状态看 status / monitoring） */
+  /** 名称只作标签；采集态看 monitoring，会话态看 status */
   var DEMO_USERBOTS = [
     {
       id: "bot_demo_free",
@@ -161,8 +161,8 @@
         "collect.web.site_edit",
         "collect.web.site_toggle",
         "collect.tg.bot_add",
+        "collect.tg.collect",
         "collect.tg.sess",
-        "collect.tg.monitor",
         "collect.tg.ch_pull",
         "collect.tg.ch_join",
         "collect.tg.ch_assign",
@@ -205,8 +205,8 @@
         "projects.list.channel_cfg",
         "projects.list.optional",
         "collect.tg.bot_add",
+        "collect.tg.collect",
         "collect.tg.sess",
-        "collect.tg.monitor",
         "collect.tg.ch_pull",
         "collect.tg.ch_join",
         "collect.tg.ch_assign",
@@ -289,6 +289,12 @@
       appSecret: "sk_live_demo_" + short + "_xxxxxxxx",
       webhookHint: "https://api.fangzhou.example/v1/hooks/" + short
     };
+  }
+
+  /** 出站推送签名密钥（与 creds.appSecret 分字段，避免同名） */
+  function issuePushSignKey(projectId) {
+    var short = String(projectId || "demo").slice(-6);
+    return "psk_demo_" + short + "_" + Math.random().toString(36).slice(2, 10);
   }
 
   /** 演示用图片水印 SVG：浅底深字（主色已是墨黑，占位勿再铺黑块） */
@@ -1534,11 +1540,10 @@
   }
 
   function userbotStatusLabel(bot) {
-    var st = bot && bot.status;
-    if (st === "disabled") return { text: "已停用", cls: "tag-muted" };
-    if (st === "disconnected") return { text: "已断开", cls: "tag-warn" };
-    if (st === "connected" || st === "ok") return { text: "已连接", cls: "tag-ok" };
-    return { text: "未连接", cls: "tag-warn" };
+    if (!bot) return { text: "已停止", cls: "tag-warn" };
+    if (bot.status === "disabled") return { text: "已停用", cls: "tag-muted" };
+    if (bot.monitoring) return { text: "采集中", cls: "tag-ok" };
+    return { text: "已停止", cls: "tag-warn" };
   }
 
   /** 本项目已绑定的 TG 频道（演示用列表） */
@@ -1657,8 +1662,11 @@
     if (!bot || !project) {
       return { ok: false, error: "采集号或上下文不存在" };
     }
+    if (bot.status === "disabled") {
+      return { ok: false, error: "采集号已停用" };
+    }
     if (bot.status !== "connected" && bot.status !== "ok") {
-      return { ok: false, error: "请先连接会话，再拉取频道" };
+      bot.status = "connected";
     }
     if (!project.boundChannels) project.boundChannels = [];
     var isPool = isPublicPool(project);
@@ -1901,6 +1909,10 @@
   /** 进入页面不单独占一项：该页任一按钮即包含查看 */
   function featureGranted(feats, featureId) {
     if (feats.indexOf(featureId) !== -1) return true;
+    /* 旧「开始/停止监听」并入「开始/停止采集」 */
+    if (featureId === "collect.tg.collect" && feats.indexOf("collect.tg.monitor") !== -1) {
+      return true;
+    }
     if (featureId.slice(-5) !== ".view") return false;
     var prefix = featureId.slice(0, -4);
     for (var i = 0; i < feats.length; i++) {
@@ -2047,6 +2059,7 @@
     write: write,
     uid: uid,
     issueProjectCreds: issueProjectCreds,
+    issuePushSignKey: issuePushSignKey,
     seedAfterFirstCreate: seedAfterFirstCreate,
     ensureDemoAssets: ensureDemoAssets,
     projectStatusLabel: projectStatusLabel,

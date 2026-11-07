@@ -225,7 +225,7 @@
           FZStore.attachBotToProject(s2, p2, bot);
           FZStore.write(s2);
           selectedBotId = bot.id;
-          FZShell.toast("采集号已添加并连接会话", "ok");
+          FZShell.toast("采集号已添加。加入并启用采集频道后，点「开始采集」", "ok");
           paint();
           if (global.FZTgNovice) FZTgNovice.notify("bot");
         }
@@ -238,7 +238,7 @@
     var t =
       rowAction ||
       e.target.closest(
-        "[data-toggle],[data-add-ch],[data-sync-ch],[data-monitor],[data-add-route],[data-del-route],[data-del-edge],[data-ch-assign]"
+        "[data-collect],[data-force-disconnect],[data-add-ch],[data-sync-ch],[data-add-route],[data-del-route],[data-del-edge],[data-ch-assign]"
       );
     if (!t) return;
     if (rowAction) {

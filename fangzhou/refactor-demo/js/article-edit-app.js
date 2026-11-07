@@ -469,8 +469,64 @@
     }, 1200);
   });
 
-  /* —— 封面：恢复默认 / 选择(本地) / 自定义(三格) · 对齐现网 —— */
-  var CC_LABELS = ["左", "中", "右"];
+  /* —— 封面：恢复默认 / 选择(本地) / 自定义(格数跟项目拼图 1/2/3) —— */
+  var CC_LABELS_BY_N = {
+    1: ["整图"],
+    2: ["左", "右"],
+    3: ["左", "中", "右"]
+  };
+
+  function resolveCoverProject() {
+    try {
+      var stAll = FZStore.read();
+      var hit = (stAll.projects || []).find(function (p) {
+        return p.id === article.projectId;
+      });
+      if (hit && window.FZProjectUnion && FZProjectUnion.normalizeProject) {
+        FZProjectUnion.normalizeProject(hit);
+      }
+      return hit || null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function coverPanelCount() {
+    var p = resolveCoverProject();
+    var n = p ? Number(p.coverPanelCount) : 3;
+    if (n !== 1 && n !== 2 && n !== 3) n = 3;
+    return n;
+  }
+
+  function coverSizeLabel() {
+    var p = resolveCoverProject();
+    var w = (p && Number(p.coverWidth)) || 960;
+    var h = (p && Number(p.coverHeight)) || 540;
+    return w + "×" + h;
+  }
+
+  function coverCustomHint(n) {
+    var size = coverSizeLabel();
+    if (n === 1) {
+      return (
+        "按项目封面尺寸 " +
+        size +
+        " 使用单格整图（单拼图）。点击空格添加图片。有图后才能保存。"
+      );
+    }
+    if (n === 2) {
+      return (
+        "按项目封面尺寸 " +
+        size +
+        " 均分为左、右两格（二拼图）。点击空格添加图片。两格都有图才能保存。"
+      );
+    }
+    return (
+      "按项目封面尺寸 " +
+      size +
+      " 均分为左、中、右三格（三拼图）。点击空格添加图片。三格都有图才能保存。"
+    );
+  }
   var coverPreview = document.getElementById("art-cover-preview");
   var coverStatus = document.getElementById("art-cover-status");
   var defaultMat = matAssets.find(function (a) {
@@ -583,10 +639,12 @@
     ccSave.textContent = ccState.busy ? "生成中…" : "保存";
 
     if (ccState.view === "source") {
+      var srcLabels = CC_LABELS_BY_N[ccState.panelN] || CC_LABELS_BY_N[3];
       ccBody.innerHTML =
         '<div class="art-cc-source"><b>选择图片来源 · ' +
-        CC_LABELS[ccState.active] +
-        "格</b>" +
+        srcLabels[ccState.active] +
+        (ccState.panelN === 1 ? "" : "格") +
+        "</b>" +
         '<button type="button" class="art-cc-source-opt" data-cc-lib="1">素材库<span>本篇素材里的图片</span></button>' +
         '<button type="button" class="art-cc-source-opt" data-cc-local="1">本地上传<span>jpg、png、webp，一次一张</span></button>' +
         '<button type="button" class="btn btn-ghost btn-sm" data-cc-back="1">返回</button></div>';
@@ -621,8 +679,11 @@
       return;
     }
 
+    var frameLabels = CC_LABELS_BY_N[ccState.panelN] || CC_LABELS_BY_N[3];
     ccBody.innerHTML =
-      '<div class="art-cc-frame">' +
+      '<div class="art-cc-frame" data-panels="' +
+      ccState.panelN +
+      '">' +
       ccState.cells
         .map(function (c, i) {
           if (c) {
@@ -641,8 +702,9 @@
             '<button type="button" class="art-cc-cell art-cc-empty" data-cc-pick="' +
             i +
             '"><span class="art-cc-plus">+</span><span>' +
-            CC_LABELS[i] +
-            " · 添加图片</span></button>"
+            frameLabels[i] +
+            (ccState.panelN === 1 ? "" : " · ") +
+            "添加图片</span></button>"
           );
         })
         .join("") +
@@ -650,19 +712,27 @@
   }
 
   function openCustomCover() {
-    var saved = article.customCells || [null, null, null];
+    var n = coverPanelCount();
+    var saved = article.customCells || [];
     ccState = {
       view: "frame",
       active: -1,
       busy: false,
-      cells: [0, 1, 2].map(function (i) {
-        return saved[i]
-          ? { id: saved[i].id, tone: saved[i].tone, label: saved[i].label }
-          : null;
-      })
+      panelN: n,
+      cells: (function () {
+        var out = [];
+        var i;
+        for (i = 0; i < n; i++) {
+          out.push(
+            saved[i]
+              ? { id: saved[i].id, tone: saved[i].tone, label: saved[i].label }
+              : null
+          );
+        }
+        return out;
+      })()
     };
-    document.getElementById("art-cc-hint").textContent =
-      "按项目封面尺寸 960×540 均分为左、中、右三格。点击空格添加图片。三格都有图才能保存。";
+    document.getElementById("art-cc-hint").textContent = coverCustomHint(n);
     ccMask.hidden = false;
     renderCustomCover();
   }
@@ -843,8 +913,80 @@
     }
   };
 
+  function applyCustomVideoCover(tone, label) {
+    article.videoCoverKind = "custom";
+    article.videoCoverTone = tone || "#a5b4fc";
+    article.videoCoverLabel = label || "自定义视频封面";
+    paintVideoCover();
+  }
+
   var vcFile = document.getElementById("art-vc-file");
   var vcPick = document.getElementById("art-vc-pick");
+  var vcFromMat = document.getElementById("art-vc-from-mat");
+  var vcMatMask = document.getElementById("art-vc-mat-mask");
+  var vcMatBody = document.getElementById("art-vc-mat-body");
+
+  function closeVcMatPicker() {
+    if (vcMatMask) vcMatMask.hidden = true;
+  }
+
+  function openVcMatPicker() {
+    var imgs = matAssets.filter(function (a) {
+      return a.kind === "image";
+    });
+    if (!imgs.length) {
+      FZShell.toast("本篇素材里没有可用图片", "err");
+      return;
+    }
+    if (!vcMatMask || !vcMatBody) {
+      /* 无弹层时退化为选第一张（不应常态触发） */
+      applyCustomVideoCover(imgs[0].tone, imgs[0].label);
+      FZShell.toast("已用素材「" + imgs[0].label + "」作视频封面，保存文章后生效", "ok");
+      return;
+    }
+    vcMatBody.innerHTML =
+      '<div class="art-cc-lib-grid">' +
+      imgs
+        .map(function (a) {
+          return (
+            '<button type="button" class="art-cc-lib-item" data-vc-mat="' +
+            esc(a.id) +
+            '" style="background:' +
+            esc(a.tone) +
+            '" title="' +
+            esc(a.label) +
+            '"><span>' +
+            esc(a.label) +
+            "</span></button>"
+          );
+        })
+        .join("") +
+      "</div>";
+    vcMatMask.hidden = false;
+  }
+
+  if (vcFromMat) {
+    vcFromMat.addEventListener("click", openVcMatPicker);
+  }
+  if (vcMatBody) {
+    vcMatBody.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-vc-mat]");
+      if (!btn) return;
+      var a = findMat(btn.getAttribute("data-vc-mat"));
+      if (!a) return;
+      applyCustomVideoCover(a.tone, a.label);
+      closeVcMatPicker();
+      FZShell.toast("已用素材「" + a.label + "」作视频封面，保存文章后生效", "ok");
+    });
+  }
+  if (vcMatMask) {
+    vcMatMask.addEventListener("click", function (e) {
+      if (e.target === vcMatMask) closeVcMatPicker();
+    });
+    var vcMatClose = document.getElementById("art-vc-mat-close");
+    if (vcMatClose) vcMatClose.addEventListener("click", closeVcMatPicker);
+  }
+
   if (vcPick) {
     vcPick.addEventListener("click", function () {
       if (vcFile) vcFile.click();
@@ -859,12 +1001,14 @@
         vcFile.value = "";
         return;
       }
-      article.videoCoverKind = "custom";
-      article.videoCoverTone = "#a5b4fc";
-      article.videoCoverLabel =
-        f.name.replace(/\.[^.]+$/, "").slice(0, 20) || "自定义视频封面";
-      paintVideoCover();
-      FZShell.toast("已上传视频封面「" + article.videoCoverLabel + "」", "ok");
+      applyCustomVideoCover(
+        "#a5b4fc",
+        f.name.replace(/\.[^.]+$/, "").slice(0, 20) || "自定义视频封面"
+      );
+      FZShell.toast(
+        "已上传视频封面「" + article.videoCoverLabel + "」，保存文章后生效",
+        "ok"
+      );
       vcFile.value = "";
     });
   }
@@ -1237,6 +1381,7 @@
     if (e.key !== "Escape") return;
     var matMask = document.getElementById("mat-detail-mask");
     if (confirmMask && !confirmMask.hidden) closeConfirm();
+    else if (vcMatMask && !vcMatMask.hidden) closeVcMatPicker();
     else if (ccMask && !ccMask.hidden) closeCustomCover();
     else if (!zoomMask.hidden) closeMatZoom();
     else if (aiPanel.classList.contains("is-open")) closeAi();

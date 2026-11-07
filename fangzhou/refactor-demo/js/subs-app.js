@@ -625,6 +625,18 @@
         return false;
       }
       if (!isEdit) {
+        var stCheck = FZStore.read();
+        var reservedOwners = ["demo_owner", "demo_owner_new"];
+        var lower = username.toLowerCase();
+        var taken =
+          reservedOwners.indexOf(lower) >= 0 ||
+          (stCheck.subs || []).some(function (u) {
+            return String(u.username || "").toLowerCase() === lower;
+          });
+        if (taken) {
+          FZShell.toast("登录名已存在", "err");
+          return false;
+        }
         var pErr = validateNewPassword(pass, pass);
         if (pErr) {
           FZShell.toast(pErr === "两次输入的密码不一致" ? "请填写初始密码（至少 8 位）" : pErr, "err");
@@ -948,6 +960,7 @@
         u.features = features;
         u.projects = projects;
         u.roleName = roleName;
+        u.grantedBy = st.accountId || st.profileId || u.grantedBy || "owner";
         return u;
       });
       FZStore.write(st);
@@ -973,7 +986,8 @@
       password: initPass,
       cmsId: cmsId,
       tgPhone: tgPhone,
-      totpBound: true,
+      totpBound: false,
+      grantedBy: st.accountId || st.profileId || "owner",
       features: features,
       projects: projects,
       roleName: roleName,
@@ -984,7 +998,7 @@
     editingSubId = null;
     subStep = 1;
     renderList();
-    FZShell.toast("子账号已创建，可用登录名与初始密码登录", "ok");
+    FZShell.toast("子账号已创建，首次登录须绑定谷歌验证", "ok");
     notifySubWizardDone();
   });
 

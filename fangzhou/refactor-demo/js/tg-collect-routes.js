@@ -219,9 +219,7 @@ window.FZTgCollectRoutes = (function () {
       '<div class="tg-panel-actions">' +
       '<button type="button" class="btn btn-sm btn-create" data-add-route="' +
       esc(bot.id) +
-      '"' +
-      (connected ? "" : " disabled") +
-      ">+ 新建路由</button></div></div>" +
+      '">+ 新建路由</button></div></div>' +
       '<div class="tg-route-toolbar">' +
       '<span class="muted">列表展示</span>' +
       '<div class="tg-filter-seg" role="group" aria-label="路由列表视角">' +

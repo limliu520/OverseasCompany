@@ -148,6 +148,13 @@ window.FZWebCollectForm = (function () {
     });
     var typeSel = document.getElementById("wc-f-type");
     if (typeSel) typeSel.disabled = locked || !!opts.typeLocked;
+    /* 爬虫对象：生效后不可改；仅新建 / 无法接入可改 */
+    if (!locked && opts.crawlLocked) {
+      ["wc-f-url", "wc-f-pages"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.disabled = true;
+      });
+    }
   }
 
   return {

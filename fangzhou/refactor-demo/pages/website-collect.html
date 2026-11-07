@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>网站采集配置 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261105novice" />
+  <link rel="stylesheet" href="../css/app.css?v=20261107pool2" />
 </head>
 <body>
   <div class="app">
@@ -99,6 +99,20 @@
     </div>
   </div>
 
+  <!-- 申请已提交说明 -->
+  <div class="modal-mask" id="wc-submit-info-modal" hidden>
+    <div class="modal" style="max-width:440px" role="dialog" aria-labelledby="wc-submit-info-title">
+      <h2 id="wc-submit-info-title">申请已提交</h2>
+      <p style="margin:0 0 8px;line-height:1.6">
+        当前只是接入申请，站点还不能采集。技术对接完成后才会变为生效中，一般约 2～3 个工作日。可在卡片上查看「技术接入中」状态。
+      </p>
+      <p class="hint" style="margin:0">若其他主账号已接入过同一网站，技术侧可复用对接，周期可能更短。</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary" id="wc-submit-info-ok">我知道了</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 分片 / 下载进度 -->
   <div class="modal-mask" id="wc-prog-modal" hidden>
     <div class="modal" style="max-width:480px">
@@ -110,16 +124,16 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261106perm2"></script>
-  <script src="../js/shell.js?v=20261106perm2"></script>
+  <script src="../js/store.js?v=20261107pool2"></script>
+  <script src="../js/shell.js?v=20261107pool2"></script>
   <script src="../js/pager.js?v=20261104rf03"></script>
-  <script src="../js/website-collect-data.js?v=20261104failReason1"></script>
-  <script src="../js/website-collect-render.js?v=20261104searchW1"></script>
-  <script src="../js/website-collect-form.js?v=20261031matPool"></script>
-  <script src="../js/website-collect-modal.js?v=20261104failReason1"></script>
+  <script src="../js/website-collect-data.js?v=20261107pool2"></script>
+  <script src="../js/website-collect-render.js?v=20261107pool2"></script>
+  <script src="../js/website-collect-form.js?v=20261107crawl1"></script>
+  <script src="../js/website-collect-modal.js?v=20261107crawl1"></script>
   <script src="../js/novice-guide.js?v=20261031tour7"></script>
   <script src="../js/novice-tour-kit.js?v=20261031prefill"></script>
   <script src="../js/novice-tours.js?v=20261031prefill"></script>
-  <script src="../js/website-collect-app.js?v=20261104wcSearch2"></script>
+  <script src="../js/website-collect-app.js?v=20261107pool2"></script>
 </body>
 </html>

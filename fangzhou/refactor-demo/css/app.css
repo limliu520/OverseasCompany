@@ -2700,12 +2700,13 @@ button { cursor: pointer; }
   gap: 8px;
 }
 .tg-ctx-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
-  min-width: 148px;
-  max-width: 220px;
+  min-width: 168px;
+  max-width: 260px;
   padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -2722,8 +2723,23 @@ button { cursor: pointer; }
   box-shadow: 0 0 0 1px var(--ink);
   background: var(--fill);
 }
-.tg-ctx-card.is-pool .tg-ctx-card-name {
-  color: var(--accent);
+/* 公共采集池：与项目卡同结构；仅右上角小角标区分，不改选中态 */
+.tg-ctx-card.is-pool {
+  padding-right: 40px;
+}
+.tg-ctx-card-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 0 5px;
+  border-radius: 4px;
+  border: 1px solid var(--line-strong);
+  background: var(--fill);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 18px;
+  pointer-events: none;
 }
 .tg-ctx-card-name {
   font-size: 13px;
@@ -2746,6 +2762,7 @@ button { cursor: pointer; }
   font-size: 11px;
   line-height: 1.35;
   color: var(--muted);
+  white-space: nowrap;
 }
 .tg-role-seg {
   display: grid;
@@ -7292,6 +7309,12 @@ select.input {
   border-radius: 8px;
   overflow: hidden;
   background: var(--fill);
+}
+.art-cc-frame[data-panels="1"] {
+  grid-template-columns: 1fr;
+}
+.art-cc-frame[data-panels="2"] {
+  grid-template-columns: repeat(2, 1fr);
 }
 .art-cc-cell {
   position: relative;
