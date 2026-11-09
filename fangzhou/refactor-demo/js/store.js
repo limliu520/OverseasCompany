@@ -251,7 +251,7 @@
       username: "pm_chen",
       displayName: "陈晨",
       password: "demo1234",
-      cmsId: "",
+      cmsId: "cms_partner_fillme",
       tgPhone: "+8613800138013",
       features: DEMO_ROLES[2].features.slice(),
       roleName: "项目管理",
@@ -732,6 +732,11 @@
       owner: "+8613800138001",
       owner_empty: "+8613800138002"
     },
+    /** 主账号 CMS 标识（Admin 开户配置；推送必带） */
+    ownerCmsId: {
+      owner: "cms_owner_demo",
+      owner_empty: "cms_owner_empty"
+    },
     /** 备份：新号登录前的业务项目快照 */
     _projectsBackup: null
   };
@@ -744,6 +749,14 @@
   function ensureDemoAssets(state) {
     var changed = false;
     if (!state.tgPhones) state.tgPhones = {};
+    if (!state.ownerCmsId) {
+      state.ownerCmsId = { owner: "cms_owner_demo", owner_empty: "cms_owner_empty" };
+      changed = true;
+    }
+    if (state.ownerCmsId && !state.ownerCmsId.owner) {
+      state.ownerCmsId.owner = "cms_owner_demo";
+      changed = true;
+    }
     if (!state.tgPhones.owner) {
       state.tgPhones.owner = "+8613800138001";
       changed = true;

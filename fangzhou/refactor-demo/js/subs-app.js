@@ -647,6 +647,11 @@
         FZShell.toast("请填写显示名", "err");
         return false;
       }
+      var cms = document.getElementById("sub-cms").value.trim();
+      if (!cms) {
+        FZShell.toast("请填写 CMS 标识", "err");
+        return false;
+      }
       var tg = document.getElementById("sub-tg").value.trim().replace(/[\s-]/g, "");
       if (!tg) {
         FZShell.toast("请填写 Telegram 手机号", "err");

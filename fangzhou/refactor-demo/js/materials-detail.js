@@ -424,7 +424,17 @@
     paint();
   }
   function onAct(act, m) {
-    if (act === "edit" && w.FZMatTransfer) w.FZMatTransfer.open(m.id);
+    if (act === "edit" && w.FZMatTransfer) {
+      var prefer = "";
+      try {
+        var sc =
+          w.FZMatApp && w.FZMatApp.getScope
+            ? w.FZMatApp.getScope()
+            : new URLSearchParams(location.search).get("scope") || "";
+        if (String(sc).indexOf("proj:") === 0) prefer = String(sc).slice(5);
+      } catch (e) {}
+      w.FZMatTransfer.open(m.id, prefer);
+    }
     else if (act === "reject" && w.FZMatTransfer) w.FZMatTransfer.openReject(m.id, "reject");
     else if (act === "pass" && w.FZMatTransfer) w.FZMatTransfer.openReject(m.id, "pass");
     else if (act === "restore" && w.FZMatTransfer) w.FZMatTransfer.openReject(m.id, "restore");

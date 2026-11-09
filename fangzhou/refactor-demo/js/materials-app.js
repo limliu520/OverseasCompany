@@ -454,7 +454,11 @@
           return;
         }
         if (act === "edit" && window.FZMatTransfer) {
-          window.FZMatTransfer.open(id);
+          var scEdit = tab === "all" ? Fil.parseScope(scope) : null;
+          window.FZMatTransfer.open(
+            id,
+            scEdit && scEdit.kind === "proj" ? scEdit.name : ""
+          );
           return;
         }
         if ((act === "reject" || act === "pass") && window.FZMatTransfer) {
@@ -503,6 +507,9 @@
   window.FZMatApp = {
     setTab: setTab,
     setScope: setScope,
+    getScope: function () {
+      return scope;
+    },
     paint: paint,
     markTourHitRow: function () {
       var rows = document.querySelectorAll("#mat-root tbody tr[data-id]");

@@ -15,7 +15,7 @@
     { id: "proj_demo_drama2", name: "51 短视频", siteType: "短剧站" }
   ];
 
-  function open(materialId) {
+  function open(materialId, preferProjectName) {
     bind();
     document.getElementById("mat-xfer-mid").value = materialId;
     var sel = document.getElementById("mat-xfer-project");
@@ -35,9 +35,16 @@
           "</option>"
         );
       }).join("");
-    var first = PROJECTS.filter(function (p) {
-      return !p.disabled;
-    })[0];
+    var preferred = preferProjectName
+      ? PROJECTS.filter(function (p) {
+          return !p.disabled && p.name === preferProjectName;
+        })[0]
+      : null;
+    var first =
+      preferred ||
+      PROJECTS.filter(function (p) {
+        return !p.disabled;
+      })[0];
     if (first) sel.value = first.id;
     applyCoverDefault(first && first.id);
     onProjectChange();

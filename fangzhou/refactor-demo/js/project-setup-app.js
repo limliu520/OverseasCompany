@@ -686,7 +686,6 @@
         apiBaseUrl: (draft.apiBaseUrl || "").trim(),
         apiPrefix: draft.apiPrefix || "/oash/v1",
         channelNotes: draft.channelNotes || "",
-        defaultCmsId: draft.defaultCmsId || "",
         generationMode: draft.generationMode || "ai",
         requireVideo: !!draft.requireVideo,
         dewatermarkEnabled: !!draft.dewatermarkEnabled,

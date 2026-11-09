@@ -193,7 +193,6 @@
           proj.webhookUrl = draft.webhookUrl;
           proj.webhook = !!draft.webhookUrl;
           proj.channelNotes = draft.channelNotes;
-          proj.defaultCmsId = draft.defaultCmsId;
           FZStore.upsertProject(s2, proj);
           FZStore.write(s2);
           p = proj;

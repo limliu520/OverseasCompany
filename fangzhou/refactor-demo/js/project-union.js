@@ -134,7 +134,6 @@
       apiPrefix: "/oash/v1",
       pushSignKey: "",
       channelNotes: "",
-      defaultCmsId: "",
       generationMode: short ? "none" : "ai",
       requireVideo: true,
       dewatermarkEnabled: true,
@@ -335,17 +334,7 @@
       '" value="' +
       esc(p.channelNotes) +
       '" placeholder="对接方名称、环境等" /></div>' +
-      '<div class="field">' +
-      label(
-        "默认 CMS 标识",
-        "主账号操作或自动推送时使用；子账号手动推送优先用子账号自己的 CMS 标识。"
-      ) +
-      '<input id="' +
-      id("default-cms") +
-      '" value="' +
-      esc(p.defaultCmsId || "") +
-      '" placeholder="对方后台复制的 CMS 标识；主账号 / 自动推送时使用" /></div>' +
-      '<p class="hint">本块给开发联调：凭证给对方来接方舟；出站推送必签（pushSignKey 由方舟生成）；收件接口 / 事件通知按需填。不配对方登录账号；推送 CMS：子账号有则用子账号，否则用本项目默认 CMS 标识。</p>'
+      '<p class="hint">本块给开发联调：凭证给对方来接方舟；出站推送必签（pushSignKey 由方舟生成）；收件接口 / 事件通知按需填。不配对方登录账号；CMS 标识在账号上（手动推送用操作账号，自动推送用主账号）。</p>'
     );
   }
 
@@ -364,7 +353,6 @@
     into.apiPrefix = val(root, prefix + "api-prefix") || "/oash/v1";
     into.webhookUrl = val(root, prefix + "hook");
     into.channelNotes = val(root, prefix + "ch-notes");
-    into.defaultCmsId = val(root, prefix + "default-cms");
   }
 
   /**

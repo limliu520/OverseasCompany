@@ -131,9 +131,10 @@
       "显示名 *",
       '<input id="acct-name" value="' + esc(s.displayName || "") + '" />'
     );
-    if (sub) {
-      html += ro("CMS 标识", sub.cmsId || "未填写");
-    }
+    var cmsId = sub
+      ? sub.cmsId
+      : ((s.ownerCmsId || {})[s.accountId] || "");
+    html += ro("CMS 标识", cmsId || "未填写");
     var tgPhone = sub
       ? sub.tgPhone
       : ((s.tgPhones || {})[s.accountId] || "");
