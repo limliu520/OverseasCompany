@@ -69,7 +69,7 @@
       '<div class="modal tg-wizard-modal">' +
       '<div class="tg-wiz-head">' +
       '<h2 id="tg-wiz-title">添加 Telegram 账号</h2>' +
-      '<button type="button" class="btn btn-ghost btn-sm" id="tg-wiz-x" aria-label="关闭">✕</button>' +
+      '<button type="button" class="mat-detail-close" id="tg-wiz-x" aria-label="关闭">×</button>' +
       "</div>" +
       '<div id="tg-wiz-step-1">' +
       '<div class="tg-wiz-tabs" role="tablist">' +
@@ -220,9 +220,9 @@
 
   function bind(mask) {
     mask.addEventListener("click", function (e) {
+      /* 加号向导：编辑类，点遮罩不关闭 */
       if (e.target === mask) {
         closeFieldTips();
-        close();
         return;
       }
       var tipBtn = e.target.closest(".field-tip");

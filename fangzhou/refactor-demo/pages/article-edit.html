@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>编辑文章 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261107vcmat" />
+  <link rel="stylesheet" href="../css/app.css?v=20261109modalX" />
 </head>
 <body class="page-art-edit">
   <div class="app">
@@ -30,18 +30,24 @@
             <div class="art-write-surface">
               <div class="art-draft-block">
                 <div class="art-draft-bar">
-                  <div class="art-draft-chips" id="art-ai-tabs" role="tablist" aria-label="选用草稿"></div>
-                  <button type="button" class="btn btn-sm art-draft-ai" id="art-btn-ai">✦ AI 稿件</button>
+                  <div class="art-draft-bar-main">
+                    <div class="art-draft-chips" id="art-ai-tabs" role="tablist" aria-label="选用草稿"></div>
+                    <button type="button" class="btn btn-sm art-draft-ai" id="art-btn-ai">✦ AI 稿件</button>
+                  </div>
+                  <div class="art-draft-bar-actions">
+                    <button type="button" class="btn btn-sm" id="art-btn-preview">预览</button>
+                    <button type="button" class="btn btn-sm btn-primary" id="art-btn-push">确认推送</button>
+                  </div>
                 </div>
 
                 <!-- AI 稿件 · 稿签栏下方展开（标题之上） -->
                 <div class="art-ai-panel" id="art-ai-panel" hidden aria-label="AI 稿件">
                   <div class="art-ai-panel-inner">
                     <div class="art-ai-panel-row">
-                      <span class="art-ai-sec-label">生成方式</span>
-                      <div class="seg-tabs art-ai-regen-seg" role="tablist">
-                        <button type="button" class="btn btn-sm is-active" data-regen="full">整篇重写</button>
-                        <button type="button" class="btn btn-sm" data-regen="patch">基于当前稿修改</button>
+                      <span class="art-ai-sec-label" id="art-ai-mode-label">生成方式</span>
+                      <div class="fz-seg art-ai-regen-seg" role="radiogroup" aria-labelledby="art-ai-mode-label">
+                        <button type="button" class="fz-seg-btn is-on" data-regen="full" role="radio" aria-checked="true">整篇重写</button>
+                        <button type="button" class="fz-seg-btn" data-regen="patch" role="radio" aria-checked="false">基于当前稿修改</button>
                       </div>
                     </div>
                     <textarea
@@ -117,11 +123,13 @@
                       <span>默认封面</span>
                     </div>
                     <div class="art-cover-actions">
-                      <button type="button" class="btn btn-sm btn-ghost" id="art-cover-restore">恢复默认</button>
-                      <button type="button" class="btn btn-sm" id="art-cover-pick">选择</button>
-                      <button type="button" class="btn btn-sm btn-ghost" id="art-cover-custom">自定义</button>
+                      <div class="art-cover-btns">
+                        <button type="button" class="btn btn-sm" id="art-cover-pick" title="从本机选一张图片作封面">本地图片</button>
+                        <button type="button" class="btn btn-sm btn-ghost" id="art-cover-custom" title="按项目单/二/三拼图分格选图合成封面">拼图封面</button>
+                        <button type="button" class="btn btn-sm btn-ghost" id="art-cover-restore" hidden title="清掉本篇改动，回到项目默认封面">恢复默认</button>
+                      </div>
                       <input type="file" id="art-cover-file" accept="image/*" hidden />
-                      <span class="art-cover-status" id="art-cover-status">已有封面（可更换）</span>
+                      <span class="art-cover-status" id="art-cover-status">跟随项目默认</span>
                     </div>
                   </div>
                 </div>
@@ -133,11 +141,13 @@
                       <span>跟随策略</span>
                     </div>
                     <div class="art-cover-actions">
-                      <button type="button" class="btn btn-sm btn-ghost" id="art-vc-restore">恢复策略</button>
-                      <button type="button" class="btn btn-sm" id="art-vc-from-mat">从素材</button>
-                      <button type="button" class="btn btn-sm" id="art-vc-pick">本地上传</button>
+                      <div class="art-cover-btns">
+                        <button type="button" class="btn btn-sm" id="art-vc-from-mat" title="从本篇关联图片素材里选一张">从素材</button>
+                        <button type="button" class="btn btn-sm btn-ghost" id="art-vc-pick" title="从本机选一张图片">本地图片</button>
+                        <button type="button" class="btn btn-sm btn-ghost" id="art-vc-restore" hidden title="清掉本篇改动，重新跟随项目策略">恢复策略</button>
+                      </div>
                       <input type="file" id="art-vc-file" accept="image/*" hidden />
-                      <span class="art-cover-status" id="art-vc-status">未自定义，跟随项目策略</span>
+                      <span class="art-cover-status" id="art-vc-status">跟随项目策略</span>
                     </div>
                   </div>
                 </div>
@@ -170,10 +180,6 @@
                     <div class="art-tag-field-chips" id="art-tag-chips"></div>
                     <input class="art-tag-field-input" id="art-tags" placeholder="输入后回车添加" aria-label="添加标签" />
                   </div>
-                </div>
-                <div class="art-rail-push">
-                  <button type="button" class="btn art-rail-push-preview" id="art-btn-preview">预览</button>
-                  <button type="button" class="btn btn-primary art-rail-push-btn" id="art-btn-push">确认推送</button>
                 </div>
               </div>
             </aside>
@@ -228,16 +234,16 @@
         <button type="button" class="mat-detail-close" data-targets-close aria-label="关闭">×</button>
       </div>
       <div class="mat-targets-bd" id="mat-targets-bd"></div>
-      <div class="mat-targets-ft">
-        <button type="button" class="btn btn-ghost" data-targets-close>关闭</button>
-      </div>
     </div>
   </div>
 
   <!-- 二次确认（确认推送等） -->
   <div class="modal-mask" id="art-confirm-mask" hidden>
     <div class="modal art-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="art-confirm-title">
-      <h2 id="art-confirm-title">确认</h2>
+      <div class="modal-hd">
+        <h2 id="art-confirm-title">确认</h2>
+        <button type="button" class="mat-detail-close" data-dismiss-for="art-confirm-cancel" aria-label="关闭">×</button>
+      </div>
       <p id="art-confirm-msg"></p>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="art-confirm-cancel">取消</button>
@@ -251,21 +257,29 @@
     <div class="modal art-cc-modal" role="dialog" aria-modal="true" aria-labelledby="art-vc-mat-title">
       <div class="art-cc-head">
         <h2 id="art-vc-mat-title">从素材选视频封面</h2>
-        <button type="button" class="btn btn-ghost btn-sm" id="art-vc-mat-close">关闭</button>
+        <button type="button" class="mat-detail-close" id="art-vc-mat-close" aria-label="关闭">×</button>
       </div>
       <p class="art-cc-hint">选择本篇关联素材中的一张图片作为视频封面。替换后需保存文章才持久化。</p>
       <div id="art-vc-mat-body"></div>
     </div>
   </div>
 
-  <!-- 自定义封面 · 格数跟随项目拼图 -->
+  <!-- 拼图封面 · 默认跟项目，弹层内可改本次单/二/三拼图 -->
   <div class="modal-mask" id="art-cc-mask" hidden>
     <div class="modal art-cc-modal" role="dialog" aria-modal="true" aria-labelledby="art-cc-title">
       <div class="art-cc-head">
-        <h2 id="art-cc-title">自定义封面</h2>
-        <button type="button" class="btn btn-ghost btn-sm" id="art-cc-close">关闭</button>
+        <h2 id="art-cc-title">拼图封面</h2>
+        <button type="button" class="mat-detail-close" id="art-cc-close" aria-label="关闭">×</button>
       </div>
-      <p class="art-cc-hint" id="art-cc-hint">自定义格数跟随项目文章封面拼图（单 / 二 / 三拼图）。</p>
+      <div class="art-cc-panel-row">
+        <span class="art-cc-panel-label" id="art-cc-panel-label">拼图类型</span>
+        <div class="fz-seg art-cc-panel-seg" id="art-cc-panel-seg" role="radiogroup" aria-labelledby="art-cc-panel-label">
+          <button type="button" class="fz-seg-btn" data-cc-panels="1" role="radio" aria-checked="false">单拼图</button>
+          <button type="button" class="fz-seg-btn" data-cc-panels="2" role="radio" aria-checked="false">二拼图</button>
+          <button type="button" class="fz-seg-btn" data-cc-panels="3" role="radio" aria-checked="false">三拼图</button>
+        </div>
+      </div>
+      <p class="art-cc-hint" id="art-cc-hint">默认跟项目文章封面拼图，可在上方改本次类型。</p>
       <div id="art-cc-body"></div>
       <div class="art-cc-foot">
         <button type="button" class="btn btn-ghost btn-sm" id="art-cc-cancel">取消</button>
@@ -283,7 +297,7 @@
           <h2 id="art-preview-heading">文章预览</h2>
           <p class="art-preview-meta muted" id="art-preview-meta"></p>
         </div>
-        <button type="button" class="btn btn-ghost btn-sm" id="art-preview-close">关闭</button>
+        <button type="button" class="mat-detail-close" id="art-preview-close" aria-label="关闭">×</button>
       </div>
       <h3 class="art-preview-title" id="art-preview-title"></h3>
       <div class="art-preview-body" id="art-preview-body"></div>
@@ -295,7 +309,7 @@
     <div class="modal art-compare-modal" role="dialog" aria-labelledby="art-compare-title">
       <div class="art-compare-hd">
         <h2 id="art-compare-title">版本对比</h2>
-        <button type="button" class="btn btn-ghost btn-sm" id="art-compare-close">关闭</button>
+        <button type="button" class="mat-detail-close" id="art-compare-close" aria-label="关闭">×</button>
       </div>
       <p class="muted" id="art-compare-hint">对照当前稿与上一版差异（Demo）。</p>
       <div class="art-compare-cols">
@@ -311,12 +325,12 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261106perm2"></script>
-  <script src="../js/shell.js?v=20261106perm2"></script>
-  <script src="../js/articles-data.js?v=20261028artact4"></script>
-  <script src="../js/materials-data.js?v=20261028artact1"></script>
-  <script src="../js/materials-media.js?v=20261028artact1"></script>
-  <script src="../js/materials-detail.js?v=20261028artact1"></script>
-  <script src="../js/article-edit-app.js?v=20261107vcmat"></script>
+  <script src="../js/store.js?v=20261109maskRule"></script>
+  <script src="../js/shell.js?v=20261109modalX"></script>
+  <script src="../js/articles-data.js?v=20261109maskRule"></script>
+  <script src="../js/materials-data.js?v=20261109maskRule"></script>
+  <script src="../js/materials-media.js?v=20261109maskRule"></script>
+  <script src="../js/materials-detail.js?v=20261109maskRule"></script>
+  <script src="../js/article-edit-app.js?v=20261109ccPanel"></script>
 </body>
 </html>

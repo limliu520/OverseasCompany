@@ -422,28 +422,22 @@ window.FZTgCollectModal = (function () {
       document.getElementById("tg-ch-modal").hidden = true;
     };
     document.getElementById("tg-ch-save").onclick = saveChannel;
-    document.getElementById("tg-ch-modal").addEventListener("click", function (e) {
-      if (e.target.id === "tg-ch-modal") e.target.hidden = true;
-    });
+    /* 频道配置：编辑类，点遮罩不关闭 */
     document.getElementById("tg-rr-cancel").onclick = function () {
       document.getElementById("tg-rr-modal").hidden = true;
     };
     document.getElementById("tg-rr-save").onclick = saveRoute;
-    document.getElementById("tg-rr-modal").addEventListener("click", function (e) {
-      if (e.target.id === "tg-rr-modal") e.target.hidden = true;
-    });
+    /* 路由编辑：点遮罩不关闭 */
     document.getElementById("tg-confirm-cancel").onclick = closeConfirm;
     document.getElementById("tg-confirm-ok").onclick = function () {
       var fn = confirmOkFn;
       closeConfirm();
       if (fn) fn();
     };
-    document.getElementById("tg-confirm-modal").addEventListener("click", function (e) {
-      if (e.target.id === "tg-confirm-modal") closeConfirm();
-    });
+    /* 确认框：点遮罩不关闭 */
     document.getElementById("tg-assign-cancel").onclick = closeAssign;
     document.getElementById("tg-assign-modal").addEventListener("click", function (e) {
-      if (e.target.id === "tg-assign-modal") closeAssign();
+      /* 分配弹层：编辑类，点遮罩不关闭 */
       var pick = e.target.closest("[data-assign-pick]");
       if (pick) pickAssign(pick.getAttribute("data-assign-pick"));
     });

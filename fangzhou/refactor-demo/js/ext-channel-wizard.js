@@ -833,7 +833,7 @@
       '<div class="modal ext-wizard-modal">' +
       '<div class="tg-wiz-head">' +
       '<h2 id="ext-wiz-title">新建外站通道</h2>' +
-      '<button type="button" class="btn btn-ghost btn-sm" id="ext-wiz-x" aria-label="关闭">✕</button>' +
+      '<button type="button" class="mat-detail-close" id="ext-wiz-x" aria-label="关闭">×</button>' +
       "</div>" +
       '<div class="ext-wiz-scroll" id="ext-wiz-body"></div></div>';
     document.body.appendChild(mask);
@@ -866,9 +866,9 @@
       }
     });
     mask.addEventListener("click", function (e) {
+      /* 通道向导：编辑类，点遮罩不关闭 */
       if (e.target === mask) {
         closeFieldTips();
-        close();
         return;
       }
       var tipBtn = e.target.closest(".field-tip");

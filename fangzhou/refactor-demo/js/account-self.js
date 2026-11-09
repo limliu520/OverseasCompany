@@ -37,7 +37,10 @@
     pwdMask.hidden = true;
     pwdMask.innerHTML =
       '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="acct-pwd-title">' +
+      '<div class="modal-hd">' +
       '<h2 id="acct-pwd-title">修改密码</h2>' +
+      '<button type="button" class="mat-detail-close" data-dismiss-for="acct-pwd-cancel" aria-label="关闭">×</button>' +
+      "</div>" +
       '<p class="hint" style="margin-top:0">修改的是当前登录账号的密码。完成后请用新密码登录。</p>' +
       field("当前密码 *", '<input id="acct-pwd-old" type="password" autocomplete="current-password" />') +
       field("新密码 *", '<input id="acct-pwd-new" type="password" autocomplete="new-password" placeholder="至少 8 位" />') +
@@ -48,9 +51,7 @@
       "</div></div>";
     document.body.appendChild(pwdMask);
     pwdMask.querySelector("#acct-pwd-cancel").addEventListener("click", closePwd);
-    pwdMask.addEventListener("click", function (e) {
-      if (e.target === pwdMask) closePwd();
-    });
+    /* 改密表单：点遮罩不关闭 */
     pwdMask.querySelector("#acct-pwd-ok").addEventListener("click", savePassword);
     return pwdMask;
   }
@@ -99,7 +100,10 @@
     profileMask.hidden = true;
     profileMask.innerHTML =
       '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="acct-profile-title">' +
+      '<div class="modal-hd">' +
       '<h2 id="acct-profile-title">个人资料</h2>' +
+      '<button type="button" class="mat-detail-close" data-dismiss-for="acct-profile-cancel" aria-label="关闭">×</button>' +
+      "</div>" +
       '<div id="acct-profile-body"></div>' +
       '<div class="modal-actions">' +
       '<button type="button" class="btn btn-ghost" id="acct-profile-cancel">取消</button>' +
@@ -107,9 +111,7 @@
       "</div></div>";
     document.body.appendChild(profileMask);
     profileMask.querySelector("#acct-profile-cancel").addEventListener("click", closeProfile);
-    profileMask.addEventListener("click", function (e) {
-      if (e.target === profileMask) closeProfile();
-    });
+    /* 资料编辑：点遮罩不关闭 */
     profileMask.querySelector("#acct-profile-ok").addEventListener("click", saveProfile);
     return profileMask;
   }

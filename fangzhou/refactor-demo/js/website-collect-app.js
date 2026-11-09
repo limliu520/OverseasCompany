@@ -101,7 +101,51 @@
       }
     } catch (eNew) {}
     M.bind();
+    function closeBindModal() {
+      var mask = document.getElementById("wc-bind-modal");
+      if (mask) mask.hidden = true;
+    }
+    function openBindModal(siteId) {
+      var site = sites.find(function (x) {
+        return x.id === siteId;
+      });
+      var mask = document.getElementById("wc-bind-modal");
+      var title = document.getElementById("wc-bind-title");
+      var lead = document.getElementById("wc-bind-lead");
+      var list = document.getElementById("wc-bind-list");
+      if (!site || !mask || !list) return;
+      var targets = site.targets || [];
+      if (title) title.textContent = "绑定项目 · " + (site.name || "");
+      if (lead) {
+        lead.textContent =
+          "已绑 " + targets.length + "/" + D.MAX_BIND + " 个同类型项目（只读）。";
+      }
+      list.innerHTML = targets
+        .map(function (t) {
+          return "<li>" + R.esc(t) + "</li>";
+        })
+        .join("");
+      mask.hidden = false;
+    }
+    var bindClose = document.getElementById("wc-bind-close");
+    if (bindClose) bindClose.onclick = closeBindModal;
+    var bindMask = document.getElementById("wc-bind-modal");
+    if (bindMask && !bindMask._bound) {
+      bindMask._bound = true;
+      /* 只读预览：点遮罩可关 */
+      bindMask.addEventListener("click", function (e) {
+        if (e.target === bindMask) closeBindModal();
+      });
+    }
+
     document.getElementById("wc-sites").addEventListener("click", function (e) {
+      var bindView = e.target.closest("[data-bind-view]");
+      if (bindView) {
+        e.preventDefault();
+        e.stopPropagation();
+        openBindModal(bindView.getAttribute("data-bind-view"));
+        return;
+      }
       var detail = e.target.closest("[data-detail]");
       if (detail) {
         e.preventDefault();

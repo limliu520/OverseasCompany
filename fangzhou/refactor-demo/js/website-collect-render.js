@@ -155,18 +155,14 @@ window.FZWebCollectRender = (function () {
           ? '<div class="wc-site-bind muted">进公共素材池</div>'
           : targets.length
             ? '<div class="wc-site-bind">' +
-              '<div class="wc-site-bind-hd muted">绑 ' +
+              '<span class="wc-site-bind-hd muted">绑 ' +
               targets.length +
               "/" +
               D.MAX_BIND +
-              " 项目</div>" +
-              '<ul class="wc-site-bind-list">' +
-              targets
-                .map(function (t) {
-                  return "<li>" + esc(t) + "</li>";
-                })
-                .join("") +
-              "</ul></div>"
+              " 项目</span>" +
+              '<button type="button" class="wc-site-bind-view" data-bind-view="' +
+              esc(s.id) +
+              '">查看项目</button></div>'
             : '<div class="wc-site-bind muted">未绑定项目</div>';
         var ops = "";
         if (s.status === "active") {

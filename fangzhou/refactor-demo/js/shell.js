@@ -177,9 +177,7 @@
       close();
       if (fn) fn();
     });
-    mask.addEventListener("click", function (e) {
-      if (e.target === mask) close();
-    });
+    /* 二次确认：点遮罩不关闭（modal-mask-dismiss） */
     return mask;
   }
 
@@ -644,9 +642,32 @@
     document.head.appendChild(el);
   }
 
+  /** 弹窗右上角 ×：data-dismiss-for 点等同按钮；data-dismiss-mask 直接关遮罩 */
+  function bindModalDismiss() {
+    if (document.documentElement.getAttribute("data-fz-modal-dismiss") === "1") return;
+    document.documentElement.setAttribute("data-fz-modal-dismiss", "1");
+    document.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-dismiss-for], [data-dismiss-mask]");
+      if (!b) return;
+      var forId = b.getAttribute("data-dismiss-for");
+      if (forId) {
+        var t = document.getElementById(forId);
+        if (t) t.click();
+        return;
+      }
+      var maskId = b.getAttribute("data-dismiss-mask");
+      if (maskId) {
+        var m = document.getElementById(maskId);
+        if (m) m.hidden = true;
+      }
+    });
+  }
+  bindModalDismiss();
+
   function boot(opts) {
     opts = opts || {};
     if (opts.auth !== false && !requireAuth()) return;
+    bindModalDismiss();
     renderSidebar(opts.active || "");
     function mountHelp() {
       if (global.FZHelpCenter && typeof FZHelpCenter.mount === "function") {

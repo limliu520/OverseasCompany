@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>创建项目 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261105novice" />
+  <link rel="stylesheet" href="../css/app.css?v=20261109modalX" />
 </head>
 <body>
   <div class="app">
@@ -48,8 +48,11 @@
 
   <div class="modal-mask" id="success-modal" hidden>
     <div class="modal success-modal" style="width:min(520px,100%)">
+      <div class="modal-hd">
+        <h2 id="success-title">创建成功</h2>
+        <button type="button" class="mat-detail-close" data-dismiss-for="success-later" aria-label="关闭">×</button>
+      </div>
       <div class="success-ico" aria-hidden="true">✓</div>
-      <h2 id="success-title">创建成功</h2>
       <p id="success-lead"></p>
       <div class="block-list" id="success-blocks"></div>
       <div class="modal-actions" style="margin-top:18px">
@@ -60,7 +63,7 @@
   </div>
 
   <script src="../js/store.js?v=20261106perm2"></script>
-  <script src="../js/shell.js?v=20261106perm2"></script>
+  <script src="../js/shell.js?v=20261109modalX"></script>
   <script src="../js/pick-cards.js"></script>
   <script src="../js/tg-add-wizard.js?v=20261028tipAll"></script>
   <script src="../js/article-defaults.js?v=20261028wmFx2"></script>

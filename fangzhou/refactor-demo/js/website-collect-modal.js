@@ -218,7 +218,8 @@ window.FZWebCollectModal = (function () {
         e.preventDefault();
         return;
       }
-      if (e.target.id === "wc-site-modal" || e.target.id === "wc-site-cancel") {
+      /* 网站申请/编辑：点遮罩不关闭 */
+      if (e.target.id === "wc-site-cancel") {
         document.getElementById("wc-site-modal").hidden = true;
         return;
       }
@@ -229,16 +230,6 @@ window.FZWebCollectModal = (function () {
       if (e.target.id === "wc-site-save") {
         applySave();
         return;
-      }
-      if (e.target.id === "wc-site-del") {
-        if (!editingId) return;
-        if (!confirm("确认删除该配置？历史采集记录将保留。")) return;
-        sitesRef = sitesRef.filter(function (x) {
-          return x.id !== editingId;
-        });
-        FZShell.toast("已删除", "ok");
-        document.getElementById("wc-site-modal").hidden = true;
-        if (onDone) onDone(sitesRef, editingId);
       }
     });
     var infoOk = document.getElementById("wc-submit-info-ok");

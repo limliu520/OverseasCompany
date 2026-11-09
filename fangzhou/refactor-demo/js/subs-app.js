@@ -899,14 +899,7 @@
     subStep = 1;
     notifySubWizardDone();
   });
-  document.getElementById("sub-modal").addEventListener("click", function (e) {
-    if (e.target === e.currentTarget) {
-      document.getElementById("sub-modal").hidden = true;
-      editingSubId = null;
-      subStep = 1;
-      notifySubWizardDone();
-    }
-  });
+  /* 子账号向导：编辑类，点遮罩不关闭 */
   document.getElementById("sub-prev").addEventListener("click", function () {
     goSubStep(subStep - 1);
   });
@@ -1008,9 +1001,7 @@
   });
 
   document.getElementById("sub-pass-cancel").addEventListener("click", closeResetPassModal);
-  document.getElementById("sub-pass-modal").addEventListener("click", function (e) {
-    if (e.target === e.currentTarget) closeResetPassModal();
-  });
+  /* 重置密码表单：点遮罩不关闭 */
   document.getElementById("sub-pass-gen").addEventListener("click", function () {
     var p = genPassword();
     var neu = document.getElementById("sub-pass-new");
@@ -1071,9 +1062,7 @@
   document.getElementById("role-cancel").addEventListener("click", function () {
     document.getElementById("role-modal").hidden = true;
   });
-  document.getElementById("role-modal").addEventListener("click", function (e) {
-    if (e.target === e.currentTarget) document.getElementById("role-modal").hidden = true;
-  });
+  /* 角色编辑：点遮罩不关闭 */
   document.getElementById("role-save").addEventListener("click", function () {
     var name = document.getElementById("role-name").value.trim();
     if (!name) {

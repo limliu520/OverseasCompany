@@ -47,7 +47,7 @@
       "</span></td>"
     );
   }
-  function rowActions(tab, m) {
+  function rowActions(tab, m, scopeCtx) {
     var id = m.id;
     var detail = btn("detail", "详情", null, id);
     if (tab === "pending") {
@@ -61,10 +61,16 @@
     if (tab === "trash") {
       return btn("restore", "手动通过", "btn-primary", id) + detail;
     }
-    /* 转编辑靠左，详情靠右；下载只在详情里 */
+    var st =
+      w.FZMatData && w.FZMatData.effectiveStatus
+        ? w.FZMatData.effectiveStatus(m, scopeCtx)
+        : m.status;
+    /* 转编辑靠左，详情靠右；项目池已使用 → 打开文章 */
     var left = "";
-    if (m.status === "available" || m.status === "duplicate") {
+    if (st === "available" || st === "duplicate") {
       left = btn("edit", "转编辑", "btn-primary", id);
+    } else if (st === "used") {
+      left = btn("open-art", "打开文章", "btn-primary", id);
     }
     return left + detail;
   }
@@ -81,13 +87,17 @@
     var kind = t.indexOf("视频") >= 0 ? "video" : "image";
     return '<span class="mat-type-tag is-' + kind + '">' + esc(t) + "</span>";
   }
-  /* 状态：仅待审 / 可使用上色，其余安静灰字 */
-  function statusHtml(esc, labelMap, m) {
-    var st = labelMap[m.status] || { text: m.status };
-    if (m.status === "pending") {
+  /* 状态：仅待审 / 可使用上色，其余安静灰字；已使用仅项目池 */
+  function statusHtml(esc, labelMap, m, scopeCtx) {
+    var key =
+      w.FZMatData && w.FZMatData.effectiveStatus
+        ? w.FZMatData.effectiveStatus(m, scopeCtx)
+        : m.status;
+    var st = labelMap[key] || { text: key };
+    if (key === "pending") {
       return '<span class="badge badge-warn">' + esc(st.text) + "</span>";
     }
-    if (m.status === "available") {
+    if (key === "available") {
       return '<span class="badge badge-ok">' + esc(st.text) + "</span>";
     }
     return '<span class="mat-status-quiet">' + esc(st.text) + "</span>";
@@ -308,7 +318,7 @@
       th(
         esc,
         "状态",
-        "待人工审核 / 可使用高亮，通常需处理；其余灰色，可筛可看详情。",
+        "公共池：可使用 / 去重保留 / 重复淘汰。「已使用」只在项目池表示该项目已占用；公共池行不因占用变已使用。",
         "th-status"
       ) +
       th(esc, "来源频道", "采入来源；左侧区分 TG / 网站。", "th-source") +
@@ -326,7 +336,7 @@
       '<td class="td-check"><input type="checkbox" class="mat-row-check" data-id="' +
       esc(m.id) +
       '" aria-label="选择" /></td>';
-    var act = '<td class="td-actions">' + rowActions(tab, m) + "</td>";
+    var act = '<td class="td-actions">' + rowActions(tab, m, scopeCtx) + "</td>";
     var open = '<tr data-id="' + esc(m.id) + '">' + check;
     if (tab === "trash") {
       return (
@@ -375,7 +385,7 @@
       '<td class="td-title">' +
       titleBlock(esc, m) +
       '</td><td class="td-status">' +
-      statusHtml(esc, labelMap, m) +
+      statusHtml(esc, labelMap, m, scopeCtx) +
       '</td><td class="td-source">' +
       sourceCell(esc, m) +
       '</td><td class="td-fused">' +

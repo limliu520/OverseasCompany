@@ -115,21 +115,21 @@ window.FZWebCollectForm = (function () {
   function siteModalActions(mode, status) {
     if (mode === "create") {
       return (
-        '<button type="button" class="btn" id="wc-site-cancel">关闭</button>' +
+        '<button type="button" class="btn" id="wc-site-cancel">取消</button>' +
         '<button type="button" class="btn btn-primary" id="wc-site-save">提交申请</button>'
       );
     }
     if (mode === "view") {
-      var html = '<button type="button" class="btn" id="wc-site-cancel">关闭</button>';
+      var html = '<button type="button" class="btn" id="wc-site-cancel">取消</button>';
       if (status === "active" || status === "paused" || status === "failed") {
         html += '<button type="button" class="btn btn-primary" id="wc-site-enter-edit">编辑</button>';
       }
       return html;
     }
     var saveLabel = status === "failed" ? "重新提交" : "保存编辑";
+    /* 本期不提供删除网站；停用只走卡片「暂停」 */
     return (
-      '<button type="button" class="btn" id="wc-site-cancel">关闭</button>' +
-      '<button type="button" class="btn" style="color:var(--danger)" id="wc-site-del">删除</button>' +
+      '<button type="button" class="btn" id="wc-site-cancel">取消</button>' +
       '<button type="button" class="btn btn-primary" id="wc-site-save">' +
       saveLabel +
       "</button>"

@@ -233,6 +233,21 @@
       return;
     }
 
+    var moreBtn = e.target.closest(".tg-more-btn");
+    if (moreBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      var wrap = moreBtn.closest(".tg-more");
+      var menu = wrap && wrap.querySelector(".tg-more-menu");
+      var open = menu && !menu.hidden;
+      closeTgMoreMenus();
+      if (menu && !open) {
+        menu.hidden = false;
+        moreBtn.setAttribute("aria-expanded", "true");
+      }
+      return;
+    }
+
     /* 行内启用/解绑优先于整行「未分配」点击，避免点不到 */
     var rowAction = e.target.closest("[data-ch-active],[data-unbind]");
     var t =
@@ -240,11 +255,15 @@
       e.target.closest(
         "[data-collect],[data-force-disconnect],[data-add-ch],[data-sync-ch],[data-add-route],[data-del-route],[data-del-edge],[data-ch-assign]"
       );
-    if (!t) return;
+    if (!t) {
+      if (!e.target.closest(".tg-more")) closeTgMoreMenus();
+      return;
+    }
     if (rowAction) {
       e.preventDefault();
       e.stopPropagation();
     }
+    closeTgMoreMenus();
     FZTgCollectOps.handle(t, {
       getContextId: function () {
         return contextId;
@@ -252,6 +271,15 @@
       getCtx: ctx,
       paint: paint,
       modal: M
+    });
+  }
+
+  function closeTgMoreMenus() {
+    document.querySelectorAll(".tg-more-menu").forEach(function (m) {
+      m.hidden = true;
+    });
+    document.querySelectorAll(".tg-more-btn").forEach(function (b) {
+      b.setAttribute("aria-expanded", "false");
     });
   }
 
@@ -278,6 +306,12 @@
       if (global.FZTgNovice) FZTgNovice.onCtxPicked(next);
     });
     document.getElementById("tg-workspace").addEventListener("click", onWorkspaceClick);
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest(".tg-more")) closeTgMoreMenus();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeTgMoreMenus();
+    });
     paint();
     if (global.FZTgNovice && typeof FZTgNovice.start === "function") {
       FZTgNovice.start();

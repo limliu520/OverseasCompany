@@ -307,7 +307,7 @@
       '<button type="button" class="fz-help-tab is-on" id="fz-help-tab-home" role="tab" aria-selected="true" aria-controls="fz-help-home" data-help-tab="home">帮助</button>' +
       '<button type="button" class="fz-help-tab" id="fz-help-tab-fb" role="tab" aria-selected="false" aria-controls="fz-help-fb" data-help-tab="fb">反馈</button>' +
       "</div>" +
-      '<button type="button" class="fz-help-x" id="fz-help-close" aria-label="关闭">×</button>' +
+      '<button type="button" class="mat-detail-close" id="fz-help-close" aria-label="关闭">×</button>' +
       "</div>" +
       '<div class="fz-help-body fz-help-body--chat" id="fz-help-home" role="tabpanel" aria-labelledby="fz-help-tab-home">' +
       '<div class="fz-help-chat" id="fz-help-chat"></div>' +

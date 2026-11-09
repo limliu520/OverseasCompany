@@ -64,9 +64,9 @@
         return m.status === "pending";
       });
     } else {
-      /* 全部素材：流水线状态，排除垃圾池 */
+      /* 全部素材 = 公共池 / 项目池：只含门槛通过后的料；待审、垃圾各走独立 Tab */
       list = items.filter(function (m) {
-        return m.status !== "trash";
+        return m.status !== "trash" && m.status !== "pending" && m.status !== "rejected";
       });
     }
 
@@ -107,27 +107,43 @@
         return (m.title + m.id + (m.category || "")).toLowerCase().indexOf(aq) >= 0;
       });
     }
-    if (f.status) list = list.filter(function (m) { return m.status === f.status; });
     if (f.category) list = list.filter(function (m) { return m.category === f.category; });
     if (f.dateFrom) list = list.filter(function (m) { return dayOf(m.time) >= f.dateFrom; });
     if (f.dateTo) list = list.filter(function (m) { return dayOf(m.time) <= f.dateTo; });
     /* 全部素材：公共素材池（全量）/ 项目（子集，可与池并存） */
     if (tab === "all" && f.scope) list = applyScope(list, f.scope);
+    /* 状态按当前 scope 有效态过滤：「已使用」只在项目池成立 */
+    if (f.status) {
+      var scSt = tab === "all" ? parseScope(f.scope) : null;
+      var eff =
+        w.FZMatData && w.FZMatData.effectiveStatus
+          ? w.FZMatData.effectiveStatus
+          : function (m) {
+              return m.status;
+            };
+      list = list.filter(function (m) {
+        return eff(m, scSt) === f.status;
+      });
+    }
     return list;
   }
 
+  function inPassedPool(m) {
+    return m.status !== "trash" && m.status !== "pending" && m.status !== "rejected";
+  }
   function inProject(m, name) {
-    if (m.status === "trash") return false;
+    if (!inPassedPool(m)) return false;
     if (m.dispatchProject === name) return true;
     if (m.dispatchProjects && m.dispatchProjects.indexOf(name) >= 0) return true;
     return m.belong === "proj" && m.project === name;
   }
   /**
-   * 公共素材池：凡进过素材管理的非垃圾料都在此（项目自采、公共采集池、网站绑项目等）。
+   * 公共素材池：门槛通过后的料（项目自采、公共采集池、网站绑项目等）。
+   * 待审只在「待审核素材」；驳回 / 拦截只在「垃圾素材」。
    * 转编辑 / 分发进项目后仍保留，不因占用项目通道而消失。
    */
   function inPool(m) {
-    return m.status !== "trash";
+    return inPassedPool(m);
   }
   function parseScope(s) {
     if (s === "pool") return { kind: "pool" };
@@ -146,9 +162,7 @@
   }
   function scopeCount(items, scopeKey) {
     return applyScope(
-      (items || []).filter(function (m) {
-        return m.status !== "trash";
-      }),
+      (items || []).filter(inPassedPool),
       scopeKey
     ).length;
   }
@@ -203,17 +217,14 @@
         '<button type="button" class="btn" id="mat-merge">消息合并</button>' +
         '<button type="button" class="btn" id="mat-refresh">刷新列表</button></div>';
     } else {
+      var scFilter = parseScope(f.scope);
+      var showUsedFilter = scFilter && scFilter.kind === "proj";
+      if (!showUsedFilter && f.status === "used") f.status = "";
       html +=
         '<input class="input" id="mat-q" type="search" placeholder="搜索标题/标签/编号/内容" value="' +
         esc(f.q) +
         '" />' +
         '<select class="input" id="mat-status" style="max-width:160px"><option value="">全部状态</option>' +
-        '<option value="pending"' +
-        (f.status === "pending" ? " selected" : "") +
-        ">待人工审核</option>" +
-        '<option value="rejected"' +
-        (f.status === "rejected" ? " selected" : "") +
-        ">已驳回</option>" +
         '<option value="kept"' +
         (f.status === "kept" ? " selected" : "") +
         ">去重保留</option>" +
@@ -223,9 +234,12 @@
         '<option value="available"' +
         (f.status === "available" ? " selected" : "") +
         ">可使用</option>" +
-        '<option value="used"' +
-        (f.status === "used" ? " selected" : "") +
-        ">已使用</option></select>" +
+        (showUsedFilter
+          ? '<option value="used"' +
+            (f.status === "used" ? " selected" : "") +
+            ">已使用</option>"
+          : "") +
+        "</select>" +
         '<select class="input" id="mat-category" style="max-width:140px"><option value="">全部分类</option>' +
         '<option value="资讯"' +
         (f.category === "资讯" ? " selected" : "") +

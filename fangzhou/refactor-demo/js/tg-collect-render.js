@@ -147,9 +147,13 @@ window.FZTgCollectRender = (function () {
         "</button>";
       if (sessAlive) {
         html +=
-          '<button type="button" class="btn btn-ghost" data-force-disconnect="' +
+          '<div class="tg-more">' +
+          '<button type="button" class="btn btn-sm btn-ghost tg-more-btn" aria-label="更多" aria-haspopup="true" aria-expanded="false" title="更多">⋯</button>' +
+          '<div class="tg-more-menu" hidden role="menu">' +
+          '<button type="button" class="tg-more-item" role="menuitem" data-force-disconnect="' +
           esc(bot.id) +
-          '" title="排障用：释放会话；日常请用停止采集">强制断开</button>';
+          '" title="排障用：释放会话；日常请用停止采集">强制断开</button>' +
+          "</div></div>";
       }
     }
 

@@ -133,11 +133,9 @@
   function counts() {
     var c = { pending: 0, trash: 0, all: 0 };
     ITEMS.forEach(function (m) {
-      if (m.status === "trash") c.trash++;
-      else {
-        c.all++;
-        if (m.status === "pending") c.pending++;
-      }
+      if (m.status === "trash" || m.status === "rejected") c.trash++;
+      else if (m.status === "pending") c.pending++;
+      else c.all++;
     });
     return c;
   }
@@ -159,6 +157,11 @@
   function setScope(next) {
     scope = next;
     F.all.scope = scope;
+    /* 「已使用」只在项目池可选；切回公共池时清掉该筛选项 */
+    var scNext = Fil.parseScope(scope);
+    if ((!scNext || scNext.kind !== "proj") && F.all.status === "used") {
+      F.all.status = "";
+    }
     page = 1;
     clearSelected();
     var u = new URL(location.href);
@@ -459,6 +462,10 @@
             id,
             scEdit && scEdit.kind === "proj" ? scEdit.name : ""
           );
+          return;
+        }
+        if (act === "open-art") {
+          FZShell.toast("Demo：打开本项目已生成文章", "ok");
           return;
         }
         if ((act === "reject" || act === "pass") && window.FZMatTransfer) {

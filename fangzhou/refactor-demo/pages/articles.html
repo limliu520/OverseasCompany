@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>文章管理 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261105novice" />
+  <link rel="stylesheet" href="../css/app.css?v=20261109modalX" />
 </head>
 <body>
   <div class="app">
@@ -17,12 +17,12 @@
       <div class="content content--dock-pager">
         <div class="page-scroll">
           <p class="muted" style="margin:0 0 12px;font-size:13px">
-            瓜站 / 视频站内容通道文章。短剧不进本列表。操作人：人工记子账号昵称或主号「昵称（主）」；自动记「自动」。可预览行整行点击预览；素材 ID 可点。
+            瓜站 / 视频站内容通道文章。短剧不进本列表。「转编辑人」= 执行转编辑的人（手动记账号展示名，自动转编辑记「自动」）；推送人写在「已推送」状态旁。可预览行整行点击预览；素材 ID 可点。
           </p>
           <div class="list-toolbar">
             <div class="list-toolbar-row">
               <input class="input" id="art-f-q" type="search" placeholder="搜索标题 / 文章 ID" aria-label="搜索标题或文章 ID" style="max-width:240px" />
-              <select class="input" id="art-f-op" aria-label="操作人"></select>
+              <select class="input" id="art-f-op" aria-label="转编辑人"></select>
               <select class="input" id="art-f-project" aria-label="项目"></select>
               <select class="input" id="art-f-status" aria-label="状态"></select>
               <button type="button" class="btn" id="art-f-search">搜索</button>
@@ -42,7 +42,13 @@
                   <th>素材 ID</th>
                   <th>状态</th>
                   <th>异常</th>
-                  <th>操作人</th>
+                  <th class="th-op">
+                    转编辑人
+                    <button type="button" class="field-tip" aria-label="列说明">
+                      <span class="field-tip-ico" aria-hidden="true">?</span>
+                      <span class="field-tip-bubble" role="tooltip">执行「转编辑」的人（创建文章时写入，之后不改）。<br>手动：当前账号展示名（主号为「昵称（主）」）。<br>自动转编辑：记「自动」。<br>推送人另写在「已推送」状态旁，不占本列。</span>
+                    </button>
+                  </th>
                   <th>时间</th>
                   <th class="th-actions">操作</th>
                 </tr>
@@ -59,7 +65,10 @@
   <!-- 二次确认（重新编辑等） -->
   <div class="modal-mask" id="art-confirm-mask" hidden>
     <div class="modal art-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="art-confirm-title">
-      <h2 id="art-confirm-title">确认</h2>
+      <div class="modal-hd">
+        <h2 id="art-confirm-title">确认</h2>
+        <button type="button" class="mat-detail-close" data-dismiss-for="art-confirm-cancel" aria-label="关闭">×</button>
+      </div>
       <p id="art-confirm-msg"></p>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="art-confirm-cancel">取消</button>
@@ -76,7 +85,7 @@
           <h2 id="art-preview-heading">文章预览</h2>
           <p class="art-preview-meta muted" id="art-preview-meta"></p>
         </div>
-        <button type="button" class="btn btn-ghost btn-sm" id="art-preview-close">关闭</button>
+        <button type="button" class="mat-detail-close" id="art-preview-close" aria-label="关闭">×</button>
       </div>
       <h3 class="art-preview-title" id="art-preview-title"></h3>
       <div class="art-preview-body" id="art-preview-body"></div>
@@ -88,7 +97,7 @@
     <div class="modal art-compare-modal" role="dialog" aria-labelledby="art-compare-title">
       <div class="art-compare-hd">
         <h2 id="art-compare-title">版本对比</h2>
-        <button type="button" class="btn btn-ghost btn-sm" id="art-compare-close">关闭</button>
+        <button type="button" class="mat-detail-close" id="art-compare-close" aria-label="关闭">×</button>
       </div>
       <p class="muted">对照当前稿与上一版差异（Demo）。</p>
       <div class="art-compare-cols">
@@ -129,22 +138,19 @@
         <button type="button" class="mat-detail-close" data-targets-close aria-label="关闭">×</button>
       </div>
       <div class="mat-targets-bd" id="mat-targets-bd"></div>
-      <div class="mat-targets-ft">
-        <button type="button" class="btn btn-ghost" data-targets-close>关闭</button>
-      </div>
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261106perm2"></script>
-  <script src="../js/shell.js?v=20261106perm2"></script>
-  <script src="../js/pager.js?v=20261104rf03"></script>
-  <script src="../js/articles-data.js?v=20261028artact5"></script>
-  <script src="../js/materials-data.js?v=20261028artact1"></script>
-  <script src="../js/materials-media.js?v=20261028artact1"></script>
-  <script src="../js/materials-detail.js?v=20261031tour7"></script>
-  <script src="../js/novice-guide.js?v=20261031tour7"></script>
-  <script src="../js/novice-tour-kit.js?v=20261031prefill"></script>
-  <script src="../js/novice-tours.js?v=20261031prefill"></script>
-  <script src="../js/articles-app.js?v=20261104artFilter1"></script>
+  <script src="../js/store.js?v=20261109maskRule"></script>
+  <script src="../js/shell.js?v=20261109modalX"></script>
+  <script src="../js/pager.js?v=20261109maskRule"></script>
+  <script src="../js/articles-data.js?v=20261109maskRule"></script>
+  <script src="../js/materials-data.js?v=20261109maskRule"></script>
+  <script src="../js/materials-media.js?v=20261109maskRule"></script>
+  <script src="../js/materials-detail.js?v=20261109maskRule"></script>
+  <script src="../js/novice-guide.js?v=20261109maskRule"></script>
+  <script src="../js/novice-tour-kit.js?v=20261109maskRule"></script>
+  <script src="../js/novice-tours.js?v=20261109maskRule"></script>
+  <script src="../js/articles-app.js?v=20261109maskRule"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>子账号与授权 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261106view1" />
+  <link rel="stylesheet" href="../css/app.css?v=20261109modalX" />
 </head>
 <body>
   <div class="app">
@@ -34,7 +34,10 @@
 
   <div class="modal-mask" id="sub-modal" hidden>
     <div class="modal modal-perm modal-sub-wiz">
-      <h2 id="sub-modal-title">创建子账号</h2>
+      <div class="modal-hd">
+        <h2 id="sub-modal-title">创建子账号</h2>
+        <button type="button" class="mat-detail-close" data-dismiss-for="sub-cancel" aria-label="关闭">×</button>
+      </div>
       <p class="hint" id="sub-modal-lead" style="margin-top:0">分三步：① 个人信息 → ② 负责项目 → ③ 岗位与权限。</p>
       <div class="sub-wiz-steps" id="sub-wiz-steps" role="tablist" aria-label="创建步骤">
         <button type="button" class="sub-wiz-step is-on" data-goto-step="1" role="tab" aria-selected="true">
@@ -105,7 +108,10 @@
 
   <div class="modal-mask" id="role-modal" hidden>
     <div class="modal modal-perm">
-      <h2 id="role-modal-title">新建岗位</h2>
+      <div class="modal-hd">
+        <h2 id="role-modal-title">新建岗位</h2>
+        <button type="button" class="mat-detail-close" data-dismiss-for="role-cancel" aria-label="关闭">×</button>
+      </div>
       <p class="hint" style="margin-top:0">岗位 = 可复用的菜单与页内操作权限包。创建子账号时可套用后再微调。</p>
       <div class="field"><label>岗位名称</label><input id="role-name" placeholder="例如：采集运营" /></div>
       <div class="field">
@@ -121,7 +127,10 @@
 
   <div class="modal-mask" id="sub-pass-modal" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sub-pass-title">
-      <h2 id="sub-pass-title">重置密码</h2>
+      <div class="modal-hd">
+        <h2 id="sub-pass-title">重置密码</h2>
+        <button type="button" class="mat-detail-close" data-dismiss-for="sub-pass-cancel" aria-label="关闭">×</button>
+      </div>
       <p class="hint" id="sub-pass-lead" style="margin-top:0">为该子账号设置新登录密码。生效后对方须用新密码登录。</p>
       <div class="field">
         <label>新密码 *</label>
@@ -143,7 +152,10 @@
 
   <div class="modal-mask" id="sub-pass-done-modal" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sub-pass-done-title">
-      <h2 id="sub-pass-done-title">密码已重置</h2>
+      <div class="modal-hd">
+        <h2 id="sub-pass-done-title">密码已重置</h2>
+        <button type="button" class="mat-detail-close" data-dismiss-for="sub-pass-done-ok" aria-label="关闭">×</button>
+      </div>
       <p class="hint" style="margin-top:0">请将新密码告知对方。关闭后无法再查看明文，请先复制。</p>
       <div class="field">
         <label>登录名</label>
@@ -162,14 +174,14 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261106perm2"></script>
-  <script src="../js/perm-tree.js?v=20261106view1"></script>
-  <script src="../js/shell.js?v=20261106perm2"></script>
-  <script src="../js/pager.js?v=20261104rf03"></script>
-  <script src="../js/project-union.js?v=20261104rf"></script>
-  <script src="../js/novice-guide.js?v=20261031tour7"></script>
-  <script src="../js/novice-tour-kit.js?v=20261031prefill"></script>
-  <script src="../js/novice-tours.js?v=20261031prefill"></script>
-  <script src="../js/subs-app.js?v=20261106tg1"></script>
+  <script src="../js/store.js?v=20261109maskRule"></script>
+  <script src="../js/perm-tree.js?v=20261109maskRule"></script>
+  <script src="../js/shell.js?v=20261109modalX"></script>
+  <script src="../js/pager.js?v=20261109maskRule"></script>
+  <script src="../js/project-union.js?v=20261109maskRule"></script>
+  <script src="../js/novice-guide.js?v=20261109maskRule"></script>
+  <script src="../js/novice-tour-kit.js?v=20261109maskRule"></script>
+  <script src="../js/novice-tours.js?v=20261109maskRule"></script>
+  <script src="../js/subs-app.js?v=20261109maskRule"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TG 采集配置 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261107pool5" />
+  <link rel="stylesheet" href="../css/app.css?v=20261109modalX" />
 </head>
 <body>
   <div class="app">
@@ -39,7 +39,10 @@
   <!-- 加入频道 -->
   <div class="modal-mask" id="tg-ch-modal" hidden>
     <div class="modal" style="max-width:440px">
-      <h2 id="tg-ch-modal-title">加入频道</h2>
+      <div class="modal-hd">
+        <h2 id="tg-ch-modal-title">加入频道</h2>
+        <button type="button" class="mat-detail-close" data-dismiss-for="tg-ch-cancel" aria-label="关闭">×</button>
+      </div>
       <p class="hint" id="tg-ch-hint" style="margin-top:0">填写 @用户名 或邀请链接。</p>
       <div class="field">
         <label>频道 *</label>
@@ -63,7 +66,10 @@
   <!-- 未分配 → 标记用途 -->
   <div class="modal-mask" id="tg-assign-modal" hidden>
     <div class="modal" style="max-width:400px" role="dialog" aria-modal="true" aria-labelledby="tg-assign-title">
-      <h2 id="tg-assign-title">标记频道用途</h2>
+      <div class="modal-hd">
+        <h2 id="tg-assign-title">标记频道用途</h2>
+        <button type="button" class="mat-detail-close" data-dismiss-for="tg-assign-cancel" aria-label="关闭">×</button>
+      </div>
       <p class="hint" id="tg-assign-name" style="margin-top:0"></p>
       <div class="tg-role-seg" role="group" aria-label="选择用途">
         <button type="button" class="btn tg-role-opt" data-assign-pick="collect">采集（进料）</button>
@@ -78,7 +84,10 @@
   <!-- 二次确认（对齐现网 showConfirm） -->
   <div class="modal-mask" id="tg-confirm-modal" hidden>
     <div class="modal" style="max-width:400px" role="dialog" aria-modal="true" aria-labelledby="tg-confirm-title">
-      <h2 id="tg-confirm-title">确认操作</h2>
+      <div class="modal-hd">
+        <h2 id="tg-confirm-title">确认操作</h2>
+        <button type="button" class="mat-detail-close" data-dismiss-for="tg-confirm-cancel" aria-label="关闭">×</button>
+      </div>
       <p class="hint" id="tg-confirm-msg" style="margin-top:0"></p>
       <div class="modal-actions">
         <button type="button" class="btn" id="tg-confirm-cancel">取消</button>
@@ -90,7 +99,10 @@
   <!-- 新建路由（仅公共池） -->
   <div class="modal-mask" id="tg-rr-modal" hidden>
     <div class="modal" style="max-width:480px">
-      <h2>新建 TG→TG 路由</h2>
+      <div class="modal-hd">
+        <h2>新建 TG→TG 路由</h2>
+        <button type="button" class="mat-detail-close" data-dismiss-for="tg-rr-cancel" aria-label="关闭">×</button>
+      </div>
       <p class="hint" style="margin-top:0">一次选一个采集源，可勾多个分发；保存时按「一源→一目标」逐条建边。列表默认也按采集聚合，可切到「按分发」统计。</p>
       <div class="field">
         <label>采集源 *（单选）</label>
@@ -107,16 +119,16 @@
     </div>
   </div>
 
-  <script src="../js/store.js?v=20261107pool2"></script>
-  <script src="../js/shell.js?v=20261107pool2"></script>
-  <script src="../js/novice-guide.js?v=20261031tgNovice1"></script>
-  <script src="../js/tg-add-wizard.js?v=20261028tipAll"></script>
-  <script src="../js/tg-collect-routes.js?v=20261107pool2"></script>
-  <script src="../js/tg-collect-channels.js?v=20261109chFix"></script>
-  <script src="../js/tg-collect-render.js?v=20261107pool4"></script>
-  <script src="../js/tg-collect-modal.js?v=20261107pool2"></script>
-  <script src="../js/tg-collect-ops.js?v=20261107pool2"></script>
-  <script src="../js/tg-novice-tour.js?v=20261107pool2"></script>
-  <script src="../js/tg-collect-app.js?v=20261107pool2"></script>
+  <script src="../js/store.js?v=20261109maskRule"></script>
+  <script src="../js/shell.js?v=20261109modalX"></script>
+  <script src="../js/novice-guide.js?v=20261109maskRule"></script>
+  <script src="../js/tg-add-wizard.js?v=20261109modalX"></script>
+  <script src="../js/tg-collect-routes.js?v=20261109maskRule"></script>
+  <script src="../js/tg-collect-channels.js?v=20261109maskRule"></script>
+  <script src="../js/tg-collect-render.js?v=20261109tgMore"></script>
+  <script src="../js/tg-collect-modal.js?v=20261109maskRule"></script>
+  <script src="../js/tg-collect-ops.js?v=20261109maskRule"></script>
+  <script src="../js/tg-novice-tour.js?v=20261109maskRule"></script>
+  <script src="../js/tg-collect-app.js?v=20261109tgMore"></script>
 </body>
 </html>

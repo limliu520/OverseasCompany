@@ -5,47 +5,57 @@
     { id: "proj_demo_chigua2", name: "51 吃瓜", siteType: "瓜站" },
     { id: "proj_demo_collect", name: "91 网黄", siteType: "视频站" },
     { id: "proj_demo_video2", name: "51 原创", siteType: "视频站" },
-    {
-      id: "proj_demo_pending",
-      name: "51 短剧",
-      siteType: "短剧站",
-      disabled: true,
-      reason: "该素材已被当前项目使用"
-    },
+    { id: "proj_demo_pending", name: "51 短剧", siteType: "短剧站" },
     { id: "proj_demo_drama2", name: "51 短视频", siteType: "短剧站" }
   ];
+
+  function findMaterial(mid) {
+    var items = (w.FZMatData && w.FZMatData.ITEMS) || [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].id === mid) return items[i];
+    }
+    return null;
+  }
+  function usedNames(m) {
+    if (w.FZMatData && w.FZMatData.usedByList) return w.FZMatData.usedByList(m);
+    return (m && m.usedByProjects) || [];
+  }
 
   function open(materialId, preferProjectName) {
     bind();
     document.getElementById("mat-xfer-mid").value = materialId;
+    var m = findMaterial(materialId);
+    var occupied = usedNames(m);
     var sel = document.getElementById("mat-xfer-project");
     var hint = document.getElementById("mat-xfer-hint");
     sel.innerHTML =
       '<option value="">-- 请选择项目 --</option>' +
       PROJECTS.map(function (p) {
+        var taken = occupied.indexOf(p.name) >= 0;
         return (
           '<option value="' +
           p.id +
           '"' +
-          (p.disabled ? " disabled" : "") +
+          (taken ? " disabled" : "") +
           ">" +
           p.name +
           (p.siteType ? " · " + p.siteType : "") +
-          (p.disabled ? "（不可用）" : "") +
+          (taken ? "（该素材已在本项目使用）" : "") +
           "</option>"
         );
       }).join("");
     var preferred = preferProjectName
       ? PROJECTS.filter(function (p) {
-          return !p.disabled && p.name === preferProjectName;
+          return occupied.indexOf(p.name) < 0 && p.name === preferProjectName;
         })[0]
       : null;
     var first =
       preferred ||
       PROJECTS.filter(function (p) {
-        return !p.disabled;
+        return occupied.indexOf(p.name) < 0;
       })[0];
     if (first) sel.value = first.id;
+    else sel.value = "";
     applyCoverDefault(first && first.id);
     onProjectChange();
     document.getElementById("mat-xfer-mask").hidden = false;
@@ -85,13 +95,18 @@
       updateSubmit();
       return;
     }
-    if (p && p.disabled) {
-      if (hint) hint.textContent = p.reason || "该项目不可用";
+    var mid = document.getElementById("mat-xfer-mid").value;
+    var m = findMaterial(mid);
+    if (p && occupiedHas(m, p.name)) {
+      if (hint) hint.textContent = "该素材已在本项目使用";
     } else if (hint) {
       hint.textContent =
-        "确认后占用该项目内容通道并派发处理；素材仍留在公共素材池，其他人仍可查看。文章封面拼图默认取项目配置，可改本次。";
+        "确认后占用该项目内容通道并派发处理；素材仍留在公共素材池，其他人仍可查看，也可再转到其他未占用项目。文章封面拼图默认取项目配置，可改本次。";
     }
     updateSubmit();
+  }
+  function occupiedHas(m, name) {
+    return usedNames(m).indexOf(name) >= 0;
   }
   function updateSubmit() {
     var btn = document.getElementById("mat-xfer-submit");
@@ -99,7 +114,9 @@
     var p = PROJECTS.filter(function (x) {
       return x.id === sel.value;
     })[0];
-    if (btn) btn.disabled = !p || !!p.disabled;
+    var mid = document.getElementById("mat-xfer-mid").value;
+    var m = findMaterial(mid);
+    if (btn) btn.disabled = !p || occupiedHas(m, p.name);
   }
   function close() {
     document.getElementById("mat-xfer-mask").hidden = true;
@@ -110,24 +127,32 @@
     var p = PROJECTS.filter(function (x) {
       return x.id === sel.value;
     })[0];
-    if (!p || p.disabled) {
-      FZShell.toast("请选择可用项目", "err");
+    var m = findMaterial(mid);
+    if (!p || occupiedHas(m, p.name)) {
+      FZShell.toast(
+        occupiedHas(m, p && p.name) ? "该素材已在本项目使用" : "请选择可用项目",
+        "err"
+      );
       return;
+    }
+    if (w.FZMatData && w.FZMatData.markUsedBy) w.FZMatData.markUsedBy(m, p.name);
+    else if (m) {
+      if (!m.usedByProjects) m.usedByProjects = [];
+      if (m.usedByProjects.indexOf(p.name) < 0) m.usedByProjects.push(p.name);
+      if (m.status === "used") m.status = "available";
     }
     var cover = document.getElementById("mat-xfer-cover").value || "3";
     var coverLabel = { 1: "单拼图", 2: "二拼图", 3: "三拼图" }[cover] || "三拼图";
+    var isDrama = p.siteType === "短剧站";
     FZShell.toast(
-      "Demo：已派发媒体处理（" +
-        p.name +
-        " · 文章封面" +
-        coverLabel +
-        " · 素材 " +
-        mid +
-        "）",
+      isDrama
+        ? "已推送"
+        : "已转编辑（" + p.name + " · 文章封面" + coverLabel + "）",
       "ok"
     );
     close();
     if (w.FZMatDetail) w.FZMatDetail.close();
+    if (w.FZMatApp && w.FZMatApp.paint) w.FZMatApp.paint();
   }
   function openReject(materialId, mode) {
     bind();
@@ -210,7 +235,8 @@
     if (xfer && !xfer._bound) {
       xfer._bound = true;
       xfer.addEventListener("click", function (e) {
-        if (e.target === xfer || e.target.closest("[data-xfer-close]")) close();
+        /* 转编辑：编辑类，点遮罩不关闭；仅明确关闭按钮 */
+        if (e.target.closest("[data-xfer-close]")) close();
         if (e.target.id === "mat-xfer-submit") submit();
       });
       document.getElementById("mat-xfer-project").addEventListener("change", onProjectChange);
@@ -219,7 +245,7 @@
     if (rej && !rej._bound) {
       rej._bound = true;
       rej.addEventListener("click", function (e) {
-        if (e.target === rej || e.target.closest("[data-reject-close]")) closeReject();
+        if (e.target.closest("[data-reject-close]")) closeReject();
         if (e.target.id === "mat-reject-submit") submitReject();
       });
     }

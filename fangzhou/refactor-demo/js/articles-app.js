@@ -96,7 +96,7 @@
         })
         .join("");
     op.innerHTML =
-      '<option value="">全部操作人</option>' +
+      '<option value="">全部转编辑人</option>' +
       operatorOptions()
         .map(function (name) {
           return (
@@ -222,6 +222,20 @@
     );
   }
 
+  /** 已推送时在状态旁展示推送人；转编辑人仍在独立列 */
+  function statusCell(a, st) {
+    var html =
+      '<span class="badge ' + st.cls + '">' + esc(st.text) + "</span>";
+    if (a.status === "draft_created") {
+      var who = String(a.pusher || "").trim();
+      if (who && who !== "—") {
+        html +=
+          '<span class="art-pusher" title="推送人">' + esc(who) + "</span>";
+      }
+    }
+    return '<div class="art-status-cell">' + html + "</div>";
+  }
+
   function rowHtml(a) {
     var st = FZArticles.statusMeta(a.status);
     var fail =
@@ -257,11 +271,9 @@
       "<td>" +
       matCell(a) +
       "</td>" +
-      "<td><span class=\"badge " +
-      st.cls +
-      '">' +
-      esc(st.text) +
-      "</span></td>" +
+      "<td>" +
+      statusCell(a, st) +
+      "</td>" +
       "<td>" +
       fail +
       "</td>" +
@@ -307,9 +319,7 @@
     if (fn) fn();
   });
   confirmCancel.addEventListener("click", closeConfirm);
-  confirmMask.addEventListener("click", function (e) {
-    if (e.target === confirmMask) closeConfirm();
-  });
+  /* 二次确认：点遮罩不关闭 */
 
   var previewMask = document.getElementById("art-preview-mask");
   var compareMask = document.getElementById("art-compare-mask");
@@ -376,9 +386,33 @@
     FZMatDetail.open(m.id, [m], { previewOnly: true });
   }
 
+  function placeMoreMenu(btn, menu) {
+    menu.style.top = "0px";
+    menu.style.left = "0px";
+    menu.style.right = "auto";
+    menu.hidden = false;
+    var br = btn.getBoundingClientRect();
+    var mr = menu.getBoundingClientRect();
+    var gap = 4;
+    var top = br.bottom + gap;
+    if (top + mr.height > window.innerHeight - 8) {
+      top = Math.max(8, br.top - mr.height - gap);
+    }
+    var left = br.right - mr.width;
+    if (left < 8) left = 8;
+    if (left + mr.width > window.innerWidth - 8) {
+      left = Math.max(8, window.innerWidth - mr.width - 8);
+    }
+    menu.style.top = Math.round(top) + "px";
+    menu.style.left = Math.round(left) + "px";
+  }
+
   function closeAllMenus() {
     document.querySelectorAll(".art-more-menu").forEach(function (m) {
       m.hidden = true;
+      m.style.top = "";
+      m.style.left = "";
+      m.style.right = "";
     });
   }
 
@@ -483,7 +517,7 @@
         var menu = btn.parentElement.querySelector(".art-more-menu");
         var open = menu && !menu.hidden;
         closeAllMenus();
-        if (menu && !open) menu.hidden = false;
+        if (menu && !open) placeMoreMenu(btn, menu);
       });
     });
 
@@ -601,6 +635,8 @@
   });
 
   document.addEventListener("click", closeAllMenus);
+  window.addEventListener("resize", closeAllMenus);
+  document.addEventListener("scroll", closeAllMenus, true);
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
     var matMask = document.getElementById("mat-detail-mask");

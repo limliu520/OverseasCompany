@@ -1,6 +1,6 @@
 /* 文章管理 · Demo 种子与可变数据（瓜站/视频站；短剧不进文章编辑） */
 (function (w) {
-  var STORE_KEY = "fz_articles_demo_v2";
+  var STORE_KEY = "fz_articles_demo_v3";
 
   var STATUS = {
     pending: { text: "待处理", cls: "badge-muted" },
@@ -52,6 +52,7 @@
       status: opts.status || "awaiting_edit",
       failReason: opts.failReason || "",
       operator: opts.operator || "—",
+      pusher: opts.pusher || "",
       autoTransfer: !!opts.autoTransfer,
       hasManualVersion: !!opts.hasManualVersion,
       time: opts.time || "2026-10-27 16:00",
@@ -98,6 +99,7 @@
       materialId: 39501,
       status: "draft_created",
       operator: "李丽",
+      pusher: "小王",
       hasManualVersion: true,
       time: "2026-10-26 21:08",
       prevTitle: "视频站成片 · 首版推送稿",

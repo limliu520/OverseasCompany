@@ -56,18 +56,40 @@
       "</button></div>"
     );
   }
-  /* 现网口径：转编辑=available|duplicate；驳回=available；used 无转编辑；待审=驳回+通过；垃圾=手动通过 */
+  function currentScopeCtx() {
+    try {
+      var key =
+        w.FZMatApp && w.FZMatApp.getScope
+          ? w.FZMatApp.getScope()
+          : new URLSearchParams(location.search).get("scope") || "pool";
+      if (w.FZMatFilters && w.FZMatFilters.parseScope) return w.FZMatFilters.parseScope(key);
+      if (String(key).indexOf("proj:") === 0) return { kind: "proj", name: String(key).slice(5) };
+      return { kind: "pool" };
+    } catch (e) {
+      return { kind: "pool" };
+    }
+  }
+  function effStatus(m) {
+    if (w.FZMatData && w.FZMatData.effectiveStatus) {
+      return w.FZMatData.effectiveStatus(m, currentScopeCtx());
+    }
+    return m.status;
+  }
+  /* 转编辑=可使用|重复淘汰；项目池已使用→打开文章；待审=驳回+通过；垃圾=手动通过 */
   function bizActionsHtml(m) {
     var btns = [];
-    if (m.status === "pending") {
+    var st = effStatus(m);
+    if (st === "pending") {
       btns.push('<button type="button" class="btn btn-danger btn-sm" data-detail-act="reject">驳回</button>');
       btns.push('<button type="button" class="btn btn-primary btn-sm" data-detail-act="pass">通过</button>');
-    } else if (m.status === "available" || m.status === "duplicate") {
+    } else if (st === "available" || st === "duplicate") {
       btns.push('<button type="button" class="btn btn-primary btn-sm" data-detail-act="edit">转编辑</button>');
-      if (m.status === "available") {
+      if (st === "available") {
         btns.push('<button type="button" class="btn btn-danger btn-sm" data-detail-act="reject">驳回</button>');
       }
-    } else if (m.status === "trash") {
+    } else if (st === "used") {
+      btns.push('<button type="button" class="btn btn-primary btn-sm" data-detail-act="open-art">打开文章</button>');
+    } else if (st === "trash") {
       btns.push('<button type="button" class="btn btn-primary btn-sm" data-detail-act="restore">手动通过</button>');
     }
     if (!btns.length) return "";
@@ -226,7 +248,8 @@
   }
   function infoHtml(m) {
     var LABEL = (w.FZMatData && w.FZMatData.LABEL) || {};
-    var st = LABEL[m.status] || { text: m.status, cls: "badge-muted" };
+    var stKey = effStatus(m);
+    var st = LABEL[stKey] || { text: stKey, cls: "badge-muted" };
     var chips = (m.keywords || [])
       .map(function (k) { return '<span class="mat-chip">' + esc(k) + "</span>"; })
       .join("");
@@ -240,7 +263,7 @@
       : "";
     var note = state.previewOnly
       ? '<div class="mat-detail-note">原素材预览 · 仅查看，不可操作</div>'
-      : m.status === "pending"
+      : stKey === "pending"
         ? '<div class="mat-detail-note">该素材待人工审核</div>'
         : "";
     var typeCat = [m.mediaType, m.category].filter(Boolean).join(" · ") || "-";
@@ -259,7 +282,7 @@
       '<div class="mat-summary-text">' +
       '<h3 class="mat-summary-title">' +
       esc(m.title) +
-      (!state.previewOnly && m.status === "available"
+      (!state.previewOnly && stKey === "available"
         ? ' <button type="button" class="btn btn-ghost btn-sm" data-detail-act="edit-title">✎ 编辑</button>'
         : "") +
       "</h3>" +
@@ -426,16 +449,12 @@
   function onAct(act, m) {
     if (act === "edit" && w.FZMatTransfer) {
       var prefer = "";
-      try {
-        var sc =
-          w.FZMatApp && w.FZMatApp.getScope
-            ? w.FZMatApp.getScope()
-            : new URLSearchParams(location.search).get("scope") || "";
-        if (String(sc).indexOf("proj:") === 0) prefer = String(sc).slice(5);
-      } catch (e) {}
+      var scx = currentScopeCtx();
+      if (scx && scx.kind === "proj") prefer = scx.name || "";
       w.FZMatTransfer.open(m.id, prefer);
-    }
-    else if (act === "reject" && w.FZMatTransfer) w.FZMatTransfer.openReject(m.id, "reject");
+    } else if (act === "open-art") {
+      FZShell.toast("Demo：打开本项目已生成文章", "ok");
+    } else if (act === "reject" && w.FZMatTransfer) w.FZMatTransfer.openReject(m.id, "reject");
     else if (act === "pass" && w.FZMatTransfer) w.FZMatTransfer.openReject(m.id, "pass");
     else if (act === "restore" && w.FZMatTransfer) w.FZMatTransfer.openReject(m.id, "restore");
     else if (act === "dl" || act === "dl-one") FZShell.toast("Demo：下载媒体", "ok");
@@ -446,7 +465,11 @@
     if (!mask || mask._bound) return;
     mask._bound = true;
     mask.addEventListener("click", function (e) {
-      if (e.target === mask) close();
+      /* 仅 previewOnly（只读预览）允许点遮罩关闭；完整详情按编辑类处理 */
+      if (e.target === mask) {
+        if (state.previewOnly) close();
+        return;
+      }
       var copyNum = e.target.closest("[data-copy-num]");
       if (copyNum) {
         e.stopPropagation();

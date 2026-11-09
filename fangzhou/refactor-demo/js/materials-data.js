@@ -48,7 +48,48 @@
     used: { text: "已使用", cls: "badge-muted" },
     trash: { text: "已驳回", cls: "badge-danger" }
   };
-  var ALL_STATUSES = ["pending", "rejected", "kept", "duplicate", "available", "used"];
+  /* 内容级状态（公共池行）；「已使用」只在项目池按 usedByProjects 推导，不进种子 status */
+  var ALL_STATUSES = ["pending", "rejected", "kept", "duplicate", "available"];
+  var POOL_STATUSES = ["kept", "duplicate", "available"];
+
+  function usedByList(m) {
+    var list = [];
+    function add(n) {
+      if (n && list.indexOf(n) < 0) list.push(n);
+    }
+    (m.usedByProjects || []).forEach(add);
+    /* 兼容旧 Demo 种子 / 本地残留：曾把 used 写在全局 status 上 */
+    if (m.status === "used") {
+      (m.dispatchProjects || []).forEach(add);
+      add(m.dispatchProject);
+      add(m.project);
+    }
+    return list;
+  }
+  function poolStatus(m) {
+    if (m.status === "used") return "available";
+    return m.status;
+  }
+  /** scopeCtx: { kind:'pool' } | { kind:'proj', name } | null；已使用仅项目池 */
+  function effectiveStatus(m, scopeCtx) {
+    var sc = scopeCtx || {};
+    if (sc.kind === "proj" && sc.name && usedByList(m).indexOf(sc.name) >= 0) {
+      return "used";
+    }
+    return poolStatus(m);
+  }
+  function isUsedBy(m, projectName) {
+    return !!projectName && usedByList(m).indexOf(projectName) >= 0;
+  }
+  function markUsedBy(m, projectName) {
+    if (!m || !projectName) return;
+    if (!m.usedByProjects) m.usedByProjects = usedByList(m);
+    if (m.usedByProjects.indexOf(projectName) < 0) m.usedByProjects.push(projectName);
+    if (m.status === "used") m.status = "available";
+    if (!m.dispatchProjects) m.dispatchProjects = [];
+    if (m.dispatchProjects.indexOf(projectName) < 0) m.dispatchProjects.push(projectName);
+    if (!m.dispatchProject) m.dispatchProject = projectName;
+  }
 
   function mk(id, title, project, channel, status, time, views, interact, opts) {
     opts = opts || {};
@@ -61,14 +102,18 @@
      *   none = 先入公共采集 / 未绑项目网站等
      *   proj = 项目自采（频道/网站已绑项目）
      * 口径：不论 belong，素材一律进「公共素材池」；转编辑进项目后仍留在公共素材池，他人可见。
+     * 「已使用」按项目记在 usedByProjects，公共池 status 仍为可使用等。
      * 网站料永不挂 TG 分发频道（进不了 TG）。
      */
     var belong = opts.belong != null ? opts.belong : collectType === "web" ? "proj" : "none";
     var isPool = belong === "none";
+    var usedBy = (opts.usedByProjects || []).slice();
+    var st = status === "used" ? "available" : status;
+    if (status === "used" && !usedBy.length && project) usedBy = [project];
     var poolRouted =
       isPool &&
       collectType === "tg" &&
-      (status === "available" || status === "used" || status === "kept");
+      (st === "available" || st === "kept" || usedBy.length);
     /* 公共池 TG 可一源多目标；网站公共池无 targetChannels */
     var targets;
     if (collectType === "web") targets = [];
@@ -81,7 +126,7 @@
     var dispatch;
     if (opts.dispatchProject != null) dispatch = opts.dispatchProject;
     else if (!isPool) dispatch = project;
-    else if (status === "used") dispatch = project;
+    else if (usedBy.length) dispatch = usedBy[0];
     else dispatch = "";
     var kw = opts.keywords || ["热点", "资讯", "演示"];
     var vidN = mediaType === "视频" ? 3 : 0;
@@ -94,7 +139,8 @@
       channel: channel,
       collectType: collectType,
       source: collectType === "web" ? "网站 · " + channel : "TG · " + channel,
-      status: status,
+      status: st,
+      usedByProjects: usedBy,
       time: time,
       publishTime: opts.publishTime || time,
       views: views || 0,
@@ -138,7 +184,7 @@
   }
 
   var ITEMS = [
-    /* 待审去向示例：公共池已配 TG 路由 / 项目自采 / 公共池无固定去向 */
+    /* 待审只出现在「待审核素材」Tab；通过后才进公共池 / 项目池 */
     mk("m1012", "频道快讯 · 图文组", "每日大赛", "源频道甲", "pending", "2026-10-27 10:48", 1200, 88, {
       imageCount: 12,
       videoCount: 0,
@@ -150,11 +196,11 @@
       belong: "proj",
       targetChannels: []
     }),
-    mk("m1010", "公共池待审 · 暂无路由", "每日大赛", "源频道丙", "pending", "2026-10-27 09:40", 420, 19, {
+    mk("m1010", "待审样例 · 暂无路由", "每日大赛", "源频道丙", "pending", "2026-10-27 09:40", 420, 19, {
       belong: "none",
       targetChannels: []
     }),
-    mk("m1009", "已驳回样例", "每日大赛", "源频道甲", "rejected", "2026-10-27 08:00", 90, 3),
+    mkTrash("m1009", "人工驳回样例", "每日大赛", "源频道甲", "2026-10-27 08:00", AD_CATS[1] || AD_CATS[0], 7.5, "人工驳回"),
     mk("m1007", "去重保留样例", "91 网黄", "源频道乙", "kept", "2026-10-26 20:10", 500, 20),
     mk("m1006", "重复淘汰样例", "每日大赛", "源频道丙", "duplicate", "2026-10-26 19:00", 40, 1),
     mkTrash("m1005", "广告疑似 · 已入垃圾", "每日大赛", "源频道丙", "2026-10-26 22:01", AD_CATS[0], 9.2, "导流外链"),
@@ -179,12 +225,13 @@
       targetChannels: [],
       dispatchProject: ""
     }),
-    /* 已转编辑进项目：项目范围可见，公共素材池仍保留 */
-    mk("m0998", "公共池已转编辑", "每日大赛", "源频道甲", "used", "2026-10-25 12:00", 300, 18, {
+    /* 公共池仍「可使用」；每日大赛已占用，91 网黄有分发行但未占用 → 可再转 */
+    mk("m0998", "公共池可再转 · 每日大赛已占用", "每日大赛", "源频道甲", "available", "2026-10-25 12:00", 300, 18, {
       belong: "none",
       targetChannels: ["@push_demo_b", "@push_demo_d", "@push_demo_c"],
       dispatchProject: "每日大赛",
-      dispatchProjects: ["每日大赛", "91 网黄"]
+      dispatchProjects: ["每日大赛", "91 网黄"],
+      usedByProjects: ["每日大赛"]
     }),
     /* TG 项目自采 */
     mk("m0997", "项目自采进内容通道", "每日大赛", "源频道乙", "available", "2026-10-25 09:00", 180, 9, {
@@ -216,13 +263,19 @@
           mkTrash(id, title, proj || "每日大赛", ch, time, AD_CATS[i % 3], (5 + (i % 50) / 10).toFixed(1), "规则#" + ((i % 7) + 1))
         );
       } else {
-        var st = ALL_STATUSES[i % ALL_STATUSES.length];
+        var st = POOL_STATUSES[i % POOL_STATUSES.length];
+        if (i % 7 === 0) st = "available";
+        var usedBy = undefined;
+        if (st === "available" && !webInPool && proj && i % 6 === 0) {
+          usedBy = [proj];
+        }
         ITEMS.push(
           mk(id, title, proj, ch, st, time, 100 + i * 17, 3 + (i % 20), {
             mediaType: i % 3 ? "图文" : "视频",
             collectType: isWeb ? "web" : "tg",
             belong: webInPool ? "none" : isWeb ? "proj" : i % 8 === 0 ? "proj" : "none",
-            dispatchProject: webInPool ? "" : undefined
+            dispatchProject: webInPool ? "" : undefined,
+            usedByProjects: usedBy
           })
         );
       }
@@ -250,6 +303,12 @@
     TABS: TABS,
     LABEL: LABEL,
     ALL_STATUSES: ALL_STATUSES,
+    POOL_STATUSES: POOL_STATUSES,
+    usedByList: usedByList,
+    poolStatus: poolStatus,
+    effectiveStatus: effectiveStatus,
+    isUsedBy: isUsedBy,
+    markUsedBy: markUsedBy,
     ITEMS: ITEMS,
     reset: reset
   };
