@@ -2021,9 +2021,9 @@ textarea.afield,
       })
       .slice(0, 2);
   }
-  /* 左侧标记：待审核 / 神评 / 热门 */
+  /* 左侧标记：神评 / 热门；本人待审前台不标「待审核」 */
   function commentMark(c) {
-    if (isCommentPending(c)) return `<span class="c-mark pending" title="待审核">待审核</span>`;
+    if (isCommentPending(c)) return "";
     if (isGodComment(c)) return `<span class="c-mark god" title="神评">神评</span>`;
     if (isLikeRisen(c)) return `<span class="c-mark" title="热门" aria-label="热门">🔥</span>`;
     return "";
@@ -2211,7 +2211,7 @@ textarea.afield,
     const canLike = p.wishKind !== "feature" && (p.status === "collecting" || p.status === "arranged" || p.status === "ended");
     const statusLabel = p.wishKind === "feature"
       ? "仅后台可见"
-      : (previewSelf ? "待审核" : (p.status === "collecting" ? "征集中" : st.label));
+      : (previewSelf ? "征集中" : (p.status === "collecting" ? "征集中" : st.label));
     const kindMeta = wishKindMeta(p.wishKind);
     const dreamArticle = p.articleId ? ARTICLES.find((a) => a.id === p.articleId) : null;
     const catBadge = p.category ? `<span class="tag">${escapeHtml(p.category)}</span>` : "";
@@ -2226,7 +2226,7 @@ textarea.afield,
       : (p.status === "ended"
         ? `<div class="foot"><span class="meta">征集已结束，不再接收新评论</span></div>`
         : (previewSelf
-          ? `<div class="foot"><span class="meta">审核中，仅自己可见；通过后才会公开</span></div>`
+          ? ""
           : (p.status === "rejected" ? `<div class="foot"><span class="meta">未通过，仅自己可见</span></div>` : "")));
     return `<div class="post-card" data-id="${p.id}">
       <div class="band"></div>
