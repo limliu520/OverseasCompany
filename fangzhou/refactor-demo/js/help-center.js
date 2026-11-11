@@ -1,19 +1,11 @@
 /* 侧栏帮助中心（账户上方）· 预设问题随当前页面功能切换 */
 (function (global) {
-  var COMMON_TAIL = [
-    {
-      q: "想再看一遍菜单引导？",
-      a: "点下方「重看侧栏菜单引导」，会按你当前权限重新走一遍侧栏说明（跳过过也能再开）。",
-      tour: true
-    }
-  ];
-
   /** 各页预设：打开帮助时优先展示当前页功能相关问题 */
   var FAQ_BY_PAGE = {
     home: [
       {
-        q: "工作台待办是什么？",
-        a: "工作台汇总入驻、对接、审核等待办；点卡片可深链到对应功能。新手教程也在本页顶部。",
+        q: "工作台有什么？",
+        a: "顶部是新手教程；下方是数据概览、状态与异常提醒、平台公告摘要；右上角进消息中心。反馈请用帮助中心「反馈」Tab。",
         href: "pages/home.html"
       },
       {
@@ -147,7 +139,7 @@
     materials: [
       {
         q: "待审核素材去哪处理？",
-        a: "顶部切到「待审核素材」，打开详情后审核通过或驳回；也可从工作台待办进入。",
+        a: "顶部切到「待审核素材」，打开详情后审核通过或驳回。",
         href: "pages/materials.html",
         need: "collect.materials.view"
       },
@@ -291,8 +283,7 @@
   }
 
   function faqForPage(key) {
-    var list = (FAQ_BY_PAGE[key] || FAQ_BY_PAGE.home || []).slice();
-    return list.concat(COMMON_TAIL);
+    return (FAQ_BY_PAGE[key] || FAQ_BY_PAGE.home || []).slice();
   }
 
   function mount() {
@@ -314,25 +305,37 @@
       '<div class="fz-help-suggest">' +
       '<span class="fz-help-suggest-lab" id="fz-help-suggest-lab">猜你想问</span>' +
       '<div class="fz-help-faq" id="fz-help-faq"></div></div>' +
-      '<div class="fz-help-tools">' +
-      '<button type="button" class="btn btn-ghost fz-help-tour-btn" id="fz-help-tour">重看侧栏菜单引导</button></div>' +
       '<form class="fz-help-compose" id="fz-help-form">' +
       '<input id="fz-help-input" placeholder="向助手提问…" autocomplete="off" />' +
       '<button type="submit" class="btn btn-primary">发送</button></form></div>' +
       '<div class="fz-help-body fz-help-body--fb" id="fz-help-fb" role="tabpanel" aria-labelledby="fz-help-tab-fb" hidden>' +
       '<div class="field fz-fb-kind-field"><label>反馈类型</label>' +
       '<div class="fz-fb-kinds" role="radiogroup" aria-label="反馈类型">' +
-      '<button type="button" class="fz-fb-kind is-on" role="radio" aria-checked="true" data-fb-kind="bug">Bug</button>' +
-      '<button type="button" class="fz-fb-kind" role="radio" aria-checked="false" data-fb-kind="ui">UI</button>' +
+      '<button type="button" class="fz-fb-kind is-on" role="radio" aria-checked="true" data-fb-kind="bug">缺陷</button>' +
+      '<button type="button" class="fz-fb-kind" role="radio" aria-checked="false" data-fb-kind="ui">界面</button>' +
       '<button type="button" class="fz-fb-kind" role="radio" aria-checked="false" data-fb-kind="idea">建议</button>' +
       '<button type="button" class="fz-fb-kind" role="radio" aria-checked="false" data-fb-kind="other">其他</button>' +
       "</div></div>" +
       '<div class="field fz-fb-text-field"><label>反馈说明</label>' +
       '<textarea id="fz-fb-text" rows="4" placeholder="描述遇到的问题或建议"></textarea></div>' +
-      '<label class="fz-fb-shot"><input type="checkbox" id="fz-fb-shot" checked /> 附带当前页示意截图（Demo 占位）</label>' +
+      '<div class="fz-fb-attach">' +
+      '<p class="fz-fb-attach-lead">提交时默认附带<strong>当前页整页示意截图</strong>。若再点选问题位置，会额外带上该区域定位与现场数据，方便研发对照。</p>' +
+      '<div class="fz-fb-pick-row">' +
+      '<button type="button" class="btn fz-fb-pick-btn" id="fz-fb-pick">点选问题位置</button>' +
+      '<button type="button" class="btn fz-fb-pick-btn" id="fz-fb-pick-clear" hidden>清除选区</button>' +
+      "</div>" +
+      '<div class="fz-fb-pick-sum" id="fz-fb-pick-sum" hidden></div>' +
+      "</div>" +
       '<div class="fz-fb-actions">' +
       '<button type="button" class="btn btn-primary" id="fz-fb-submit">提交反馈</button></div></div>' +
-      "</div></div>";
+      "</div></div>" +
+      '<div class="fz-fb-pick-layer" id="fz-fb-pick-layer" hidden>' +
+      '<div class="fz-fb-pick-banner" role="status">' +
+      "<span>点击页面上有问题的区域</span>" +
+      '<button type="button" class="btn btn-sm btn-ghost" id="fz-fb-pick-cancel">取消</button>' +
+      "</div>" +
+      '<div class="fz-fb-pick-hl" id="fz-fb-pick-hl" hidden></div>' +
+      "</div>";
     document.body.appendChild(root);
 
     var fab = document.createElement("button");
@@ -356,6 +359,12 @@
     var suggestLab = document.getElementById("fz-help-suggest-lab");
     var welcomed = false;
     var lastHelpPage = "";
+    var pickMeta = null;
+    var picking = false;
+    var pickLayer = document.getElementById("fz-fb-pick-layer");
+    var pickHl = document.getElementById("fz-fb-pick-hl");
+    var pickSum = document.getElementById("fz-fb-pick-sum");
+    var pickClearBtn = document.getElementById("fz-fb-pick-clear");
 
     function setTab(which) {
       var isHelp = which !== "fb";
@@ -408,7 +417,241 @@
       }, 50);
     }
     function close() {
+      if (picking) endPick(false);
       mask.hidden = true;
+    }
+
+    function cssPath(el) {
+      if (!el || el.nodeType !== 1) return "";
+      var parts = [];
+      var cur = el;
+      while (cur && cur.nodeType === 1 && cur !== document.body && parts.length < 8) {
+        var seg = cur.tagName.toLowerCase();
+        if (cur.id) {
+          parts.unshift(seg + "#" + cur.id);
+          break;
+        }
+        var cls = String(cur.className || "")
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .join(".");
+        if (cls) seg += "." + cls;
+        var parent = cur.parentElement;
+        if (parent) {
+          var same = [].filter.call(parent.children, function (c) {
+            return c.tagName === cur.tagName;
+          });
+          if (same.length > 1) {
+            seg += ":nth-of-type(" + (same.indexOf(cur) + 1) + ")";
+          }
+        }
+        parts.unshift(seg);
+        cur = parent;
+      }
+      return parts.join(" > ");
+    }
+
+    function logicHint(el) {
+      if (!el || !el.closest) return "";
+      var rules = [
+        ["#wb-novice", "工作台新手教程 · js/novice-guide.js"],
+        ["#fz-help-root", "帮助与反馈 · js/help-center.js"],
+        ["#mat-root", "素材列表 · js/materials-app.js / materials-table.js"],
+        ["#mat-detail-mask", "素材详情 · js/materials-detail.js"],
+        ["#mat-xfer-mask", "转编辑 · js/materials-transfer.js"],
+        ["#tg-bot-list", "TG 采集号列表 · js/tg-collect-render.js"],
+        [".tg-detail-actions", "开始/停止采集 · js/tg-collect-ops.js"],
+        ["#tg-ch-modal", "加入频道弹窗 · js/tg-collect-modal.js"],
+        ["#tg-rr-modal", "新建路由 · js/tg-collect-modal.js"],
+        ["#art-tbody", "文章列表 · js/articles-app.js"],
+        [".art-edit-shell", "文章编辑 · js/article-edit-app.js"],
+        ["#sub-modal", "创建子账号 · js/subs-app.js"],
+        ["#role-modal", "岗位权限 · js/subs-app.js"],
+        ["#panel", "创建/配置向导主面板 · js/project-setup-app.js"],
+        [".config-tabs", "项目详情配置 Tab · pages/project-edit.html"],
+        ["#wc-sites", "网站采集站点 · js/website-collect-app.js"],
+        [".sidebar", "侧栏导航 · js/shell.js"]
+      ];
+      for (var i = 0; i < rules.length; i++) {
+        if (el.closest(rules[i][0])) return rules[i][1];
+      }
+      return "";
+    }
+
+    function describeTarget(el) {
+      if (!el || el.nodeType !== 1) return null;
+      var r = el.getBoundingClientRect();
+      var text = String(el.innerText || el.value || el.getAttribute("aria-label") || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 120);
+      var attrs = {};
+      [].forEach.call(el.attributes || [], function (a) {
+        if (!a || !a.name) return;
+        if (
+          a.name === "class" ||
+          a.name === "style" ||
+          a.name.indexOf("data-") === 0 ||
+          a.name === "id" ||
+          a.name === "name" ||
+          a.name === "type" ||
+          a.name === "href" ||
+          a.name === "role"
+        ) {
+          attrs[a.name] = String(a.value || "").slice(0, 160);
+        }
+      });
+      var html = "";
+      try {
+        html = String(el.outerHTML || "").replace(/\s+/g, " ").slice(0, 280);
+      } catch (e) {}
+      return {
+        tag: el.tagName.toLowerCase(),
+        id: el.id || "",
+        className: String(el.className || "").trim().slice(0, 160),
+        text: text,
+        path: cssPath(el),
+        rect: {
+          x: Math.round(r.left),
+          y: Math.round(r.top),
+          w: Math.round(r.width),
+          h: Math.round(r.height)
+        },
+        attrs: attrs,
+        htmlSnippet: html,
+        logicHint: logicHint(el),
+        page: location.pathname.split("/").pop() || "",
+        href: location.href
+      };
+    }
+
+    function pageShotMeta() {
+      return {
+        mode: "page",
+        demo: true,
+        note: "Demo：整页示意截图占位；正式环境替换为真实截图字节/URL",
+        href: location.href,
+        title: document.title || "",
+        viewport: {
+          w: window.innerWidth,
+          h: window.innerHeight,
+          dpr: window.devicePixelRatio || 1,
+          scrollX: Math.round(window.scrollX || 0),
+          scrollY: Math.round(window.scrollY || 0)
+        },
+        at: Date.now()
+      };
+    }
+
+    function paintPickSum() {
+      if (!pickSum || !pickClearBtn) return;
+      if (!pickMeta) {
+        pickSum.hidden = true;
+        pickSum.innerHTML = "";
+        pickClearBtn.hidden = true;
+        return;
+      }
+      pickClearBtn.hidden = false;
+      pickSum.hidden = false;
+      pickSum.innerHTML =
+        '<div class="fz-fb-pick-sum-title">已点选问题位置</div>' +
+        '<div class="fz-fb-pick-sum-line">' +
+        esc(pickMeta.tag) +
+        (pickMeta.id ? "#" + esc(pickMeta.id) : "") +
+        (pickMeta.text ? " · 「" + esc(pickMeta.text) + "」" : "") +
+        "</div>" +
+        (pickMeta.path
+          ? '<div class="fz-fb-pick-sum-path">' + esc(pickMeta.path) + "</div>"
+          : "") +
+        (pickMeta.logicHint
+          ? '<div class="fz-fb-pick-sum-hint">研发对照：' +
+            esc(pickMeta.logicHint) +
+            "</div>"
+          : "") +
+        '<p class="fz-fb-pick-sum-note">提交时会附带该定位与现场数据；未点选则只带反馈说明 + 整页截图。</p>';
+    }
+
+    function placePickHl(el) {
+      if (!pickHl || !el) {
+        if (pickHl) pickHl.hidden = true;
+        return;
+      }
+      var r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) {
+        pickHl.hidden = true;
+        return;
+      }
+      pickHl.hidden = false;
+      pickHl.style.left = Math.round(r.left - 2) + "px";
+      pickHl.style.top = Math.round(r.top - 2) + "px";
+      pickHl.style.width = Math.ceil(r.width + 4) + "px";
+      pickHl.style.height = Math.ceil(r.height + 4) + "px";
+    }
+
+    function pickIgnore(el) {
+      if (!el || !el.closest) return true;
+      if (el.closest("#fz-fb-pick-layer")) return true;
+      if (el.closest("#fz-help-root")) return true;
+      if (el.closest("#fz-help-fab")) return true;
+      return false;
+    }
+
+    function onPickMove(e) {
+      if (!picking) return;
+      var el = e.target;
+      if (pickIgnore(el)) {
+        placePickHl(null);
+        return;
+      }
+      placePickHl(el);
+    }
+
+    function onPickClick(e) {
+      if (!picking) return;
+      var el = e.target;
+      if (pickIgnore(el)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      pickMeta = describeTarget(el);
+      endPick(true);
+    }
+
+    function onPickKey(e) {
+      if (!picking) return;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        endPick(false);
+      }
+    }
+
+    function startPick() {
+      if (picking) return;
+      picking = true;
+      mask.hidden = true;
+      if (pickLayer) pickLayer.hidden = false;
+      document.body.classList.add("is-fz-fb-picking");
+      document.addEventListener("mousemove", onPickMove, true);
+      document.addEventListener("click", onPickClick, true);
+      document.addEventListener("keydown", onPickKey, true);
+      FZShell.toast("请点击页面上有问题的区域", "ok");
+    }
+
+    function endPick(reopenFb) {
+      picking = false;
+      if (pickLayer) pickLayer.hidden = true;
+      placePickHl(null);
+      document.body.classList.remove("is-fz-fb-picking");
+      document.removeEventListener("mousemove", onPickMove, true);
+      document.removeEventListener("click", onPickClick, true);
+      document.removeEventListener("keydown", onPickKey, true);
+      paintPickSum();
+      if (reopenFb) {
+        mask.hidden = false;
+        showFb();
+        FZShell.toast(pickMeta ? "已记录问题位置" : "已取消点选", "ok");
+      }
     }
 
     function visibleFaq() {
@@ -457,10 +700,7 @@
     function answer(q, item) {
       bubble("me", esc(q));
       var link = "";
-      if (item && item.tour) {
-        link =
-          ' <button type="button" class="fz-help-link fz-help-link-btn" data-start-tour="1">立即重看 →</button>';
-      } else if (item && item.href && (!item.need || can(item.need))) {
+      if (item && item.href && (!item.need || can(item.need))) {
         link =
           ' <a class="fz-help-link" href="' +
           base() +
@@ -469,13 +709,6 @@
       }
       setTimeout(function () {
         bubble("bot", esc(item ? item.a : "") + link);
-        var last = chat.lastElementChild;
-        var tourBtn = last && last.querySelector("[data-start-tour]");
-        if (tourBtn) {
-          tourBtn.addEventListener("click", function () {
-            startMenuTour();
-          });
-        }
       }, 220);
     }
 
@@ -484,14 +717,6 @@
       var list = visibleFaq();
       var i;
       var item;
-      for (i = 0; i < list.length; i++) {
-        item = list[i];
-        if (
-          (t.indexOf("引导") !== -1 || t.indexOf("菜单说明") !== -1) &&
-          item.tour
-        )
-          return item;
-      }
       for (i = 0; i < list.length; i++) {
         item = list[i];
         var q = item.q || "";
@@ -512,34 +737,6 @@
       return null;
     }
 
-    function startMenuTour() {
-      function run() {
-        if (!global.FZMenuTour || typeof FZMenuTour.start !== "function") {
-          FZShell.toast("菜单引导暂不可用", "err");
-          return;
-        }
-        var steps = FZMenuTour.visibleSteps();
-        if (!steps.length) {
-          FZShell.toast("当前账号可见菜单过少，暂无引导步骤", "err");
-          return;
-        }
-        close();
-        FZMenuTour.start({});
-      }
-      if (global.FZMenuTour) {
-        run();
-        return;
-      }
-      if (global.FZShell && typeof FZShell.loadScriptOnce === "function") {
-        FZShell.loadScriptOnce("js/menu-tour.js?v=20261029wb40", run);
-      } else {
-        var el = document.createElement("script");
-        el.src = base() + "js/menu-tour.js?v=20261029wb40";
-        el.onload = run;
-        document.head.appendChild(el);
-      }
-    }
-
     (function bindFabOpen() {
       var fabBtn = document.getElementById("fz-help-fab");
       if (!fabBtn) return;
@@ -549,7 +746,6 @@
         open();
       });
     })();
-    document.getElementById("fz-help-tour").addEventListener("click", startMenuTour);
     document.getElementById("fz-help-close").addEventListener("click", close);
     document.addEventListener("click", function (e) {
       if (mask.hidden) return;
@@ -558,6 +754,7 @@
       close();
     });
     document.addEventListener("keydown", function (e) {
+      if (picking) return;
       if (e.key === "Escape" && !mask.hidden) close();
     });
     tabHome.addEventListener("click", function () {
@@ -579,6 +776,18 @@
         el.classList.toggle("is-on", on);
         el.setAttribute("aria-checked", on ? "true" : "false");
       });
+    });
+
+    document.getElementById("fz-fb-pick").addEventListener("click", function () {
+      startPick();
+    });
+    document.getElementById("fz-fb-pick-cancel").addEventListener("click", function () {
+      endPick(true);
+    });
+    pickClearBtn.addEventListener("click", function () {
+      pickMeta = null;
+      paintPickSum();
+      FZShell.toast("已清除问题位置，提交时仅附带说明与整页截图", "ok");
     });
 
     document.getElementById("fz-help-form").addEventListener("submit", function (e) {
@@ -611,15 +820,18 @@
         return;
       }
       submitting = true;
-      var shot = document.getElementById("fz-fb-shot").checked;
       var kindBtn = document.querySelector("#fz-help-fb .fz-fb-kind.is-on");
       var kind = kindBtn ? kindBtn.getAttribute("data-fb-kind") : "bug";
+      var shot = pageShotMeta();
+      var target = pickMeta || null;
       var s = FZStore.read();
       FZStore.addTicket(s, {
         id: FZStore.uid("tk"),
         kind: kind,
         text: text,
-        withShot: shot,
+        withShot: true,
+        pageShot: shot,
+        target: target,
         status: "pending",
         page: location.pathname.split("/").pop() || "",
         at: Date.now(),
@@ -627,18 +839,22 @@
       });
       FZStore.write(s);
       document.getElementById("fz-fb-text").value = "";
+      pickMeta = null;
+      paintPickSum();
       kindBox.querySelectorAll("[data-fb-kind]").forEach(function (el) {
         var on = el.getAttribute("data-fb-kind") === "bug";
         el.classList.toggle("is-on", on);
         el.setAttribute("aria-checked", on ? "true" : "false");
       });
-      FZShell.toast("已提交反馈", "ok");
+      FZShell.toast(
+        target
+          ? "已提交反馈（整页截图 + 问题位置）"
+          : "已提交反馈（说明 + 整页截图）",
+        "ok"
+      );
       submitting = false;
       showHome();
       close();
-      if (typeof global.FZHomeRefreshTickets === "function") {
-        global.FZHomeRefreshTickets();
-      }
     });
   }
 

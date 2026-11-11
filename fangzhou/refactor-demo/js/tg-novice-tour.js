@@ -808,19 +808,21 @@
     placeSpot();
   }
 
+  /** 已改为 pages/novice/tg-collect.html；业务页不再启动旧教程 */
   global.FZTgNovice = {
-    start: start,
-    exit: exitTour,
-    onPaint: onPaint,
-    onCtxPicked: onCtxPicked,
-    notify: notify,
-    complete: showDone,
-    ensureRoutePair: ensureNoviceRoutePair,
+    start: function () {},
+    exit: function () {},
+    onPaint: function () {},
+    onCtxPicked: function () {},
+    notify: function () {},
+    complete: function () {},
+    ensureRoutePair: function () {},
     active: function () {
-      return active && !dismissed && !showingDone;
+      return false;
     },
     dismissed: function () {
-      return !!dismissed;
-    }
+      return true;
+    },
+    deprecated: true
   };
 })(window);

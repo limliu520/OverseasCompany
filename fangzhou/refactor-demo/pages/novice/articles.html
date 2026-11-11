@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>教程 · 文章管理 · 方舟</title>
+  <link rel="stylesheet" href="../../css/app.css?v=20261110novice7" />
+</head>
+<body>
+  <div class="novice-frame-wrap">
+    <iframe
+      id="novice-frame"
+      title="文章管理演示"
+      src="../articles.html?novice_static=1"
+    ></iframe>
+  </div>
+  <script src="../../js/store.js?v=20261106perm2"></script>
+  <script src="../../js/novice-guide.js?v=20261110novice1"></script>
+  <script src="../../js/novice-static.js?v=20261110novice7"></script>
+  <script>
+    var LIST_SRC = "../articles.html?novice_static=1";
+    var EDIT_SRC = "../article-edit.html?id=1201&novice_static=1";
+
+    function closePreview(api) {
+      var close = api.qs("#art-preview-close");
+      if (close) close.click();
+      else api.hide("#art-preview-mask");
+      api.hide("#art-compare-mask");
+      api.hide("#art-confirm-mask");
+    }
+
+    function openPreview(api) {
+      var btn = api.qs('[data-act="preview"]');
+      if (btn) {
+        btn.click();
+        return;
+      }
+      var row = api.qs("tr.art-row--preview") || api.qs("#art-tbody tr");
+      if (row) row.click();
+    }
+
+    FZNoviceStatic.boot({
+      id: "articles",
+      homeHref: "../home.html",
+      doneSummary: "你已走完文章列表、预览，以及文章编辑页（AI 稿、正文、发布属性）。演示不保存、不推送。",
+      steps: [
+        {
+          id: "why",
+          title: "文章从哪来",
+          frameSrc: LIST_SRC,
+          tipBlocks: [
+            {
+              label: "和素材的关系",
+              text: "素材「转编辑」成功后，才会出现在文章列表。\n这里管的是内容通道里的稿件（瓜站 / 视频站）；短剧不进本列表。"
+            },
+            {
+              label: "你要完成的事",
+              text: "筛选找到稿 → 预览确认 → 进入编辑页改稿 → 保存 / 确认推送。"
+            }
+          ],
+          spot: ".page-hd, .list-toolbar, h1"
+        },
+        {
+          id: "filter",
+          title: "筛选与转编辑人",
+          frameSrc: LIST_SRC,
+          tipBlocks: [
+            {
+              label: "转编辑人是谁",
+              text: "「转编辑人」= 当时执行转编辑的人。\n手动转：记账号展示名；自动转编辑：记「自动」。\n推送人写在「已推送」状态旁，不占这一列。"
+            },
+            {
+              label: "怎么用",
+              text: "可按转编辑人、项目、状态缩小范围，再搜索 / 重置 / 刷新。"
+            }
+          ],
+          spot: ".list-toolbar, #art-f-op",
+          run: function (api) {
+            closePreview(api);
+          }
+        },
+        {
+          id: "table",
+          title: "文章列表",
+          frameSrc: LIST_SRC,
+          tipBlocks: [
+            {
+              label: "行里有什么",
+              text: "ID、标题、项目、状态、转编辑人、时间，以及预览 / 编辑等操作（按权限显隐）。"
+            },
+            {
+              label: "常见状态",
+              text: "待编辑：转进来还没改完。\n生成中 / 失败：媒体处理中或出错。\n已推送：已出站，仍可能再编辑。"
+            }
+          ],
+          spot: ".fz-table--art, #art-tbody"
+        },
+        {
+          id: "preview",
+          title: "预览（只读）",
+          frameSrc: LIST_SRC,
+          tipBlocks: [
+            {
+              label: "什么时候用",
+              text: "不想进编辑页、只想快速看成品效果时用预览。\n预览可点遮罩关闭；要改字必须进「编辑」。"
+            }
+          ],
+          spot: "#art-preview-mask .modal, #art-preview-body",
+          delayMs: 240,
+          run: function (api) {
+            closePreview(api);
+            setTimeout(function () {
+              openPreview(api);
+            }, 40);
+          }
+        },
+        {
+          id: "edit_enter",
+          title: "进入文章编辑",
+          frameSrc: EDIT_SRC,
+          tipBlocks: [
+            {
+              label: "为什么要进这一页",
+              text: "列表只能看状态；真正改标题、正文、封面、分类，都在「文章编辑」页完成。"
+            },
+            {
+              label: "顶栏做什么",
+              text: "返回列表、看当前状态与文章编号。\n右侧：版本对比、保存草稿。确认推送在正文工具区。"
+            }
+          ],
+          spot: ".art-edit-bar",
+          delayMs: 280
+        },
+        {
+          id: "edit_ai",
+          title: "AI 稿件",
+          frameSrc: EDIT_SRC,
+          tipBlocks: [
+            {
+              label: "干什么用",
+              text: "可整篇重写，或基于当前稿修改。\n生成多版草稿后，用上方稿签切换选用哪一版再人工润色。"
+            },
+            {
+              label: "建议用法",
+              text: "AI 出初稿 → 人改事实与语气 → 再保存。\n不要不看内容直接推送。"
+            }
+          ],
+          spot: "#art-btn-ai, .art-draft-bar, #art-ai-tabs",
+          delayMs: 200,
+          run: function (api) {
+            var btn = api.qs("#art-btn-ai");
+            if (btn) btn.click();
+          }
+        },
+        {
+          id: "edit_body",
+          title: "标题与正文",
+          frameSrc: EDIT_SRC,
+          tipBlocks: [
+            {
+              label: "主工作区",
+              text: "标题单独一块；正文可粗体 / 列表 / 插图 / 插视频，也可插入本篇关联素材。"
+            },
+            {
+              label: "和推送的关系",
+              text: "这里写的内容就是推给业务方的稿。\n改完先「保存」，确认无误再「确认推送」。"
+            }
+          ],
+          spot: "#art-title, #art-editor, .art-write-surface",
+          delayMs: 160,
+          run: function (api) {
+            var panel = api.qs("#art-ai-panel");
+            if (panel && !panel.hidden) {
+              var btn = api.qs("#art-btn-ai");
+              if (btn) btn.click();
+            }
+          }
+        },
+        {
+          id: "edit_rail",
+          title: "发布属性",
+          frameSrc: EDIT_SRC,
+          tipBlocks: [
+            {
+              label: "右侧栏",
+              text: "文章封面（本地图 / 拼图）、视频封面、分类、地区、关键词、标签。\n封面默认跟随项目；本篇可单独覆盖，也能恢复默认。"
+            },
+            {
+              label: "为什么重要",
+              text: "这些字段随稿一起出站。\n列表页改不了它们，必须在编辑页设好。"
+            }
+          ],
+          spot: ".art-edit-rail, #art-rail-body",
+          delayMs: 160
+        },
+        {
+          id: "edit_push",
+          title: "保存与推送",
+          frameSrc: EDIT_SRC,
+          tipBlocks: [
+            {
+              label: "操作顺序",
+              text: "1. 改完内容与发布属性\n2. 点「保存」落草稿\n3. 再点「确认推送」出站（会有二次确认）"
+            },
+            {
+              label: "教程说明",
+              text: "本教程不执行保存 / 推送。\n点「完成」结束即可。"
+            }
+          ],
+          spot: "#art-btn-draft, #art-btn-push, .art-draft-bar-actions",
+          delayMs: 160
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

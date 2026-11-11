@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>教程 · 网站采集 · 方舟</title>
+  <link rel="stylesheet" href="../../css/app.css?v=20261110novice7" />
+</head>
+<body>
+  <div class="novice-frame-wrap">
+    <iframe
+      id="novice-frame"
+      title="网站采集演示"
+      src="../website-collect.html?novice_static=1"
+    ></iframe>
+  </div>
+  <script src="../../js/store.js?v=20261106perm2"></script>
+  <script src="../../js/novice-guide.js?v=20261110novice1"></script>
+  <script src="../../js/novice-static.js?v=20261110novice7"></script>
+  <script>
+    function ensureOpen(api) {
+      var m = api.qs("#wc-site-modal");
+      if (!m || m.hidden) api.click("#btn-add-site");
+    }
+
+    function prefill(api) {
+      var typeSel = api.qs("#wc-f-type");
+      if (typeSel) typeSel.value = "short_drama";
+      var w = api.win();
+      if (w && w.FZWebCollectForm && typeSel) {
+        try {
+          w.FZWebCollectForm.fillTargets("short_drama", ["51 短剧"]);
+        } catch (e) {}
+      }
+      var name = api.qs("#wc-f-name");
+      var url = api.qs("#wc-f-url");
+      var pages = api.qs("#wc-f-pages");
+      if (name) name.value = "教程演示站";
+      if (url) url.value = "https://novice-demo.example.com";
+      if (pages) pages.value = "https://novice-demo.example.com/list";
+      var first = api.qs("#wc-f-targets input[type=checkbox]");
+      if (first) first.checked = true;
+      var collect = api.qs("#wc-f-collect");
+      var dedup = api.qs("#wc-f-dedup");
+      if (collect) collect.checked = true;
+      if (dedup) dedup.checked = true;
+    }
+
+    function closeModal(api) {
+      var cancel =
+        api.qs("#wc-site-cancel") ||
+        api.qs('#wc-site-modal [data-dismiss-for="wc-site-cancel"]');
+      if (cancel) cancel.click();
+      else api.hide("#wc-site-modal");
+      api.hide("#wc-submit-info-modal");
+      api.hide("#wc-prog-modal");
+      api.hide("#wc-bind-modal");
+    }
+
+    FZNoviceStatic.boot({
+      id: "web_collect",
+      homeHref: "../home.html",
+      doneSummary: "你已走完网站采集：申请弹窗字段、站点卡片与采集记录（演示未提交申请）。",
+      steps: [
+        {
+          id: "add_btn",
+          title: "申请入口",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "顶栏「申请添加采集网站」打开与正式页相同的申请弹窗。"
+            },
+            {
+              label: "接着注意",
+              text: "编辑类弹窗点遮罩不关闭。"
+            },
+          ],
+          spot: "#btn-add-site",
+          run: function (api) {
+            closeModal(api);
+          }
+        },
+        {
+          id: "modal_name",
+          title: "站点名称与类型",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "站点名称必填；"
+            },
+            {
+              label: "接着注意",
+              text: "类型决定可绑定的同类型项目列表。演示已预填示意值。"
+            },
+          ],
+          spot: "#wc-f-name, #wc-site-modal .modal",
+          delayMs: 220,
+          run: function (api) {
+            closeModal(api);
+            api.click("#btn-add-site");
+            setTimeout(function () {
+              prefill(api);
+            }, 60);
+          }
+        },
+        {
+          id: "modal_bind",
+          title: "绑定项目",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "同类型项目最多勾 5 个。"
+            },
+            {
+              label: "接着注意",
+              text: "申请通过后站点会挂到这些业务项目下。"
+            },
+          ],
+          spot: "#wc-f-targets-field, #wc-f-targets",
+          delayMs: 100,
+          run: function (api) {
+            ensureOpen(api);
+            prefill(api);
+          }
+        },
+        {
+          id: "modal_url",
+          title: "域名与网页",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "主域名 + 具体网页链接（每行一个，最多 50）。"
+            },
+            {
+              label: "接着注意",
+              text: "采集按这些入口抓取。"
+            },
+          ],
+          spot: "#wc-f-url, #wc-f-pages",
+          run: function (api) {
+            ensureOpen(api);
+            prefill(api);
+          }
+        },
+        {
+          id: "modal_opts",
+          title: "频率与开关",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "采集间隔、是否启动采集、是否判重、备注。"
+            },
+            {
+              label: "接着注意",
+              text: "提交后走审核，不立刻变成可采站点。"
+            },
+          ],
+          spot: "#wc-f-interval, #wc-f-collect, #wc-site-modal .modal",
+          run: function (api) {
+            ensureOpen(api);
+            prefill(api);
+          }
+        },
+        {
+          id: "sites",
+          title: "采集网站列表",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "关闭弹窗。"
+            },
+            {
+              label: "接着注意",
+              text: "卡片展示状态、绑定项目与操作（编辑、进度、停采等），与正式页一致。"
+            },
+          ],
+          spot: "#wc-sites",
+          delayMs: 160,
+          run: function (api) {
+            closeModal(api);
+            var card = api.qs("#wc-sites .wc-site-card, #wc-sites [data-site]");
+            if (card) card.click();
+          }
+        },
+        {
+          id: "records",
+          title: "采集记录",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "下方记录表：筛选、状态、翻页与正式页相同。"
+            },
+            {
+              label: "接着注意",
+              text: "点「完成」结束。"
+            },
+          ],
+          spot: "#wc-records, .wc-record-head"
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

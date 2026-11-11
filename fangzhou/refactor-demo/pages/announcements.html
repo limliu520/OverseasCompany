@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>全部公告 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261105novice" />
+  <link rel="stylesheet" href="../css/app.css?v=20261110msg7" />
 </head>
 <body>
   <div class="app">
@@ -12,41 +12,92 @@
     <div class="main">
       <div class="topbar">
         <h1>全部公告</h1>
-        <div class="topbar-actions" id="top-user"></div>
+        <div class="topbar-actions">
+          <a class="btn" href="./home.html">回工作台</a>
+          <div id="top-user"></div>
+        </div>
       </div>
-      <div class="content">
-        <p class="proj-page-lead">平台更新、维护与使用说明。点击条目查看详情。</p>
-        <div class="ann-list card card-pad" id="ann-list"></div>
+      <div class="content content--dock-pager">
+        <div class="page-scroll">
+          <div class="ann-list card card-pad" id="ann-list"></div>
+        </div>
+        <div class="pager-dock" id="ann-pager"></div>
       </div>
     </div>
   </div>
   <script src="../js/perm-tree.js?v=20261106view1"></script>
   <script src="../js/store.js?v=20261106perm2"></script>
-  <script src="../js/shell.js?v=20261106perm2"></script>
-  <script src="../js/announcements-data.js?v=20261029wb13"></script>
+  <script src="../js/shell.js?v=20261110noTour1"></script>
+  <script src="../js/pager.js?v=20261109maskRule"></script>
+  <script src="../js/announcements-data.js?v=20261110ann4"></script>
   <script>
     FZShell.boot({ active: "announcements" });
-    var box = document.getElementById("ann-list");
-    var items = FZAnnouncements.all();
-    box.innerHTML = items
-      .map(function (a) {
-        return (
-          '<a class="ann-row" href="./announcement-detail.html?id=' +
-          encodeURIComponent(a.id) +
-          '">' +
-          '<div class="ann-row-top">' +
-          "<strong>" +
-          FZShell.escHtml(a.title) +
-          "</strong>" +
-          '<span class="muted">' +
-          FZShell.escHtml(a.time) +
-          "</span></div>" +
-          "<p>" +
-          FZShell.escHtml(a.body) +
-          "</p></a>"
-        );
-      })
-      .join("");
+
+    var page = 1;
+    var pageSize = FZPager.DEFAULT;
+
+    function paint() {
+      var box = document.getElementById("ann-list");
+      var pagerEl = document.getElementById("ann-pager");
+      var all = FZAnnouncements.all().slice().sort(function (a, b) {
+        return String(b.time || "").localeCompare(String(a.time || ""));
+      });
+      var sl = FZPager.slice(all, page, pageSize);
+      page = sl.page;
+      pageSize = sl.pageSize;
+      if (pagerEl) {
+        pagerEl.innerHTML = sl.total
+          ? FZPager.html({
+              total: sl.total,
+              page: sl.page,
+              pageSize: sl.pageSize
+            })
+          : "";
+      }
+      if (!sl.total) {
+        box.innerHTML = '<p class="muted" style="margin:0">暂无公告</p>';
+        return;
+      }
+      box.innerHTML = sl.items
+        .map(function (a) {
+          return (
+            '<a class="ann-row' +
+            (a.unread ? " is-unread" : "") +
+            '" href="./announcement-detail.html?id=' +
+            encodeURIComponent(a.id) +
+            '">' +
+            '<div class="ann-row-top">' +
+            '<div class="ann-row-title">' +
+            FZAnnouncements.importantTag(a) +
+            "<strong>" +
+            FZShell.escHtml(a.title) +
+            "</strong>" +
+            FZAnnouncements.unreadDot(a) +
+            "</div>" +
+            '<div class="ann-row-meta">' +
+            '<span class="muted">' +
+            FZShell.escHtml(a.time) +
+            "</span></div></div>" +
+            "<p>" +
+            FZShell.escHtml(a.body) +
+            "</p></a>"
+          );
+        })
+        .join("");
+    }
+
+    paint();
+
+    FZPager.bind(document.getElementById("ann-pager"), {
+      getState: function () {
+        return { page: page, pageSize: pageSize };
+      },
+      setState: function (next) {
+        if (next.page != null) page = next.page;
+        if (next.pageSize != null) pageSize = next.pageSize;
+      },
+      onChange: paint
+    });
   </script>
 </body>
 </html>

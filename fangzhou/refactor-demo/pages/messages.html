@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>消息中心 · 方舟</title>
+  <link rel="stylesheet" href="../css/app.css?v=20261110msg7" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main">
+      <div class="topbar">
+        <h1>消息中心</h1>
+        <div class="topbar-actions">
+          <button type="button" class="btn btn-ghost" id="msg-clear-unread">一键清空未读</button>
+          <a class="btn" href="./home.html">回工作台</a>
+          <div id="top-user"></div>
+        </div>
+      </div>
+      <div class="content content--dock-pager">
+        <div class="page-scroll">
+          <div class="ann-list card card-pad" id="msg-list"></div>
+        </div>
+        <div class="pager-dock" id="msg-pager"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/perm-tree.js?v=20261106view1"></script>
+  <script src="../js/store.js?v=20261106perm2"></script>
+  <script src="../js/shell.js?v=20261110noTour1"></script>
+  <script src="../js/pager.js?v=20261109maskRule"></script>
+  <script src="../js/messages-data.js?v=20261110msg5"></script>
+  <script>
+    FZShell.boot({ active: "home" });
+
+    var page = 1;
+    var pageSize = FZPager.DEFAULT;
+
+    function syncClearBtn() {
+      var btn = document.getElementById("msg-clear-unread");
+      if (!btn) return;
+      var n = FZMessages.unreadCount();
+      btn.disabled = n <= 0;
+      btn.textContent = n > 0 ? "一键清空未读（" + n + "）" : "一键清空未读";
+    }
+
+    function paint() {
+      var box = document.getElementById("msg-list");
+      var pagerEl = document.getElementById("msg-pager");
+      var all = FZMessages.all();
+      var sl = FZPager.slice(all, page, pageSize);
+      page = sl.page;
+      pageSize = sl.pageSize;
+      syncClearBtn();
+      if (pagerEl) {
+        pagerEl.innerHTML = sl.total
+          ? FZPager.html({
+              total: sl.total,
+              page: sl.page,
+              pageSize: sl.pageSize
+            })
+          : "";
+      }
+      if (!sl.total) {
+        box.innerHTML = '<p class="muted" style="margin:0">暂无消息</p>';
+        return;
+      }
+      box.innerHTML = sl.items
+        .map(function (m) {
+          var kind = m.kind
+            ? '<span class="ann-tag ann-tag--kind">' + FZShell.escHtml(m.kind) + "</span>"
+            : "";
+          return (
+            '<button type="button" class="ann-row msg-row' +
+            (m.unread ? " is-unread" : "") +
+            '" data-msg-id="' +
+            FZShell.escHtml(m.id) +
+            '">' +
+            '<div class="ann-row-top">' +
+            '<div class="ann-row-title"><strong>' +
+            FZShell.escHtml(m.title) +
+            "</strong>" +
+            (m.unread ? '<span class="wb-an-dot" title="未读" aria-label="未读"></span>' : "") +
+            "</div>" +
+            '<div class="ann-row-meta"><span class="muted">' +
+            FZShell.escHtml(m.time) +
+            "</span></div></div>" +
+            (kind ? '<div class="ann-tags">' + kind + "</div>" : "") +
+            "<p>" +
+            FZShell.escHtml(m.body) +
+            "</p></button>"
+          );
+        })
+        .join("");
+    }
+
+    paint();
+
+    FZPager.bind(document.getElementById("msg-pager"), {
+      getState: function () {
+        return { page: page, pageSize: pageSize };
+      },
+      setState: function (next) {
+        if (next.page != null) page = next.page;
+        if (next.pageSize != null) pageSize = next.pageSize;
+      },
+      onChange: paint
+    });
+
+    document.getElementById("msg-list").addEventListener("click", function (e) {
+      var row = e.target.closest("[data-msg-id]");
+      if (!row) return;
+      location.href = FZMessages.openMessage(row.getAttribute("data-msg-id"));
+    });
+
+    document.getElementById("msg-clear-unread").addEventListener("click", function () {
+      if (FZMessages.unreadCount() <= 0) {
+        FZShell.toast("当前没有未读消息", "ok");
+        return;
+      }
+      FZMessages.markAllRead();
+      paint();
+      FZShell.toast("已清空全部未读", "ok");
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>教程 · 子账号与授权 · 方舟</title>
+  <link rel="stylesheet" href="../../css/app.css?v=20261110novice7" />
+</head>
+<body>
+  <div class="novice-frame-wrap">
+    <iframe
+      id="novice-frame"
+      title="子账号演示"
+      src="../subs.html?novice_static=1"
+    ></iframe>
+  </div>
+  <script src="../../js/store.js?v=20261106perm2"></script>
+  <script src="../../js/novice-guide.js?v=20261110novice1"></script>
+  <script src="../../js/novice-static.js?v=20261110novice7"></script>
+  <script>
+    function closeAll(api) {
+      var c1 = api.qs("#sub-cancel");
+      if (c1) c1.click();
+      var c2 = api.qs("#role-cancel");
+      if (c2) c2.click();
+      api.hide("#sub-modal");
+      api.hide("#role-modal");
+      api.hide("#sub-pass-modal");
+      api.hide("#sub-pass-done-modal");
+    }
+
+    function openRole(api) {
+      api.click("#tab-roles");
+      setTimeout(function () {
+        var m = api.qs("#role-modal");
+        if (!m || m.hidden) api.click("#btn-primary-act");
+      }, 40);
+    }
+
+    function ensureCreateOpen(api) {
+      api.click("#tab-subs");
+      var m = api.qs("#sub-modal");
+      if (!m || m.hidden) api.click("#btn-primary-act");
+    }
+
+    function prefillStep1(api) {
+      var user = api.qs("#sub-user");
+      var name = api.qs("#sub-name");
+      var pass = api.qs("#sub-pass");
+      var cms = api.qs("#sub-cms");
+      var tg = api.qs("#sub-tg");
+      if (user) user.value = "novice_demo_" + String(Date.now()).slice(-4);
+      if (name) name.value = "教程演示子账号";
+      if (pass) pass.value = "Changeme1";
+      if (cms) cms.value = "cms_novice_demo";
+      if (tg) tg.value = "+8613800000000";
+    }
+
+    function pickProject(api) {
+      var chip =
+        api.qs("#sub-projects .is-on") ||
+        api.qs("#sub-projects button") ||
+        api.qs("#sub-projects [data-proj]") ||
+        api.qs("#sub-projects label");
+      if (chip) chip.click();
+    }
+
+    FZNoviceStatic.boot({
+      id: "subs",
+      homeHref: "../home.html",
+      doneSummary: "你已理解岗位（权限包）与子账号三步授权的关系。演示不保存账号或岗位。",
+      steps: [
+        {
+          id: "why",
+          title: "两套东西别混",
+          tipBlocks: [
+            {
+              label: "岗位是什么",
+              text: "岗位 = 可复用的「权限包」（能进哪些菜单、能点哪些操作）。\n先定义岗位，创建子账号时才能一键套用。"
+            },
+            {
+              label: "子账号是什么",
+              text: "子账号 = 具体登录人。\n要绑：登录信息 + 负责哪些项目 + 用哪套权限（岗位或自定义）。"
+            }
+          ],
+          spot: "#tab-roles, #tab-subs",
+          run: function (api) {
+            closeAll(api);
+            api.click("#tab-roles");
+          }
+        },
+        {
+          id: "roles_list",
+          title: "岗位列表",
+          tipBlocks: [
+            {
+              label: "看什么",
+              text: "每张岗位卡：名称、权限摘要、有多少子账号正在使用。"
+            },
+            {
+              label: "为什么要先建岗位",
+              text: "多人同职责时，改一次岗位权限包，比给每个人逐个勾权限省事。\n删岗位不影响已写进账号的权限，只是以后不能再套用这个包。"
+            }
+          ],
+          spot: "#sub-list, .sub-role-card, #sub-list .card",
+          delayMs: 160,
+          run: function (api) {
+            closeAll(api);
+            api.click("#tab-roles");
+          }
+        },
+        {
+          id: "role_open",
+          title: "新建岗位",
+          tipBlocks: [
+            {
+              label: "入口",
+              text: "在「岗位」Tab 点「+ 新建岗位」。\n编辑类弹窗：点遮罩不关闭，须点取消或保存。"
+            },
+            {
+              label: "接下来",
+              text: "只要两样：岗位名称 + 权限勾选。"
+            }
+          ],
+          spot: "#btn-primary-act",
+          run: function (api) {
+            closeAll(api);
+            api.click("#tab-roles");
+          }
+        },
+        {
+          id: "role_name",
+          title: "岗位名称",
+          tipBlocks: [
+            {
+              label: "怎么起名",
+              text: "按职责起名，例如「采集运营」「审稿」。\n名称会显示在子账号卡片上，方便辨认。"
+            }
+          ],
+          spot: "#role-name, #role-modal .modal",
+          delayMs: 240,
+          run: function (api) {
+            closeAll(api);
+            openRole(api);
+          }
+        },
+        {
+          id: "role_feats",
+          title: "岗位权限范围",
+          tipBlocks: [
+            {
+              label: "勾什么",
+              text: "按菜单 / 页内操作勾选。\n这就是套用该岗位的子账号「默认能做什么」。"
+            },
+            {
+              label: "和子账号的关系",
+              text: "创建子账号第 3 步可选此岗位。\n若再改勾选，该账号会变成「自定义」，不再跟岗位包联动。"
+            }
+          ],
+          spot: "#role-feats, #role-modal .modal",
+          delayMs: 120,
+          run: function (api) {
+            var m = api.qs("#role-modal");
+            if (!m || m.hidden) openRole(api);
+          }
+        },
+        {
+          id: "subs_tab",
+          title: "回到子账号",
+          tipBlocks: [
+            {
+              label: "岗位建好之后",
+              text: "切到「子账号」Tab 看具体人。\n卡片上会显示登录名、项目、岗位名等。"
+            }
+          ],
+          spot: "#tab-subs",
+          delayMs: 120,
+          run: function (api) {
+            closeAll(api);
+            api.click("#tab-subs");
+          }
+        },
+        {
+          id: "sub_create",
+          title: "创建子账号 · 三步",
+          tipBlocks: [
+            {
+              label: "流程",
+              text: "① 个人信息 → ② 负责项目 → ③ 岗位与权限。\n未走完的步不能跳；须按「下一步」推进。"
+            }
+          ],
+          spot: "#btn-primary-act",
+          run: function (api) {
+            closeAll(api);
+            api.click("#tab-subs");
+          }
+        },
+        {
+          id: "sub_profile",
+          title: "① 个人信息",
+          tipBlocks: [
+            {
+              label: "必填含义",
+              text: "登录名 / 显示名 / 初始密码：用来登录。\nCMS 标识：推送时带给业务方判断内容归属。\nTelegram 手机号：登录时密码与谷歌验证之后还要验这个号。"
+            }
+          ],
+          spot: "#sub-step-1, #sub-user",
+          delayMs: 240,
+          run: function (api) {
+            closeAll(api);
+            api.click("#tab-subs");
+            setTimeout(function () {
+              api.click("#btn-primary-act");
+              setTimeout(function () {
+                prefillStep1(api);
+              }, 40);
+            }, 40);
+          }
+        },
+        {
+          id: "sub_projects",
+          title: "② 负责项目",
+          tipBlocks: [
+            {
+              label: "为什么要选项目",
+              text: "子账号只能操作被授权的业务项目。\n公共池不在此授权。至少选一项才能进入下一步。"
+            }
+          ],
+          spot: "#sub-step-2, #sub-projects",
+          delayMs: 220,
+          run: function (api) {
+            ensureCreateOpen(api);
+            prefillStep1(api);
+            var next = api.qs("#sub-next");
+            if (next && !next.hidden) next.click();
+            setTimeout(function () {
+              pickProject(api);
+            }, 80);
+          }
+        },
+        {
+          id: "sub_role",
+          title: "③ 套用岗位",
+          tipBlocks: [
+            {
+              label: "和前面岗位的衔接",
+              text: "这里出现的岗位芯片，来自「岗位」Tab 里保存的权限包。\n先点岗位套用，再按需微调勾选。"
+            },
+            {
+              label: "自定义",
+              text: "一旦改了下方权限勾选，会自动标成「自定义」。\n之后岗位包再改，也不会自动同步到这个人。"
+            },
+            {
+              label: "教程说明",
+              text: "演示到此结束，不点保存。点「完成」回工作台。"
+            }
+          ],
+          spot: "#sub-step-3, #sub-role-presets, #sub-feats",
+          delayMs: 260,
+          run: function (api) {
+            ensureCreateOpen(api);
+            prefillStep1(api);
+            var next = api.qs("#sub-next");
+            if (next && !next.hidden) {
+              next.click();
+              setTimeout(function () {
+                pickProject(api);
+                setTimeout(function () {
+                  var n2 = api.qs("#sub-next");
+                  if (n2 && !n2.hidden) n2.click();
+                }, 100);
+              }, 80);
+            }
+          }
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

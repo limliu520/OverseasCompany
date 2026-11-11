@@ -63,10 +63,8 @@
   </div>
 
   <script src="../js/store.js?v=20261109maskRule"></script>
-  <script src="../js/shell.js?v=20261109modalX"></script>
+  <script src="../js/shell.js?v=20261110noTour1"></script>
   <script src="../js/novice-guide.js?v=20261109maskRule"></script>
-  <script src="../js/novice-tour-kit.js?v=20261109maskRule"></script>
-  <script src="../js/novice-tours.js?v=20261109maskRule"></script>
   <script src="../js/article-defaults.js?v=20261109maskRule"></script>
   <script src="../js/media-config.js?v=20261109maskRule"></script>
   <script src="../js/pick-cards.js"></script>
@@ -84,7 +82,9 @@
 
     function isNoviceEditTour() {
       try {
-        return new URLSearchParams(location.search).get("novice") === "edit_project";
+        var q = new URLSearchParams(location.search);
+        if (q.get("novice_static") === "1") return true;
+        return q.get("novice") === "edit_project";
       } catch (e) {
         return false;
       }

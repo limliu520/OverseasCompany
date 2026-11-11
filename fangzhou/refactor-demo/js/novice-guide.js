@@ -1,47 +1,54 @@
-/* 工作台新手教程：按权限裁剪；从任务跳转带 ?novice=；到达目标页即记完成 */
+/* 工作台新手教程：按权限裁剪；入口进独立静态演示页（不挂真实业务页） */
 (function (global) {
   var STEPS = [
     {
       id: "create_project",
       title: "创建项目",
-      desc: "分步体验：看步骤条 → 填写创建 → 看到成功。",
-      need: "projects.list.proj_new"
+      desc: "独立演示页：认识步骤 → 预填示意 → 完成。",
+      need: "projects.list.proj_new",
+      page: "novice/create-project.html"
     },
     {
       id: "edit_project",
       title: "水印、文章配置",
-      desc: "在项目详情学习水印与文章规范配置。",
-      need: "projects.list.view"
+      desc: "独立演示页：编辑入口 → 水印 Tab → 文案 Tab。",
+      need: "projects.list.view",
+      page: "novice/edit-project.html"
     },
     {
       id: "tg_collect",
       title: "TG 采集配置",
-      desc: "分步体验：切换项目 → 加号 → 加频道 → 公共池建路由。",
-      need: "collect.tg.view"
+      desc: "独立演示页：业务项目 / 公共池 → 加号 → 频道 → 路由。",
+      need: "collect.tg.view",
+      page: "novice/tg-collect.html"
     },
     {
       id: "web_collect",
       title: "网站采集配置",
-      desc: "分步体验：添加网站 → 点选站点 → 看采集记录。",
-      need: "collect.web.view"
+      desc: "独立演示页：添加网站 → 站点卡片 → 采集记录。",
+      need: "collect.web.view",
+      page: "novice/web-collect.html"
     },
     {
       id: "materials",
       title: "素材管理",
-      desc: "分步体验：切换视图 → 打开详情 → 看审核入口。",
-      need: "collect.materials.view"
+      desc: "独立演示页：三视图 → 列表 → 详情结构。",
+      need: "collect.materials.view",
+      page: "novice/materials.html"
     },
     {
       id: "articles",
       title: "文章管理",
-      desc: "分步体验：筛选列表 → 预览或进入编辑。",
-      need: "content.article.view"
+      desc: "独立演示页：筛选 → 列表 → 预览。",
+      need: "content.article.view",
+      page: "novice/articles.html"
     },
     {
       id: "subs",
       title: "子账号与授权",
-      desc: "分步体验：切 Tab → 走创建子账号向导。",
-      need: "global.subs.accounts.view"
+      desc: "独立演示页：岗位 / 子账号 Tab → 创建入口。",
+      need: "global.subs.accounts.view",
+      page: "novice/subs.html"
     }
   ];
 
@@ -54,25 +61,9 @@
     return /\/pages\//.test(p) ? "./" : "pages/";
   }
 
-  function hrefFor(step, state) {
+  function hrefFor(step) {
     var base = pageBase();
-    var q = "novice=" + encodeURIComponent(step.id);
-    if (step.id === "create_project") {
-      return base + "project-setup.html?new=1&" + q;
-    }
-    if (step.id === "edit_project") {
-      /* 教程独立演示页：不依赖真实项目，新号也不进空列表 */
-      return (
-        base +
-        "project-edit.html?id=novice_demo_edit&tab=watermark&" +
-        q
-      );
-    }
-    if (step.id === "tg_collect") return base + "tg-collect.html?" + q;
-    if (step.id === "web_collect") return base + "website-collect.html?" + q;
-    if (step.id === "materials") return base + "materials.html?" + q;
-    if (step.id === "articles") return base + "articles.html?" + q;
-    if (step.id === "subs") return base + "subs.html?" + q;
+    if (step && step.page) return base + step.page;
     return base + "home.html";
   }
 
@@ -108,36 +99,8 @@
     return true;
   }
 
-  function isCollapsed(state) {
-    state = state || FZStore.read();
-    var map = state.noviceCollapsedByAccount || {};
-    return !!map[FZStore.accountKey(state)];
-  }
-
-  function setCollapsed(collapsed) {
-    var st = FZStore.read();
-    if (!st.noviceCollapsedByAccount) st.noviceCollapsedByAccount = {};
-    st.noviceCollapsedByAccount[FZStore.accountKey(st)] = !!collapsed;
-    FZStore.write(st);
-  }
-
-  /** 进入即记完成；有页内分步教程的模块跳过，改由「完成学习」勾选 */
-  var INTERACTIVE_TOURS = {
-    create_project: true,
-    edit_project: true,
-    tg_collect: true,
-    web_collect: true,
-    materials: true,
-    articles: true,
-    subs: true
-  };
-  function consumeQuery() {
-    try {
-      var step = new URLSearchParams(location.search).get("novice");
-      if (!step || INTERACTIVE_TOURS[step]) return;
-      markDone(step);
-    } catch (e) {}
-  }
+  /** 旧 ?novice= 挂业务页已废弃；保留空实现避免 shell 报错 */
+  function consumeQuery() {}
 
   function progress(state) {
     var steps = visibleSteps(state);
@@ -152,28 +115,15 @@
     if (!mount || !FZStore) return;
     var state = FZStore.read();
     var prog = progress(state);
-    if (!prog.total) {
+    /* 无权限项，或全部学完：整卡消失（不再提供「收起 / 展开」） */
+    if (!prog.total || prog.done >= prog.total) {
       mount.hidden = true;
       mount.innerHTML = "";
       return;
     }
     mount.hidden = false;
-    var collapsed = isCollapsed(state) && prog.done >= prog.total;
     var emptyOn =
       FZStore.isEmptyOnboarding && FZStore.isEmptyOnboarding(state);
-
-    if (collapsed) {
-      mount.innerHTML =
-        '<div class="wb-novice wb-novice--collapsed card card-pad">' +
-        '<div class="wb-novice-head">' +
-        "<div><h2>新手教程</h2>" +
-        '<p class="wb-novice-sum">已完成全部 ' +
-        prog.total +
-        " 项，可随时回看。</p></div>" +
-        '<button type="button" class="btn btn-ghost btn-sm" data-novice-expand>展开</button>' +
-        "</div></div>";
-      return;
-    }
 
     var cards = prog.steps
       .map(function (step, i) {
@@ -210,10 +160,7 @@
       prog.done +
       " / " +
       prog.total +
-      "（从这里进入会带上教程标记，便于后续页内说明）</p></div>" +
-      (prog.done >= prog.total
-        ? '<button type="button" class="btn btn-ghost btn-sm" data-novice-collapse>收起</button>'
-        : "") +
+      "（全部完成后本卡自动消失；每项为独立演示页）</p></div>" +
       "</div>" +
       '<div class="wb-novice-track" style="--wb-novice-n:' +
       prog.total +
@@ -225,19 +172,6 @@
   function bindWorkbench(mount) {
     if (!mount || mount.getAttribute("data-novice-bound")) return;
     mount.setAttribute("data-novice-bound", "1");
-    mount.addEventListener("click", function (e) {
-      if (e.target.closest("[data-novice-collapse]")) {
-        e.preventDefault();
-        setCollapsed(true);
-        renderWorkbench(mount);
-        return;
-      }
-      if (e.target.closest("[data-novice-expand]")) {
-        e.preventDefault();
-        setCollapsed(false);
-        renderWorkbench(mount);
-      }
-    });
   }
 
   global.FZNovice = {

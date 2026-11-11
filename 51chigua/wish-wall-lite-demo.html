@@ -812,7 +812,7 @@ button { cursor: pointer; }
   display: inline; white-space: nowrap; margin-left: 8px;
 }
 .post-card .hot-comments .c-time,
-.post-detail .c-time { color: #6e6e7a; font-size: 11px; margin: 0; }
+.post-detail .c-time { color: #6e6e7a; font-size: 11px; margin: 0 8px 0 0; }
 .post-card .hot-comments .c-like,
 .post-detail .c-like {
   display: inline-flex; align-items: center; gap: 3px;
@@ -2021,11 +2021,11 @@ textarea.afield,
       })
       .slice(0, 2);
   }
-  /* 左侧标记：神评 / 热门；本人待审前台不标「待审核」 */
-  function commentMark(c) {
+  /* 左侧标记：神评各处可出；🔥 热门仅卡片预览（WW-06），全部评论页不出 */
+  function commentMark(c, { showHot = false } = {}) {
     if (isCommentPending(c)) return "";
     if (isGodComment(c)) return `<span class="c-mark god" title="神评">神评</span>`;
-    if (isLikeRisen(c)) return `<span class="c-mark" title="热门" aria-label="热门">🔥</span>`;
+    if (showHot && isLikeRisen(c)) return `<span class="c-mark" title="热门" aria-label="热门">🔥</span>`;
     return "";
   }
 
@@ -2046,12 +2046,13 @@ textarea.afield,
     </button>`;
   }
 
-  function commentItemHtml(c) {
-    const mark = commentMark(c);
+  function commentItemHtml(c, opts = {}) {
+    const mark = commentMark(c, opts);
+    const time = c.time ? `<span class="c-time">${escapeHtml(c.time)}</span>` : "";
     return `<div class="c-item">
       ${mark || '<span class="c-mark" aria-hidden="true"></span>'}
       <div class="c-body">
-        <span class="c-user">${escapeHtml(c.user)}</span><span class="c-text">${escapeHtml(c.text)}</span>
+        <span class="c-user">${escapeHtml(c.user)}</span>${time}<span class="c-text">${escapeHtml(c.text)}</span>
         <span class="c-meta">${commentLikeBtn(c)}</span>
       </div>
     </div>`;
@@ -2072,7 +2073,7 @@ textarea.afield,
           <button type="button" class="hc-sofa" data-post-detail="${p.id}">去抢首评</button>
         </div>`;
     } else if (preview.length) {
-      body = preview.map((c) => commentItemHtml(c)).join("");
+      body = preview.map((c) => commentItemHtml(c, { showHot: true })).join("");
     }
     return `<div class="hot-comments" data-cstate="${cCount ? (preview.length ? "has" : "entry") : "empty"}">
       <div class="hc-head">

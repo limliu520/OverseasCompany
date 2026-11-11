@@ -153,11 +153,15 @@
       ackFloat.hidden = true;
       ackFloat.textContent = "确认了解";
       document.body.appendChild(ackFloat);
-      ackFloat.onclick = function () {
+      function onAckFloatClick(e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         if (!active || dismissed || showingDone) return;
         var step = cur();
         if (!step || !(step.ack || step.ackLabel)) return;
-        beginAutoDrive(4500);
+        beginAutoDrive(12000);
         if (typeof step.onAck === "function") {
           try {
             step.onAck(api);
@@ -165,7 +169,9 @@
           return;
         }
         advance();
-      };
+      }
+      ackFloat.addEventListener("click", onAckFloatClick, true);
+      ackFloat.onclick = onAckFloatClick;
 
       doneMask = document.createElement("div");
       doneMask.id = uid + "-done";
@@ -266,6 +272,7 @@
       ensureUi();
       if (spot) spot.hidden = true;
       if (ackFloat) ackFloat.hidden = true;
+      clearAckShield();
       doneMask.hidden = false;
       if (spotRaf) {
         cancelAnimationFrame(spotRaf);
@@ -311,16 +318,26 @@
       placeAckFloat(r);
     }
 
+    function clearAckShield() {
+      document.querySelectorAll("[data-novice-ack-shield]").forEach(function (el) {
+        el.removeAttribute("data-novice-ack-shield");
+      });
+    }
+
     function placeAckFloat(anchorRect) {
       if (!ackFloat) return;
       var step = cur();
       var needAck = !!(step && (step.ack || step.ackLabel));
       if (!needAck || showingDone || dismissed || !active) {
         ackFloat.hidden = true;
+        clearAckShield();
         return;
       }
       ackFloat.hidden = false;
       ackFloat.textContent = step.ackLabel || "确认了解";
+      /* 高亮目标不抢点击，避免与浮层叠在一起「点不动」 */
+      clearAckShield();
+      if (lastSpotEl) lastSpotEl.setAttribute("data-novice-ack-shield", "1");
       var r = anchorRect;
       if (!r && lastSpotEl && lastSpotEl.getBoundingClientRect) {
         r = lastSpotEl.getBoundingClientRect();
@@ -335,17 +352,23 @@
         return;
       }
       ackFloat.style.transform = "";
-      var btnW = Math.max(ackFloat.offsetWidth || 96, 96);
-      var btnH = Math.max(ackFloat.offsetHeight || 36, 36);
-      var left = r.left;
-      var top = r.bottom + 12;
+      var btnW = Math.max(ackFloat.offsetWidth || 110, 110);
+      var btnH = Math.max(ackFloat.offsetHeight || 40, 40);
+      /* 优先放在高亮左侧，避免盖住页脚「下一步」 */
+      var left = r.left - btnW - 14;
+      var top = r.top + (r.height - btnH) / 2;
+      if (left < 12) {
+        left = r.left;
+        top = r.bottom + 14;
+      }
       if (top + btnH > window.innerHeight - 16) {
-        top = Math.max(12, r.top - btnH - 12);
+        top = Math.max(12, r.top - btnH - 14);
       }
       if (left + btnW > window.innerWidth - 12) {
         left = Math.max(12, window.innerWidth - btnW - 12);
       }
       if (left < 12) left = 12;
+      if (top < 12) top = 12;
       ackFloat.style.left = Math.round(left) + "px";
       ackFloat.style.top = Math.round(top) + "px";
     }
@@ -622,6 +645,7 @@
         spot.remove();
         spot = null;
       }
+      clearAckShield();
       if (ackFloat) {
         ackFloat.remove();
         ackFloat = null;

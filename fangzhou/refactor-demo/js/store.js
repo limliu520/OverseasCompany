@@ -698,13 +698,11 @@
     features: null,
     firstProjectDone: true,
     zeroPromptDismissed: false,
-    /** { [accountId]: true } 菜单二级引导完成 */
-    menuTourDoneByAccount: {},
     /** { [accountId]: { stepId: true } } 工作台新手教程完成步 */
     noviceDoneByAccount: {},
     /** { [accountId]: true } 新手教程全部完成后收起 */
     noviceCollapsedByAccount: {},
-    /** 快速反馈工单 */
+    /** 帮助中心反馈提交记录（不进工作台列表） */
     tickets: [],
     /** 额外状态提醒种子（采集号断线由工作台从 userbots 推导；此处只补频道级样例） */
     statusAlerts: [
@@ -717,7 +715,31 @@
         objectExtra: "采集频道",
         botName: "星火采",
         reason: "连续拉取失败 3 次，请检查号是否仍在频道内。",
-        severity: "danger",
+        severity: "p0",
+        href: "./tg-collect.html"
+      },
+      {
+        id: "alert_ch_member",
+        need: "collect.tg.view",
+        projectName: "公共采集池",
+        kindLabel: "频道异常",
+        objectName: "@pool_source_beta",
+        objectExtra: "采集频道",
+        botName: "晚风号",
+        reason: "成员校验超时，结果无法判定，请尽快复核号是否仍在频道内。",
+        severity: "p1",
+        href: "./tg-collect.html"
+      },
+      {
+        id: "alert_route_soft",
+        need: "collect.tg.view",
+        projectName: "公共采集池",
+        kindLabel: "频道异常",
+        objectName: "@pool_target_soft",
+        objectExtra: "分发频道",
+        botName: "晚风号",
+        reason: "分发延迟偏高，暂未断流，可排队观察。",
+        severity: "p2",
         href: "./tg-collect.html"
       }
     ],
@@ -769,8 +791,8 @@
       state.tickets = [];
       changed = true;
     }
-    if (!state.menuTourDoneByAccount) {
-      state.menuTourDoneByAccount = {};
+    if (state.menuTourDoneByAccount) {
+      delete state.menuTourDoneByAccount;
       changed = true;
     }
     if (!state.noviceDoneByAccount) {
@@ -806,11 +828,31 @@
           a.kindLabel = "频道异常";
           changed = true;
         }
-        if (!a.severity) {
-          a.severity = "danger";
-          changed = true;
+        if (!a.severity || a.severity === "warn" || a.severity === "danger" || a.severity === "info") {
+          var mapSev = { danger: "p0", warn: "p1", info: "p2" };
+          var next = mapSev[a.severity] || a.severity;
+          if (!a.severity) next = "p0";
+          if (a.severity !== next) {
+            a.severity = next;
+            changed = true;
+          }
         }
       });
+      var hasP2 = (state.statusAlerts || []).some(function (a) {
+        return a.severity === "p2";
+      });
+      if (!hasP2 && DEFAULT.statusAlerts) {
+        DEFAULT.statusAlerts.forEach(function (seed) {
+          if (seed.severity !== "p2") return;
+          var hit = (state.statusAlerts || []).some(function (a) {
+            return a.id === seed.id;
+          });
+          if (!hit) {
+            state.statusAlerts.push(clone(seed));
+            changed = true;
+          }
+        });
+      }
     }
     if (!state.extChannels) {
       state.extChannels = [];
@@ -1938,16 +1980,6 @@
     return (state && state.accountId) || "owner";
   }
 
-  function isMenuTourDone(state) {
-    var map = state.menuTourDoneByAccount || {};
-    return !!map[accountKey(state)];
-  }
-
-  function setMenuTourDone(state, done) {
-    if (!state.menuTourDoneByAccount) state.menuTourDoneByAccount = {};
-    state.menuTourDoneByAccount[accountKey(state)] = !!done;
-  }
-
   /**
    * 登录页选角色后写入会话。
    * profile: owner | owner_empty | sub id
@@ -1957,7 +1989,6 @@
     state.loggedIn = true;
     state.tickets = state.tickets || [];
     state.statusAlerts = state.statusAlerts || clone(DEFAULT.statusAlerts);
-    state.menuTourDoneByAccount = state.menuTourDoneByAccount || {};
     state.noviceDoneByAccount = state.noviceDoneByAccount || {};
     state.noviceCollapsedByAccount = state.noviceCollapsedByAccount || {};
 
@@ -2107,8 +2138,6 @@
     flattenOwnerFeatures: flattenOwnerFeatures,
     hasFeature: hasFeature,
     accountKey: accountKey,
-    isMenuTourDone: isMenuTourDone,
-    setMenuTourDone: setMenuTourDone,
     applyLoginProfile: applyLoginProfile,
     addTicket: addTicket,
     reset: function () {
@@ -2118,18 +2147,6 @@
         localStorage.removeItem("fz_articles_demo_v1");
         localStorage.removeItem("fz_articles_demo_v2");
       } catch (err) {}
-      /* 菜单引导本会话防重复标记；不清理则重置后引导不会再自动弹出 */
-      try {
-        var kill = [];
-        var i;
-        for (i = 0; i < sessionStorage.length; i++) {
-          var k = sessionStorage.key(i);
-          if (k && k.indexOf("fz_tour_auto_") === 0) kill.push(k);
-        }
-        kill.forEach(function (k) {
-          sessionStorage.removeItem(k);
-        });
-      } catch (err2) {}
       if (global.FZArticles && typeof FZArticles.reset === "function") {
         FZArticles.reset();
       }

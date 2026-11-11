@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>教程 · 创建项目 · 方舟</title>
+  <link rel="stylesheet" href="../../css/app.css?v=20261110novice7" />
+</head>
+<body>
+  <div class="novice-frame-wrap">
+    <iframe
+      id="novice-frame"
+      title="创建项目演示"
+      src="../project-setup.html?new=1&novice_static=1"
+    ></iframe>
+  </div>
+  <script src="../../js/store.js?v=20261106perm2"></script>
+  <script src="../../js/novice-guide.js?v=20261110novice1"></script>
+  <script src="../../js/novice-static.js?v=20261110novice7"></script>
+  <script>
+    function fireInput(el) {
+      if (!el) return;
+      try {
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      } catch (e) {}
+    }
+
+    function prefill(api) {
+      var name = api.qs("#f-name");
+      if (!name) return;
+      if (!String(name.value || "").trim()) name.value = "教程演示项目";
+      /* 必须派发 input：页脚「下一步」靠它 syncFoot 解锁，否则会一直灰着切不过去 */
+      fireInput(name);
+    }
+
+    function unlockBtn(btn) {
+      if (!btn) return;
+      btn.classList.remove("is-disabled");
+      btn.removeAttribute("aria-disabled");
+      btn.disabled = false;
+    }
+
+    function clickNextOrSkip(api) {
+      prefill(api);
+      var skip = api.qs("#btn-skip");
+      var next = api.qs("#btn-next");
+      var skipVisible =
+        skip &&
+        skip.style.display !== "none" &&
+        !skip.hidden;
+      var nextDisabled = next && (next.classList.contains("is-disabled") || next.disabled);
+      var skipDisabled = skip && (skip.classList.contains("is-disabled") || skip.disabled);
+
+      /* 必填已预填但仍灰：强制解锁后再点（教程演示） */
+      if (next && nextDisabled && !(skipVisible && !skipDisabled)) {
+        unlockBtn(next);
+        nextDisabled = false;
+      }
+
+      if (skipVisible && !skipDisabled && nextDisabled) {
+        skip.click();
+        return;
+      }
+      if (next && !nextDisabled) {
+        next.click();
+        return;
+      }
+      if (skipVisible && !skipDisabled) skip.click();
+    }
+
+    function hasAny(api, sels) {
+      for (var i = 0; i < sels.length; i++) {
+        if (api.qs(sels[i])) return true;
+      }
+      return false;
+    }
+
+    /** 若当前面板还不是目标，则「下一步/跳过」直到出现（最多 maxN 次） */
+    function goUntil(api, sels, maxN) {
+      var n = 0;
+      maxN = maxN || 8;
+      while (n < maxN && !hasAny(api, sels)) {
+        clickNextOrSkip(api);
+        n += 1;
+      }
+      return hasAny(api, sels);
+    }
+
+    function closeTg(api) {
+      api.closeWizard();
+      api.hide("#fz-tg-wizard-mask");
+    }
+
+    FZNoviceStatic.boot({
+      id: "create_project",
+      homeHref: "../home.html",
+      doneSummary: "你已按向导逐步看完创建项目（含采集号弹窗示意，未写入真实项目）。",
+      onReady: function (api) {
+        prefill(api);
+      },
+      steps: [
+        {
+          id: "steps",
+          title: "创建步骤条",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "左侧是完整创建向导：基本信息 → 封面 → 水印 → 片头片尾 → 文案 → 内容规则 → 采集号 → 推送规则。"
+            },
+            {
+              label: "接着注意",
+              text: "须按顺序解锁。"
+            },
+          ],
+          spot: "#steps"
+        },
+        {
+          id: "name",
+          title: "项目名称",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "第一步「基本信息」。"
+            },
+            {
+              label: "接着注意",
+              text: "项目名称必填；演示已预填「教程演示项目」，正式创建时换成真实名称。"
+            },
+          ],
+          spot: "#f-name",
+          run: function (api) {
+            prefill(api);
+          }
+        },
+        {
+          id: "type",
+          title: "站点类型",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "站点类型决定后续是否出现「文案管理」、短剧分集等规则。"
+            },
+            {
+              label: "接着注意",
+              text: "点选卡片即可；创建后仍可在项目详情改类型。"
+            },
+          ],
+          spot: ".site-type-cards"
+        },
+        {
+          id: "foot",
+          title: "页脚操作",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "必填步用「下一步」；可选步可「跳过」。"
+            },
+            {
+              label: "接着注意",
+              text: "上一步可回看。接下来会按正式逻辑逐步进入每一模块。"
+            },
+          ],
+          spot: "#wizard-foot, .wizard-foot"
+        },
+        {
+          id: "cover",
+          title: "封面 · 尺寸",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "「封面」步：文章封面宽/高（200–4096），生成与推送共用。"
+            },
+            {
+              label: "接着注意",
+              text: "可用快捷竖版 / 横版 / 方图。"
+            },
+          ],
+          spot: "#f-cw, [data-media-cover] .ratio-row",
+          delayMs: 180,
+          run: function (api) {
+            goUntil(api, ["[data-media-cover]", "#f-cw"]);
+          }
+        },
+        {
+          id: "cover_panel",
+          title: "封面 · 拼图与视频",
+          tipBlocks: [
+            {
+              label: "说明",
+              text: "同一步还有：文章封面拼图数（单/二/三拼），以及视频封面默认策略（文章封面 / 首帧 / 随机抽帧）。"
+            },
+          ],
+          spot: "[data-media-cover]",
+          run: function (api) {
+            goUntil(api, ["[data-media-cover]"]);
+          }
+        },
+        {
+          id: "wm_dewm",
+          title: "水印 · 去源",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "「水印」步默认策略可直接下一步。"
+            },
+            {
+              label: "接着注意",
+              text: "上方是去源开关（图 / 视频），控制是否去掉来源水印。"
+            },
+          ],
+          spot: ".wm-dewm-card, [data-media-wm]",
+          delayMs: 180,
+          run: function (api) {
+            goUntil(api, [".wm-dewm-card", "[data-media-wm]", "#wm-add-flow"]);
+          }
+        },
+        {
+          id: "wm_add",
+          title: "水印 · 叠层",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "下方可上传图/视频叠层水印，调位置与宽度比例。"
+            },
+            {
+              label: "接着注意",
+              text: "无文件也可先用默认叠层，创建后再到项目详情细调。"
+            },
+          ],
+          spot: ".wm-add-card, #wm-add-flow",
+          run: function (api) {
+            goUntil(api, [".wm-add-card", "#wm-add-flow"]);
+          }
+        },
+        {
+          id: "intro",
+          title: "片头和片尾",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "可选：上传片头 / 片尾素材。"
+            },
+            {
+              label: "接着注意",
+              text: "未上传可跳过；有素材时生成视频会按配置拼接。"
+            },
+          ],
+          spot: "[data-media-io], #panel",
+          delayMs: 180,
+          run: function (api) {
+            goUntil(api, ["[data-media-io]"]);
+          }
+        },
+        {
+          id: "article_prompt",
+          title: "文案 · 提示词",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "「文案管理」（吃瓜等类型才有）：AI 文章提示词可自定义；"
+            },
+            {
+              label: "接着注意",
+              text: "也可先跳过，创建后在项目详情配置。"
+            },
+          ],
+          spot: "[data-media-art], [data-art-pane='prompt'], #panel",
+          delayMs: 180,
+          run: function (api) {
+            /* 无文案步时停在下一可讲解面板，避免空点 */
+            if (!goUntil(api, ["[data-media-art]"], 3)) {
+              goUntil(api, [".media-rules-split", "#btn-new-bot"]);
+            }
+          }
+        },
+        {
+          id: "article_links",
+          title: "文案 · 内链",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "切到「文案内链管理」：关键词 + URL，支持 Excel 导入。"
+            },
+            {
+              label: "接着注意",
+              text: "生成正文时可自动加链。若当前类型无文案步，本步仅作说明。"
+            },
+          ],
+          spot: "[data-art-section='links'], [data-art-pane='links'], [data-media-art], #panel",
+          delayMs: 120,
+          run: function (api) {
+            var tab = api.qs("[data-art-section='links']");
+            if (tab) tab.click();
+          }
+        },
+        {
+          id: "media",
+          title: "内容生成规则",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "图片输出格式、视频是否生成边下边播地址等。"
+            },
+            {
+              label: "接着注意",
+              text: "本步有默认值，确认后点下一步即可。"
+            },
+          ],
+          spot: ".media-rules-split, #panel .cfg-card, #panel",
+          delayMs: 180,
+          run: function (api) {
+            goUntil(api, [".media-rules-split"]);
+          }
+        },
+        {
+          id: "userbot_entry",
+          title: "采集号入口",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "创建阶段可先加 Userbot，也可跳过，创建后到「TG 采集配置」再加。"
+            },
+            {
+              label: "接着注意",
+              text: "上限与频道挂载规则与正式页相同。"
+            },
+          ],
+          spot: "#btn-new-bot, #pending-bots, #panel",
+          delayMs: 180,
+          run: function (api) {
+            goUntil(api, ["#btn-new-bot"]);
+          }
+        },
+        {
+          id: "tg_quick",
+          title: "添加采集号 · 快捷登录",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "正式添加弹窗：快捷登录只需账号标签 + 国际格式手机号，再发验证码。"
+            },
+            {
+              label: "接着注意",
+              text: "演示不真正发送。"
+            },
+          ],
+          spot: "#fz-tg-wizard-mask .modal, #tg-wiz-quick",
+          delayMs: 220,
+          run: function (api) {
+            goUntil(api, ["#btn-new-bot"]);
+            closeTg(api);
+            var btn = api.qs("#btn-new-bot");
+            if (btn) btn.click();
+            else {
+              var w = api.win();
+              if (w && w.FZTgWizard) w.FZTgWizard.open({});
+            }
+          }
+        },
+        {
+          id: "tg_adv",
+          title: "添加采集号 · 高级模式",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "高级模式需自备 API ID / API Hash（my.telegram.org），再填手机号与验证码。"
+            },
+            {
+              label: "接着注意",
+              text: "字段旁「?」有来源说明。"
+            },
+          ],
+          spot: "#tg-wiz-advanced, #fz-tg-wizard-mask .modal",
+          delayMs: 160,
+          run: function (api) {
+            var mask = api.qs("#fz-tg-wizard-mask");
+            if (!mask || mask.hidden) {
+              var btn = api.qs("#btn-new-bot");
+              if (btn) btn.click();
+            }
+            var tab = api.qs("#tg-tab-advanced");
+            if (tab) tab.click();
+          }
+        },
+        {
+          id: "flow",
+          title: "推送规则",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "关闭采集号弹窗后进入「推送规则」：素材进编辑 / 推送业务方 / 出站门槛。"
+            },
+            {
+              label: "接着注意",
+              text: "有默认值，确认即可创建。"
+            },
+          ],
+          spot: '[data-seg-name="to-edit-mode"], [data-seg-name="push-mode"], #panel',
+          delayMs: 220,
+          run: function (api) {
+            closeTg(api);
+            goUntil(api, ['[data-seg-name="to-edit-mode"]', '[data-seg-name="push-mode"]']);
+          }
+        },
+        {
+          id: "success",
+          title: "创建成功",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "点页脚「创建 / 下一步」后出现成功示意。"
+            },
+            {
+              label: "接着注意",
+              text: "教程模式不写真实项目、不跳对接。点「完成」结束。"
+            },
+          ],
+          spot: "#success-modal .modal, #success-modal",
+          delayMs: 320,
+          run: function (api) {
+            closeTg(api);
+            var ok = api.qs("#success-modal");
+            if (!ok || ok.hidden) clickNextOrSkip(api);
+          }
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

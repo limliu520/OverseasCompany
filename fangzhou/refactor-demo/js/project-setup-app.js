@@ -13,7 +13,9 @@
   /** 新手教程：独立演示，不写真实项目、不跳对接/列表 */
   function isNoviceCreate() {
     try {
-      return new URLSearchParams(location.search).get("novice") === "create_project";
+      var q = new URLSearchParams(location.search);
+      if (q.get("novice_static") === "1") return true;
+      return q.get("novice") === "create_project";
     } catch (e) {
       return false;
     }
@@ -959,4 +961,17 @@
 
   rebuildSteps();
   render();
+  if (isNoviceCreate()) {
+    setTimeout(function () {
+      var name = document.getElementById("f-name");
+      if (!name) return;
+      if (!String(name.value || "").trim()) name.value = "教程演示项目";
+      try {
+        name.dispatchEvent(new Event("input", { bubbles: true }));
+      } catch (e) {}
+      try {
+        syncFoot();
+      } catch (e2) {}
+    }, 40);
+  }
 })();

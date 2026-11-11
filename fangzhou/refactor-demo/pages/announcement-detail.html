@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>公告详情 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261105novice" />
+  <link rel="stylesheet" href="../css/app.css?v=20261110msg3" />
 </head>
 <body>
   <div class="app">
@@ -13,7 +13,7 @@
       <div class="topbar">
         <h1>公告详情</h1>
         <div class="topbar-actions">
-          <a class="btn" href="./announcements.html">全部公告</a>
+          <a class="btn" href="./home.html">回工作台</a>
           <div id="top-user"></div>
         </div>
       </div>
@@ -26,8 +26,8 @@
   </div>
   <script src="../js/perm-tree.js?v=20261106view1"></script>
   <script src="../js/store.js?v=20261106perm2"></script>
-  <script src="../js/shell.js?v=20261106perm2"></script>
-  <script src="../js/announcements-data.js?v=20261029wb13"></script>
+  <script src="../js/shell.js?v=20261110noTour1"></script>
+  <script src="../js/announcements-data.js?v=20261110ann3"></script>
   <script>
     FZShell.boot({ active: "announcements" });
     var id = new URLSearchParams(location.search).get("id") || "";
@@ -38,6 +38,8 @@
         '<p class="muted">未找到该公告。</p>' +
         '<p><a class="btn btn-primary" href="./announcements.html">返回全部公告</a></p>';
     } else {
+      FZAnnouncements.markRead(a.id);
+      a = FZAnnouncements.byId(id);
       document.title = a.title + " · 方舟";
       var paras = String(a.content || a.body || "")
         .split(/\n\n+/)
@@ -47,9 +49,11 @@
         .join("");
       box.innerHTML =
         '<p class="ann-detail-back"><a href="./announcements.html">← 全部公告</a></p>' +
-        "<h2>" +
+        '<h2 class="ann-detail-title">' +
+        FZAnnouncements.importantTag(a) +
+        "<span>" +
         FZShell.escHtml(a.title) +
-        "</h2>" +
+        "</span></h2>" +
         '<p class="ann-detail-meta muted">' +
         FZShell.escHtml(a.time) +
         "</p>" +

@@ -55,19 +55,30 @@
           var ticks = 0;
           var iv = setInterval(function () {
             ticks += 1;
-            if (ticks > 24) {
+            if (ticks > 48) {
+              clearInterval(iv);
+              return;
+            }
+            if (document.querySelector(".fz-novice-done-mask:not([hidden])")) {
               clearInterval(iv);
               return;
             }
             prefillCreateProject();
             var skip = document.getElementById("btn-skip");
             var next = document.getElementById("btn-next");
-            if (skip && skip.style.display !== "none" && !skip.classList.contains("is-disabled")) {
+            var skipOk =
+              skip &&
+              skip.style.display !== "none" &&
+              !skip.classList.contains("is-disabled") &&
+              !skip.disabled;
+            var nextOk =
+              next && !next.classList.contains("is-disabled") && !next.disabled;
+            if (skipOk) {
               skip.click();
               return;
             }
-            if (next && !next.classList.contains("is-disabled")) next.click();
-          }, 140);
+            if (nextOk) next.click();
+          }, 120);
         }
       }
     ]
@@ -464,12 +475,8 @@
     }
   }
 
-  function boot() {
-    var id = currentTourId();
-    var tour = TOURS[id];
-    if (!tour) return;
-    tour.start();
-  }
+  /** 已改为 pages/novice/* 静态页；业务页不再自动 boot */
+  function boot() {}
 
   global.FZNoviceTours = {
     all: TOURS,
@@ -477,15 +484,7 @@
       return TOURS[id] || null;
     },
     boot: boot,
-    notify: function (id, kind) {
-      var t = TOURS[id];
-      if (t) t.notify(kind);
-    }
+    notify: function () {},
+    deprecated: true
   };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
-  } else {
-    setTimeout(boot, 0);
-  }
 })(window);

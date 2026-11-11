@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>教程 · 水印与文案 · 方舟</title>
+  <link rel="stylesheet" href="../../css/app.css?v=20261110novice7" />
+</head>
+<body>
+  <div class="novice-frame-wrap">
+    <iframe
+      id="novice-frame"
+      title="项目详情演示"
+      src="../project-edit.html?id=novice_demo_edit&tab=watermark&novice_static=1"
+    ></iframe>
+  </div>
+  <script src="../../js/store.js?v=20261106perm2"></script>
+  <script src="../../js/novice-guide.js?v=20261110novice1"></script>
+  <script src="../../js/novice-static.js?v=20261110novice7"></script>
+  <script>
+    function closeBasic(api) {
+      var cancel = api.qs("#basic-cancel");
+      if (cancel) cancel.click();
+      else api.hide("#basic-modal");
+    }
+
+    FZNoviceStatic.boot({
+      id: "edit_project",
+      homeHref: "../home.html",
+      doneSummary: "你已在演示项目详情走过基本信息弹窗、水印与文案配置（未写入真实项目）。",
+      steps: [
+        {
+          id: "summary",
+          title: "项目摘要",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "详情页顶部只读：名称、类型、状态等。"
+            },
+            {
+              label: "接着注意",
+              text: "展示与编辑分离——改资料须点「编辑基本信息」。"
+            },
+          ],
+          spot: ".detail-hero, #btn-edit-basic"
+        },
+        {
+          id: "basic_open",
+          title: "打开编辑弹窗",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "编辑类弹窗：点遮罩不会关闭，须点取消或保存。"
+            },
+            {
+              label: "接着注意",
+              text: "下一步看弹窗内字段。"
+            },
+          ],
+          spot: "#btn-edit-basic",
+          delayMs: 180,
+          run: function (api) {
+            closeBasic(api);
+            api.click("#btn-edit-basic");
+          }
+        },
+        {
+          id: "basic_name",
+          title: "名称与类型",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "项目名称必填；"
+            },
+            {
+              label: "接着注意",
+              text: "站点类型可改，只影响后续出稿规则，已产出历史稿不会自动重跑。"
+            },
+          ],
+          spot: "#b-name, #basic-site-types, #basic-modal .modal",
+          delayMs: 120,
+          run: function (api) {
+            if (api.qs("#basic-modal") && api.qs("#basic-modal").hidden) {
+              api.click("#btn-edit-basic");
+            }
+          }
+        },
+        {
+          id: "basic_cover",
+          title: "封面尺寸与拼图",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "文章封面宽高、拼图数（单/二/三拼）、视频封面默认策略都在此改。"
+            },
+            {
+              label: "接着注意",
+              text: "一个项目一套内容通道。"
+            },
+          ],
+          spot: "#b-cw, #basic-modal .ratio-row, #basic-modal .modal"
+        },
+        {
+          id: "wm_tab",
+          title: "水印管理 Tab",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "关闭基本信息。"
+            },
+            {
+              label: "接着注意",
+              text: "下方配置 Tab 与正式页一致；先进入「水印管理」。"
+            },
+          ],
+          spot: '.config-tabs [data-tab="watermark"]',
+          delayMs: 120,
+          run: function (api) {
+            closeBasic(api);
+            api.click('.config-tabs [data-tab="watermark"]');
+          }
+        },
+        {
+          id: "wm_dewm",
+          title: "去源策略",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "去源：图 / 视频开关与策略分段。"
+            },
+            {
+              label: "接着注意",
+              text: "与创建向导同一套控件，改完需保存本 Tab。"
+            },
+          ],
+          spot: ".wm-dewm-card, [data-media-wm]",
+          delayMs: 120,
+          run: function (api) {
+            api.click('.config-tabs [data-tab="watermark"]');
+          }
+        },
+        {
+          id: "wm_add",
+          title: "叠层上传",
+          tipBlocks: [
+            {
+              label: "说明",
+              text: "图水印 / 视频水印分栏上传，可调位置与宽度比例，也可移除。"
+            },
+          ],
+          spot: ".wm-add-card, #wm-add-flow"
+        },
+        {
+          id: "article_tab",
+          title: "文案管理 Tab",
+          tipBlocks: [
+            {
+              label: "说明",
+              text: "切到「文案管理」：模板提示词 + 自定义 + 文案内链，能力完整，不是精简开关。"
+            },
+          ],
+          spot: '.config-tabs [data-tab="article"]',
+          delayMs: 120,
+          run: function (api) {
+            api.click('.config-tabs [data-tab="article"]');
+          }
+        },
+        {
+          id: "article_prompt",
+          title: "AI 提示词",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "「AI 文章提示词管理」：可看默认模板、改自定义词。"
+            },
+            {
+              label: "接着注意",
+              text: "保存后影响后续生成。"
+            },
+          ],
+          spot: "[data-art-pane='prompt'], [data-media-art], #config-body",
+          delayMs: 120,
+          run: function (api) {
+            var tab = api.qs("[data-art-section='prompt']");
+            if (tab) tab.click();
+          }
+        },
+        {
+          id: "article_links",
+          title: "文案内链",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "「文案内链管理」：关键词与 URL、Excel 导入。"
+            },
+            {
+              label: "接着注意",
+              text: "点「完成」结束（演示不保存）。"
+            },
+          ],
+          spot: "[data-art-section='links'], [data-art-pane='links'], [data-media-art]",
+          delayMs: 120,
+          run: function (api) {
+            var tab = api.qs("[data-art-section='links']");
+            if (tab) tab.click();
+          }
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

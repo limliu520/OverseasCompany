@@ -69,7 +69,7 @@
 
   var PAGE_MID = 5;
   var PAGE_WORK = 20;
-  var pageState = { todos: 1, alerts: 1, mats: 1, arts: 1 };
+  var pageState = { alerts: 1, mats: 1, arts: 1 };
 
   function esc(s) {
     return FZShell.escHtml(s);
@@ -138,8 +138,7 @@
       pageState[key] += go === "next" ? 1 : -1;
       if (pageState[key] < 1) pageState[key] = 1;
       var s = FZStore.read();
-      if (key === "todos") renderTodos(s);
-      else if (key === "alerts") renderAlerts(s);
+      if (key === "alerts") renderAlerts(s);
       else if (key === "mats") renderMats();
       else if (key === "arts") renderArts();
     });
@@ -978,10 +977,6 @@
     bindSparkTips(extra);
   }
 
-  function canSeeTodos() {
-    return can("projects.list.view");
-  }
-
   function canSeeMats() {
     return can("collect.materials.view");
   }
@@ -990,60 +985,20 @@
     return can("content.article.view");
   }
 
-  function adaptWorkbenchLayout() {
-    /* 本期工作台只保留：新手教程 + 数据概览 / 状态异常 / 平台公告 */
-  }
-
-  function renderQuick() {
-    var box = document.getElementById("wb-quick");
-    if (!box) return;
-    var items = [
-      {
-        need: "projects.list.proj_new",
-        label: "新建项目",
-        href: "./project-setup.html?new=1",
-        primary: true
-      },
-      {
-        need: "collect.tg.bot_add",
-        label: "添加采集号",
-        href: "./tg-collect.html?action=add_bot"
-      },
-      {
-        need: "collect.tg.ch_join",
-        label: "添加频道",
-        href: "./tg-collect.html?action=add_channel"
-      },
-      {
-        need: "collect.web.site_apply",
-        label: "添加网站",
-        href: "./website-collect.html?new=1"
-      },
-      {
-        need: "collect.tg.route_add",
-        label: "增加路由",
-        href: "./tg-collect.html?action=add_route"
-      }
-    ].filter(function (x) {
-      return can(x.need);
-    });
-    if (!items.length) {
-      box.innerHTML = empty("当前角色无快捷操作权限");
-      return;
+  function paintMsgBadge() {
+    var badge = document.getElementById("wb-msg-badge");
+    if (!badge) return;
+    var n =
+      global.FZMessages && typeof FZMessages.unreadCount === "function"
+        ? FZMessages.unreadCount()
+        : 0;
+    if (n > 0) {
+      badge.hidden = false;
+      badge.textContent = n > 99 ? "99+" : String(n);
+    } else {
+      badge.hidden = true;
+      badge.textContent = "0";
     }
-    box.innerHTML = items
-      .map(function (x) {
-        return (
-          '<a class="wb-qchip' +
-          (x.primary ? " is-primary" : "") +
-          '" href="' +
-          x.href +
-          '">' +
-          esc(x.label) +
-          "</a>"
-        );
-      })
-      .join("");
   }
 
   function renderAnnounce() {
@@ -1060,170 +1015,31 @@
     box.innerHTML = list
       .map(function (a) {
         return (
-          '<a class="wb-an-item" href="./announcement-detail.html?id=' +
+          '<a class="wb-an-item' +
+          (a.unread ? " is-unread" : "") +
+          '" href="./announcement-detail.html?id=' +
           encodeURIComponent(a.id) +
           '">' +
-          '<div class="wb-an-top"><strong>' +
+          '<div class="wb-an-top">' +
+          '<div class="wb-an-title">' +
+          (a.important ? '<span class="ann-tag ann-tag--important">重要</span>' : "") +
+          "<strong>" +
           esc(a.title) +
-          "</strong><span>" +
+          "</strong>" +
+          (a.unread
+            ? '<span class="wb-an-dot" title="未读" aria-label="未读"></span>'
+            : "") +
+          "</div>" +
+          '<div class="wb-an-meta">' +
+          '<span class="wb-an-time">' +
           esc(a.time) +
-          "</span></div>" +
+          "</span></div></div>" +
           "<p>" +
           esc(a.body) +
           "</p></a>"
         );
       })
       .join("");
-  }
-
-  function statusTag(text, cls) {
-    return (
-      '<span class="tag ' +
-      (cls || "tag-warn") +
-      '">' +
-      esc(text) +
-      "</span>"
-    );
-  }
-
-  function buildTodoItems(s) {
-    var items = [];
-    var projects = FZStore.businessProjects(s);
-    var canProj = can("projects.list.view");
-
-    if (canProj && !projects.length && can("projects.list.proj_new")) {
-      items.push({
-        matter: "创建首个业务项目",
-        tip: "新号入驻",
-        type: "入驻",
-        statusHtml: statusTag("需创建", "tag-warn"),
-        act:
-          '<a class="btn btn-sm btn-create" href="./project-setup.html?new=1">+ 创建</a>',
-        rank: 0
-      });
-    }
-    if (canProj) {
-      projects.forEach(function (p) {
-        var matter = "";
-        var href = "";
-        var btn = "";
-        var stText = "";
-        var stCls = "tag-warn";
-        if (p.status === "pending_activate" && can("projects.list.proj_connect")) {
-          matter = "内容通道待接通 · " + p.name;
-          href = "./project-connect.html?id=" + encodeURIComponent(p.id);
-          btn = "对接";
-          stText = "待接通";
-        } else if (p.status === "need_collect" && can("projects.list.view")) {
-          matter = "缺采集源 · " + p.name;
-          href =
-            "./project-edit.html?id=" + encodeURIComponent(p.id) + "&tab=flow";
-          btn = "配置";
-          stText = "待完善";
-          stCls = "tag-muted";
-        } else if (!p.watermarkDone && can("projects.list.wm")) {
-          matter = "媒体配置待完善 · " + p.name;
-          href = "./project-edit.html?id=" + encodeURIComponent(p.id);
-          btn = "完善";
-          stText = "待完善";
-        }
-        if (!matter) return;
-        items.push({
-          matter: matter,
-          tip: p.name,
-          type: "项目",
-          statusHtml: statusTag(stText, stCls),
-          act: href
-            ? '<a class="btn btn-sm btn-primary" href="' + href + '">' + btn + "</a>"
-            : "",
-          rank: 1
-        });
-      });
-    }
-
-    var ticketKind = { bug: "Bug", ui: "UI", idea: "建议", other: "其他" };
-    (s.tickets || []).forEach(function (t) {
-      var done = t.status === "done";
-      var text = String(t.text || "");
-      var short = text.slice(0, 48) + (text.length > 48 ? "…" : "");
-      var kindLabel = ticketKind[t.kind] || "";
-      items.push({
-        matter: short || "（空反馈）",
-        tip: (t.by ? "提交人 " + t.by + " · " : "") + text,
-        type: kindLabel ? "反馈 · " + kindLabel : "反馈工单",
-        statusHtml: done
-          ? statusTag("已处理", "tag-ok")
-          : statusTag("待处理", "tag-warn"),
-        act: done
-          ? ""
-          : '<button type="button" class="btn btn-sm" data-tk-done="' +
-            esc(t.id) +
-            '">办结</button>',
-        rank: done ? 3 : 2
-      });
-    });
-
-    items.sort(function (a, b) {
-      return a.rank - b.rank;
-    });
-    return items;
-  }
-
-  function bindTodoActions(box) {
-    if (!box || box.getAttribute("data-todo-bound")) return;
-    box.setAttribute("data-todo-bound", "1");
-    box.addEventListener("click", function (e) {
-      var btn = e.target.closest("[data-tk-done]");
-      if (!btn) return;
-      var id = btn.getAttribute("data-tk-done");
-      var st = FZStore.read();
-      (st.tickets || []).forEach(function (t) {
-        if (t.id === id) t.status = "done";
-      });
-      FZStore.write(st);
-      FZShell.toast("工单已办结", "ok");
-      renderTodos(FZStore.read());
-    });
-  }
-
-  function renderTodos(s) {
-    var box = document.getElementById("wb-todos");
-    if (!box) return;
-    bindTodoActions(box);
-    bindWorkbenchPagers();
-    var canProj = can("projects.list.view");
-    var items = buildTodoItems(s);
-    if (!canProj && !(s.tickets || []).length) {
-      box.innerHTML =
-        empty("暂无待办") +
-        compactPager("todos", slicePage([], 1, PAGE_MID), true);
-      return;
-    }
-    if (!items.length) {
-      box.innerHTML =
-        empty("暂无待办事项") +
-        compactPager("todos", slicePage([], 1, PAGE_MID), true);
-      return;
-    }
-    var sl = slicePage(items, pageState.todos, PAGE_MID);
-    pageState.todos = sl.page;
-    box.innerHTML =
-      headRow(["事项", "类型", "状态"]) +
-      '<div class="wb-dense-body">' +
-      sl.items
-        .map(function (it) {
-          return denseRow(
-            [
-              { text: it.matter, tip: it.tip || it.matter },
-              { text: it.type },
-              { html: it.statusHtml }
-            ],
-            it.act || ""
-          );
-        })
-        .join("") +
-      "</div>" +
-      compactPager("todos", sl, true);
   }
 
   function alertTypeLabel(kind) {
@@ -1233,6 +1049,39 @@
     if (/素材/.test(k)) return "素材异常";
     if (/稿件|文章/.test(k)) return "稿件异常";
     return k.indexOf("异常") >= 0 ? k : k + "异常";
+  }
+
+  /** 紧急度展示：紧急 / 优先 / 一般（内部仍用 p0/p1/p2） */
+  function normalizeAlertSev(raw) {
+    var s = String(raw || "").toLowerCase();
+    if (s === "p0" || s === "danger" || s === "critical" || s === "high") return "p0";
+    if (s === "p1" || s === "warn" || s === "warning" || s === "medium") return "p1";
+    if (s === "p2" || s === "info" || s === "low" || s === "normal") return "p2";
+    return "p1";
+  }
+
+  function alertSevTag(sev) {
+    if (sev === "p0") {
+      return '<span class="tag tag-danger" title="需马上处理">紧急</span>';
+    }
+    if (sev === "p1") {
+      return '<span class="tag tag-warn" title="需尽快处理">优先</span>';
+    }
+    return '<span class="tag tag-muted" title="可排队处理">一般</span>';
+  }
+
+  /** 首屏先各露一条 P0/P1/P2，再按紧急度排剩余，避免一屏全是同级看不出差别 */
+  function mixAlertSevForFirstPage(list) {
+    var buckets = { p0: [], p1: [], p2: [] };
+    (list || []).forEach(function (a) {
+      var k = a.sev === "p0" || a.sev === "p2" ? a.sev : "p1";
+      buckets[k].push(a);
+    });
+    var head = [];
+    ["p0", "p1", "p2"].forEach(function (k) {
+      if (buckets[k].length) head.push(buckets[k].shift());
+    });
+    return head.concat(buckets.p0, buckets.p1, buckets.p2);
   }
 
   function buildAlerts(s) {
@@ -1252,7 +1101,7 @@
         tip: [a.projectName, a.botName ? "采集号 " + a.botName : "", a.objectExtra]
           .filter(Boolean)
           .join(" · "),
-        sev: a.severity === "warn" ? "warn" : "danger",
+        sev: normalizeAlertSev(a.severity),
         href: a.href || "./tg-collect.html"
       });
     });
@@ -1279,7 +1128,7 @@
             tip:
               (pool.name || "公共池") +
               (bot && bot.name ? " · 采集号 " + bot.name : ""),
-            sev: hs === "BROKEN" ? "danger" : "warn",
+            sev: hs === "BROKEN" ? "p0" : "p1",
             href: "./tg-collect.html?project=" + encodeURIComponent(pool.id)
           });
         });
@@ -1294,7 +1143,7 @@
             type: "频道异常",
             reason: ch.healthError || hs,
             tip: (p.name || "项目") + (ch.role === "push" ? " · 分发" : " · 采集"),
-            sev: hs === "BROKEN" ? "danger" : "warn",
+            sev: hs === "BROKEN" ? "p0" : "p1",
             href:
               "./tg-collect.html?project=" + encodeURIComponent(p.id || "")
           });
@@ -1312,7 +1161,7 @@
             type: "采集号异常",
             reason: "当前状态：" + lab,
             tip: p.name,
-            sev: "danger",
+            sev: "p0",
             href: "./tg-collect.html?project=" + encodeURIComponent(p.id)
           });
         });
@@ -1322,12 +1171,12 @@
     /* 素材/稿件卡住量是汇总统计，不进本列表；待办看下方 Tab */
 
     list.sort(function (a, b) {
-      var rank = { danger: 0, warn: 1 };
-      var d = (rank[a.sev] || 9) - (rank[b.sev] || 9);
+      var rank = { p0: 0, p1: 1, p2: 2 };
+      var d = (rank[a.sev] != null ? rank[a.sev] : 9) - (rank[b.sev] != null ? rank[b.sev] : 9);
       if (d !== 0) return d;
       return String(a.type || "").localeCompare(String(b.type || ""), "zh");
     });
-    return list;
+    return mixAlertSevForFirstPage(list);
   }
 
   function renderAlerts(s) {
@@ -1357,16 +1206,12 @@
       '<div class="wb-dense-body">' +
       sl.items
         .map(function (a) {
-          var level =
-            a.sev === "danger"
-              ? '<span class="tag tag-danger">紧急</span>'
-              : '<span class="tag tag-warn">关注</span>';
           return denseRow(
             [
               { text: a.object, tip: a.tip || a.object },
               { text: a.type },
               { text: a.reason, tip: a.reason, cls: "is-reason" },
-              { html: level }
+              { html: alertSevTag(a.sev) }
             ],
             '<a class="btn btn-sm" href="' + a.href + '">查看</a>'
           );
@@ -1573,21 +1418,17 @@
     var s = FZStore.read();
     if (maybeBlankWorkbench(s)) return;
     bindWorkTabs();
-    adaptWorkbenchLayout();
     renderNovice();
     renderStats(s);
     renderAnnounce();
+    paintMsgBadge();
     renderAlerts(s);
   }
 
-  global.FZHomeRefreshTickets = function () {
-    renderTodos(FZStore.read());
-  };
   global.FZHomeApp = {
     render: render,
     boot: function () {
       render();
-      /* 新号不再弹「欢迎创建首个项目」；侧栏引导仅从帮助中心重看 */
     }
   };
 })(window);

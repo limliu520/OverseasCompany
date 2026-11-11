@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>教程 · TG 采集 · 方舟</title>
+  <link rel="stylesheet" href="../../css/app.css?v=20261110novice8" />
+</head>
+<body>
+  <div class="novice-frame-wrap">
+    <iframe
+      id="novice-frame"
+      title="TG 采集演示"
+      src="../tg-collect.html?novice_static=1"
+    ></iframe>
+  </div>
+  <script src="../../js/store.js?v=20261106perm2"></script>
+  <script src="../../js/novice-guide.js?v=20261110novice1"></script>
+  <script src="../../js/novice-static.js?v=20261110novice8"></script>
+  <script>
+    var POOL = "proj_public_pool";
+
+    function pickBot(api) {
+      var bot =
+        api.qs("#tg-bot-list .ub-card.is-active") ||
+        api.qs("#tg-bot-list .ub-card") ||
+        api.qs("#tg-bot-list [data-bot]");
+      if (bot) bot.click();
+    }
+
+    function closeAllTgModals(api) {
+      api.closeWizard();
+      ["#fz-tg-wizard-mask", "#tg-ch-modal", "#tg-rr-modal", "#tg-assign-modal", "#tg-confirm-modal"].forEach(
+        function (sel) {
+          api.hide(sel);
+        }
+      );
+    }
+
+    FZNoviceStatic.boot({
+      id: "tg_collect",
+      homeHref: "../home.html",
+      doneSummary: "你已走完 TG 采集：开始/停止采集、添加采集号、加入频道与新建路由（演示未改真实配置）。",
+      steps: [
+        {
+          id: "biz",
+          title: "业务项目",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "顶栏项目卡片可在业务项目与公共采集池间切换。"
+            },
+            {
+              label: "接着注意",
+              text: "业务项目视角看本项目挂载的采集号与频道。"
+            },
+          ],
+          spot: '[data-pick-ctx]:not([data-pick-ctx="' + POOL + '"])',
+          run: function (api) {
+            closeAllTgModals(api);
+            var el = api.qs('[data-pick-ctx]:not([data-pick-ctx="' + POOL + '"])');
+            if (el) el.click();
+          }
+        },
+        {
+          id: "pool",
+          title: "公共采集池",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "TG→TG 路由只在公共采集池创建。"
+            },
+            {
+              label: "接着注意",
+              text: "切回公共池后，才能看到「新建路由」等池级能力。"
+            },
+          ],
+          spot: '[data-pick-ctx="' + POOL + '"]',
+          run: function (api) {
+            closeAllTgModals(api);
+            var el = api.qs('[data-pick-ctx="' + POOL + '"]');
+            if (el) el.click();
+          }
+        },
+        {
+          id: "bot_list",
+          title: "采集号列表",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "左侧是采集号卡片：状态（采集中 / 已停止）、手机号掩码等。"
+            },
+            {
+              label: "接着注意",
+              text: "点卡片切换右侧详情。开始/停止采集在详情顶栏，不是左侧卡片上。"
+            },
+          ],
+          spot: "#tg-bot-list",
+          run: function (api) {
+            closeAllTgModals(api);
+            pickBot(api);
+          }
+        },
+        {
+          id: "collect_start",
+          title: "开始采集",
+          tipBlocks: [
+            {
+              label: "按钮在哪",
+              text: "选中某个采集号后，右侧详情顶栏有「开始采集」或「停止采集」（同一按钮，随状态切换）。"
+            },
+            {
+              label: "开始采集做什么",
+              text: "系统按需建连，并开始接收「已启用」的采集频道新消息。\n前提：至少挂好并启用一个采集用途的频道，否则点了也会提示先配频道。"
+            },
+            {
+              label: "前因后果",
+              text: "只加号、不开始采集 → 不会进料。\n开始后状态变为「采集中」，新消息才会进素材池。"
+            }
+          ],
+          spot: "[data-collect], .tg-detail-actions",
+          delayMs: 160,
+          run: function (api) {
+            closeAllTgModals(api);
+            /* 尽量点到一个「已停止」的号，让按钮文案是「开始采集」 */
+            var cards = api.qsa("#tg-bot-list .ub-card, #tg-bot-list [data-bot]");
+            var picked = false;
+            for (var i = 0; i < cards.length; i++) {
+              var t = (cards[i].textContent || "");
+              if (t.indexOf("已停止") >= 0 || t.indexOf("停止") >= 0) {
+                cards[i].click();
+                picked = true;
+                break;
+              }
+            }
+            if (!picked) pickBot(api);
+          }
+        },
+        {
+          id: "collect_stop",
+          title: "停止采集",
+          tipBlocks: [
+            {
+              label: "停止采集做什么",
+              text: "不再收新消息；会话默认保留，以后还能再点「开始采集」恢复。\n日常停收请用「停止采集」，不要一上来就强制断开。"
+            },
+            {
+              label: "和强制断开的区别",
+              text: "「⋯ → 强制断开」是排障用：释放会话。\n日常开关采集只用开始/停止；强制断开后通常要重新建连才能再采。"
+            },
+            {
+              label: "教程说明",
+              text: "本步只讲解按钮含义，不真正切换采集状态。"
+            }
+          ],
+          spot: "[data-collect], .tg-detail-actions",
+          delayMs: 160,
+          run: function (api) {
+            closeAllTgModals(api);
+            var cards = api.qsa("#tg-bot-list .ub-card, #tg-bot-list [data-bot]");
+            var picked = false;
+            for (var i = 0; i < cards.length; i++) {
+              var t = (cards[i].textContent || "");
+              if (t.indexOf("采集中") >= 0) {
+                cards[i].click();
+                picked = true;
+                break;
+              }
+            }
+            if (!picked) pickBot(api);
+          }
+        },
+        {
+          id: "add_bot_btn",
+          title: "添加采集号入口",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "「+ 添加采集号」打开与正式页相同的 Telegram 登录向导。"
+            },
+            {
+              label: "接着注意",
+              text: "下一步会打开弹窗讲解字段。"
+            },
+          ],
+          spot: "#tg-add-bot"
+        },
+        {
+          id: "wiz_quick",
+          title: "向导 · 快捷登录",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "快捷登录：账号标签 + 国际手机号（+ 开头）→ 发送验证码 → 填验证码。"
+            },
+            {
+              label: "接着注意",
+              text: "无需自备 API 凭证；登录间隔约 10 分钟防封。"
+            },
+          ],
+          spot: "#fz-tg-wizard-mask .modal, #tg-wiz-quick",
+          delayMs: 220,
+          run: function (api) {
+            closeAllTgModals(api);
+            api.click("#tg-add-bot");
+          }
+        },
+        {
+          id: "wiz_fields",
+          title: "向导 · 标签与手机号",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "标签用于列表识别（如「晚风」）；"
+            },
+            {
+              label: "接着注意",
+              text: "手机号须带国家区号。字段旁「?」说明来源与格式。"
+            },
+          ],
+          spot: "#tg-wiz-quick-label, #tg-wiz-quick"
+        },
+        {
+          id: "wiz_adv",
+          title: "向导 · 高级模式",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "高级模式：先填 API ID / API Hash（my.telegram.org），再发码验证。"
+            },
+            {
+              label: "接着注意",
+              text: "适合已有 Telegram 应用凭证的场景。"
+            },
+          ],
+          spot: "#tg-wiz-advanced, #fz-tg-wizard-mask .modal",
+          delayMs: 160,
+          run: function (api) {
+            var tab = api.qs("#tg-tab-advanced");
+            if (tab) tab.click();
+          }
+        },
+        {
+          id: "channels",
+          title: "已挂频道",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "关闭向导。"
+            },
+            {
+              label: "接着注意",
+              text: "右侧详情展示该号已挂频道：未分配 / 采集 / 分发标签，以及拉取、分配等操作。"
+            },
+          ],
+          spot: "#tg-detail, .tg-ch-board, [data-add-ch]",
+          delayMs: 160,
+          run: function (api) {
+            closeAllTgModals(api);
+            pickBot(api);
+          }
+        },
+        {
+          id: "add_ch_btn",
+          title: "加入频道入口",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "「+ 加入频道」打开挂频道弹窗。"
+            },
+            {
+              label: "接着注意",
+              text: "公共池还可选用途：采集（进料）或分发（TG→TG 目标）。"
+            },
+          ],
+          spot: "[data-add-ch]"
+        },
+        {
+          id: "ch_modal",
+          title: "加入频道弹窗",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "填写 @用户名、t.me 链接或邀请链接。"
+            },
+            {
+              label: "接着注意",
+              text: "公共池须选用途后再「确认加入」。演示不提交。"
+            },
+          ],
+          spot: "#tg-ch-modal .modal, #tg-ch-link",
+          delayMs: 220,
+          run: function (api) {
+            closeAllTgModals(api);
+            pickBot(api);
+            setTimeout(function () {
+              var btn = api.qs("[data-add-ch]");
+              if (btn) btn.click();
+            }, 40);
+          }
+        },
+        {
+          id: "ch_role",
+          title: "频道用途",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "用途分段：采集 = 进料源；"
+            },
+            {
+              label: "接着注意",
+              text: "分发 = 路由目标。未分配频道可稍后在卡片上「标记用途」。"
+            },
+          ],
+          spot: "#tg-ch-role-field, .tg-role-seg, #tg-ch-modal .modal"
+        },
+        {
+          id: "routes",
+          title: "TG→TG 路由区",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "关闭频道弹窗。"
+            },
+            {
+              label: "接着注意",
+              text: "公共池下方是路由列表：一采集源可对应多个分发目标。"
+            },
+          ],
+          spot: "[data-add-route], .tg-rr-board, #tg-detail",
+          delayMs: 160,
+          run: function (api) {
+            closeAllTgModals(api);
+            pickBot(api);
+          }
+        },
+        {
+          id: "rr_modal",
+          title: "新建路由弹窗",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "采集源单选，分发目标可多选；"
+            },
+            {
+              label: "接着注意",
+              text: "保存时按「一源→一目标」逐条建边。点「完成」结束本教程（不保存）。"
+            },
+          ],
+          spot: "#tg-rr-modal .modal, #tg-rr-source",
+          delayMs: 220,
+          run: function (api) {
+            closeAllTgModals(api);
+            pickBot(api);
+            setTimeout(function () {
+              var btn = api.qs("[data-add-route]");
+              if (btn) btn.click();
+            }, 40);
+          }
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

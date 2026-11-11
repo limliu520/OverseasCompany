@@ -593,25 +593,21 @@
           menu.hidden = true;
           if (act === "logout") logout();
           else if (act === "reset") {
-            if (confirm("重置全部演示数据并回到登录页？")) {
-              if (global.FZArticles && typeof FZArticles.reset === "function") {
-                FZArticles.reset();
-              }
-              FZStore.reset();
-              /* 双保险：清掉本会话引导防重入标记，重置后登录应再出菜单引导 */
-              try {
-                var kill = [];
-                var si;
-                for (si = 0; si < sessionStorage.length; si++) {
-                  var sk = sessionStorage.key(si);
-                  if (sk && sk.indexOf("fz_tour_auto_") === 0) kill.push(sk);
+            /* 须走页内 confirm(opts)；原生 confirm 字符串会被本文件同名函数吃掉，表现为点了没反应 */
+            confirm({
+              title: "重置演示数据",
+              message: "将清空全部演示数据并回到登录页，此操作不可撤销。",
+              okText: "确认重置",
+              cancelText: "取消",
+              danger: true,
+              onOk: function () {
+                if (global.FZArticles && typeof FZArticles.reset === "function") {
+                  FZArticles.reset();
                 }
-                kill.forEach(function (k) {
-                  sessionStorage.removeItem(k);
-                });
-              } catch (eClr) {}
-              location.href = BASE + "login.html";
-            }
+                FZStore.reset();
+                location.href = BASE + "login.html";
+              }
+            });
           } else if (act === "pwd" || act === "profile") {
             loadScriptOnce("js/account-self.js?v=20261106tg1", function () {
               if (!global.FZAccount) return;
@@ -664,18 +660,31 @@
   }
   bindModalDismiss();
 
+  function mountMsgPopup() {
+    if (global.FZMessages && typeof FZMessages.mountPopup === "function") {
+      FZMessages.mountPopup();
+      return;
+    }
+    loadScriptOnce("js/messages-data.js?v=20261110msg3", function () {
+      if (global.FZMessages && typeof FZMessages.mountPopup === "function") {
+        FZMessages.mountPopup();
+      }
+    });
+  }
+
   function boot(opts) {
     opts = opts || {};
     if (opts.auth !== false && !requireAuth()) return;
     bindModalDismiss();
     renderSidebar(opts.active || "");
+    mountMsgPopup();
     function mountHelp() {
       if (global.FZHelpCenter && typeof FZHelpCenter.mount === "function") {
         FZHelpCenter.mount();
       }
     }
     if (global.FZHelpCenter) mountHelp();
-    else loadScriptOnce("js/help-center.js?v=20261106perm2", mountHelp);
+    else loadScriptOnce("js/help-center.js?v=20261110noTour1", mountHelp);
     function mountNovice() {
       if (global.FZNovice && typeof FZNovice.consumeQuery === "function") {
         FZNovice.consumeQuery();

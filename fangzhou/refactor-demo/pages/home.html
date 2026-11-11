@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>工作台 · 方舟</title>
-  <link rel="stylesheet" href="../css/app.css?v=20261109modalX" />
+  <link rel="stylesheet" href="../css/app.css?v=20261110noviceUi1" />
 </head>
 <body>
   <div class="app">
@@ -12,7 +12,19 @@
     <div class="main">
       <div class="topbar">
         <h1 id="greet">工作台</h1>
-        <div class="topbar-actions" id="top-user"></div>
+        <div class="topbar-actions">
+          <a class="wb-msg-entry" id="wb-msg-entry" href="./messages.html" title="消息中心">
+            <span class="wb-msg-entry-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 6.5h16v11H4z"/>
+                <path d="M4 7l8 6 8-6"/>
+              </svg>
+            </span>
+            <span class="wb-msg-entry-label">消息中心</span>
+            <span class="wb-msg-badge" id="wb-msg-badge" hidden>0</span>
+          </a>
+          <div id="top-user"></div>
+        </div>
       </div>
       <div class="content wb-page" id="wb-root">
         <div id="wb-novice" class="wb-novice-mount" hidden></div>
@@ -125,18 +137,18 @@
   </div>
 
   <script src="../js/perm-tree.js?v=20261106view1"></script>
-  <script src="../js/store.js?v=20261106perm2"></script>
+  <script src="../js/store.js?v=20261110wbClean1"></script>
   <script src="../js/project-union.js?v=20261029wb4"></script>
   <script src="../js/materials-data.js?v=20261029wb4"></script>
   <script src="../js/materials-media.js?v=20261029wb16"></script>
   <script src="../js/materials-detail.js?v=20261029wb16"></script>
   <script src="../js/materials-transfer.js?v=20261104cover2"></script>
   <script src="../js/articles-data.js?v=20261029wb4"></script>
-  <script src="../js/shell.js?v=20261109modalX"></script>
-  <script src="../js/announcements-data.js?v=20261029wb13"></script>
-  <script src="../js/novice-guide.js?v=20261031demoEdit"></script>
-  <script src="../js/menu-tour.js?v=20261029wb33"></script>
-  <script src="../js/home-app.js?v=20261106perm2"></script>
+  <script src="../js/shell.js?v=20261110noTour1"></script>
+  <script src="../js/announcements-data.js?v=20261110ann4"></script>
+  <script src="../js/messages-data.js?v=20261110msg3"></script>
+  <script src="../js/novice-guide.js?v=20261110novice8"></script>
+  <script src="../js/home-app.js?v=20261110wbClean1"></script>
   <script>
     FZShell.boot({ active: "home" });
     var hour = new Date().getHours();

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>教程 · 素材管理 · 方舟</title>
+  <link rel="stylesheet" href="../../css/app.css?v=20261110novice8" />
+</head>
+<body>
+  <div class="novice-frame-wrap">
+    <iframe
+      id="novice-frame"
+      title="素材管理演示"
+      src="../materials.html?novice_static=1&tab=all&scope=pool"
+    ></iframe>
+  </div>
+  <script src="../../js/store.js?v=20261106perm2"></script>
+  <script src="../../js/novice-guide.js?v=20261110novice1"></script>
+  <script src="../../js/novice-static.js?v=20261110novice8"></script>
+  <script>
+    var DEMO_MID = "m1001";
+    var PENDING_MID = "m1012";
+    var TRASH_MID = "m1009";
+
+    function setMatTab(api, tab) {
+      var w = api.win();
+      if (w && w.FZMatApp && w.FZMatApp.setTab) {
+        w.FZMatApp.setTab(tab);
+        return;
+      }
+      var btn = api.qs('#mat-tabs [data-tab="' + tab + '"]');
+      if (btn) btn.click();
+    }
+
+    function prepAll(api) {
+      var w = api.win();
+      if (w && w.FZMatApp) {
+        if (w.FZMatApp.setTab) w.FZMatApp.setTab("all");
+        if (w.FZMatApp.setScope) w.FZMatApp.setScope("pool");
+        if (w.FZMatApp.markTourHitRow) w.FZMatApp.markTourHitRow();
+      }
+    }
+
+    function closeLayers(api) {
+      var close = api.qs("[data-mat-close]");
+      if (close) close.click();
+      var xClose = api.qs("[data-xfer-close]");
+      if (xClose) xClose.click();
+      var rClose = api.qs("[data-reject-close]");
+      if (rClose) rClose.click();
+      api.hide("#mat-detail-mask");
+      api.hide("#mat-xfer-mask");
+      api.hide("#mat-reject-mask");
+    }
+
+    function openXfer(api) {
+      prepAll(api);
+      closeLayers(api);
+      var w = api.win();
+      if (w && w.FZMatTransfer && w.FZMatTransfer.open) {
+        w.FZMatTransfer.open(DEMO_MID);
+        return;
+      }
+      var btn =
+        api.qs('[data-row="edit"][data-id="' + DEMO_MID + '"]') ||
+        api.qs('[data-row="edit"]');
+      if (btn) btn.click();
+    }
+
+    function openRejectModal(api, mid, mode) {
+      closeLayers(api);
+      var w = api.win();
+      if (w && w.FZMatTransfer && w.FZMatTransfer.openReject) {
+        w.FZMatTransfer.openReject(mid, mode);
+        var ta = api.qs("#mat-reject-reason");
+        if (ta && !String(ta.value || "").trim()) {
+          ta.value =
+            mode === "reject" ? "教程演示：驳回示例" : "教程演示：通过示例";
+        }
+        return;
+      }
+      var rowAct =
+        mode === "restore"
+          ? '[data-row="restore"]'
+          : mode === "pass"
+            ? '[data-row="pass"]'
+            : '[data-row="reject"]';
+      var btn = api.qs(rowAct + '[data-id="' + mid + '"]') || api.qs(rowAct);
+      if (btn) btn.click();
+    }
+
+    function openDetail(api, mid) {
+      closeLayers(api);
+      var row =
+        api.qs('tr[data-id="' + mid + '"]') ||
+        api.qs("#mat-root tbody tr[data-tour-hit]") ||
+        api.qs("#mat-root tbody tr");
+      var detail = row && row.querySelector('[data-row="detail"]');
+      if (detail) detail.click();
+      else if (row) row.click();
+    }
+
+    FZNoviceStatic.boot({
+      id: "materials",
+      homeHref: "../home.html",
+      doneSummary:
+        "你已了解三视图：待审（通过/驳回）、全部（转编辑）、垃圾（手动通过）。演示未改真实数据。",
+      onReady: function (api) {
+        setTimeout(function () {
+          prepAll(api);
+        }, 120);
+      },
+      steps: [
+        {
+          id: "why",
+          title: "三视图总览",
+          tipBlocks: [
+            {
+              label: "为什么分三个 Tab",
+              text: "采进来的料要先过门槛，再进可用池，不合格进垃圾。\n三个列表各管一段生命周期，不要混在一个表里硬筛。"
+            },
+            {
+              label: "分别管什么",
+              text: "待审核素材：还要人过一眼。\n全部素材：门槛已过、可转编辑的池。\n垃圾素材：驳回或广告拦截；可「手动通过」捞回。"
+            }
+          ],
+          spot: "#mat-tabs",
+          run: function (api) {
+            closeLayers(api);
+            prepAll(api);
+          }
+        },
+        {
+          id: "pending_tab",
+          title: "待审核素材",
+          tipBlocks: [
+            {
+              label: "什么料会进这里",
+              text: "系统认为需要人工复核的内容。\n通过后才会进入「全部素材」供转编辑；驳回则进垃圾池。"
+            },
+            {
+              label: "和全部素材的区别",
+              text: "待审列表里没有「转编辑」。\n必须先通过审核，才能在全部素材里占用项目通道。"
+            }
+          ],
+          spot: '#mat-tabs [data-tab="pending"], #mat-tabs',
+          delayMs: 160,
+          run: function (api) {
+            closeLayers(api);
+            setMatTab(api, "pending");
+          }
+        },
+        {
+          id: "pending_actions",
+          title: "通过 / 驳回",
+          tipBlocks: [
+            {
+              label: "两个主按钮",
+              text: "「通过」：认可这条料，离开待审，进入后续可用流程。\n「驳回」：不采用，进入垃圾素材，并记理由供规则学习。"
+            },
+            {
+              label: "批量",
+              text: "勾选多行后，顶栏也可批量通过 / 驳回（演示不执行）。"
+            }
+          ],
+          spot: '[data-row="pass"], [data-row="reject"], #mat-root',
+          delayMs: 180,
+          run: function (api) {
+            closeLayers(api);
+            setMatTab(api, "pending");
+          }
+        },
+        {
+          id: "pending_reject",
+          title: "驳回弹窗",
+          tipBlocks: [
+            {
+              label: "为什么要填理由",
+              text: "驳回理由会反馈给筛选/自学习，帮助以后少推同类差料。\n编辑类弹窗：点遮罩不关，须点取消或确认。"
+            },
+            {
+              label: "确认之后",
+              text: "素材离开待审 → 进入「垃圾素材」。\n本教程不点确认。"
+            }
+          ],
+          spot: "#mat-reject-mask .mat-reject, #mat-reject-reason",
+          delayMs: 240,
+          run: function (api) {
+            setMatTab(api, "pending");
+            setTimeout(function () {
+              openRejectModal(api, PENDING_MID, "reject");
+            }, 60);
+          }
+        },
+        {
+          id: "pending_pass",
+          title: "通过弹窗",
+          tipBlocks: [
+            {
+              label: "通过时做什么",
+              text: "同样要填通过理由（正式流程）。\n确认后素材离开待审，进入全部素材侧，之后才能转编辑。"
+            },
+            {
+              label: "教程说明",
+              text: "只演示弹窗字段，不提交。"
+            }
+          ],
+          spot: "#mat-reject-mask .mat-reject, #mat-reject-submit",
+          delayMs: 240,
+          run: function (api) {
+            setMatTab(api, "pending");
+            setTimeout(function () {
+              openRejectModal(api, PENDING_MID, "pass");
+            }, 60);
+          }
+        },
+        {
+          id: "pool",
+          title: "全部素材 · 公共池",
+          tipBlocks: [
+            {
+              label: "看什么",
+              text: "门槛已过的料在这里。\n状态为「可使用」时，才能点「转编辑」占用项目通道。"
+            },
+            {
+              label: "注意",
+              text: "转进项目后，公共池记录通常仍保留；同一项目不能重复占用同一条。"
+            }
+          ],
+          spot: "#mat-root",
+          delayMs: 160,
+          run: function (api) {
+            closeLayers(api);
+            prepAll(api);
+          }
+        },
+        {
+          id: "xfer_btn",
+          title: "转编辑入口",
+          tipBlocks: [
+            {
+              label: "关键动作",
+              text: "列表「转编辑」= 把素材送进某项目，去生成/编辑文章。"
+            },
+            {
+              label: "前因后果",
+              text: "不转编辑 → 只停在池里，不会进文章管理。\n转成功 → 占用通道并派发媒体处理，文章列表出现对应稿。"
+            }
+          ],
+          spot: '[data-row="edit"], #mat-root .btn-primary',
+          delayMs: 120,
+          run: function (api) {
+            closeLayers(api);
+            prepAll(api);
+          }
+        },
+        {
+          id: "xfer_modal",
+          title: "转编辑弹窗",
+          tipBlocks: [
+            {
+              label: "这一步",
+              text: "选项目（必填）→ 确认本次文章封面拼图 → 确认转编辑。\n编辑类弹窗，点遮罩不关闭。"
+            },
+            {
+              label: "为什么要选项目",
+              text: "一个项目 = 一套内容通道。选错会进错站；已占用项目会灰掉。"
+            }
+          ],
+          spot: "#mat-xfer-mask .mat-xfer, #mat-xfer-mask",
+          delayMs: 240,
+          run: function (api) {
+            openXfer(api);
+          }
+        },
+        {
+          id: "xfer_fields",
+          title: "项目与拼图",
+          tipBlocks: [
+            {
+              label: "字段",
+              text: "项目旁有站点类型提示。\n拼图默认跟项目配置，可改「仅这一次」，不改项目全局默认。"
+            },
+            {
+              label: "教程说明",
+              text: "不点确认，避免改演示数据。"
+            }
+          ],
+          spot: "#mat-xfer-project, #mat-xfer-cover, #mat-xfer-submit",
+          delayMs: 120,
+          run: function (api) {
+            var m = api.qs("#mat-xfer-mask");
+            if (!m || m.hidden) openXfer(api);
+          }
+        },
+        {
+          id: "trash_tab",
+          title: "垃圾素材",
+          tipBlocks: [
+            {
+              label: "谁会进垃圾",
+              text: "人工驳回的料，以及广告/规则拦截的料。\n这里是「暂不采用」的收容站，不是物理删除。"
+            },
+            {
+              label: "还能做什么",
+              text: "若误拦或后来认为可用，用「手动通过」捞回后续流程。"
+            }
+          ],
+          spot: '#mat-tabs [data-tab="trash"], #mat-tabs',
+          delayMs: 180,
+          run: function (api) {
+            closeLayers(api);
+            setMatTab(api, "trash");
+          }
+        },
+        {
+          id: "trash_restore_btn",
+          title: "手动通过入口",
+          tipBlocks: [
+            {
+              label: "按钮含义",
+              text: "垃圾列表主按钮是「手动通过」，不是转编辑。\n表示：人工认定这条可以离开垃圾池，重新进入可用流程。"
+            },
+            {
+              label: "和待审「通过」的差别",
+              text: "待审「通过」：从未入垃圾，正常放行。\n垃圾「手动通过」：已经进过垃圾，属于纠错/捞回。"
+            }
+          ],
+          spot: '[data-row="restore"], #mat-root',
+          delayMs: 180,
+          run: function (api) {
+            closeLayers(api);
+            setMatTab(api, "trash");
+          }
+        },
+        {
+          id: "trash_restore_modal",
+          title: "手动通过弹窗",
+          tipBlocks: [
+            {
+              label: "要填什么",
+              text: "必须填写通过理由（为何从垃圾捞回）。\n确认后素材离开垃圾池，进入后续流程。"
+            },
+            {
+              label: "教程说明",
+              text: "只演示弹窗，不提交。点「完成」结束本教程。"
+            }
+          ],
+          spot: "#mat-reject-mask .mat-reject, #mat-reject-reason, #mat-reject-submit",
+          delayMs: 240,
+          run: function (api) {
+            setMatTab(api, "trash");
+            setTimeout(function () {
+              openRejectModal(api, TRASH_MID, "restore");
+            }, 60);
+          }
+        }
+      ]
+    });
+  </script>
+</body>
+</html>
