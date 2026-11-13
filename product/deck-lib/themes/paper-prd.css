@@ -1,0 +1,17 @@
+/* theme: paper-prd — 海外文档站纸感浅底 + 紫灰强调 */
+:root{
+  --bg:#f6f5f3;--bg-soft:#f0ebe3;--surface:#ffffff;--surface-2:#faf9f7;
+  --border:rgba(28,28,31,.10);--border-strong:rgba(28,28,31,.18);
+  --text-1:#1c1c1f;--text-2:#5e5e66;--text-3:#8a8a92;
+  --accent:#8d2f86;--accent-2:#6b2466;--accent-3:#a85aa2;
+  --accent-ink:#ffffff;
+  --good:#3d6b4f;--warn:#b8860b;--bad:#b42318;
+  --grad:linear-gradient(135deg,#8d2f86,#6b2466);
+  --grad-soft:linear-gradient(135deg,#f0ebe3,#ffffff);
+  --radius:14px;--radius-sm:8px;--radius-lg:20px;
+  --shadow:0 1px 2px rgba(28,28,31,.04),0 8px 24px rgba(28,28,31,.06);
+  --shadow-lg:0 16px 48px rgba(28,28,31,.08);
+  --font-sans:"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
+  --font-display:"PingFang SC","Hiragino Sans GB","Noto Sans SC",sans-serif;
+  --letter-tight:-.02em;
+}

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="paper-prd">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>产品工作中怎么用 AI</title>
+  <link rel="stylesheet" href="deck-lib/fonts.css" />
+  <link rel="stylesheet" href="deck-lib/base.css" />
+  <link rel="stylesheet" id="theme-link" href="deck-lib/themes/paper-prd.css" />
+  <link rel="stylesheet" href="deck-lib/animations/animations.css" />
+  <link rel="stylesheet" href="deck-lib/deck-local.css" />
+</head>
+<body
+  data-themes="paper-prd,minimal-white"
+  data-theme-base="deck-lib/themes/"
+>
+  <div class="deck" data-w="1600" data-h="900">
+
+    <!-- 01 Cover -->
+    <section class="slide" data-title="开场">
+      <p class="kicker">Product × AI · 内部产品分享</p>
+      <h1 class="h1 anim-fade-up" data-anim="fade-up">产品工作中怎么用 <span style="color:var(--accent)">AI</span></h1>
+      <p class="lede">不是再讲一遍需求流程——流程大家熟。重点是每一步里 AI 扛什么、产品把什么关。</p>
+      <p class="lede" style="margin-top:10px;color:var(--text-1);font-weight:550">从想需求、做 Demo 到交 PRD，看 AI 的位置。</p>
+      <div class="tags">
+        <span>Rules</span><span>Demo</span><span>PRD</span><span>改稿</span>
+      </div>
+      <div class="deck-footer">
+        <span>← → / 空格翻页 · S 演讲者备注 · F 全屏 · O 概览 · T 主题</span>
+        <span class="slide-number" data-current="1" data-total="16"></span>
+      </div>
+      <aside class="notes">
+        <p>定场：今天讲的是<strong>怎么用 AI 做产品</strong>，不是产品入门课。</p>
+        <p>开场把「不是重讲需求流程」说死。约 1′。</p>
+      </aside>
+    </section>
+
+    <!-- 02 Agenda -->
+    <section class="slide" data-title="顺序">
+      <p class="kicker">带着 AI 做需求</p>
+      <h2 class="h2">一条常见顺序</h2>
+      <p class="lede">步骤名字眼熟；看的是每一步里 AI 的定位，以及产品侧补哪一刀。</p>
+      <div class="stack" style="margin-top:8px">
+        <div class="agenda-row"><span class="num">1</span><span class="t">定规矩</span><span class="d">人写 Rules → AI 开聊自带口径</span></div>
+        <div class="agenda-row"><span class="num">2</span><span class="t">想需求</span><span class="d">AI 发散串流程 → 产品选主线、砍一期范围</span></div>
+        <div class="agenda-row"><span class="num">3</span><span class="t">做 Demo</span><span class="d">AI 出界面按圈改 → 产品判对错、有没有改过头</span></div>
+        <div class="agenda-row"><span class="num">4</span><span class="t">Demo 定稿 <span class="gate-tag">闸门</span></span><span class="d">产品宣布 → AI 只翻译、不加功能</span></div>
+        <div class="agenda-row"><span class="num">5</span><span class="t">写 PRD</span><span class="d">AI 按规范填满 → 产品验边界与口径</span></div>
+        <div class="agenda-row"><span class="num">6</span><span class="t">若还要改</span><span class="d">产品定是否进本期 → AI 同步改多产物并标新旧</span></div>
+      </div>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="2" data-total="16"></span></div>
+      <aside class="notes">
+        <p>总地图：每一步都要带上 <strong>AI 定位</strong>，别念成普通产品流水线。约 2′。</p>
+      </aside>
+    </section>
+
+    <!-- 03 Compare -->
+    <section class="slide" data-title="人机分工">
+      <p class="kicker">人机分工</p>
+      <h2 class="h2">交给 AI · 产品定 · AI 做什么</h2>
+      <p class="lede">材料与任务可以交给 AI；选哪条、砍什么由产品定；AI 按阶段把事做完，不替产品拍板。</p>
+      <div class="compare-row cols-3">
+        <div class="compare-card">
+          <div class="side">
+            <div class="label">① 什么交给 AI</div>
+            <h3>材料与任务</h3>
+            <div class="foot">喂进去的东西</div>
+          </div>
+          <ul>
+            <li>要解决什么问题，做成了长什么样</li>
+            <li>现网 / 纪要 / 旧稿 / 已有需求资料</li>
+            <li>有把握的判断 vs 猜测——分开写</li>
+            <li>阶段锁死：先玩法还是先 Demo / PRD</li>
+            <li>团队 Rules、模板、现网站点样子</li>
+          </ul>
+        </div>
+        <div class="compare-card ink">
+          <div class="side">
+            <div class="label">② 产品决定什么</div>
+            <h3>拍板</h3>
+            <div class="foot">取舍与宣布</div>
+          </div>
+          <ul>
+            <li>这一期做哪些、明确不做哪些</li>
+            <li>对外怎么说，哪些话不能说</li>
+            <li>要不要登录，身份怎么识别</li>
+            <li>改动进不进本期；Demo 能否定稿</li>
+            <li>AI 顺手多加的能力，留还是砍</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <div class="side">
+            <div class="label">③ AI 做什么</div>
+            <h3>按阶段执行</h3>
+            <div class="foot">写清楚，不替人选</div>
+          </div>
+          <ul>
+            <li>发散串主流程；列状态与风险，给 2～3 套做法</li>
+            <li>出能点的 Demo，按圈选改局部、补空态</li>
+            <li>定稿后按 Demo / Rules 填满 PRD，不加功能</li>
+            <li>改稿时 PRD、Demo、截图一起动并标新旧</li>
+            <li>把选项和后果写清楚，等产品拍板</li>
+          </ul>
+        </div>
+      </div>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="3" data-total="16"></span></div>
+      <aside class="notes">
+        <p>人机分工三列：交给 AI 什么、产品定什么、AI 做什么。约 2′。</p>
+      </aside>
+    </section>
+
+    <!-- 04 Rules triad -->
+    <section class="slide" data-title="规矩">
+      <p class="kicker">先定规矩，再开需求</p>
+      <h2 class="h2">给 AI 装默认法</h2>
+      <p class="lede">重复出现的约定，更适合一开头就写进项目——否则换人、换对话，文档会长得都不一样。</p>
+      <div class="tri-row">
+        <div class="tri-item">
+          <div class="tag">Rules</div>
+          <h3>规则</h3>
+          <p>写进仓库的团队默认法（如 `.cursor/rules/*.mdc`）。新开对话时 Agent 常自动带上，不用每次重讲。</p>
+          <ul class="tri-bits">
+            <li>适合：PRD 长什么样、文件改哪、弹窗/截图等反复出现的约定</li>
+            <li>特点：项目级、长期有效；换人换窗口也还在</li>
+            <li>代价：写错会一直生效，要当成产品口径维护</li>
+          </ul>
+        </div>
+        <div class="tri-item">
+          <div class="tag">Skill</div>
+          <h3>技能</h3>
+          <p>一套可复用的操作说明书（流程、检查清单、怎么交付）。需要时再打开，不必每次塞满上下文。</p>
+          <ul class="tri-bits">
+            <li>适合：做 PPT、截图、某类 Demo 的固定做法</li>
+            <li>特点：按需调用；不用时不占对话额度</li>
+            <li>和 Rules 比：Rules 是「默认必须遵守」；Skill 是「做这类活时再请来」</li>
+          </ul>
+        </div>
+        <div class="tri-item">
+          <div class="tag">Prompt</div>
+          <h3>单次吩咐</h3>
+          <p>这一次聊天里你亲手写的指令。只对当前对话有效，换窗口后不会自动还在。</p>
+          <ul class="tri-bits">
+            <li>适合：本期范围、先发散别写 PRD、封板后只翻译等当场吩咐</li>
+            <li>特点：最灵活；说完就用，改口径也最快</li>
+            <li>风险：没写进 Rules/Skill 的约定，下一次还得再说一遍</li>
+          </ul>
+        </div>
+      </div>
+      <div class="case-note" style="margin-top:14px">
+        <div class="case-label">案例 · .cursor/rules/</div>
+        <pre class="rule-file rule-file-wide" tabindex="0"><code>fangzhou-card-actions-layout.mdc   # 卡片操作栏整组右对齐，组内可选在固定左侧
+fangzhou-display-edit-split.mdc    # 展示与编辑必须分离
+fangzhou-source-code-path.mdc      # 方舟现网源码只查指定目录，禁止乱找
+fangzhou-ui-mono.mdc               # 方舟黑白 UI 规范；只改视觉，不顺手改结构文案
+haiwai-source-of-truth-sync.mdc    # 海外项目为唯一编辑源；改完同步覆盖主目录
+html-image-lightbox.mdc            # HTML/PRD 说明用图须页内点击放大
+index-prd-links.mdc                # 对外 PRD 必须挂根目录 index.html
+modal-mask-dismiss.mdc             # 编辑弹窗禁点遮罩关闭；仅预览类可关
+overseas-prd.mdc                   # 正式需求 = HTML PRD；结构 / 交互 / 异常规范</code></pre>
+        <p class="case-cap">.cursor/rules/ · 文件名 + 各文件 description 摘要</p>
+      </div>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="4" data-total="16"></span></div>
+      <aside class="notes">
+        <p>Rules = 管 AI 的默认行为。可选演示规则目录。约 2′。</p>
+      </aside>
+    </section>
+
+    <!-- 05 bullets + media -->
+    <section class="slide" data-title="文档形态">
+      <p class="kicker">规矩定好了</p>
+      <h2 class="h2">文档才长得一样</h2>
+      <p class="lede">不必每个需求都重新发明版式——规矩在，换人写也仍然是同一套结构。</p>
+      <div class="bm-row">
+        <div class="bm-copy">
+          <ul class="bullets">
+            <li>把「本组 PRD 该长什么样」写进规则</li>
+            <li>换需求、换人写，页面结构和交付方式仍能对得上</li>
+            <li>常见交付：左边截图、右边说明；顶上可切「说明 / 能点的 Demo」</li>
+          </ul>
+          <figure class="case-shot tall" style="margin-top:14px">
+            <img src="case-assets/case-prd-pair.png" alt="心愿墙 PRD 左图右文内容页" />
+            <figcaption class="case-cap">心愿墙 PRD 真页 · 左图右文 + 顶栏可切 Demo</figcaption>
+          </figure>
+        </div>
+        <aside class="bm-media bm-media-tall">
+          <div class="case-label">案例 · overseas-prd.mdc 原文</div>
+          <pre class="rule-file rule-file-panel" tabindex="0"><code>---
+description: OverseasCompany 正式需求以 HTML PRD 交付；结构、交互细节、异常与截图规范
+alwaysApply: true
+---
+
+# OverseasCompany · HTML PRD 规范
+
+后续本仓库**所有正式需求文档**按本规则生成与修改。`海外项目/需求规范.md` 仅为产品组制度参考，**不替代**本规则。
+
+## 1. 交付形态
+
+- 正式需求 = **HTML PRD**（不以 Markdown 当研发终稿）。
+- 编辑源在 `海外项目/`；主目录有对外副本时按 `haiwai-source-of-truth-sync` 覆盖同步。
+- 原则：**宁多勿漏**（可删不可漏）。细节写全、写专业。
+
+## 2. 文档结构
+
+- 文首：`title` + `h1` + meta（版本、日期、适用端、截图可放大等）。
+- **版本目的 / 需求背景**：背景、问题、做/不做、业务对象、预期；有则写观察指标。
+- **需求功能矩阵**：功能ID / 模块 / 名称 / 描述 / 备注。
+- **按功能分块**：优先左截图 + 右说明（`.pair`）；每块固定五节——功能逻辑、业务规则、页面交互、**异常**、数据流转。
+- 复杂页可加顶栏 Tab（PRD / 可点原型）与文末**验收表**（功能ID × 可勾选标准）；至少保证矩阵 + 分块五节。</code></pre>
+        </aside>
+      </div>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="5" data-total="16"></span></div>
+      <aside class="notes">
+        <p>演示正式 HTML PRD：左右结构、顶栏切换——这是 AI 按 Rules 输出的结果。约 2～2.5′。</p>
+      </aside>
+    </section>
+
+    <!-- 06 materials -->
+    <section class="slide" data-title="喂材料">
+      <p class="kicker">想需求时</p>
+      <h2 class="h2">通常先给 AI 哪些材料</h2>
+      <p class="lede">材料越全，胡编越少；收到的需求资料当原材料拆开看，不要一上来当终稿照抄。</p>
+      <div class="bm-row flip">
+        <ul class="bullets">
+          <li>要解决什么问题，做成了长什么样
+            <span class="bit-sub">谁在痛 · 做成后用户看到什么 · 怎样算做成</span>
+          </li>
+          <li>现在产品是什么样、有哪些限制
+            <span class="bit-sub">现有能力 · 不能动的约束 · 技术/账号边界</span>
+          </li>
+          <li>有把握的判断 vs 猜测——分开写
+            <span class="bit-sub">已定结论 · 待验证假设 · 别混成同一句</span>
+          </li>
+          <li>已有资料：标「必须听 / 还要核对 / 建议别做」
+            <span class="bit-sub">硬约束 · 待核实 · 可忽略建议</span>
+          </li>
+          <li>阶段锁死：先玩法与主流程，先不写字段 PRD
+            <span class="bit-sub">先串怎么用 · 细节后补 · 别一上来写终稿</span>
+          </li>
+        </ul>
+        <aside class="bm-media bm-media-tall">
+          <div class="case-label">案例 · 心愿墙喂给 AI 的材料 / 边界</div>
+          <div class="mat-list" tabindex="0">
+            <div class="mat-item">
+              <span class="mat-tag">开工</span>
+              <div>
+                <b>业务背景</b>
+                <span>吃瓜资讯站；运营选题不准 → 想做「用户心愿墙」征集想看的瓜；本质是运营/产品与用户互动。</span>
+              </div>
+            </div>
+            <div class="mat-item">
+              <span class="mat-tag">开工</span>
+              <div>
+                <b>网站现状</b>
+                <span>顶栏一二级导航；资讯流 + 广告位；底栏评论/导航。入口挂哪先不定。</span>
+              </div>
+            </div>
+            <div class="mat-item">
+              <span class="mat-tag">开工</span>
+              <div>
+                <b>产品判断</b>
+                <span>主动提瓜难，更可能「别处看到 → 站内搜不到 → 来留言」；点赞互动；投票/站队是另一场景；账号弱、无通知，发表基本一次性。</span>
+              </div>
+            </div>
+            <div class="mat-item">
+              <span class="mat-tag">开工</span>
+              <div>
+                <b>已有需求资料</b>
+                <span>产品组长用 AI 跑的心愿墙思路（背景/目标/P0P1 等）→ 当原材料拆开，不当终稿照抄。</span>
+              </div>
+            </div>
+            <div class="mat-item">
+              <span class="mat-tag">开工</span>
+              <div>
+                <b>阶段要求</b>
+                <span>先用 MD 整理思路再探讨；有问题先抛出来；再做 Demo / PRD。</span>
+              </div>
+            </div>
+            <div class="mat-item">
+              <span class="mat-tag">中途</span>
+              <div>
+                <b>入口 / 模型边界</b>
+                <span>搜无结果要挂模块；模块还要常驻位。心愿热度 ≠ 战队投票，底层像贴吧多类型帖。</span>
+              </div>
+            </div>
+            <div class="mat-item">
+              <span class="mat-tag">中途</span>
+              <div>
+                <b>阶段 / 登录 / 通知 / AI</b>
+                <span>先做观点全量 Demo 跟运营领导讨论，不是 Demo 完就研发；提交点赞要登录；通知只解释不做；AI 答疑一期要做。</span>
+              </div>
+            </div>
+            <div class="mat-item">
+              <span class="mat-tag">中途</span>
+              <div>
+                <b>视觉方向</b>
+                <span>Demo 配色与卡片样式对照现网站点；列表约 9×20 长方形卡片。</span>
+              </div>
+            </div>
+          </div>
+          <p class="case-cap">材料 + 对话里给的边界 / 方向（不含「去发散」那轮）</p>
+        </aside>
+      </div>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="6" data-total="16"></span></div>
+      <aside class="notes">
+        <p>讲喂材料：开工包 + 中途边界；发散对话放到下一页。约 2′。</p>
+      </aside>
+    </section>
+
+    <!-- 07 diverge -->
+    <section class="slide" data-title="想开收窄">
+      <p class="kicker">先想开，再收窄</p>
+      <h2 class="h2">AI 铺开，产品收刀</h2>
+      <p class="lede">先把用户可能怎么用想明白，再决定这一期上哪一块；否则收窄时缺少依据。左边是让 AI 发散，右边是产品收敛。</p>
+      <div class="case-ba case-ba-mid" style="margin-top:14px;min-height:0">
+        <div class="case-note" style="margin:0;display:flex;flex-direction:column;min-height:0">
+          <div class="case-label">① 让 AI 发散 · 原话</div>
+          <p class="case-cap" style="margin:0 0 8px">AI 已偏细写 MD 时，产品喊停：先串玩法，别收敛。</p>
+          <div class="chat-log chat-log-tall" tabindex="0">
+            <div class="chat-turn pm">
+              <div class="who">产品 · 2026-10-28</div>
+              <div class="body">我觉得现在都不需要这么细，我们先把思路放开。我不是让你来帮我收敛的，我是让你来帮我发散的。这个东西能怎么玩？这个产品能怎么玩？先把思路理清楚，不要一来就搞这么细。很多细节的东西后面再讨论，先把思维放开，这个东西要怎么玩啊？比如刚刚我们提到的心愿、投票、战队，还有 AI 评论这些功能，先把它们串起来。先不用去解释这些功能到底要干嘛，或者怎么去设计，先把功能讲出来串起来，把玩法连通，尽量发散。
+
+核心还是去解决“找瓜”，然后“丰富瓜”，以及“提心愿瓜”之类的。目标和定位没有什么问题，重点就在于功能层面。</div>
+            </div>
+            <div class="chat-turn ai">
+              <div class="who">AI · 改成玩法发散稿</div>
+              <div class="body">MD 已改成 **v0.3 玩法发散稿**，细则和收敛段落都拿掉了。
+
+三件核心事：**找瓜 → 丰富瓜 → 提心愿瓜**。零件（心愿、加油、站队/投票、AI……）都挂在这三件事上；几条主回路一起铺开，细节先不下锤。</div>
+            </div>
+          </div>
+        </div>
+        <div class="case-note" style="margin:0;display:flex;flex-direction:column;min-height:0">
+          <div class="case-label">② 产品收敛 · 原话</div>
+          <p class="case-cap" style="margin:0 0 8px">玩法铺开后，产品从完整版拉简化分支：只留求瓜链路。</p>
+          <div class="chat-log chat-log-tall" tabindex="0">
+            <div class="chat-turn pm">
+              <div class="who">产品 · 收窄</div>
+              <div class="body">但都拉一个版本，只保留求瓜帖子链路，投票和站队玩法先删除，后续迭代
+- 心愿墙入口暂定放在一级。
+- 补充心愿墙的搜索功能。
+- 求瓜类型细化（求瓜/求资源/求功能），求功能类不对外展示，仅反馈后台；优先保证求瓜。---放在现在这个版本里面。
+- 求瓜帖子可配置开关，开启后允许用户发起有偿投稿，引导至 TG。-要在两个版本里面都有
+- 审核流程：先 AI 审核，运营再审核确认是否对外展示。--规则，PRD 适合用
+
+核心思路是在当前版本的基础上拉一个分支进行简化：
+
+1. 新分支：只保留“心愿墙”，以及上述提到的“搜索”和“引导用户投稿”功能。
+2. 当前旧版本：保留搜索和引导投稿，并新增支持多种类型的“求瓜”。你先梳理一下，我看一下是否合理，然后再开始动工。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="7" data-total="16"></span></div>
+      <aside class="notes">
+        <p>左发散、右收窄；收窄是产品拍板。约 2～2.5′。</p>
+      </aside>
+    </section>
+
+    <!-- 08 product calls -->
+    <section class="slide" data-title="拍板">
+      <p class="kicker">更适合产品自己拍板</p>
+      <h2 class="h2">「写得全」≠「这一期该做」</h2>
+      <p class="lede">AI 很会把方案写全；完整度是模型强项，取舍是产品职责。</p>
+      <ul class="bullets" style="margin-top:16px;max-width:640px">
+        <li>这一期做多大、先做什么</li>
+        <li>对外怎么说，哪些话不能说</li>
+        <li>登不登录，身份怎么算</li>
+        <li>对外有没有承诺、这条还进不进这一期</li>
+        <li>AI 自己加出来的环节，留还是停</li>
+      </ul>
+      <div class="case-note" style="margin-top:14px">
+        <div class="case-label">案例 · 完整版（发散）vs lite（拍板后保留）</div>
+        <p class="case-cap" style="margin:0 0 8px">左边是想开时铺开的能力（标清谁提出）；右边是产品收窄后一期只留的。</p>
+        <div class="case-ba" style="align-items:stretch">
+          <div class="scope-col">
+            <div class="scope-head">完整版 · 发散铺开</div>
+            <ul class="scope-list">
+              <li><span class="src pm">产品</span>找瓜 / 丰富瓜 / 提心愿瓜 三条主目标</li>
+              <li><span class="src pm">产品</span>心愿、投票、战队、AI 评论要串成玩法</li>
+              <li><span class="src pm">产品</span>底层像贴吧：多类型帖，不是单表单</li>
+              <li><span class="src pm">产品</span>搜无结果挂模块 + 常驻入口；提交/点赞要登录</li>
+              <li><span class="src ai">AI</span>站队投票 / 对抗式帖、加油热度、圆梦回响</li>
+              <li><span class="src ai">AI</span>标签聚合（同艺人/事件）、模块内吃瓜 Agent</li>
+              <li><span class="src ai">AI</span>搜无结果「AI 再挖一遍」接力（后被砍）</li>
+              <li><span class="src pm">纪要</span>有偿投稿开关、求瓜类型细化（产品后续补进）</li>
+              <li><span class="src pm">纪要</span>图片能力（完整版保留；lite 后期去掉）</li>
+            </ul>
+          </div>
+          <div class="scope-col ink">
+            <div class="scope-head">lite · 一期保留</div>
+            <ul class="scope-list">
+              <li>只保留求瓜帖主回路（提心愿征集）</li>
+              <li>墙内搜索；搜无结果 / 有结果都可去提心愿</li>
+              <li>有偿投稿开关 → 引导 TG</li>
+              <li>审核：AI 初审 + 运营确认是否对外</li>
+              <li>不登录可发（匿名/昵称）；待审本机可见</li>
+              <li>去站队 / 投票 / Agent / 图片 / 井号标签</li>
+              <li>PRD / 对外入口只认 lite</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="8" data-total="16"></span></div>
+      <aside class="notes">
+        <p>拍板清单 + 完整版 vs lite 对照：谁想的、留什么。约 2′。</p>
+      </aside>
+    </section>
+
+    <!-- 09 Demo process -->
+    <section class="slide" data-title="Demo">
+      <p class="kicker">设计时</p>
+      <h2 class="h2">先做出能点的 Demo</h2>
+      <p class="lede">对齐不一定先改文档；先做一版能点的界面，对着屏幕确认对不对，再落到 PRD。</p>
+      <div class="process process-rich">
+        <div class="step">
+          <div class="n">1 · 搭结构</div>
+          <h3>AI 出第一版骨架</h3>
+          <p class="step-ops">怎么说</p>
+          <ul>
+            <li>给主流程 + 页面清单（搜 / 列表 / 详情 / 后台…）</li>
+            <li>说明：先 HTML 可点原型，先别写 PRD</li>
+            <li>指定参考：现网站点 / Rules 里的版式约定</li>
+          </ul>
+          <p class="step-ops">要点</p>
+          <ul>
+            <li>先通主路径，细节状态可以后补</li>
+            <li>一上来不要字段级 PRD</li>
+          </ul>
+        </div>
+        <div class="step">
+          <div class="n">2 · 能点 Demo</div>
+          <h3>按圈选改局部、补状态</h3>
+          <p class="step-ops">怎么说</p>
+          <ul>
+            <li>圈选 / 截图标出要改的区域</li>
+            <li>一次只改一块：文案、布局、交互</li>
+            <li>点名要补的态：空态、无结果、待审、已结束…</li>
+          </ul>
+          <p class="step-ops">要点</p>
+          <ul>
+            <li>局部改，避免整页重写走样</li>
+            <li>关键路径必须能点通，不能只是静图</li>
+          </ul>
+        </div>
+        <div class="step">
+          <div class="n">3 · 对照现网</div>
+          <h3>样子跟站内对齐</h3>
+          <p class="step-ops">怎么说</p>
+          <ul>
+            <li>打开现网或内置预览，让 AI 对照色、字、卡片比例</li>
+            <li>写清：跟谁像、哪里可以不像</li>
+          </ul>
+          <p class="step-ops">要点</p>
+          <ul>
+            <li>观感一致，评审时少吵「像不像自家站」</li>
+            <li>别让 AI 自行发明另一套视觉语言</li>
+          </ul>
+        </div>
+        <div class="step">
+          <div class="n">4 · 纪要回灌</div>
+          <h3>产品判对错 / 是否过头</h3>
+          <p class="step-ops">怎么说</p>
+          <ul>
+            <li>把会上结论逐条回灌：「保留 / 改回 / 不做」</li>
+            <li>点名过度发挥：多列、多跳转、多出来的能力</li>
+          </ul>
+          <p class="step-ops">要点</p>
+          <ul>
+            <li>结构对错由产品看，不是 AI 自觉差不多</li>
+            <li>改完立刻在 Demo 里验收，再进 PRD</li>
+          </ul>
+        </div>
+      </div>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="9" data-total="16"></span></div>
+      <aside class="notes">
+        <p>纯方法论：四步怎么跟 AI 做可点 Demo。约 2～2.5′。</p>
+      </aside>
+    </section>
+
+    <!-- 10 Seal -->
+    <section class="slide" data-title="定稿">
+      <p class="kicker">Demo 定稿后，再写 PRD</p>
+      <h2 class="h2">定稿 = 切换 AI 角色</h2>
+      <p class="lede">不定稿，AI 会一直当「一起改设计的搭档」；一开写 PRD 却还在加功能，文档和 Demo 就会对不上，研发也没有稳定靶子。</p>
+      <div class="why-seal">
+        <div class="why-item">
+          <div class="why-k">为什么要定稿？</div>
+          <ul>
+            <li>Demo 阶段允许胖一点：试玩法、改交互、对齐「像不像」</li>
+            <li>写 PRD / 给研发前，必须冻住「这一期到底做哪一版」</li>
+            <li>冻住的是交互真源：以后改，以这一版 Demo 为准，而不是再开一轮发明</li>
+          </ul>
+        </div>
+        <div class="why-item">
+          <div class="why-k">为什么等于切换 AI 角色？</div>
+          <ul>
+            <li>定稿前：AI = 设计搭档——可以提方案、改界面、补状态</li>
+            <li>定稿后：AI = 翻译员——只把已定 Demo 写成 PRD，不许再加功能</li>
+            <li>角色不切，AI 会把「写说明」当成「继续设计」，范围会悄悄变胖</li>
+          </ul>
+        </div>
+      </div>
+      <div class="quote-side">
+        <div class="box">
+          <div class="phase"><h3>定稿前</h3><span class="role">设计搭档</span></div>
+          <p class="lead">目标是对齐可能性；Demo 可以改，范围还可以动。</p>
+          <div class="meta">
+            <div><b>AI 在干嘛</b><span>出方案、改 Demo、补空态 / 异常态</span></div>
+            <div><b>允许问什么</b><span>要不要做、两种做法选哪个、会不会过头</span></div>
+          </div>
+          <ul>
+            <li>可以新增、删除、重排界面能力</li>
+            <li>产品负责判对错、砍过头</li>
+            <li>结束条件：主流程能点通 + 产品宣布「就按这版」</li>
+          </ul>
+        </div>
+        <div class="quote-arrow" aria-hidden="true">→</div>
+        <div class="box hi">
+          <div class="phase"><h3>定稿后</h3><span class="role">翻译员</span></div>
+          <p class="lead">目标是写清楚交付物；Demo 逻辑不再扩，只往文档里填满。</p>
+          <div class="meta">
+            <div><b>AI 在干嘛</b><span>按 Demo + Rules 填 PRD（规则 / 交互 / 异常）</span></div>
+            <div><b>允许问什么</b><span>仅 Demo 看不清的边界；不许再提新功能</span></div>
+          </div>
+          <ul>
+            <li>禁止「顺便加一个…」「要不要也做…」</li>
+            <li>产品验口径与边界，挡住另起炉灶</li>
+            <li>对外只挂这一版；要改范围须重新宣布</li>
+          </ul>
+        </div>
+      </div>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="10" data-total="16"></span></div>
+      <aside class="notes">
+        <p>讲清：定稿为何必要、角色从搭档切到翻译。约 2′。</p>
+      </aside>
+    </section>
+
+    <!-- 11 PRD -->
+    <section class="slide" data-title="写 PRD">
+      <p class="kicker">按自己定好的规范写 PRD</p>
+      <h2 class="h2">AI 填满，不另起炉灶</h2>
+      <p class="lede">PRD 长什么样，你已经写进 Rules；这一步是让 AI 按这份规范把内容填满，而不是再发明一套写法。</p>
+      <div class="bm-row">
+        <div class="check-grid">
+          <div class="item">
+            <div class="n">01</div>
+            <div class="t">为什么做 / 做什么</div>
+            <div class="d">背景、问题、本期范围；让研发先知道「为谁解决什么」</div>
+          </div>
+          <div class="item">
+            <div class="n">02</div>
+            <div class="t">功能列表带稳定编号</div>
+            <div class="d">如 WW-01…；方便对照 Demo、验收、改稿新旧</div>
+          </div>
+          <div class="item">
+            <div class="n">03</div>
+            <div class="t">每块：规则 / 交互 / 异常 / 数据</div>
+            <div class="d">五节写满；主路径之外的失败、空态、权限也要落到文案</div>
+          </div>
+          <div class="item">
+            <div class="n">04</div>
+            <div class="t">左图右文等约定版式</div>
+            <div class="d">按 Rules 里的 `.pair` 等结构排，换人写也长得一样</div>
+          </div>
+          <div class="item">
+            <div class="n">05</div>
+            <div class="t">说明与 Demo 同页可切换</div>
+            <div class="d">顶栏 PRD / Demo；说明和能点原型对着看，少来回翻文件</div>
+          </div>
+          <div class="item">
+            <div class="n">06</div>
+            <div class="t">验收标准；只确认看不清的边界</div>
+            <div class="d">可勾选验收；定稿后只问 Demo 看不清处，不再加功能</div>
+          </div>
+        </div>
+        <aside class="bm-media">
+          <div class="case-label">案例 · 心愿墙正式 PRD</div>
+          <figure class="case-shot tall">
+            <img src="case-assets/case-prd-pair.png" alt="PRD 左图右文功能块" />
+            <figcaption class="case-cap">左截图 + 右五节说明 · 顶栏可切 Demo</figcaption>
+          </figure>
+        </aside>
+      </div>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="11" data-total="16"></span></div>
+      <aside class="notes">
+        <p>PRD 阶段 = AI 填空 + 产品验收。约 2′。</p>
+      </aside>
+    </section>
+
+    <!-- 12 Change -->
+    <section class="slide" data-title="改稿">
+      <p class="kicker">定稿之后若还要改</p>
+      <h2 class="h2">多产物一起动，看得出改了什么</h2>
+      <p class="lede">定稿不等于不能改；改则 PRD、Demo、截图一起动，文档上要看得出改过什么。</p>
+      <ul class="bullets" style="margin-top:14px;max-width:680px">
+        <li>先确认：这条还进不进这一期（产品拍板）</li>
+        <li>文档能对照新旧：新增标出，废止划掉但保留</li>
+        <li>PRD、Demo、截图、验收相关句子一起改</li>
+        <li>避免只改文档假装对齐，也避免借改稿扩大范围</li>
+      </ul>
+      <div class="case-note" style="margin-top:14px">
+        <div class="case-label">案例 · 评论人工上线 / 下架（PRD ↔ Demo）</div>
+        <div class="case-ba">
+          <figure class="case-shot">
+            <img src="case-assets/case-prd-redline-del.png" alt="PRD 红字新增与删除线废止对照" />
+            <figcaption class="case-cap">PRD · 废止删除线划掉 + 红字新增（新旧对照）</figcaption>
+          </figure>
+          <figure class="case-shot">
+            <img src="case-assets/case-admin-comments.png" alt="运营后台评论管理上线下架" />
+            <figcaption class="case-cap">Demo · 评论管理同步（上线 / 下架）</figcaption>
+          </figure>
+        </div>
+      </div>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="12" data-total="16"></span></div>
+      <aside class="notes">
+        <p>改稿时 AI 是执行手；产品先定进不进本期。约 2′。</p>
+      </aside>
+    </section>
+
+    <!-- 13 How to talk -->
+    <section class="slide" data-title="怎么说">
+      <p class="kicker">总体回顾</p>
+      <h2 class="h2">按阶段给角色说明</h2>
+      <p class="lede">跟 AI 说话不用一次讲完；按阶段切换角色说明。下面五句是开场说法，对着 AI 直接说即可。</p>
+      <ol class="say-rows">
+        <li><span class="n">① 想需求</span><span class="name">先别写 PRD</span><span class="txt">背景和限制如下……资料当参考；先玩法和主流程；拿不准先问我。</span></li>
+        <li><span class="n">② 做 Demo</span><span class="name">按规矩、像现网</span><span class="txt">先打通主流程；细节再按圈选改。</span></li>
+        <li><span class="n">③ 写 PRD</span><span class="name">按定稿翻译</span><span class="txt">不要新增功能；只确认看不清的地方；按规范写。</span></li>
+        <li><span class="n">④ 改稿</span><span class="name">标新旧 + 同步</span><span class="txt">先说明改什么；Demo 和截图一起改。</span></li>
+        <li><span class="n">⑤ 固定开头</span><span class="name">拍板前别落稿</span><span class="txt">范围 / 表述 / 登录 / 是否进本期，确认前不写进 PRD。</span></li>
+      </ol>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="13" data-total="16"></span></div>
+      <aside class="notes">
+        <p>提示词结构 = 给 AI 分角色；不是背范文。约 2′。</p>
+      </aside>
+    </section>
+
+    <!-- 14 Takeaway -->
+    <section class="slide" data-title="带走清单">
+      <p class="kicker">可照着做</p>
+      <h2 class="h2">一条需求可以怎么走完</h2>
+      <p class="lede">带走用的路径图；每一步块内写清人和 AI 各干什么。</p>
+      <div class="take-path">
+        <div class="take-path-row">
+          <div class="take-node"><span class="n">1</span><strong class="name">定规矩</strong><p class="desc"><em>人</em>写最小 Rules → <em>AI</em>开聊自带口径</p></div>
+          <span class="take-arr" aria-hidden="true">→</span>
+          <div class="take-node"><span class="n">2</span><strong class="name">备材料 + 定阶段</strong><p class="desc"><em>人</em>给材料、锁阶段 → <em>AI</em>拆资料、标约束</p></div>
+          <span class="take-arr" aria-hidden="true">→</span>
+          <div class="take-node"><span class="n">3</span><strong class="name">先想开再收窄</strong><p class="desc"><em>AI</em>串主流程、铺可能性 → <em>产品</em>收一期范围</p></div>
+          <span class="take-arr" aria-hidden="true">→</span>
+          <div class="take-node"><span class="n">4</span><strong class="name">做 Demo</strong><p class="desc"><em>AI</em>出界面、按圈选改 → <em>产品</em>判对错 / 是否过头</p></div>
+        </div>
+        <div class="take-path-join" aria-hidden="true"><span>↓</span></div>
+        <div class="take-path-row take-path-row-back">
+          <div class="take-node"><span class="n">8</span><strong class="name">全程</strong><p class="desc"><em>产品</em>拍板 → <em>AI</em>按阶段切换角色</p></div>
+          <span class="take-arr" aria-hidden="true">←</span>
+          <div class="take-node"><span class="n">7</span><strong class="name">若还要改</strong><p class="desc"><em>产品</em>定是否进本期 → <em>AI</em>同步改多产物并标新旧</p></div>
+          <span class="take-arr" aria-hidden="true">←</span>
+          <div class="take-node"><span class="n">6</span><strong class="name">写 PRD</strong><p class="desc"><em>AI</em>按规范填满 → <em>产品</em>验边界与口径</p></div>
+          <span class="take-arr" aria-hidden="true">←</span>
+          <div class="take-node"><span class="n">5</span><strong class="name">Demo 定稿</strong><p class="desc"><em>产品</em>宣布定稿 → <em>AI</em>只翻译、不加功能</p></div>
+        </div>
+      </div>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="14" data-total="16"></span></div>
+      <aside class="notes">
+        <p>带走步骤，每步必须含 AI 定位。约 2～2.5′。</p>
+      </aside>
+    </section>
+
+    <!-- 15 Q&A -->
+    <section class="slide" data-title="开放讨论">
+      <div class="grid g2" style="align-items:center;height:100%">
+        <div>
+          <p class="kicker">Open floor</p>
+          <h2 class="h2">开放讨论</h2>
+          <p class="lede" style="white-space:nowrap">步骤清单到上一页；接下来交换用 AI 做需求时的卡点。</p>
+        </div>
+        <ul class="qa-grid">
+          <li>Rules 准备先写什么，写到什么粒度够用？</li>
+          <li>Demo 定稿后，怎么管住 AI 不加戏？</li>
+          <li>哪一步最容易跳过 AI，或反过来全丢给 AI？</li>
+          <li>收到一份很全的需求资料，怎么避免照抄成终稿？</li>
+          <li>完整版想得很开，一期怎么收窄才站得住脚？</li>
+          <li>封板后又要改，怎么改才让研发一眼看出改了哪？</li>
+          <li>跟 AI 说话时，有没有固定开头句好用？</li>
+          <li>团队还没 Rules 时，个人先从哪几条开始？</li>
+        </ul>
+      </div>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="15" data-total="16"></span></div>
+      <aside class="notes">
+        <p>讨论钩子对准「用 AI」，不要滑回纯流程吐槽。约 1′ 引入 + 余下讨论。</p>
+      </aside>
+    </section>
+
+    <!-- 16 Thanks -->
+    <section class="slide" data-title="感谢">
+      <p class="kicker">Product × AI</p>
+      <h1 class="h1 anim-fade-up" data-anim="fade-up">谢谢</h1>
+      <p class="lede">用 AI 做产品：人定规矩与范围，AI 加速落地；拍板仍在产品手里。</p>
+      <p class="lede" style="margin-top:10px;color:var(--text-1);font-weight:550">有卡点随时聊。</p>
+      <div class="deck-footer"><span></span><span class="slide-number" data-current="16" data-total="16"></span></div>
+      <aside class="notes">
+        <p>收束致谢，不必再展开。约 20″。</p>
+      </aside>
+    </section>
+
+  </div>
+
+  <div id="lightbox" class="deck-lightbox" hidden>
+    <img alt="" />
+  </div>
+
+  <script src="deck-lib/runtime.js"></script>
+  <script>
+    (function () {
+      var box = document.getElementById("lightbox");
+      var img = box.querySelector("img");
+      function openLb(src, alt) {
+        img.src = src;
+        img.alt = alt || "";
+        box.hidden = false;
+      }
+      function closeLb() {
+        box.hidden = true;
+        img.removeAttribute("src");
+      }
+      document.addEventListener("click", function (e) {
+        var t = e.target;
+        if (t && t.tagName === "IMG" && t.closest(".case-shot")) {
+          e.preventDefault();
+          openLb(t.currentSrc || t.src, t.alt);
+          return;
+        }
+        if (!box.hidden && (t === box || t === img)) closeLb();
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && !box.hidden) {
+          e.stopPropagation();
+          closeLb();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

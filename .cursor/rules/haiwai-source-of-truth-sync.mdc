@@ -56,3 +56,11 @@ alwaysApply: true
 | --- | --- |
 | `海外项目/51视频/product-purchase-limit-prerequisite-prd.html` | `51VIDEO/product-purchase-limit-prerequisite-prd.html` |
 | `海外项目/51视频/prd-screens/*` | `51VIDEO/prd-screens/`（同名文件覆盖） |
+
+## 产品分享 / PPT
+
+| 编辑源（只改这里） | 同步目标 |
+| --- | --- |
+| `海外项目/产品/ai-product-share-deck.html` | `product/ai-product-share-deck.html`（不挂 `index.html`） |
+| `海外项目/产品/deck-lib/*` | `product/deck-lib/`（同名覆盖；含 html-ppt 运行时与 `paper-prd` 主题） |
+| `海外项目/产品/case-assets/*` | `product/case-assets/`（同名覆盖；案例截图 / 对话卡片） |

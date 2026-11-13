@@ -48,7 +48,7 @@
   .logo span { color: var(--pink); }
   .nav { display: flex; gap: 16px; flex-wrap: wrap; color: #d7d7df; font-size: 14px; }
   .nav button, .nav a { background: none; border: 0; padding: 0; color: inherit; }
-  .nav .on { color: #fff; }
+  .nav .on, .nav-dd > button.on { color: #fff; }
   .tools { margin-left: auto; display: flex; align-items: center; gap: 8px; }
   .icon-btn, .avatar {
     width: 34px; height: 34px; border-radius: 999px; border: 0;
@@ -84,10 +84,9 @@
     display: flex; align-items: flex-end;
   }
   .hot {
-    position: absolute; top: 14px; left: 14px; z-index: 2;
-    height: 26px; padding: 0 10px; border-radius: 6px;
+    height: 22px; padding: 0 8px; border-radius: 999px; border: 0;
     background: var(--pink); color: #fff; font-size: 12px; font-weight: 700;
-    display: inline-flex; align-items: center;
+    display: inline-flex; align-items: center; font-style: normal;
   }
   .cover-foot {
     position: relative; z-index: 1; width: 100%;
@@ -110,7 +109,9 @@
     border: 1px solid rgba(255,255,255,.28); border-radius: 999px; padding: 1px 8px;
   }
   .snippet { margin: 8px 0 0; color: #e7e7ee; font-size: 13px; }
-  .snippet mark { background: transparent; color: var(--pink); }
+  .cover-foot mark, .cats mark, .snippet mark {
+    background: transparent; color: var(--pink); font-weight: 650;
+  }
   .pager { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 22px; color: var(--muted); }
   .pager button {
     min-width: 34px; height: 34px; padding: 0 10px; border-radius: 8px;
@@ -137,26 +138,135 @@
     transition: opacity .2s;
   }
   .toast.on { opacity: 1; }
-  .feat-list { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
+  .feat-list { display: flex; flex-direction: column; gap: 16px; margin-top: 18px; }
   .feat-item {
-    display: grid; grid-template-columns: 160px 1fr; gap: 16px;
-    padding: 14px; border-radius: 12px; background: var(--bg-elev); border: 1px solid var(--line);
+    position: relative; border-radius: 14px; overflow: hidden;
+    aspect-ratio: 16 / 7; min-height: 220px;
+    display: flex; align-items: flex-end;
+    border: 1px solid var(--line); cursor: pointer;
   }
-  .feat-cover { border-radius: 10px; min-height: 96px; background: linear-gradient(120deg,#3a1d4a,#c44b7a 55%,#1b2438); }
-  .feat-item h2 { margin: 0 0 6px; font-size: 18px; }
-  .feat-item p { margin: 0; color: var(--muted); }
-  .feat-item .tags { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-  .feat-item .tags i {
-    font-style: normal; font-size: 12px; border: 1px solid rgba(255,255,255,.28);
-    border-radius: 999px; padding: 1px 8px;
+  .feat-item .feat-bg {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
   }
+  .feat-item .feat-shade {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,.08) 35%, rgba(0,0,0,.78) 100%);
+  }
+  .feat-item .feat-body {
+    position: relative; z-index: 1; width: 100%;
+    padding: 20px 22px 18px;
+  }
+  .feat-item .feat-tag {
+    display: inline-flex; align-items: center;
+    height: 24px; padding: 0 10px; border-radius: 999px;
+    background: rgba(0,0,0,.45); color: #fff; font-size: 12px; font-weight: 650;
+  }
+  .feat-item h2 {
+    margin: 10px 0 6px; font-size: 22px; line-height: 1.35; font-weight: 650;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .feat-item .feat-sum {
+    margin: 0 0 10px; color: rgba(255,255,255,.82); font-size: 14px; line-height: 1.45;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .feat-item .feat-heat {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: rgba(255,255,255,.88); font-size: 13px; font-weight: 650;
+  }
+  .feat-item .feat-heat::before { content: "🔥"; font-size: 12px; }
   .site-foot {
     margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
     display: flex; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 13px;
   }
   .site-foot a.on { color: #fff; }
+  .brand-foot-shot {
+    position: relative; margin: 48px calc(50% - 50vw) 0; width: 100vw;
+    background: #000;
+  }
+  .brand-foot-shot img { width: 100%; height: auto; display: block; }
+  .brand-foot-shot .legal {
+    position: absolute; right: 6%; bottom: 2.8%;
+    display: flex; gap: 28px; height: 3.2%; min-height: 18px; width: 38%;
+  }
+  .brand-foot-shot .legal a {
+    flex: 1; opacity: 0;
+  }
+  .nav-dd { position: relative; }
+  .nav-dd > button { background: none; border: 0; padding: 0; color: inherit; }
+  .nav-dd .menu {
+    display: none; position: absolute; top: 100%; left: 0; min-width: 140px;
+    margin-top: 8px; padding: 8px; border-radius: 10px; background: #1a1b24; border: 1px solid var(--line);
+    z-index: 5;
+  }
+  .nav-dd.open .menu { display: block; }
+  .nav-dd .menu a {
+    display: block; padding: 8px 10px; border-radius: 8px; color: #d7d7df; white-space: nowrap;
+  }
+  .nav-dd .menu a.current { background: var(--pink-dim); color: #fff; font-weight: 650; }
+  .crumb { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+  .crumb a { color: inherit; }
+  .crumb a:hover { color: #fff; }
+  .brand-crumb { color: rgba(255,255,255,.55); font-size: 13px; margin: 0 0 18px; }
+  .brand-crumb a { color: rgba(255,255,255,.55); }
+  .brand-crumb a:hover { color: #fff; }
+  .brand-crumb .sep { margin: 0 6px; opacity: .7; }
+  .result-search { display: flex; gap: 8px; margin: 0 0 14px; }
+  .result-search input {
+    flex: 1; height: 40px; border-radius: 10px; border: 1px solid var(--line);
+    background: #191a24; padding: 0 12px;
+  }
+  .result-search button {
+    height: 40px; padding: 0 16px; border-radius: 10px; border: 0;
+    background: var(--pink); color: #fff;
+  }
+  .c-box, .c-reply {
+    margin-top: 16px; padding: 14px; border-radius: 12px;
+    background: var(--bg-elev); border: 1px solid var(--line);
+  }
+  .c-box h3, .c-reply h3 { margin: 0 0 10px; font-size: 15px; }
+  .c-box textarea, .c-reply textarea, .c-box input, .c-reply input {
+    width: 100%; margin: 0 0 8px; border-radius: 8px; border: 1px solid var(--line);
+    background: #191a24; padding: 8px 10px;
+  }
+  .c-box textarea, .c-reply textarea { min-height: 72px; resize: vertical; }
+  .c-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn {
+    height: 34px; padding: 0 14px; border-radius: 8px;
+    border: 1px solid var(--line); background: #232433; color: #fff;
+  }
+  .btn.primary { background: var(--pink); border-color: var(--pink); }
+  .c-item { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .c-item .who { font-weight: 650; margin-right: 8px; }
+  .c-item .ops { margin-top: 8px; }
+  .c-item .ops button { background: none; border: 0; color: var(--pink); padding: 0; }
+  .demo-rail {
+    display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px;
+  }
+  .demo-rail a {
+    font-size: 12px; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--muted);
+  }
+  .demo-rail a.on { color: #fff; border-color: var(--pink); background: var(--pink-dim); }
+  .tip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0 20px; }
+  .tip-row .jump, a.jump {
+    color: var(--pink); border: 0; background: none; padding: 0; font-weight: 650; cursor: pointer;
+  }
+  .contrib-doc { max-width: 720px; }
+  .contrib-doc h1 { font-size: 22px; line-height: 1.45; margin: 0 0 14px; }
+  .contrib-doc h2 { font-size: 16px; margin: 22px 0 10px; }
+  .contrib-doc p, .contrib-doc li { color: #e6e6ee; line-height: 1.65; }
+  .contrib-doc .ask-row {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 14px;
+    margin: 0 0 18px; padding: 12px 14px; border-radius: 10px;
+    background: var(--bg-elev); border: 1px solid var(--line);
+  }
+  .contrib-doc .ask-row .ask { margin: 0; flex: 1 1 280px; }
+  .contrib-doc .chan-list { margin: 8px 0 0; padding-left: 1.2em; }
+  .contrib-doc .chan-list li { margin: 6px 0; }
   @media (max-width: 640px) {
-    .feat-item { grid-template-columns: 1fr; }
+    .feat-item { aspect-ratio: 4 / 3; min-height: 200px; }
+    .feat-item h2 { font-size: 18px; }
   }
 </style>
 </head>
@@ -166,6 +276,8 @@
   <a class="tab" href="feed-card-search-official-prd.html">PRD</a>
   <a class="tab" href="#home" data-go="home" id="tabFeed">吃瓜站</a>
   <a class="tab" href="#featured" data-go="featured" id="tabBrand">品牌中心</a>
+  <a class="tab" href="#article" data-go="article">回复文案</a>
+  <a class="tab" href="#contribute" data-go="contribute">求瓜心愿墙</a>
 </div>
 <header class="top" id="siteHeader"></header>
 <main class="wrap" id="app"></main>
@@ -197,14 +309,36 @@ const FAQ = [
   ["官网最新地址", "App 与网页版最新地址、永久网址，以本页文末「最新地址」一栏为准。"]
 ];
 const FEATURED = [
-  { title: "城市灯光秀倒计时出错 广播循环了两分钟", summary: "倒计时归零后又跳回十秒，现场把同一句欢迎词放了四遍。", tag: "今日吃瓜", heat: "86.2万" },
-  { title: "品牌联名海报被指出用错季节", summary: "彩排背景板和成片不是同一套，评论区把两张图排在一起。", tag: "网红黑料", heat: "42.1万" },
-  { title: "顶流演唱会官宣加场 票务页两小时改了三次", summary: "官宣写了两个城市，购票页一度只挂出一场。", tag: "明星爆料", heat: "128.5万" }
+  { title: "城市灯光秀倒计时出错 广播循环了两分钟", summary: "倒计时归零后又跳回十秒，现场把同一句欢迎词放了四遍。", tag: "今日吃瓜", heat: "86.2万", bg: "linear-gradient(120deg,#3a1d4a,#c44b7a 55%,#1b2438)" },
+  { title: "品牌联名海报被指出用错季节", summary: "彩排背景板和成片不是同一套，评论区把两张图排在一起。", tag: "网红黑料", heat: "42.1万", bg: "linear-gradient(120deg,#1d3a4a,#3d7ea6 50%,#241b38)" },
+  { title: "顶流演唱会官宣加场 票务页两小时改了三次", summary: "官宣写了两个城市，购票页一度只挂出一场。", tag: "明星爆料", heat: "128.5万", bg: "linear-gradient(120deg,#4a2a1d,#c47a4b 50%,#1b2438)" },
+  { title: "综艺嘉宾名单提前流出 制作组回应是旧表", summary: "流出的表格日期停在上个月，制作组说正式名单尚未锁定。", tag: "热门大瓜", heat: "31.8万", bg: "linear-gradient(120deg,#24331d,#6a9a45 50%,#1b2438)" },
+  { title: "机场随拍被指是摆拍 同一机位隔天又出现", summary: "网友把彩排照和这组随拍放在一起，背景指示牌几乎重合。", tag: "明星爆料", heat: "67.4万", bg: "linear-gradient(120deg,#4a1d32,#e05a7a 46%,#1c2436)" }
 ];
+function featCardHtml(item) {
+  return '<article class="feat-item"><div class="feat-bg" style="background:' + item.bg + '"></div><div class="feat-shade"></div>' +
+    '<div class="feat-body"><span class="feat-tag">' + esc(item.tag) + "</span><h2>" + esc(item.title) + "</h2>" +
+    '<p class="feat-sum">' + esc(item.summary) + '</p><div class="feat-heat">' + esc(item.heat) + "</div></div></article>";
+}
 
-const state = { view: "home", q: "", sort: "mix", page: 1, searchOpen: false };
+const state = {
+  view: "home", q: "", sort: "mix", page: 1, searchOpen: false,
+  cat: "点播", replyTo: "瓜嫂", navOpen: true
+};
 function isBrand(view) {
   return view === "featured" || view === "terms" || view === "privacy" || view === "brand";
+}
+function setModeTabs() {
+  const brandOn = isBrand(state.view);
+  document.querySelectorAll(".mode-bar a.tab").forEach((el) => el.classList.remove("on"));
+  if (brandOn) document.getElementById("tabBrand").classList.add("on");
+  else if (state.view === "home" || state.view === "join" || state.view === "agreement" || state.view === "faq" || state.view === "search") {
+    document.getElementById("tabFeed").classList.add("on");
+  } else {
+    const hit = document.querySelector('.mode-bar a.tab[data-go="' + state.view + '"]');
+    if (hit) hit.classList.add("on");
+    else document.getElementById("tabFeed").classList.add("on");
+  }
 }
 
 function esc(s) {
@@ -255,7 +389,7 @@ function snippet(post, q) {
   if (has(post.title, q)) return "";
   if (has(post.body, q)) return markQuery(clip(post.body, q), q);
   const cat = post.cats.find((item) => has(item, q));
-  if (cat) return "分类包含「" + esc(cat) + "」";
+  if (cat) return "分类包含「" + markQuery(cat, q) + "」";
   const comment = (post.commentTexts || []).find((text) => has(text, q));
   if (comment) return "评论：" + markQuery(clip(comment, q), q);
   return "";
@@ -273,13 +407,14 @@ function matched() {
   return list;
 }
 function cardHtml(post, q) {
-  const cats = post.cats.map((c) => "<i>" + esc(c) + "</i>").join("");
+  const titleHtml = q ? markQuery(post.title, q) : esc(post.title);
+  const cats = (post.hot ? '<i class="hot">热门</i>' : "") +
+    post.cats.map((c) => "<i>" + (q && has(c, q) ? markQuery(c, q) : esc(c)) + "</i>").join("");
   const bits = ["<span>" + esc(post.author) + "</span>", "<span>" + shortDate(post.date) + "</span>"];
   if (post.comments > 0) bits.push("<span>评 " + post.comments + "</span>");
   const snip = q ? snippet(post, q) : "";
   return '<article class="card"><div class="cover" style="background:' + coverBg(post.id) + '">' +
-    (post.hot ? '<span class="hot">热门</span>' : "") +
-    '<div class="cover-foot"><h2>' + esc(post.title) + '</h2><div class="foot-row">' +
+    '<div class="cover-foot"><h2>' + titleHtml + '</h2><div class="foot-row">' +
     (cats ? '<p class="cats">' + cats + "</p>" : "") +
     '<p class="meta">' + bits.join("") + "</p></div>" +
     (snip ? '<p class="snippet">' + snip + "</p>" : "") +
@@ -317,17 +452,49 @@ function addrHtml() {
     "<li>海外：https://51cg1.com</li><li>永久：https://chigua.com</li></ul></aside>";
 }
 function brandFoot() {
-  return '<footer class="site-foot">' +
-    '<a href="#terms" data-go="terms"' + (state.view === "terms" ? ' class="on"' : "") + ">用户协议</a>" +
-    '<a href="#privacy" data-go="privacy"' + (state.view === "privacy" ? ' class="on"' : "") + ">隐私政策</a>" +
-    "<span>官方地址入口</span></footer>";
+  return '<footer class="brand-foot-shot">' +
+    '<img src="feed-prd-screens/brand-footer.png" alt="品宣官网页脚" />' +
+    '<div class="legal" aria-label="页脚协议入口">' +
+    '<a href="#terms" data-go="terms" title="用户协议">用户协议</a>' +
+    '<a href="#privacy" data-go="privacy" title="隐私政策">隐私政策</a>' +
+    '<a href="#brand" data-go="brand" title="官方地址入口">官方地址入口</a>' +
+    "</div></footer>";
+}
+function hotNavHtml() {
+  const items = [
+    { id: "大赛", label: "每日大赛" },
+    { id: "点播", label: "瓜友点播" },
+    { id: "短剧", label: "短剧推荐" }
+  ];
+  const open = state.view === "category" && state.navOpen;
+  return '<div class="nav-dd' + (open ? " open" : "") + '" id="hotNav">' +
+    '<button type="button" id="hotToggle"' + (state.view === "category" ? ' class="on"' : "") + ">吃瓜热门 ▾</button>" +
+    '<div class="menu">' + items.map((item) =>
+      '<a href="#category" data-go="category" data-cat="' + item.id + '"' +
+      (state.view === "category" && state.cat === item.id ? ' class="current"' : "") + ">" + item.label + "</a>"
+    ).join("") + "</div></div>";
+}
+function bindSearchChrome() {
+  const pop = document.getElementById("searchPop");
+  if (!pop) return;
+  pop.classList.toggle("on", state.searchOpen);
+  document.getElementById("q").value = state.q;
+  document.getElementById("openSearch").addEventListener("click", () => {
+    state.searchOpen = !state.searchOpen;
+    render();
+    if (state.searchOpen) document.getElementById("q").focus();
+  });
+  document.getElementById("searchForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const q = document.getElementById("q").value.trim();
+    if (!q) return toast("先输入关键词");
+    go("search", { q, sort: "mix", searchOpen: true });
+  });
 }
 function renderHeader() {
   const header = document.getElementById("siteHeader");
-  const brandOn = isBrand(state.view);
-  document.getElementById("tabFeed").classList.toggle("on", !brandOn);
-  document.getElementById("tabBrand").classList.toggle("on", brandOn);
-  if (brandOn) {
+  setModeTabs();
+  if (isBrand(state.view)) {
     header.innerHTML = '<div class="top-inner"><a class="logo" href="#brand" data-go="brand"><span>51</span>吃瓜</a>' +
       '<nav class="nav">' +
       '<a href="#brand" data-go="brand"' + (state.view === "brand" ? ' class="on"' : "") + ">首页</a>" +
@@ -342,42 +509,41 @@ function renderHeader() {
   header.innerHTML = '<div class="top-inner"><a class="logo" href="#home" data-go="home"><span>51</span>吃瓜</a>' +
     '<nav class="nav"><a href="#home" data-go="home"' + (state.view === "home" ? ' class="on"' : "") + ">首页</a>" +
     '<button type="button" data-stub="今日吃瓜">今日吃瓜</button>' +
-    '<button type="button" data-stub="吃瓜热门">吃瓜热门</button>' +
+    hotNavHtml() +
     '<button type="button" data-stub="娱乐天地">娱乐天地</button>' +
-    '<a href="#about" data-go="about"' + (state.view === "about" ? ' class="on"' : "") + ">关于我们</a>" +
+    '<a href="#join" data-go="join"' + (state.view === "join" ? ' class="on"' : "") + ">加入我们</a>" +
+    '<a href="#agreement" data-go="agreement"' + (state.view === "agreement" ? ' class="on"' : "") + ">用户协议</a>" +
     '<a href="#faq" data-go="faq"' + (state.view === "faq" ? ' class="on"' : "") + ">常见问题</a></nav>" +
     '<div class="tools"><button class="icon-btn" id="openSearch" type="button" aria-label="搜索">搜</button>' +
     '<span class="avatar" aria-hidden="true">游</span></div></div>' +
     '<div class="top-inner"><div class="search-pop" id="searchPop">' +
     '<form class="search-row" id="searchForm"><input id="q" type="search" placeholder="输入你想搜索的关键词..." autocomplete="off" />' +
     '<button type="submit">搜索</button></form></div></div>';
-  document.getElementById("searchPop").classList.toggle("on", state.searchOpen || state.view === "search");
-  document.getElementById("q").value = state.q;
-  document.getElementById("openSearch").addEventListener("click", () => {
-    state.searchOpen = !state.searchOpen;
-    render();
-    if (state.searchOpen) document.getElementById("q").focus();
-  });
-  document.getElementById("searchForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const q = document.getElementById("q").value.trim();
-    if (!q) return toast("先输入关键词");
-    go("search", { q, sort: "mix", searchOpen: true });
-  });
+  bindSearchChrome();
+  const hotToggle = document.getElementById("hotToggle");
+  if (hotToggle) {
+    hotToggle.addEventListener("click", () => {
+      if (state.view !== "category") {
+        go("category", { cat: state.cat || "点播", navOpen: true });
+        return;
+      }
+      state.navOpen = !state.navOpen;
+      render();
+    });
+  }
 }
 function render() {
   const app = document.getElementById("app");
   renderHeader();
   if (state.view === "featured") {
-    app.innerHTML = '<div class="page-head"><h1>精选热点</h1><p>从热点事件到品牌动态，集中展示精选内容。本页为独立二级页，地址不再是首页锚点。</p></div>' +
-      '<div class="feat-list">' + FEATURED.map((item) =>
-        '<article class="feat-item"><div class="feat-cover"></div><div><h2>' + esc(item.title) + "</h2><p>" + esc(item.summary) +
-        '</p><div class="tags"><i>' + esc(item.tag) + "</i><i>" + esc(item.heat) + "</i></div></div></article>"
-      ).join("") + "</div>" + brandFoot();
+    app.innerHTML = '<p class="brand-crumb"><a href="#brand" data-go="brand">首页</a><span class="sep">›</span>精选热点</p>' +
+      '<div class="page-head"><h1>精选热点</h1><p>可配置多条精选；本页展示全部。大卡片：分类、标题、摘要、热度；无箭头按钮。</p></div>' +
+      '<div class="feat-list">' + FEATURED.map(featCardHtml).join("") + "</div>" + brandFoot();
     return;
   }
   if (state.view === "terms") {
-    app.innerHTML = '<article class="doc"><h1>用户协议</h1>' +
+    app.innerHTML = '<p class="brand-crumb"><a href="#brand" data-go="brand">首页</a><span class="sep">›</span>用户协议</p>' +
+      '<article class="doc"><h1>用户协议</h1>' +
       "<p>欢迎使用 51吃瓜官方品牌中心。使用本站即表示你已阅读并同意本协议。</p>" +
       "<h2>服务说明</h2><p>本站提供品牌介绍、精选内容入口、帮助与官方渠道信息。具体吃瓜正文仍以吃瓜站为准。</p>" +
       "<h2>用户行为</h2><p>不得利用本站从事违法违规活动，不得仿冒官方入口或散布虚假下载链接。</p>" +
@@ -385,7 +551,8 @@ function render() {
     return;
   }
   if (state.view === "privacy") {
-    app.innerHTML = '<article class="doc"><h1>隐私政策</h1>' +
+    app.innerHTML = '<p class="brand-crumb"><a href="#brand" data-go="brand">首页</a><span class="sep">›</span>隐私政策</p>' +
+      '<article class="doc"><h1>隐私政策</h1>' +
       "<p>本政策说明官方品牌中心如何收集与使用信息。</p>" +
       "<h2>我们收集的信息</h2><p>可能包括你主动提交的联系方式、设备与访问日志，用于客服与安全防护。</p>" +
       "<h2>信息使用</h2><p>仅用于提供服务、排查故障、防止仿冒与诈骗，不会出售给你的个人信息。</p>" +
@@ -393,8 +560,9 @@ function render() {
     return;
   }
   if (state.view === "brand") {
-    app.innerHTML = '<div class="page-head"><h1>官方品牌中心</h1><p>Demo 只演示精选热点独立页，以及用户协议、隐私政策独立页。</p></div>' +
-      '<p><a href="#featured" data-go="featured" style="color:var(--pink)">进入精选热点 →</a></p>' + brandFoot();
+    app.innerHTML = '<div class="page-head"><h1>官方品牌中心</h1><p>首页精选区块只展示前 3 条；点顶栏或「查看更多」进独立页看全部。</p></div>' +
+      '<div class="feat-list">' + FEATURED.slice(0, 3).map(featCardHtml).join("") + "</div>" +
+      '<p style="margin-top:16px"><a href="#featured" data-go="featured" style="color:var(--pink)">查看更多精选热点 →</a></p>' + brandFoot();
     return;
   }
   if (state.view === "home") {
@@ -408,30 +576,101 @@ function render() {
     const q = state.q.trim();
     const list = matched();
     const slice = list.slice((state.page - 1) * PAGE_SIZE, state.page * PAGE_SIZE);
-    app.innerHTML = '<div class="page-head"><h1>找到 ' + list.length + " 条与「" + esc(q) + '」相关的内容</h1></div>' +
-      '<div class="sorts"><button type="button" data-sort="mix"' + (state.sort === "mix" ? ' class="on"' : "") + '>综合</button>' +
+    const empty = list.length === 0;
+    app.innerHTML = '<div class="page-head"><h1>' + (empty ? "没有找到与「" + esc(q) + "」相关的内容" : "找到 " + list.length + " 条与「" + esc(q) + "」相关的内容") + "</h1></div>" +
+      '<form class="result-search" id="resultSearch"><input id="rq" type="search" value="' + esc(q) + '" placeholder="输入你想搜索的关键词..." autocomplete="off" /><button type="submit">搜索</button></form>' +
+      (empty ? "" : '<div class="sorts"><button type="button" data-sort="mix"' + (state.sort === "mix" ? ' class="on"' : "") + '>综合</button>' +
       '<button type="button" data-sort="new"' + (state.sort === "new" ? ' class="on"' : "") + '>最新</button>' +
-      '<button type="button" data-sort="hot"' + (state.sort === "hot" ? ' class="on"' : "") + ">最热</button></div>" +
-      '<div class="feed">' + slice.map((p) => cardHtml(p, q)).join("") + "</div>" + pager(list.length);
+      '<button type="button" data-sort="hot"' + (state.sort === "hot" ? ' class="on"' : "") + ">最热</button></div>") +
+      '<div class="feed">' + (empty ? "" : slice.map((p) => cardHtml(p, q)).join("")) + "</div>" + (empty ? "" : pager(list.length));
+    document.getElementById("resultSearch").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const nq = document.getElementById("rq").value.trim();
+      if (!nq) return toast("先输入关键词");
+      go("search", { q: nq, sort: "mix", searchOpen: true });
+    });
     return;
   }
-  if (state.view === "about") {
-    app.innerHTML = '<article class="doc"><h1>关于我们</h1><h2>关于我们 About Us</h2>' +
-      "<p>51吃瓜网（https://51cg1.com）是一个专注于网红八卦、明星绯闻、网络热点的吃瓜资讯平台，致力于为广大网友呈现最热最爆的网络黑料和反转故事。</p>" +
-      "<p>51CG1.com is a gossip and entertainment platform dedicated to internet celebrities, scandals, and viral events.</p>" +
-      "<h3>我们是谁 Who We Are</h3><p>我们是一群每天泡在微博、小红书、抖音等平台的互联网「瓜农」，通过筛选、汇总和深扒，为你呈现最值得围观的舆论事件。</p>" +
-      "<p>We're a team of gossip curators surfing Weibo, Xiaohongshu, Douyin, and other platforms daily.</p>" +
-      "<h3>我们做什么 What We Do</h3><ul>" +
-      "<li>今日吃瓜 Today's Hot Picks：实时更新的网络爆料合集。</li>" +
-      "<li>吃瓜榜单 Weekly Rankings：每周、每月黑料排行榜。</li>" +
-      "<li>网红黑料 Influencer Exposés：深扒网红翻车现场。</li>" +
-      "<li>明星绯闻 Celebrity Rumors：娱乐圈的塌房、分手和热搜。</li>" +
-      "<li>事件复盘 Timeline Deep Dives：理清来龙去脉。</li></ul>" +
-      "<h3>我们的态度 Our Stance</h3><ul>" +
-      "<li>中立但犀利：不煽情、不控评，只讲能落地的信息与事实。</li>" +
-      "<li>来源公开：内容来自公开信息。</li>" +
-      "<li>娱乐为主：吃瓜需理性，请勿将本站内容视为定论。</li></ul>" +
-      "<h3>联系我们 Contact Us</h3><p>商务合作、投稿、侵权反馈：51cgfun@pm.me</p>" +
+  if (state.view === "category") {
+    const titleMap = { 大赛: "每日大赛", 点播: "瓜友点播", 短剧: "短剧推荐" };
+    const title = titleMap[state.cat] || "瓜友点播";
+    const list = POSTS.slice(0, 3);
+    app.innerHTML = '<div class="page-head"><h1>' + esc(title) + "</h1><p>Demo：展开「吃瓜热门」下拉，当前栏目带选中态。</p></div>" +
+      '<div class="feed">' + list.map((p) => cardHtml(p, "")).join("") + "</div>";
+    return;
+  }
+  if (state.view === "tags") {
+    app.innerHTML = '<div class="page-head"><h1>所有标签</h1></div><p class="crumb"><a href="#home" data-go="home">首页</a> / 所有标签</p>' +
+      '<p><a href="#tag" data-go="tag" style="color:var(--pink)">明星爆料</a> · <a href="#tag" data-go="tag" style="color:var(--pink)">今日吃瓜</a> · <a href="#tag" data-go="tag" style="color:var(--pink)">网红黑料</a></p>';
+    return;
+  }
+  if (state.view === "tag") {
+    const list = POSTS.filter((p) => p.cats.includes("明星爆料")).slice(0, 3);
+    app.innerHTML = '<p class="crumb"><a href="#home" data-go="home">首页</a> / <a href="#tags" data-go="tags">所有标签</a> / 明星爆料</p>' +
+      '<div class="page-head"><h1>标签：明星爆料</h1></div><div class="feed">' +
+      list.map((p) => cardHtml(p, "")).join("") + "</div>";
+    return;
+  }
+  if (state.view === "article") {
+    app.innerHTML = '<div class="page-head"><h1>发布会提问环节突然中断 主办方只给了一句说明</h1><p>Demo 文章页：区分发评框与回复框文案。</p></div>' +
+      '<div class="c-box"><h3>添加新评论</h3><input placeholder="昵称（选填）" /><textarea placeholder="说点什么…"></textarea>' +
+      '<div class="c-actions"><button type="button" class="btn primary" data-act="submit-comment">提交评论</button></div></div>' +
+      '<div class="c-item"><span class="who">瓜嫂</span><span>中断前主持人刚念到下一问。</span>' +
+      '<div class="ops"><button type="button" data-act="reply" data-who="瓜嫂">回复</button></div>' +
+      (state.replyTo === "瓜嫂" ? '<div class="c-reply"><h3>回复 @瓜嫂</h3><input placeholder="昵称（选填）" /><textarea id="replyBody" placeholder="回复内容…"></textarea>' +
+      '<div class="c-actions"><button type="button" class="btn primary" data-act="submit-reply">提交回复</button></div></div>' : "") +
+      "</div>" +
+      '<div class="c-item"><span class="who">瓜农</span><span>会后说明只有时间不足六个字。</span>' +
+      '<div class="ops"><button type="button" data-act="reply" data-who="瓜农">回复</button></div>' +
+      (state.replyTo === "瓜农" ? '<div class="c-reply"><h3>回复 @瓜农</h3><input placeholder="昵称（选填）" /><textarea id="replyBody" placeholder="回复内容…"></textarea>' +
+      '<div class="c-actions"><button type="button" class="btn primary" data-act="submit-reply">提交回复</button></div></div>' : "") +
+      "</div>";
+    return;
+  }
+  if (state.view === "contribute") {
+    app.innerHTML = '<article class="contrib-doc">' +
+      '<h1>51吃瓜 强烈欢迎热心的吃瓜群众投稿！</h1>' +
+      '<div class="ask-row"><p class="ask">求瓜：想找的瓜请到心愿墙详细描述（禁止政治相关、血腥暴力、幼女相关主题）。</p>' +
+      '<a class="jump jump-wish" href="wish-wall-lite-demo.html">去求瓜心愿墙</a></div>' +
+      '<h2>吃瓜投稿方法一（无现金奖励）</h2>' +
+      '<p>使用电报联系官方投稿账号，资料建议包含标题、图片说明、视频和文案。</p>' +
+      '<h2>吃瓜投稿方法二（投稿过审后，有现金奖励）</h2>' +
+      '<p>资料过审后按内容品质给予稿费，具体金额以官方回复为准。</p>' +
+      '<h2>求瓜投稿渠道：</h2>' +
+      '<ul class="chan-list">' +
+      '<li><a class="jump jump-wish" href="wish-wall-lite-demo.html">去求瓜心愿墙</a></li>' +
+      '<li>邮箱：ceshi9321@gmail.com</li>' +
+      '<li>推特：https://x.com/tougao51cg</li>' +
+      "</ul></article>";
+    app.querySelectorAll(".jump-wish").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        try {
+          location.href = "wish-wall-lite-demo.html";
+        } catch (err) {
+          toast("求瓜心愿墙暂时不可用");
+        }
+      });
+    });
+    return;
+  }
+  if (state.view === "join") {
+    app.innerHTML = '<article class="doc"><h1>加入我们</h1>' +
+      "<p>欢迎有内容敏感度、能挖能写的伙伴加入 51 吃瓜。可投递简历或作品集至合作邮箱，说明你擅长的方向（采访、剪辑、运营等）。</p>" +
+      "<h2>我们看重什么</h2><ul>" +
+      "<li>对公开信息的筛选与核实习惯。</li>" +
+      "<li>能把长链路事件写成读者跟得上的短文。</li>" +
+      "<li>遵守站内发文与合规约定。</li></ul>" +
+      "<h2>联系方式</h2><p>商务 / 招聘：51cgfun@pm.me</p>" +
+      addrHtml() + "</article>";
+    return;
+  }
+  if (state.view === "agreement") {
+    app.innerHTML = '<article class="doc"><h1>用户协议</h1>' +
+      "<p>欢迎使用 51吃瓜网。使用本站即表示你已阅读并同意本协议。</p>" +
+      "<h2>服务说明</h2><p>本站提供公开网络热点与娱乐资讯的汇集与展示。具体内容以页面展示为准。</p>" +
+      "<h2>用户行为</h2><p>不得利用本站从事违法违规活动，不得仿冒官方入口或散布虚假下载链接。</p>" +
+      "<h2>协议更新</h2><p>我们可能更新本协议。更新后继续使用本站，即视为接受更新后的内容。</p>" +
       addrHtml() + "</article>";
     return;
   }
@@ -443,14 +682,16 @@ function go(view, extra) {
   state.view = view;
   state.page = 1;
   if (view !== "search") state.searchOpen = false;
+  if (view === "category") state.navOpen = true;
+  if (view === "article" && (!extra || extra.replyTo === undefined)) state.replyTo = "瓜嫂";
   if (extra) Object.assign(state, extra);
-  if (view === "search") state.searchOpen = true;
+  if (view === "search") state.searchOpen = false;
   const hash = view === "search"
     ? "#search=" + encodeURIComponent(state.q) + "&sort=" + state.sort
     : "#" + view;
   if (location.hash !== hash) history.replaceState(null, "", hash);
   render();
-  window.scrollTo(0, 0);
+  if (view !== "contribute") window.scrollTo(0, 0);
 }
 function readHash() {
   const h = location.hash.replace(/^#/, "");
@@ -460,11 +701,37 @@ function readHash() {
     go("search", { q, sort, searchOpen: true });
     return;
   }
-  if (h === "about" || h === "faq" || h === "home" || h === "featured" || h === "terms" || h === "privacy" || h === "brand") go(h);
+  const known = ["join", "agreement", "faq", "home", "featured", "terms", "privacy", "brand", "category", "tags", "tag", "article", "contribute"];
+  if (known.includes(h)) go(h);
   else go("home");
 }
 document.getElementById("app").addEventListener("click", (e) => {
-  if (e.target.closest(".card") || e.target.closest(".feat-item")) toast("文章详情沿用现网，本 Demo 不改详情页");
+  const act = e.target.closest("[data-act]");
+  if (act) {
+    const kind = act.dataset.act;
+    if (kind === "reply") {
+      state.replyTo = act.dataset.who;
+      render();
+      const box = document.getElementById("replyBody");
+      if (box) box.focus();
+      return;
+    }
+    if (kind === "submit-reply") {
+      const body = (document.getElementById("replyBody") || {}).value || "";
+      if (!body.trim()) return toast("先写点评论内容");
+      state.replyTo = "";
+      toast("回复已提交（Demo）");
+      render();
+      return;
+    }
+    if (kind === "submit-comment") {
+      toast("评论已提交（Demo）");
+      return;
+    }
+  }
+  if (e.target.closest(".card") || e.target.closest(".feat-item")) {
+    if (state.view !== "article") toast("文章详情沿用现网，本 Demo 不改详情页");
+  }
   const pageBtn = e.target.closest("[data-page]");
   if (pageBtn && !pageBtn.disabled) {
     state.page = Number(pageBtn.dataset.page);
@@ -486,8 +753,12 @@ document.body.addEventListener("click", (e) => {
   if (to) {
     e.preventDefault();
     const view = to.dataset.go;
+    const extra = {};
+    if (to.dataset.cat) extra.cat = to.dataset.cat;
     if (view === "home") go("home", { q: "", searchOpen: false });
-    else go(view);
+    else if (view === "category") go("category", Object.assign({ navOpen: true }, extra));
+    else if (view === "article") go("article", { replyTo: "瓜嫂" });
+    else go(view, extra);
   }
 });
 window.addEventListener("hashchange", readHash);
