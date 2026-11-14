@@ -388,8 +388,7 @@ function clip(text, q) {
 function snippet(post, q) {
   if (has(post.title, q)) return "";
   if (has(post.body, q)) return markQuery(clip(post.body, q), q);
-  const cat = post.cats.find((item) => has(item, q));
-  if (cat) return "分类包含「" + markQuery(cat, q) + "」";
+  if (post.cats.some((item) => has(item, q))) return "";
   const comment = (post.commentTexts || []).find((text) => has(text, q));
   if (comment) return "评论：" + markQuery(clip(comment, q), q);
   return "";
