@@ -292,11 +292,7 @@ const POSTS = [
   { id: "p5", title: "短视频账号一夜清空置顶 彩排旧公告还在", body: "置顶三条都撤了，最早一条公告的评论还停在上周。", cats: ["网红黑料", "今日吃瓜"], author: "瓜小哥", date: "2026-11-01", comments: 8, hot: false, heat: 210 },
   { id: "p6", title: "机场随拍被指是摆拍 同一机位隔天又出现", body: "网友把彩排照和这组随拍放在一起，背景里的指示牌位置几乎重合。", cats: ["明星爆料"], author: "瓜瓜", date: "2026-10-28", comments: 64, hot: true, heat: 1100 },
   { id: "p7", title: "综艺嘉宾名单提前流出 制作组回应是旧表", body: "流出的表格日期停在上个月，制作组说正式名单尚未锁定。", cats: ["吃瓜新闻", "今日吃瓜", "明星爆料"], author: "瓜农", date: "2026-10-20", comments: 3, hot: false, heat: 90 },
-  { id: "p8", title: "城市灯光秀倒计时出错 现场广播循环了两分钟", body: "倒计时归零后又跳回十秒，广播把同一句欢迎词放了四遍。", cats: ["吃瓜新闻"], author: "瓜嫂", date: "2026-10-12", comments: 22, hot: false, heat: 300 },
-  { id: "h1", title: "标题里带样例词的示范稿 方便对照摘要规则", body: "正文故意不写那个词，只看标题标色且无摘要行。", cats: ["今日吃瓜"], author: "瓜小哥", date: "2026-11-10", comments: 2, hot: false, heat: 50 },
-  { id: "h2", title: "这篇标题普通不带关键词", body: "前面先铺一句背景，样例词夹在中间说明，后面再补一句收尾。", cats: ["吃瓜新闻"], author: "瓜瓜", date: "2026-11-09", comments: 0, hot: false, heat: 40 },
-  { id: "h3", title: "评论命中示范 标题与正文都不含词", body: "正文保持普通描述，关键词只出现在可见评论里。", cats: ["明星爆料"], author: "瓜农", date: "2026-11-08", comments: 1, commentTexts: ["有人提到，样例词，就在这条评论。"], hot: false, heat: 30 },
-  { id: "h4", title: "仅标签命中示范 标题正文评论都没有", body: "正文与评论都不出现该词，只靠分类胶囊命中进结果。", cats: ["样例词", "今日吃瓜"], author: "瓜嫂", date: "2026-11-07", comments: 0, hot: false, heat: 20 }
+  { id: "p8", title: "城市灯光秀倒计时出错 现场广播循环了两分钟", body: "倒计时归零后又跳回十秒，广播把同一句欢迎词放了四遍。", cats: ["吃瓜新闻"], author: "瓜嫂", date: "2026-10-12", comments: 22, hot: false, heat: 300 }
 ];
 
 const FAQ = [
@@ -326,7 +322,7 @@ function featCardHtml(item) {
 }
 
 const state = {
-  view: "home", q: "", sort: "mix", page: 1, searchOpen: false,
+  view: "home", q: "", page: 1, searchOpen: false,
   cat: "点播", replyTo: "瓜嫂", navOpen: true
 };
 function isBrand(view) {
@@ -348,9 +344,9 @@ function setModeTabs() {
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
-function shortDate(iso) {
+function fullDate(iso) {
   const p = iso.split("-");
-  return p[1] + "-" + p[2];
+  return p[0] + " 年 " + Number(p[1]) + " 月 " + Number(p[2]) + " 日";
 }
 function toast(msg) {
   const el = document.getElementById("toast");
@@ -375,63 +371,21 @@ function relevance(post, q) {
   if (post.cats.some((cat) => has(cat, q))) score += 10;
   return score;
 }
-function markQuery(text, q) {
-  const safe = esc(text);
-  const n = normQuery(q);
-  if (!n) return safe;
-  const re = new RegExp(n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "ig");
-  return safe.replace(re, (m) => "<mark>" + m + "</mark>");
-}
-function clip(text, q) {
-  const raw = String(text);
-  const n = normQuery(q);
-  const i = raw.toLowerCase().indexOf(n);
-  if (i < 0) return raw;
-  const left = raw.slice(0, i);
-  const right = raw.slice(i + n.length);
-  const leftComma = Math.max(left.lastIndexOf("，"), left.lastIndexOf(","));
-  const rightCommaZh = right.indexOf("，");
-  const rightCommaEn = right.indexOf(",");
-  let rightComma = -1;
-  if (rightCommaZh >= 0 && rightCommaEn >= 0) rightComma = Math.min(rightCommaZh, rightCommaEn);
-  else rightComma = Math.max(rightCommaZh, rightCommaEn);
-  const start = leftComma >= 0 ? leftComma + 1 : 0;
-  const end = rightComma >= 0 ? i + n.length + rightComma : raw.length;
-  const slice = raw.slice(start, end).trim();
-  return (start > 0 ? "…" : "") + slice + (end < raw.length ? "…" : "");
-}
-function snippet(post, q) {
-  if (has(post.title, q)) return "";
-  if (has(post.body, q)) return markQuery(clip(post.body, q), q);
-  if (post.cats.some((item) => has(item, q))) return "";
-  const comment = (post.commentTexts || []).find((text) => has(text, q));
-  if (comment) return "评论：" + markQuery(clip(comment, q), q);
-  return "";
-}
 function matched() {
   const q = state.q.trim();
   const list = POSTS.filter((post) => relevance(post, q) > 0);
-  if (state.sort === "hot") {
-    list.sort((a, b) => b.heat - a.heat || b.date.localeCompare(a.date));
-  } else if (state.sort === "new") {
-    list.sort((a, b) => b.date.localeCompare(a.date));
-  } else {
-    list.sort((a, b) => relevance(b, q) - relevance(a, q) || b.date.localeCompare(a.date));
-  }
+  list.sort((a, b) => relevance(b, q) - relevance(a, q) || b.date.localeCompare(a.date));
   return list;
 }
-function cardHtml(post, q) {
-  const titleHtml = q ? markQuery(post.title, q) : esc(post.title);
+function cardHtml(post) {
   const cats = (post.hot ? '<i class="hot">热门</i>' : "") +
-    post.cats.map((c) => "<i>" + (q && has(c, q) ? markQuery(c, q) : esc(c)) + "</i>").join("");
-  const bits = ["<span>" + esc(post.author) + "</span>", "<span>" + shortDate(post.date) + "</span>"];
+    post.cats.map((c) => "<i>" + esc(c) + "</i>").join("");
+  const bits = ["<span>" + esc(post.author) + "</span>", "<span>" + fullDate(post.date) + "</span>"];
   if (post.comments > 0) bits.push("<span>评 " + post.comments + "</span>");
-  const snip = q ? snippet(post, q) : "";
   return '<article class="card"><div class="cover" style="background:' + coverBg(post.id) + '">' +
-    '<div class="cover-foot"><h2>' + titleHtml + '</h2><div class="foot-row">' +
+    '<div class="cover-foot"><h2>' + esc(post.title) + '</h2><div class="foot-row">' +
     (cats ? '<p class="cats">' + cats + "</p>" : "") +
     '<p class="meta">' + bits.join("") + "</p></div>" +
-    (snip ? '<p class="snippet">' + snip + "</p>" : "") +
     "</div></div></article>";
 }
 function coverBg(id) {
@@ -506,7 +460,7 @@ function bindSearchChrome() {
     e.preventDefault();
     const q = document.getElementById("q").value.trim();
     if (!q) return toast("先输入关键词");
-    go("search", { q, sort: "mix", searchOpen: true });
+    go("search", { q, searchOpen: true });
   });
 }
 function renderHeader() {
@@ -587,7 +541,7 @@ function render() {
     const list = POSTS.slice().sort((a, b) => b.date.localeCompare(a.date));
     const slice = list.slice((state.page - 1) * PAGE_SIZE, state.page * PAGE_SIZE);
     app.innerHTML = '<div class="page-head"><h1>51吃瓜网</h1><p>全网更新最快最全的吃瓜网站。以下卡片为 Demo 虚构内容。</p></div><div class="feed">' +
-      slice.map((p) => cardHtml(p, "")).join("") + "</div>" + pager(list.length);
+      slice.map((p) => cardHtml(p)).join("") + "</div>" + pager(list.length);
     return;
   }
   if (state.view === "search") {
@@ -597,15 +551,12 @@ function render() {
     const empty = list.length === 0;
     app.innerHTML = '<div class="page-head"><h1>' + (empty ? "没有找到与「" + esc(q) + "」相关的内容" : "找到 " + list.length + " 条与「" + esc(q) + "」相关的内容") + "</h1></div>" +
       '<form class="result-search" id="resultSearch"><input id="rq" type="search" value="' + esc(q) + '" placeholder="输入你想搜索的关键词..." autocomplete="off" /><button type="submit">搜索</button></form>' +
-      (empty ? "" : '<div class="sorts"><button type="button" data-sort="mix"' + (state.sort === "mix" ? ' class="on"' : "") + '>综合</button>' +
-      '<button type="button" data-sort="new"' + (state.sort === "new" ? ' class="on"' : "") + '>最新</button>' +
-      '<button type="button" data-sort="hot"' + (state.sort === "hot" ? ' class="on"' : "") + ">最热</button></div>") +
-      '<div class="feed">' + (empty ? "" : slice.map((p) => cardHtml(p, q)).join("")) + "</div>" + (empty ? "" : pager(list.length));
+      '<div class="feed">' + (empty ? "" : slice.map((p) => cardHtml(p)).join("")) + "</div>" + (empty ? "" : pager(list.length));
     document.getElementById("resultSearch").addEventListener("submit", (e) => {
       e.preventDefault();
       const nq = document.getElementById("rq").value.trim();
       if (!nq) return toast("先输入关键词");
-      go("search", { q: nq, sort: "mix", searchOpen: true });
+      go("search", { q: nq, searchOpen: true });
     });
     return;
   }
@@ -614,7 +565,7 @@ function render() {
     const title = titleMap[state.cat] || "瓜友点播";
     const list = POSTS.slice(0, 3);
     app.innerHTML = '<div class="page-head"><h1>' + esc(title) + "</h1><p>Demo：展开「吃瓜热门」下拉，当前栏目带选中态。</p></div>" +
-      '<div class="feed">' + list.map((p) => cardHtml(p, "")).join("") + "</div>";
+      '<div class="feed">' + list.map((p) => cardHtml(p)).join("") + "</div>";
     return;
   }
   if (state.view === "tags") {
@@ -626,7 +577,7 @@ function render() {
     const list = POSTS.filter((p) => p.cats.includes("明星爆料")).slice(0, 3);
     app.innerHTML = '<p class="crumb"><a href="#home" data-go="home">首页</a> / <a href="#tags" data-go="tags">所有标签</a> / 明星爆料</p>' +
       '<div class="page-head"><h1>标签：明星爆料</h1></div><div class="feed">' +
-      list.map((p) => cardHtml(p, "")).join("") + "</div>";
+      list.map((p) => cardHtml(p)).join("") + "</div>";
     return;
   }
   if (state.view === "article") {
@@ -707,7 +658,7 @@ function go(view, extra) {
   if (extra) Object.assign(state, extra);
   if (view === "search") state.searchOpen = false;
   const hash = view === "search"
-    ? "#search=" + encodeURIComponent(state.q) + "&sort=" + state.sort
+    ? "#search=" + encodeURIComponent(state.q)
     : "#" + view;
   if (location.hash !== hash) history.replaceState(null, "", hash);
   render();
@@ -717,8 +668,7 @@ function readHash() {
   const h = location.hash.replace(/^#/, "");
   if (h.startsWith("search=")) {
     const q = decodeURIComponent((h.match(/^search=([^&]*)/) || [])[1] || "");
-    const sort = (h.match(/sort=(mix|hot|new)/) || [])[1] || "mix";
-    go("search", { q, sort, searchOpen: true });
+    go("search", { q, searchOpen: true });
     return;
   }
   const known = ["join", "agreement", "faq", "home", "featured", "terms", "privacy", "brand", "category", "tags", "tag", "article", "contribute"];
@@ -759,13 +709,6 @@ document.getElementById("app").addEventListener("click", (e) => {
   if (pageBtn && !pageBtn.disabled) {
     state.page = Number(pageBtn.dataset.page);
     render();
-    return;
-  }
-  const sortBtn = e.target.closest("[data-sort]");
-  if (sortBtn) {
-    state.sort = sortBtn.dataset.sort;
-    state.page = 1;
-    go("search", { q: state.q, sort: state.sort });
     return;
   }
 });
