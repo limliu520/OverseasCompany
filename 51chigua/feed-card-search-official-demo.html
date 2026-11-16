@@ -292,7 +292,11 @@ const POSTS = [
   { id: "p5", title: "短视频账号一夜清空置顶 彩排旧公告还在", body: "置顶三条都撤了，最早一条公告的评论还停在上周。", cats: ["网红黑料", "今日吃瓜"], author: "瓜小哥", date: "2026-11-01", comments: 8, hot: false, heat: 210 },
   { id: "p6", title: "机场随拍被指是摆拍 同一机位隔天又出现", body: "网友把彩排照和这组随拍放在一起，背景里的指示牌位置几乎重合。", cats: ["明星爆料"], author: "瓜瓜", date: "2026-10-28", comments: 64, hot: true, heat: 1100 },
   { id: "p7", title: "综艺嘉宾名单提前流出 制作组回应是旧表", body: "流出的表格日期停在上个月，制作组说正式名单尚未锁定。", cats: ["吃瓜新闻", "今日吃瓜", "明星爆料"], author: "瓜农", date: "2026-10-20", comments: 3, hot: false, heat: 90 },
-  { id: "p8", title: "城市灯光秀倒计时出错 现场广播循环了两分钟", body: "倒计时归零后又跳回十秒，广播把同一句欢迎词放了四遍。", cats: ["吃瓜新闻"], author: "瓜嫂", date: "2026-10-12", comments: 22, hot: false, heat: 300 }
+  { id: "p8", title: "城市灯光秀倒计时出错 现场广播循环了两分钟", body: "倒计时归零后又跳回十秒，广播把同一句欢迎词放了四遍。", cats: ["吃瓜新闻"], author: "瓜嫂", date: "2026-10-12", comments: 22, hot: false, heat: 300 },
+  { id: "h1", title: "标题里带样例词的示范稿 方便对照摘要规则", body: "正文故意不写那个词，只看标题标色且无摘要行。", cats: ["今日吃瓜"], author: "瓜小哥", date: "2026-11-10", comments: 2, hot: false, heat: 50 },
+  { id: "h2", title: "这篇标题普通不带关键词", body: "前面先铺一句背景，样例词夹在中间说明，后面再补一句收尾。", cats: ["吃瓜新闻"], author: "瓜瓜", date: "2026-11-09", comments: 0, hot: false, heat: 40 },
+  { id: "h3", title: "评论命中示范 标题与正文都不含词", body: "正文保持普通描述，关键词只出现在可见评论里。", cats: ["明星爆料"], author: "瓜农", date: "2026-11-08", comments: 1, commentTexts: ["有人提到，样例词，就在这条评论。"], hot: false, heat: 30 },
+  { id: "h4", title: "仅标签命中示范 标题正文评论都没有", body: "正文与评论都不出现该词，只靠分类胶囊命中进结果。", cats: ["样例词", "今日吃瓜"], author: "瓜嫂", date: "2026-11-07", comments: 0, hot: false, heat: 20 }
 ];
 
 const FAQ = [
@@ -379,11 +383,22 @@ function markQuery(text, q) {
   return safe.replace(re, (m) => "<mark>" + m + "</mark>");
 }
 function clip(text, q) {
+  const raw = String(text);
   const n = normQuery(q);
-  const i = String(text).toLowerCase().indexOf(n);
-  const start = Math.max(0, i - 8);
-  const end = Math.min(text.length, i + n.length + 14);
-  return (start > 0 ? "…" : "") + text.slice(start, end) + (end < text.length ? "…" : "");
+  const i = raw.toLowerCase().indexOf(n);
+  if (i < 0) return raw;
+  const left = raw.slice(0, i);
+  const right = raw.slice(i + n.length);
+  const leftComma = Math.max(left.lastIndexOf("，"), left.lastIndexOf(","));
+  const rightCommaZh = right.indexOf("，");
+  const rightCommaEn = right.indexOf(",");
+  let rightComma = -1;
+  if (rightCommaZh >= 0 && rightCommaEn >= 0) rightComma = Math.min(rightCommaZh, rightCommaEn);
+  else rightComma = Math.max(rightCommaZh, rightCommaEn);
+  const start = leftComma >= 0 ? leftComma + 1 : 0;
+  const end = rightComma >= 0 ? i + n.length + rightComma : raw.length;
+  const slice = raw.slice(start, end).trim();
+  return (start > 0 ? "…" : "") + slice + (end < raw.length ? "…" : "");
 }
 function snippet(post, q) {
   if (has(post.title, q)) return "";
@@ -428,9 +443,13 @@ function coverBg(id) {
     p5: "linear-gradient(120deg,#2a244a,#6a5acd 48%,#1b2438)",
     p6: "linear-gradient(120deg,#4a1d32,#e05a7a 46%,#1c2436)",
     p7: "linear-gradient(120deg,#1d334a,#4aa0c4 52%,#241b2e)",
-    p8: "linear-gradient(120deg,#3a321d,#c4a24b 50%,#1b2438)"
+    p8: "linear-gradient(120deg,#3a321d,#c4a24b 50%,#1b2438)",
+    h1: "linear-gradient(120deg,#3a1d4a,#c44b7a 55%,#1b2438)",
+    h2: "linear-gradient(120deg,#1d3a4a,#3d7ea6 50%,#241b38)",
+    h3: "linear-gradient(120deg,#4a2a1d,#c47a4b 50%,#1b2438)",
+    h4: "linear-gradient(120deg,#24331d,#6a9a45 50%,#1b2438)"
   };
-  return map[id];
+  return map[id] || "linear-gradient(120deg,#2a2b36,#1b2438)";
 }
 function pager(total) {
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -611,18 +630,20 @@ function render() {
     return;
   }
   if (state.view === "article") {
-    app.innerHTML = '<div class="page-head"><h1>发布会提问环节突然中断 主办方只给了一句说明</h1><p>Demo 文章页：区分发评框与回复框文案。</p></div>' +
-      '<div class="c-box"><h3>添加新评论</h3><input placeholder="昵称（选填）" /><textarea placeholder="说点什么…"></textarea>' +
-      '<div class="c-actions"><button type="button" class="btn primary" data-act="submit-comment">提交评论</button></div></div>' +
+    app.innerHTML = '<div class="page-head"><h1>发布会提问环节突然中断 主办方只给了一句说明</h1><p>Demo：点「回复」展开回复区（发评常驻框不在本 Demo 展示）。</p></div>' +
       '<div class="c-item"><span class="who">瓜嫂</span><span>中断前主持人刚念到下一问。</span>' +
       '<div class="ops"><button type="button" data-act="reply" data-who="瓜嫂">回复</button></div>' +
-      (state.replyTo === "瓜嫂" ? '<div class="c-reply"><h3>回复 @瓜嫂</h3><input placeholder="昵称（选填）" /><textarea id="replyBody" placeholder="回复内容…"></textarea>' +
-      '<div class="c-actions"><button type="button" class="btn primary" data-act="submit-reply">提交回复</button></div></div>' : "") +
+      (state.replyTo === "瓜嫂" ? '<div class="c-reply"><textarea id="replyBody" placeholder="回复 @瓜嫂"></textarea>' +
+      '<input id="replyNick" placeholder="昵称" /><div class="c-actions">' +
+      '<button type="button" class="btn" data-act="cancel-reply">取消回复</button>' +
+      '<button type="button" class="btn primary" data-act="submit-reply">提交回复</button></div></div>' : "") +
       "</div>" +
       '<div class="c-item"><span class="who">瓜农</span><span>会后说明只有时间不足六个字。</span>' +
       '<div class="ops"><button type="button" data-act="reply" data-who="瓜农">回复</button></div>' +
-      (state.replyTo === "瓜农" ? '<div class="c-reply"><h3>回复 @瓜农</h3><input placeholder="昵称（选填）" /><textarea id="replyBody" placeholder="回复内容…"></textarea>' +
-      '<div class="c-actions"><button type="button" class="btn primary" data-act="submit-reply">提交回复</button></div></div>' : "") +
+      (state.replyTo === "瓜农" ? '<div class="c-reply"><textarea id="replyBody" placeholder="回复 @瓜农"></textarea>' +
+      '<input id="replyNick" placeholder="昵称" /><div class="c-actions">' +
+      '<button type="button" class="btn" data-act="cancel-reply">取消回复</button>' +
+      '<button type="button" class="btn primary" data-act="submit-reply">提交回复</button></div></div>' : "") +
       "</div>";
     return;
   }
@@ -715,16 +736,19 @@ document.getElementById("app").addEventListener("click", (e) => {
       if (box) box.focus();
       return;
     }
+    if (kind === "cancel-reply") {
+      state.replyTo = "";
+      render();
+      return;
+    }
     if (kind === "submit-reply") {
+      const nick = (document.getElementById("replyNick") || {}).value || "";
       const body = (document.getElementById("replyBody") || {}).value || "";
+      if (!nick.trim()) return toast("请填写昵称");
       if (!body.trim()) return toast("先写点评论内容");
       state.replyTo = "";
       toast("回复已提交（Demo）");
       render();
-      return;
-    }
-    if (kind === "submit-comment") {
-      toast("评论已提交（Demo）");
       return;
     }
   }
