@@ -2000,6 +2000,72 @@
     color: var(--green);
   }
 
+  /* ===== 临时讨论 ===== */
+  .discuss {
+    max-width: 880px;
+  }
+  .discuss h1 {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .discuss .lead {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+  .discuss-block {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px 18px;
+    margin-bottom: 16px;
+    background: #fff;
+  }
+  .discuss-block h2 {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .discuss-block h2 .tag {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    vertical-align: middle;
+  }
+  .discuss-block h2 .tag.ok {
+    background: var(--green-soft);
+    color: var(--green);
+  }
+  .discuss-block h2 .tag.wait {
+    background: #fff3ea;
+    color: #c45a00;
+  }
+  .discuss-block ol,
+  .discuss-block ul {
+    padding-left: 1.25em;
+  }
+  .discuss-block li {
+    margin: 8px 0;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text);
+  }
+  .discuss-block li strong {
+    font-weight: 700;
+  }
+  .discuss-block .sub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #6a727b;
+    line-height: 1.55;
+  }
+
   @media (max-width: 1180px) {
     .shell { grid-template-columns: 76px minmax(0, 1fr); }
     .rail { display: none; }
@@ -2029,7 +2095,7 @@
     </div>
 
     <div class="shell">
-      <!-- Left nav: 6 primary tabs -->
+      <!-- Left nav -->
       <aside class="nav">
         <div class="nav-logo">51</div>
         <button class="nav-item active" data-page="home" title="吃瓜">
@@ -2049,6 +2115,9 @@
         </button>
         <button class="nav-item" data-page="mine" title="我的">
           <div class="nav-ico">☺</div><span>我的</span>
+        </button>
+        <button class="nav-item" data-page="discuss" title="临时讨论">
+          <div class="nav-ico">※</div><span>讨论</span>
         </button>
       </aside>
 
@@ -2458,6 +2527,70 @@
             </div>
 
             <p class="page-note">本页为「我的」一级页入口全集占位；二级页本 Demo 不做跳转。</p>
+          </div>
+
+          <!-- ========== 临时讨论 ========== -->
+          <div class="page" id="page-discuss">
+            <div class="discuss">
+              <h1>临时讨论</h1>
+              <p class="lead">桌面端适配讨论底稿（Demo 内临时候选页，非正式产品 Tab）。桌面端为 Flutter 独立开发，开发成本与 APP 接近；更需卡齐「同构规则」，避免双端行为分叉。</p>
+
+              <section class="discuss-block">
+                <h2>优化思路 <span class="tag ok">方向</span></h2>
+                <ol>
+                  <li>
+                    <strong>与 APP 同构，不另做一套产品</strong>
+                    <div class="sub">数据接口、业务对象、入口语义跟 APP 对齐；桌面改布局密度与空间用法，不改信息架构。功能/入口不做大幅加减。</div>
+                  </li>
+                  <li>
+                    <strong>列表：内容不拉伸，用加列提密度</strong>
+                    <div class="sub">卡片比例锁死；横卡少加列（如视频 2→3），竖卡多加列（如社区 2→4）。禁止为铺满大屏把单卡拉巨宽、改比例。</div>
+                  </li>
+                  <li>
+                    <strong>详情：整页沉浸 + 参考主流大屏形态</strong>
+                    <div class="sub">点进详情仍是整页内容。短视频可参考抖音式；长视频参考 B 站式；社区笔记参考小红书式；图文吃瓜参考新闻长文。字段与互动与 APP 同源。</div>
+                  </li>
+                  <li>
+                    <strong>非核心浏览页：沿用 APP，做大屏适配</strong>
+                    <div class="sub">「我的」「福利」等：结构与入口跟 APP 一致，桌面做限宽/栅格/留白，不重做信息架构。</div>
+                  </li>
+                  <li>
+                    <strong>共享层优先于 UI 分叉</strong>
+                    <div class="sub">同一套接口契约、状态机、埋点/权限；UI 允许双端各写，业务规则禁止分叉。用「APP 页 → 桌面布局策略」映射表对齐研发。</div>
+                  </li>
+                  <li>
+                    <strong>导航形态可变，语义不变</strong>
+                    <div class="sub">底栏 Tab → 桌面侧栏均可；一级入口名称与顺序建议与 APP 一致。</div>
+                  </li>
+                </ol>
+              </section>
+
+              <section class="discuss-block">
+                <h2>待讨论 <span class="tag wait">待拍板</span></h2>
+                <ul>
+                  <li>
+                    <strong>桌面端定位与目标</strong>
+                    <div class="sub">桌面到底要解决什么问题、服务谁？目标是与 APP 能力/体验保持一致（同一产品的大屏形态），还是另有额外目标与背景（例如拉新、时长、运营投放、特定场景效率）？定位不清会导致列表密度、详情范式、迭代节奏都无法收口，需与运营、项目负责人先对齐。</div>
+                  </li>
+                  <li>
+                    <strong>首页 / 视频 / 社区顶部广告尺寸</strong>
+                    <div class="sub">大屏下广告会做尺寸调整（宽度对齐内容列、高度限高/更扁比例），避免半屏广告挤压列表。需确认：各 Tab 广告统一规范，还是首页 / 视频 / 社区分别定比例与素材规范；是否支持轮播、与列表是否必须同宽。</div>
+                  </li>
+                  <li>
+                    <strong>首页 Feed 大屏主形态</strong>
+                    <div class="sub">单列限宽 vs 双列网格，默认哪一种；是否允许用户切换。</div>
+                  </li>
+                  <li>
+                    <strong>各类型详情的主推范式</strong>
+                    <div class="sub">视频详情主推抖音式还是 B 站式（或按内容类型分流）；社区是否固定小红书左右栏。</div>
+                  </li>
+                  <li>
+                    <strong>后续迭代节奏</strong>
+                    <div class="sub">桌面与 APP 保持同节奏同步迭代，还是定期把 APP 相关能力汇总后，再批量更新到桌面？需和运营、项目负责人对齐发布与排期方式。</div>
+                  </li>
+                </ul>
+              </section>
+            </div>
           </div>
 
         </div>
@@ -3215,7 +3348,8 @@
     community: "page-community",
     welfare: "page-welfare",
     dating: "page-dating",
-    mine: "page-mine"
+    mine: "page-mine",
+    discuss: "page-discuss"
   };
   document.querySelectorAll(".nav-item").forEach((btn) => {
     btn.addEventListener("click", () => {
