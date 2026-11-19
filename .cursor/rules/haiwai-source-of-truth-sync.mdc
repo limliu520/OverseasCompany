@@ -30,6 +30,7 @@ alwaysApply: true
 | `海外项目/方舟/水印与片头片尾优化/prd-screens/*` | `fangzhou/prd-screens/`（同名文件覆盖） |
 | `海外项目/方舟/运营/fangzhou-ops-usage-drop-survey-20261103.html` | `fangzhou/fangzhou-ops-usage-drop-survey-20261103.html` |
 | `海外项目/方舟/重构资料/fangzhou-refactor-ops-survey-backlog.md` | `fangzhou/fangzhou-refactor-ops-survey-backlog.md` |
+| `海外项目/方舟/编辑项目处理开关/fangzhou-project-process-switches-prd.md` | `fangzhou/fangzhou-project-process-switches-prd.md` |
 | `海外项目/方舟/方舟重构方案/fangzhou-refactor-projects-prd.html` | `fangzhou/fangzhou-refactor-projects-prd.html` |
 | `海外项目/方舟/方舟重构方案/fangzhou-refactor-accounts-prd.html` | `fangzhou/fangzhou-refactor-accounts-prd.html` |
 | `海外项目/方舟/方舟重构方案/fangzhou-refactor-collect-articles-prd.html` | `fangzhou/fangzhou-refactor-collect-articles-prd.html` |

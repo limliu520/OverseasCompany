@@ -105,8 +105,32 @@
     min-height: 0;
     overflow: hidden;
     display: grid;
-    /* 右侧 rail 暂不展示，主区吃满 */
+    grid-template-columns: 76px minmax(0, 1fr) 268px;
+  }
+  /* 详情 / 视频 / 约炮 / 福利 / 我的：隐藏右侧栏 */
+  .desk:has(#page-video.active) .shell,
+  .desk:has(#page-video-detail.active) .shell,
+  .desk:has(#page-article-detail.active) .shell,
+  .desk:has(#page-post-detail.active) .shell,
+  .desk:has(#page-dating.active) .shell,
+  .desk:has(#page-dating-post.active) .shell,
+  .desk:has(#page-store-detail.active) .shell,
+  .desk:has(#page-stores-more.active) .shell,
+  .desk:has(#page-welfare.active) .shell,
+  .desk:has(#page-mine.active) .shell {
     grid-template-columns: 76px minmax(0, 1fr);
+  }
+  .desk:has(#page-video.active) .rail,
+  .desk:has(#page-video-detail.active) .rail,
+  .desk:has(#page-article-detail.active) .rail,
+  .desk:has(#page-post-detail.active) .rail,
+  .desk:has(#page-dating.active) .rail,
+  .desk:has(#page-dating-post.active) .rail,
+  .desk:has(#page-store-detail.active) .rail,
+  .desk:has(#page-stores-more.active) .rail,
+  .desk:has(#page-welfare.active) .rail,
+  .desk:has(#page-mine.active) .rail {
+    display: none;
   }
 
   /* ===== Left nav ===== */
@@ -139,6 +163,7 @@
     color: #6a727b;
     transition: 0.15s ease;
   }
+  .nav-item[hidden] { display: none !important; }
   .nav-item:hover { background: #eceef2; color: var(--text); }
   .nav-item.active {
     background: var(--accent-soft);
@@ -183,16 +208,77 @@
     overflow: hidden;
     min-height: 0;
     height: 100%;
+    position: relative;
   }
   #page-home .top-row,
   #page-home .channels,
-  #page-home .layout-switch,
-  #page-home .hint {
+  #page-home .layout-switch {
     flex-shrink: 0;
   }
   #page-home .home-mode.active {
     flex: 1 1 auto;
     min-height: 0;
+  }
+  /* 首页右下角悬浮广告：可关闭、可轮播 */
+  .home-float {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    width: 132px;
+    z-index: 40;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+    background: #111;
+  }
+  .home-float[hidden] { display: none !important; }
+  .home-float-close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 2;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+  }
+  .home-float-stage {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+  }
+  .home-float-stage .ph-block {
+    position: absolute;
+    inset: 0;
+    font-size: 0;
+    color: transparent;
+  }
+  .home-float-dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 8px;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    pointer-events: none;
+  }
+  .home-float-dots span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+  }
+  .home-float-dots span.on {
+    background: #fff;
+    width: 12px;
+    border-radius: 4px;
   }
 
   /* shared header bits */
@@ -310,15 +396,947 @@
     color: var(--green);
     font-size: 14px;
   }
+  .ch-more.open {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .channels-wrap {
+    position: relative;
+    margin-bottom: 14px;
+    z-index: 20;
+  }
+  .channels-wrap .channels { margin-bottom: 0; }
+  /* PC 适配：浅色面板 + 多列自动铺满，避免手机式一行两个 */
+  .ch-panel {
+    display: none;
+    position: absolute;
+    left: 0; right: 0;
+    top: calc(100% + 6px);
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px 14px 14px;
+    box-shadow: 0 12px 36px rgba(20, 24, 32, 0.14);
+    border: 1px solid var(--line);
+    max-height: min(360px, 50vh);
+    overflow: auto;
+    z-index: 30;
+  }
+  .ch-panel.open { display: block; }
+  .ch-panel-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 0 2px 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ch-panel-hd .tit {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .ch-panel-close {
+    font-size: 12px;
+    color: var(--muted);
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .ch-panel-close:hover {
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .ch-panel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    gap: 8px;
+  }
+  .ch-panel-grid .ch-cell {
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #f5f6f8;
+    color: #444;
+    font-size: 13px;
+    text-align: center;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ch-panel-grid .ch-cell:hover {
+    background: #eef0f3;
+    color: var(--text);
+  }
+  .ch-panel-grid .ch-cell.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    font-weight: 700;
+  }
+  @media (max-width: 900px) {
+    .ch-panel-grid {
+      grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    }
+  }
 
-  /* 其他 Tab 通用 Banner（非首页） */
+  /* ===== 每日签到弹窗（含明细） ===== */
+  .ci-mask {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0,0,0,0.55);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .ci-mask.open { display: flex; }
+  .ci-modal {
+    width: min(420px, 100%);
+    height: min(720px, calc(100vh - 48px));
+    max-height: min(720px, calc(100vh - 48px));
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    color: var(--text);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.22);
+    border: 1px solid var(--line);
+  }
+  .ci-view {
+    display: none;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+    height: 100%;
+  }
+  .ci-view.active { display: flex; }
+  .ci-hd {
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: 40px 1fr 64px;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 12px 10px;
+  }
+  .ci-hd .back {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    line-height: 1;
+    color: var(--green);
+    background: #f2f3f5;
+  }
+  .ci-hd .back:hover { background: #e8eaed; }
+  .ci-hd .link {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 6px 4px;
+    text-align: right;
+    justify-self: end;
+  }
+  .ci-hd .link:hover { color: var(--accent); }
+  .ci-hd h3 {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .ci-hd-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+  }
+  .ci-hd-tabs button {
+    font-size: 15px;
+    color: var(--muted);
+    padding: 4px 0 8px;
+    position: relative;
+  }
+  .ci-hd-tabs button.active {
+    color: var(--text);
+    font-weight: 700;
+  }
+  .ci-hd-tabs button.active::after {
+    content: "";
+    position: absolute;
+    left: 20%; right: 20%; bottom: 0;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--accent);
+  }
+  .ci-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 4px 16px 20px;
+  }
+  .ci-lv-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .ci-lv-row .lv {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+  .ci-lv-row .lv em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .ci-lv-row .mid { flex: 1; min-width: 0; padding-top: 6px; }
+  .ci-lv-row .rule {
+    font-size: 12px;
+    color: #9a9aa3;
+  }
+  .ci-lv-row .rule:hover { color: var(--accent); }
+  .ci-bar {
+    margin-top: 8px;
+    height: 6px;
+    border-radius: 999px;
+    background: #2a2a30;
+    overflow: hidden;
+  }
+  .ci-bar i {
+    display: block;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ff4d8d, #ff7ab0);
+  }
+  .ci-lv-row .hint {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #7a7a84;
+  }
+  .ci-badge {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #3a4a6a, #1a2438);
+    border: 2px solid #6a8cff;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: #c5d4ff;
+    flex-shrink: 0;
+  }
+  .ci-streak-tit {
+    font-size: 13px;
+    color: #c8c8d0;
+    margin-bottom: 10px;
+  }
+  .ci-streak {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+  .ci-day {
+    background: #3a1f24;
+    border-radius: 999px;
+    padding: 10px 2px 8px;
+    text-align: center;
+    min-height: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .ci-day .exp {
+    font-size: 10px;
+    color: #e8b4bc;
+    writing-mode: horizontal-tb;
+  }
+  .ci-day .n {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .ci-points {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 14px;
+  }
+  .ci-points .go {
+    margin-left: auto;
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .ci-tabs {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ci-tabs button {
+    padding: 8px 0 10px;
+    font-size: 14px;
+    color: var(--muted);
+    position: relative;
+  }
+  .ci-tabs button.active {
+    color: var(--text);
+    font-weight: 700;
+  }
+  .ci-tabs button.active::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+  .ci-task {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .ci-task .ico {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--green-soft);
+    color: var(--green);
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .ci-task .body { flex: 1; min-width: 0; }
+  .ci-task .t {
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .ci-task .pill {
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(255,77,141,0.18);
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .ci-task .pts { font-size: 12px; color: var(--muted); }
+  .ci-task .d {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .ci-task .act {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .ci-refresh {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    margin: 12px 0 18px;
+  }
+  .ci-rules h4 {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .ci-rules ol {
+    padding-left: 18px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  .ci-rules li { margin-bottom: 6px; }
+  .ci-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 48px 16px 64px;
+    color: #7a7a84;
+    font-size: 13px;
+  }
+  .ci-empty .panda {
+    width: 120px; height: 120px;
+    border-radius: 24px;
+    background: linear-gradient(145deg, #2a2a30, #1a1a1e);
+    display: grid;
+    place-items: center;
+    font-size: 42px;
+  }
+
+  /* ===== 排行榜弹窗 ===== */
+  .rk-mask {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0,0,0,0.55);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .rk-mask.open { display: flex; }
+  .rk-modal {
+    width: min(440px, 100%);
+    max-height: min(780px, calc(100vh - 48px));
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    color: var(--text);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.22);
+    border: 1px solid var(--line);
+  }
+  .rk-hero {
+    flex-shrink: 0;
+    position: relative;
+    padding: 14px 14px 12px;
+    background: linear-gradient(135deg, #ffe6f0 0%, #fff 55%, #f7f8fa 100%);
+    border-bottom: 1px solid var(--line);
+  }
+  .rk-hero .back {
+    position: absolute;
+    left: 10px; top: 12px;
+    width: 36px; height: 36px;
+    font-size: 20px;
+    color: var(--green);
+    display: grid;
+    place-items: center;
+  }
+  .rk-hero .crown {
+    position: absolute;
+    right: 16px; top: 8px;
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #ff9ec4, #ff4d8d 55%, #8a1848);
+    display: grid;
+    place-items: center;
+    font-size: 28px;
+    box-shadow: 0 8px 20px rgba(255,77,141,0.35);
+  }
+  .rk-hero h3 {
+    margin: 4px 0 0 40px;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+  .rk-main-tabs {
+    display: flex;
+    gap: 22px;
+    margin: 14px 0 0 40px;
+  }
+  .rk-main-tabs button {
+    font-size: 15px;
+    color: var(--muted);
+    padding-bottom: 8px;
+    position: relative;
+  }
+  .rk-main-tabs button.active {
+    color: var(--text);
+    font-weight: 800;
+  }
+  .rk-main-tabs button.active::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .rk-toolbar {
+    flex-shrink: 0;
+    padding: 12px 14px 8px;
+    background: #fff;
+  }
+  .rk-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .rk-chips button {
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--text);
+    background: #f2f3f5;
+    border: 1px solid var(--line);
+  }
+  .rk-chips button.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 700;
+  }
+  .rk-hist-bar {
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+  .rk-hist-bar.show { display: flex; }
+  .rk-chips.hide { display: none; }
+  .rk-hist-bar .search {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f2f3f5;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 4px 4px 12px;
+    min-width: 0;
+  }
+  .rk-hist-bar .search input {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    outline: none;
+    color: var(--text);
+    font-size: 12px;
+    min-width: 0;
+  }
+  .rk-hist-bar .search input::placeholder { color: var(--muted); }
+  .rk-hist-bar .go {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .rk-hist-bar .date {
+    flex-shrink: 0;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: #f2f3f5;
+    color: var(--text);
+    font-size: 12px;
+    border: 1px solid var(--line);
+  }
+  .rk-list {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 6px 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #fff;
+  }
+  .rk-card {
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    text-align: left;
+    width: 100%;
+    color: inherit;
+  }
+  .rk-card:hover {
+    border-color: var(--accent);
+    background: #fffafc;
+  }
+  .rk-thumb {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--green-soft);
+  }
+  .rk-thumb .ph-block {
+    width: 100%;
+    height: 100%;
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .rk-rank {
+    position: absolute;
+    left: 0; top: 0;
+    padding: 3px 7px;
+    font-size: 10px;
+    font-weight: 800;
+    color: #1a1a1a;
+    border-radius: 0 0 8px 0;
+    z-index: 1;
+  }
+  .rk-rank.t1 { background: linear-gradient(90deg, #ffe08a, #ffc94a); }
+  .rk-rank.t2 { background: linear-gradient(90deg, #d7e3ff, #a8b8d8); }
+  .rk-rank.t3 { background: linear-gradient(90deg, #ffd0a8, #e89a5c); }
+  .rk-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .rk-views {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .rk-title {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #fff;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .rk-meta {
+    margin-top: auto;
+    font-size: 11px;
+    color: #7a7a84;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ===== AI科技弹窗 ===== */
+  .ai-mask {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0,0,0,0.45);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .ai-mask.open { display: flex; }
+  .ai-modal {
+    width: min(520px, 100%);
+    max-height: min(640px, calc(100vh - 48px));
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.28);
+    border: 1px solid var(--line);
+  }
+  .ai-hd {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ai-hd .back {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: #f2f3f5;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    color: var(--green);
+    font-weight: 700;
+  }
+  .ai-hd h3 {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .ai-grid {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    align-content: start;
+  }
+  .ai-card {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 3 / 4;
+    cursor: pointer;
+    border: 0;
+    padding: 0;
+    background: #111;
+    max-height: 168px;
+  }
+  .ai-card .ph-block {
+    position: absolute;
+    inset: 0;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .ai-card .lab {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 22px 6px 8px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.78));
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.3;
+    z-index: 1;
+  }
+  .ai-card:hover { box-shadow: 0 0 0 2px var(--accent); }
+  .ai-card:nth-child(1) .ph-block { background: linear-gradient(145deg, #6a8cff, #c48dff); }
+  .ai-card:nth-child(2) .ph-block { background: linear-gradient(145deg, #ff8ab8, #ffd18a); }
+  .ai-card:nth-child(3) .ph-block { background: linear-gradient(145deg, #7ad0ff, #9a7cff); }
+  .ai-card:nth-child(4) .ph-block { background: linear-gradient(145deg, #ff9a5c, #ff6b8a); }
+  .ai-card:nth-child(5) .ph-block { background: linear-gradient(145deg, #7bcf9a, #5a9cff); }
+  @media (max-width: 520px) {
+    .ai-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ===== 搜索页（白底，与首页统一） ===== */
+  #page-search {
+    display: none;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #fff;
+    color: var(--text);
+  }
+  #page-search.active { display: flex; }
+  .sp-top {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .sp-top .back {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: #f2f3f5;
+    color: var(--green);
+    font-size: 18px;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+  }
+  .sp-search {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f2f3f5;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 4px 4px 14px;
+    min-width: 0;
+  }
+  .sp-search input {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    outline: none;
+    color: var(--text);
+    font-size: 14px;
+    min-width: 0;
+  }
+  .sp-search input::placeholder { color: var(--muted); }
+  .sp-search .go {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .sp-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding-bottom: 12px;
+    background: #fff;
+  }
+  .sp-sec {
+    margin-bottom: 18px;
+  }
+  .sp-sec-hd {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .sp-sec-hd .ico {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 12px;
+    display: grid;
+    place-items: center;
+  }
+  .sp-sec-hd h4 {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .sp-sec-hd .clear {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .sp-sec-hd .clear:hover { color: var(--accent); }
+  .sp-empty {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 4px 0 2px;
+  }
+  .sp-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sp-tags button {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,77,141,0.45);
+    color: var(--accent);
+    font-size: 12px;
+    background: #fff;
+  }
+  .sp-tags button:hover {
+    background: var(--accent-soft);
+  }
+  /* 搜索页广告：一排约 2.5 个横滑，单卡 823×413 */
+  .sp-banner {
+    position: relative;
+    margin: 0 0 16px;
+    background: transparent;
+    overflow: visible;
+    max-width: none;
+    aspect-ratio: auto;
+  }
+  .sp-banner-rail {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+  }
+  .sp-banner-item {
+    flex: 0 0 calc((100% - 20px) / 2.5);
+    min-width: 0;
+    aspect-ratio: 823 / 413;
+    border-radius: 12px;
+    overflow: hidden;
+    scroll-snap-align: start;
+    background: var(--green-soft);
+    border: 1px solid var(--line);
+  }
+  .sp-banner-item .ph-block {
+    width: 100%;
+    height: 100%;
+    font-size: 0;
+    color: transparent;
+  }
+  @media (max-width: 900px) {
+    .sp-banner-item { flex-basis: calc((100% - 10px) / 2); }
+  }
+  .sp-hot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .sp-hot-card {
+    display: flex;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    text-align: left;
+    width: 100%;
+    color: var(--text);
+  }
+  .sp-hot-card:hover {
+    border-color: var(--accent);
+    background: #fffafc;
+  }
+  .sp-hot-thumb {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .sp-hot-thumb .ph-block {
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+  }
+  .sp-hot-thumb .rk-rank {
+    font-size: 9px;
+    padding: 2px 5px;
+  }
+  .sp-hot-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .sp-hot-body .views {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .sp-hot-body .t {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .sp-hot-body .m {
+    margin-top: auto;
+    font-size: 10px;
+    color: #7a7a84;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  @media (max-width: 1100px) {
+    .sp-hot-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 720px) {
+    .sp-hot-grid { grid-template-columns: 1fr; }
+  }
+
+  /* 其他 Tab 通用 Banner（非首页）：广告 823×413 */
   .banner {
     border-radius: var(--radius);
     overflow: hidden;
     margin: 0 auto 16px;
     width: 100%;
     max-width: 720px;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 823 / 413;
   }
   .banner .ph-block { width: 100%; height: 100%; font-size: 14px; }
   /* 视频 / 社区：与列表等宽扁 Banner，可左右滑动（共用） */
@@ -423,58 +1441,192 @@
     margin: -6px 0 14px;
   }
 
-  /* ===== Home feed modes：广告始终跟列表在一起 ===== */
+  /* ===== 首页单列：内容最大 823；最小左右边距 24。
+     拉大：先增内容至 823，再只增白边。缩小：先减白边至最小，再等比缩内容（比例不变）===== */
   .feed-single {
-    max-width: 720px;
-    margin: 0 auto;
+    --feed-max: 823px;
+    --feed-gutter: 24px;
+    width: 100%;
+    max-width: calc(var(--feed-max) + 2 * var(--feed-gutter));
+    margin-inline: auto;
+    padding-inline: var(--feed-gutter);
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
+    align-items: stretch;
   }
-  /* 防止 flex 把内容卡压扁；广告与内容比例分开 */
-  .feed-single .card,
-  .feed-single .home-ad {
+  .feed-single > .web-card,
+  .feed-single > .home-peek,
+  .feed-single > .home-ad {
     flex: 0 0 auto;
     width: 100%;
+    max-width: none;
   }
-  .feed-single .home-ad .ad-frame {
-    /* 单列广告：扁横幅，避免和内容卡一样高 */
-    aspect-ratio: 16 / 5;
+  /* 信息流广告：纯图，无文案 */
+  .feed-single > .home-ad .ad-frame .ph-block {
+    font-size: 0;
+    color: transparent;
   }
-  .feed-single .card-cover {
-    /* 内容封面：标准 16:9，不被列表滚动区挤压 */
-    aspect-ratio: 16 / 9;
+  .home-peek .ph-block {
+    font-size: 0;
+    color: transparent;
   }
-  .feed-dual {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    align-items: start;
-    align-content: start;
-    grid-auto-rows: max-content;
+  /* 主 Banner：固定 823×413；宽度≈73% 与下方卡片（823×303）等高，两侧多被遮挡 */
+  .home-peek {
+    position: relative;
+    overflow: visible;
   }
-  .feed-dual .card {
-    min-width: 0;
-    height: max-content;
-    align-self: start;
-  }
-  .feed-dual .card-cover {
-    aspect-ratio: 16 / 9;
+  .home-peek-rail {
+    --peek-main-w: calc(100% * 303 / 413);
+    position: relative;
     width: 100%;
-    height: auto;
   }
-  .feed-dual .home-ad-dual {
-    align-self: start;
-    height: max-content;
+  .home-peek-main {
+    position: relative;
+    z-index: 2;
+    width: var(--peek-main-w);
+    margin: 0 auto;
+    aspect-ratio: 823 / 413;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.14);
   }
-  /* 双列广告：横跨两列的扁横幅轮播，避免和半宽 16:9 卡一样过高 */
-  .feed-dual .home-ad-dual .ad-viewport {
-    aspect-ratio: 32 / 5;
+  /* 两侧外缘与下方卡片同宽；内缘多叠进中间 */
+  .home-peek-side {
+    position: absolute;
+    top: 10%;
+    bottom: 10%;
+    z-index: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    opacity: 0.78;
+    cursor: pointer;
   }
-  .feed-dual .home-ad-dual .ad-slide {
-    aspect-ratio: auto;
-    height: 100%;
+  .home-peek-side#home-peek-left {
+    left: 0;
+    right: calc((100% + var(--peek-main-w)) / 2 - 72px);
   }
+  .home-peek-side#home-peek-right {
+    right: 0;
+    left: calc((100% + var(--peek-main-w)) / 2 - 72px);
+  }
+  .home-peek-side .ph-block,
+  .home-peek-main .ph-block {
+    position: absolute;
+    inset: 0;
+    font-size: 13px;
+  }
+  .home-peek-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .home-peek-dots button {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #c9d4cc;
+  }
+  .home-peek-dots button.active {
+    background: var(--accent);
+    width: 16px;
+    border-radius: 4px;
+  }
+  @media (max-width: 900px) {
+    .home-peek-rail { --peek-main-w: 100%; }
+    .home-peek-side { display: none; }
+  }
+  /* 首页卡片封面：整图一张，823×303；底栏标题 + 浏览/评论/点赞 + 分享 */
+  .web-card {
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #111;
+    border: 1px solid var(--line);
+    position: relative;
+  }
+  .web-card-cover {
+    position: relative;
+    aspect-ratio: 823 / 303;
+    width: 100%;
+    min-height: 0;
+  }
+  .web-card-cover > .ph-block {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    font-size: 13px;
+  }
+  .web-card-overlay {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 14px 16px 10px;
+    background: linear-gradient(transparent 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.82) 100%);
+    color: #fff;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .web-card-overlay .t {
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .web-card-overlay .m {
+    margin-top: 6px;
+    font-size: 12px;
+    opacity: 0.92;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .web-card-stats {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    font-size: 12px;
+    opacity: 0.95;
+  }
+  .web-card-stats .st {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .web-card-stats .st .ico {
+    font-size: 13px;
+    line-height: 1;
+    opacity: 0.9;
+  }
+  .web-card-stats .share {
+    pointer-events: auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    border: 1px solid rgba(255,255,255,0.28);
+    flex-shrink: 0;
+  }
+  .web-card-stats .share:hover {
+    background: rgba(255,255,255,0.28);
+  }
+  .web-card .badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+  }
+  .feed-dual { display: none !important; }
   .feed-split {
     display: grid;
     grid-template-columns: minmax(260px, 0.85fr) minmax(360px, 1.25fr);
@@ -510,9 +1662,12 @@
     border-color: var(--accent);
     box-shadow: 0 0 0 1px var(--accent);
   }
-  .feed-split-list .split-cover-card .card-cover,
+  .feed-split-list .split-cover-card .card-cover {
+    aspect-ratio: 823 / 303;
+    width: 100%;
+  }
   .feed-split-list .home-ad .ad-frame {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 823 / 303;
     width: 100%;
   }
   .feed-split-detail {
@@ -530,30 +1685,23 @@
   .home-mode.feed-single.active {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     width: 100%;
-    max-width: 720px;
-    margin: 0 auto;
+    max-width: calc(var(--feed-max, 823px) + 2 * var(--feed-gutter, 24px));
+    margin-inline: auto;
+    padding-inline: var(--feed-gutter, 24px);
+    padding-bottom: 16px;
+    box-sizing: border-box;
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior: contain;
-    padding-bottom: 16px;
     align-items: stretch;
-  }
-  .home-mode.feed-dual.active {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    overscroll-behavior: contain;
-    padding-bottom: 16px;
-    align-items: start;
-    align-content: start;
-    grid-auto-rows: max-content;
+    align-self: center;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
-  /* 单列 / 左列：广告与内容卡同宽，封面 16:9 同高 */
+  /* 信息流穿插广告：与文字卡同尺寸 823×303（顶栏 Banner 仍为 823×413） */
   .home-ad {
     width: 100%;
     border-radius: var(--radius);
@@ -563,11 +1711,11 @@
   }
   .home-ad .ad-frame {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 823 / 303;
     border-radius: var(--radius);
     overflow: hidden;
   }
-  .home-ad .ad-frame .ph-block { width: 100%; height: 100%; font-size: 13px; }
+  .home-ad .ad-frame .ph-block { width: 100%; height: 100%; }
 
   /* 双列：广告横跨两列，内为「两格」与卡片等宽等高；左右滑切换 */
   .home-ad-dual {
@@ -670,6 +1818,11 @@
     z-index: 1;
   }
   .badge.vip { background: var(--accent); left: 8px; right: auto; }
+  .badge.coin {
+    background: #f5a623;
+    left: 8px;
+    right: auto;
+  }
   .badge.dur {
     top: auto; bottom: 8px; right: 8px;
     background: rgba(0,0,0,0.65);
@@ -813,7 +1966,7 @@
     gap: 14px;
   }
   .v-card .card-title { font-size: 13px; }
-  .v-card .card-meta { justify-content: space-between; width: 100%; }
+  .v-card .card-meta { justify-content: flex-end; width: 100%; }
 
   /* ===== Community ===== */
   .subtabs {
@@ -837,6 +1990,14 @@
     display: flex;
     gap: 8px;
     align-items: center;
+    flex: 1;
+    min-width: 0;
+    justify-content: flex-end;
+  }
+  .subtabs .right-actions .search-wrap {
+    flex: 1;
+    max-width: 320px;
+    min-width: 160px;
   }
   .btn-publish {
     background: var(--accent);
@@ -934,21 +2095,25 @@
   /* ===== Welfare ===== */
   .grid-apps {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 14px 10px;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 22px 16px;
   }
   .app-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     text-align: center;
+    width: 100%;
   }
   .app-item .ico {
-    width: 64px; height: 64px;
-    border-radius: 16px;
+    width: 100%;
+    max-width: 120px;
+    aspect-ratio: 1;
+    height: auto;
+    border-radius: 22px;
   }
-  .app-item .ph { font-size: 12px; line-height: 1.3; }
+  .app-item .ph { font-size: 14px; line-height: 1.3; font-weight: 600; }
 
   /* ===== Dating ===== */
   .city-scroll, .dating-tabs {
@@ -968,6 +2133,350 @@
     color: var(--green);
   }
   .city.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  .dating-sort {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin: 0 0 14px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0;
+  }
+  .dating-sort[hidden] { display: none !important; }
+  .dating-sort .pill {
+    padding: 10px 12px;
+    font-size: 13px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    color: #666;
+    position: relative;
+  }
+  .dating-sort .pill.active {
+    color: var(--accent);
+    background: transparent;
+    font-weight: 700;
+  }
+  .dating-sort .pill.active::after {
+    content: "";
+    position: absolute;
+    left: 12px; right: 12px; bottom: 0;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .dating-sort .sort-filter {
+    margin-left: auto;
+    flex: 0 0 auto;
+    padding: 8px 4px;
+    border: 0;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green);
+  }
+  .dating-sort .sort-filter:hover { color: var(--accent); }
+  .dating-panel[hidden] { display: none !important; }
+  .by-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .by-card {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    color: inherit;
+    font: inherit;
+  }
+  .by-card:hover { border-color: var(--accent); }
+  .by-card .thumb {
+    flex: 0 0 96px;
+    width: 96px;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background: var(--green-block);
+  }
+  .by-card .thumb .ph-block {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    font-size: 0;
+  }
+  .by-card .info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .by-card .tit {
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .by-card .row {
+    display: flex;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .by-card .row .k { color: #999; flex: 0 0 auto; }
+  .by-card .row .v { color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .by-card .price {
+    margin-top: auto;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .by-card .price em {
+    font-style: normal;
+    color: var(--accent);
+    font-weight: 800;
+    font-size: 14px;
+  }
+  .dating-vscroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    margin-bottom: 8px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+  }
+  .dating-vscroll[hidden] { display: none !important; }
+  .dating-vscroll::-webkit-scrollbar { height: 6px; }
+  .dating-vcard {
+    flex: 0 0 188px;
+    width: 188px;
+    aspect-ratio: 3 / 4;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    scroll-snap-align: start;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    background: var(--green-block);
+    color: #fff;
+    text-align: left;
+  }
+  .dating-vcard .ph-block {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    font-size: 12px;
+  }
+  .dating-vcard .hot {
+    position: absolute;
+    top: 8px; left: 8px;
+    z-index: 1;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .dating-vcard .tag {
+    position: absolute;
+    top: 8px; right: 8px;
+    z-index: 1;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+  .dating-vcard .cap {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    z-index: 1;
+    padding: 28px 10px 10px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.72));
+  }
+  .dating-vcard .cap .nm {
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dating-vcard .cap .pr {
+    margin-top: 4px;
+    font-size: 12px;
+    opacity: 0.95;
+  }
+  .dating-list-card {
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    aspect-ratio: 3 / 4;
+    cursor: pointer;
+    border: 0;
+    padding: 0;
+    background: var(--green-block);
+    color: #fff;
+    text-align: left;
+    width: 100%;
+  }
+  .dating-list-card .ph-block {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .dating-list-card .hot {
+    position: absolute;
+    top: 8px; left: 8px;
+    z-index: 1;
+    background: rgba(0,0,0,0.55);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .dating-list-card .tag {
+    position: absolute;
+    top: 8px; right: 8px;
+    z-index: 1;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+  .dating-list-card .cap {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    z-index: 1;
+    padding: 24px 10px 10px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  }
+  .dating-list-card .cap .nm {
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dating-list-card .cap .pr {
+    margin-top: 4px;
+    font-size: 12px;
+  }
+  /* 高级筛选（编辑类：点遮罩不关） */
+  .df-mask {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 230;
+    background: rgba(0,0,0,0.45);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .df-mask.open { display: flex; }
+  .df-modal {
+    width: min(420px, 100%);
+    max-height: min(720px, calc(100vh - 48px));
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.22);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .df-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .df-hd h3 { font-size: 17px; font-weight: 800; }
+  .df-hd .x {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: #f2f3f5;
+    font-size: 16px;
+    color: #666;
+  }
+  .df-scroll {
+    padding: 16px 18px 8px;
+    overflow: auto;
+    flex: 1;
+    min-height: 0;
+  }
+  .df-sec { margin-bottom: 18px; }
+  .df-sec h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .df-sec h4 .hint {
+    font-weight: 500;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .df-tags {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .df-tags button {
+    padding: 10px 6px;
+    border-radius: 10px;
+    background: #f2f3f5;
+    font-size: 13px;
+    color: #444;
+    border: 1px solid transparent;
+  }
+  .df-tags button.on {
+    background: #fff;
+    color: var(--accent);
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+  .df-ft {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 14px 18px 18px;
+    border-top: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .df-ft .reset {
+    padding: 12px;
+    border-radius: 999px;
+    background: #f2f3f5;
+    font-weight: 700;
+  }
+  .df-ft .ok {
+    padding: 12px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+  }
   .store-scroll-wrap {
     position: relative;
     margin-bottom: 18px;
@@ -1104,9 +2613,10 @@
     color: var(--green);
     padding: 8px 4px;
   }
-  .stores-grid-3 {
+  .stores-grid-3,
+  .stores-grid-4 {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 14px;
     padding-bottom: 48px;
   }
@@ -1208,10 +2718,451 @@
     position: relative;
   }
   @media (max-width: 1100px) {
-    .stores-grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .stores-grid-3,
+    .stores-grid-4 { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 720px) {
-    .stores-grid-3 { grid-template-columns: 1fr; }
+    .stores-grid-3,
+    .stores-grid-4 { grid-template-columns: 1fr; }
+  }
+
+  /* ===== 约炮帖子详情（左图右文 + 底部推荐） ===== */
+  .person { cursor: pointer; }
+  .store-card,
+  .more-store-card { cursor: pointer; }
+  #page-dating-post,
+  #page-store-detail {
+    display: none;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+  #page-dating-post.active,
+  #page-store-detail.active { display: flex; }
+  .dp-main {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: minmax(280px, 0.95fr) minmax(340px, 1.05fr);
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    min-height: 420px;
+    max-height: min(560px, 52vh);
+  }
+  .dp-media {
+    background: #111;
+    position: relative;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .dp-media-stage {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .dp-media-stage .ph-block {
+    position: absolute;
+    inset: 0;
+    font-size: 15px;
+  }
+  .dp-tag {
+    position: absolute;
+    left: 12px; bottom: 12px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    z-index: 2;
+  }
+  .dp-pager {
+    position: absolute;
+    right: 12px; bottom: 12px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    z-index: 2;
+  }
+  .dp-side {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border-left: 1px solid var(--line);
+    background: #fff;
+  }
+  .dp-side-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 16px 18px 12px;
+  }
+  .dp-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dp-user .av {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+  }
+  .dp-user .nm { font-size: 15px; font-weight: 800; color: var(--green); }
+  .dp-user .price {
+    margin-left: auto;
+    font-size: 18px;
+    color: var(--accent);
+    font-weight: 800;
+  }
+  .dp-loc {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #7a9e88;
+  }
+  .dp-desc {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--green);
+  }
+  .dp-specs {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #5fa87a;
+  }
+  .dp-warn {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #f4f6f8;
+    font-size: 12px;
+    line-height: 1.55;
+    color: #666;
+  }
+  .dp-warn em {
+    color: var(--accent);
+    font-style: normal;
+    font-weight: 700;
+  }
+  .dp-lock {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .dp-lock-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 13px;
+  }
+  .dp-lock-row .k { color: #666; width: 64px; flex: 0 0 auto; }
+  .dp-lock-row .v { flex: 1; color: #999; letter-spacing: 1px; }
+  .dp-lock-row .go {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .dp-tabs {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .dp-tabs button {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #666;
+    background: #f2f3f5;
+  }
+  .dp-tabs button.active {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+  }
+  .dp-attrs {
+    margin-top: 12px;
+    display: grid;
+    gap: 8px;
+  }
+  .dp-attrs .row {
+    display: flex;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .dp-attrs .k { color: #888; width: 56px; }
+  .dp-attrs .v { color: var(--green); }
+  .dp-foot {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--line);
+    background: #fafbfc;
+  }
+  .dp-foot .mini {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 11px;
+    color: var(--green);
+    min-width: 44px;
+  }
+  .dp-foot .mini .ico {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+  .dp-foot .pay {
+    flex: 1;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+  }
+  .dp-rec {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    margin-top: 16px;
+    padding-bottom: 8px;
+  }
+  .dp-rec .section-hd { margin-bottom: 10px; }
+  .dp-rec .grid-4 { gap: 12px; }
+
+  /* ===== 店铺详情（上：左图右文；下：筛选 + 一排 4 卡） ===== */
+  .sd-hero {
+    display: grid;
+    grid-template-columns: minmax(340px, 1.15fr) minmax(280px, 0.85fr);
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+  }
+  .sd-hero-media {
+    position: relative;
+    min-height: 220px;
+    aspect-ratio: 16 / 9;
+    background: var(--green-block);
+  }
+  .sd-hero-media .ph-block {
+    position: absolute;
+    inset: 0;
+    font-size: 15px;
+  }
+  .sd-hero-body {
+    padding: 20px 20px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    min-width: 0;
+    border-left: 1px solid var(--line);
+  }
+  .sd-hero-body .title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sd-hero-body .title-row h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .sd-hero-body .tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+  }
+  .sd-hero-body .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .sd-hero-body .desc {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #555;
+  }
+  .sd-toolbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .sd-toolbar .st {
+    padding: 10px 14px;
+    font-size: 14px;
+    color: #666;
+    position: relative;
+  }
+  .sd-toolbar .st.active {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .sd-toolbar .st.active::after {
+    content: "";
+    position: absolute;
+    left: 14px; right: 14px; bottom: 0;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .sd-toolbar .cat {
+    margin-left: auto;
+    font-size: 13px;
+    color: #666;
+    padding: 8px 4px;
+  }
+  .sd-cat-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 20;
+    min-width: 160px;
+    padding: 10px 0;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+  }
+  .sd-cat-menu.open { display: block; }
+  .sd-cat-menu .hd {
+    padding: 4px 16px 10px;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .sd-cat-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .sd-cat-menu button:hover,
+  .sd-cat-menu button.on {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .sd-grid-wrap {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding-bottom: 16px;
+  }
+  .sd-card {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+  }
+  .sd-card .cover {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--green-block);
+  }
+  .sd-card .cover .ph-block {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .sd-card .hot {
+    position: absolute;
+    top: 8px; left: 8px;
+    z-index: 1;
+    background: rgba(233, 30, 99, 0.9);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .sd-card .badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    z-index: 1;
+    background: #2f9e63;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+  .sd-card .body { padding: 8px 2px 0; }
+  .sd-card .tit {
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .sd-card .price {
+    margin-top: 6px;
+    color: var(--accent);
+    font-weight: 800;
+    font-size: 14px;
+  }
+  .sd-card .tags {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .sd-card .tags span {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #f3f4f6;
+    color: #666;
+  }
+  @media (max-width: 960px) {
+    .dp-main,
+    .sd-hero {
+      grid-template-columns: 1fr;
+      max-height: none;
+    }
+    .dp-side { border-left: 0; border-top: 1px solid var(--line); }
+    .sd-hero-body { padding: 14px 16px 16px; border-left: 0; border-top: 1px solid var(--line); }
+    .sd-hero-media { aspect-ratio: 16 / 9; min-height: 0; }
   }
 
   /* ===== 视频详情二级页 ===== */
@@ -1243,26 +3194,6 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .vd-layout-switch {
-    display: inline-flex;
-    background: #f2f3f5;
-    border-radius: 10px;
-    padding: 3px;
-    gap: 2px;
-    flex-shrink: 0;
-  }
-  .vd-layout-switch button {
-    padding: 7px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #666;
-  }
-  .vd-layout-switch button.active {
-    background: #fff;
-    color: var(--accent);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
   .vd-body {
     flex: 1;
     min-height: 0;
@@ -1271,94 +3202,7 @@
   .vd-mode { display: none; height: 100%; min-height: 0; }
   .vd-mode.active { display: flex; }
 
-  /* 抖音式：沉浸播放，按钮叠在视频上 */
-  .vd-douyin {
-    flex-direction: row;
-    gap: 0;
-    background: #111;
-    border-radius: var(--radius);
-    overflow: hidden;
-    position: relative;
-  }
-  .vd-douyin-stage {
-    flex: 1;
-    min-width: 0;
-    position: relative;
-    display: grid;
-    place-items: center;
-    background: #0a0a0a;
-  }
-  .vd-douyin-stage .ph-block {
-    width: 100%;
-    height: 100%;
-    min-height: 420px;
-    background: linear-gradient(145deg, #2f9e63, #7bcf9a);
-    color: #065028;
-    font-size: 16px;
-  }
-  .vd-dy-side {
-    position: absolute;
-    right: 18px;
-    bottom: 88px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    align-items: center;
-    z-index: 2;
-  }
-  .vd-dy-btn {
-    width: 48px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    color: #fff;
-    font-size: 11px;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.45);
-  }
-  .vd-dy-btn .ico {
-    width: 44px; height: 44px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.18);
-    display: grid; place-items: center;
-    font-size: 14px;
-    font-weight: 800;
-  }
-  .vd-dy-bottom {
-    position: absolute;
-    left: 18px;
-    right: 88px;
-    bottom: 20px;
-    z-index: 2;
-    color: #fff;
-  }
-  .vd-dy-bottom .t {
-    font-size: 16px;
-    font-weight: 800;
-    margin-bottom: 6px;
-  }
-  .vd-dy-bottom .d {
-    font-size: 13px;
-    opacity: 0.9;
-    line-height: 1.5;
-  }
-  .vd-dy-progress {
-    position: absolute;
-    left: 12px; right: 12px; bottom: 8px;
-    height: 3px;
-    border-radius: 2px;
-    background: rgba(255,255,255,0.25);
-    z-index: 2;
-  }
-  .vd-dy-progress i {
-    display: block;
-    width: 36%;
-    height: 100%;
-    border-radius: 2px;
-    background: var(--accent);
-  }
-
-  /* B 站式：左视频+下评论，右推荐 */
+  /* B 站式：左播放器；右栏简介/评论。简介下广告+推荐；评论下输入框+列表 */
   .vd-bili {
     flex-direction: row;
     gap: 16px;
@@ -1368,8 +3212,6 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    overflow: auto;
     min-height: 0;
   }
   .vd-bili-player {
@@ -1378,6 +3220,7 @@
     aspect-ratio: 16 / 9;
     position: relative;
     flex-shrink: 0;
+    background: #111;
   }
   .vd-bili-player .ph-block {
     width: 100%;
@@ -1392,42 +3235,296 @@
     background: rgba(0,0,0,0.15);
     color: #fff;
     font-size: 28px;
+    pointer-events: none;
   }
-  .vd-bili-meta h3 {
-    font-size: 18px;
-    color: var(--green);
-    line-height: 1.35;
-  }
-  .vd-bili-meta .row {
-    margin-top: 8px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    font-size: 12px;
-    color: #7a9e88;
-  }
-  .vd-bili-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .vd-bili-actions button {
-    padding: 7px 14px;
+  .vd-bili-full {
+    position: absolute;
+    right: 12px;
+    bottom: 48px;
+    z-index: 3;
+    padding: 8px 14px;
     border-radius: 999px;
-    background: #f2f3f5;
-    font-size: 12px;
-    color: var(--green);
-    font-weight: 600;
+    background: var(--accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(255,77,141,0.35);
   }
-  .vd-comments {
+  .vd-bili-full:hover { filter: brightness(1.05); }
+  .vd-bili-full[hidden] { display: none !important; }
+  /* 看完整版 · 会员 / 金币引导弹窗（编辑类：点遮罩不关） */
+  .vu-mask {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 220;
+    background: rgba(0,0,0,0.45);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .vu-mask.open { display: flex; }
+  .vu-modal {
+    width: min(360px, 100%);
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.22);
+    padding: 22px 20px 18px;
+    text-align: center;
+  }
+  .vu-modal .ico {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    font-weight: 800;
+  }
+  .vu-modal .ico.vip {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .vu-modal .ico.coin {
+    background: #fff4df;
+    color: #c47a00;
+  }
+  .vu-modal h3 {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .vu-modal .desc {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  .vu-modal .acts {
+    margin-top: 18px;
+    display: flex;
+    gap: 10px;
+  }
+  .vu-modal .acts button {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .vu-modal .acts .cancel {
+    background: #f2f3f5;
+    color: var(--text);
+  }
+  .vu-modal .acts .ok {
+    background: var(--accent);
+    color: #fff;
+  }
+  .vu-modal .acts .ok.coin {
+    background: #f5a623;
+  }
+  .vd-bili-bar {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.72));
+    color: #fff;
+    font-size: 12px;
+  }
+  .vd-bili-bar button {
+    color: #fff;
+    font-size: 12px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .vd-bili-bar button:hover { background: rgba(255,255,255,0.14); }
+  .vd-bili-bar .time {
+    opacity: 0.95;
+    font-variant-numeric: tabular-nums;
+    min-width: 88px;
+  }
+  .vd-bili-bar .spacer { flex: 1; min-width: 8px; }
+  .vd-bili-side {
+    width: min(380px, 36%);
+    flex: 0 0 min(380px, 36%);
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 12px 14px;
     background: #fff;
   }
-  .vd-comments h4 {
+  .vd-bili-tabs {
+    flex-shrink: 0;
+    display: flex;
+    gap: 20px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .vd-bili-tabs button {
+    padding: 12px 2px 10px;
     font-size: 14px;
+    color: var(--muted);
+    position: relative;
+  }
+  .vd-bili-tabs button.active {
+    color: var(--text);
+    font-weight: 800;
+  }
+  .vd-bili-tabs button.active::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .vd-bili-pane {
+    display: none;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 12px 14px 16px;
+  }
+  .vd-bili-pane.active { display: block; }
+  /* 评论 Tab：列表滚动，输入框固定底部 */
+  #vd-bili-pane-cmt.active {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+  }
+  #vd-bili-comments {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 12px 14px;
+  }
+  .vd-bili-meta h3 {
+    font-size: 16px;
+    color: var(--text);
+    line-height: 1.4;
+    font-weight: 800;
+  }
+  .vd-bili-stats {
+    margin: 12px 0 14px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .vd-bili-stats .st {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .vd-bili-stats .ico {
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0.9;
+  }
+  .vd-bili-stats .share {
+    margin-left: auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #f2f3f5;
+    color: var(--text);
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    border: 1px solid var(--line);
+  }
+  .vd-bili-stats .share:hover { background: var(--accent-soft); color: var(--accent); }
+  .vd-bili-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 12px;
+  }
+  .vd-bili-tags button {
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,77,141,0.4);
+    color: var(--accent);
+    font-size: 12px;
+    background: #fff;
+  }
+  .vd-bili-tags button:hover { background: var(--accent-soft); }
+  .vd-bili-ad {
+    border-radius: 10px;
+    overflow: hidden;
+    aspect-ratio: 823 / 413;
+    margin-bottom: 14px;
+    border: 1px solid var(--line);
+  }
+  .vd-bili-ad .ph-block {
+    width: 100%;
+    height: 100%;
+    font-size: 0;
+    color: transparent;
+  }
+  .vd-bili-side .sec-tit {
+    font-size: 14px;
+    font-weight: 800;
     margin-bottom: 10px;
+    color: var(--text);
+  }
+  .vd-bili-cmt-box {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 10px 14px 12px;
+    border-top: 1px solid var(--line);
+    background: #fff;
+  }
+  .vd-bili-cmt-box .av {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .vd-bili-cmt-box .field {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: #f2f3f5;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 4px 4px 12px;
+  }
+  .vd-bili-cmt-box input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    outline: none;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .vd-bili-cmt-box input::placeholder { color: var(--muted); }
+  .vd-bili-cmt-box .send {
+    flex-shrink: 0;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
   }
   .vd-cmt {
     display: flex;
@@ -1441,30 +3538,25 @@
     border-radius: 50%;
     flex: 0 0 auto;
   }
-  .vd-cmt .nm { font-size: 12px; color: #7a9e88; }
-  .vd-cmt .tx { font-size: 13px; color: var(--green); margin-top: 4px; line-height: 1.5; }
-  .vd-bili-side {
-    width: 300px;
-    flex: 0 0 300px;
-    overflow: auto;
-    min-height: 0;
-  }
-  .vd-bili-side h4 {
-    font-size: 14px;
-    margin-bottom: 10px;
+  .vd-cmt .nm { font-size: 12px; color: var(--muted); }
+  .vd-cmt .tx { font-size: 13px; color: var(--text); margin-top: 4px; line-height: 1.5; }
+  #vd-bili-recs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
   .vd-rec {
     display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
+    flex-direction: column;
+    gap: 6px;
     cursor: pointer;
     border-radius: 10px;
-    padding: 4px;
+    padding: 0;
+    min-width: 0;
   }
-  .vd-rec:hover { background: #f7f8fa; }
+  .vd-rec:hover .info .t { color: var(--accent); }
   .vd-rec .thumb {
-    width: 140px;
-    flex: 0 0 140px;
+    width: 100%;
     aspect-ratio: 16 / 9;
     border-radius: 8px;
     overflow: hidden;
@@ -1473,26 +3565,44 @@
   .vd-rec .thumb .ph-block {
     position: absolute;
     inset: 0;
-    font-size: 11px;
+    font-size: 0;
+    color: transparent;
   }
-  .vd-rec .info { flex: 1; min-width: 0; }
+  .vd-rec .thumb .dur {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    z-index: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.65);
+    color: #fff;
+    font-size: 10px;
+  }
+  .vd-rec .info { min-width: 0; }
   .vd-rec .info .t {
-    font-size: 13px;
-    color: var(--green);
+    font-size: 12px;
+    color: var(--text);
     font-weight: 700;
+    line-height: 1.35;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
   .vd-rec .info .m {
-    margin-top: 6px;
+    margin-top: 4px;
     font-size: 11px;
-    color: #7a9e88;
+    color: var(--muted);
   }
   @media (max-width: 1100px) {
     .vd-bili { flex-direction: column; overflow: auto; }
-    .vd-bili-side { width: 100%; flex-basis: auto; }
+    .vd-bili-side {
+      width: 100%;
+      flex-basis: auto;
+      min-width: 0;
+      max-height: 520px;
+    }
   }
 
   /* ===== 社区帖子详情（小红书桌面式） ===== */
@@ -1502,14 +3612,15 @@
     flex-direction: column;
     min-height: 0;
     height: 100%;
-    overflow: hidden;
+    overflow: auto;
   }
   #page-post-detail.active {
     display: flex;
   }
   .pd-shell {
-    flex: 1;
-    min-height: 0;
+    flex: 0 0 auto;
+    min-height: min(560px, 58vh);
+    height: min(560px, 58vh);
     display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
     border: 1px solid var(--line);
@@ -1930,17 +4041,20 @@
   }
   .tool .ph { font-size: 12px; }
 
-  /* ===== Right rail（暂不展示） ===== */
+  /* ===== Right rail：联系我们固定；首页热瓜 / 社区作者+官方 ===== */
   .rail {
-    display: none;
-    background: #fffaf7;
+    display: block;
+    background: #fff;
     border-left: 1px solid var(--line);
     padding: 16px 14px;
     overflow: auto;
+    min-width: 0;
   }
   .rail h4 {
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 800;
     margin-bottom: 10px;
+    color: var(--text);
   }
   .contact {
     display: flex;
@@ -1957,11 +4071,20 @@
     border-radius: 10px;
     padding: 10px;
     font-size: 12px;
+    color: var(--text);
   }
+  .contact a:hover { border-color: var(--accent); background: #fffafc; }
   .contact .ico {
-    width: 28px; height: 28px; border-radius: 8px;
+    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
   }
-  .contact .go { margin-left: auto; color: var(--green); font-size: 11px; }
+  .contact .lab { flex: 1; min-width: 0; line-height: 1.35; }
+  .contact .go { margin-left: auto; color: var(--accent); font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .rail-home-extra { display: block; }
+  .rail-community-extra { display: none; }
+  .desk:has(#page-community.active) .rail-home-extra,
+  .desk:has(#page-post-detail.active) .rail-home-extra { display: none; }
+  .desk:has(#page-community.active) .rail-community-extra,
+  .desk:has(#page-post-detail.active) .rail-community-extra { display: block; }
   .hot-list {
     background: #fff;
     border: 1px solid var(--line);
@@ -1975,7 +4098,7 @@
     padding: 8px;
     border-radius: 8px;
     font-size: 13px;
-    color: var(--green);
+    color: var(--text);
     cursor: pointer;
   }
   .hot-list li:hover { background: #fff3ea; }
@@ -1990,6 +4113,73 @@
     flex: 0 0 auto;
   }
   .hot-list li:nth-child(-n+3) .n { background: #ffb070; color: #fff; }
+  .rail-card {
+    background: #f7f8fa;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 10px;
+    margin-bottom: 14px;
+  }
+  .rail-card.official {
+    background: #fff6f0;
+  }
+  .rail-card h4 { margin-bottom: 8px; }
+  .author-list { display: flex; flex-direction: column; gap: 2px; }
+  .author-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 4px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .author-list li:hover { background: rgba(255,255,255,0.8); }
+  .author-list .av {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .author-list .nm {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .author-list .meta {
+    flex-shrink: 0;
+    text-align: right;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  .author-list .fans { color: var(--accent); font-weight: 700; }
+  .author-list .arts { color: var(--muted); }
+  .official-list { display: flex; flex-direction: column; gap: 2px; }
+  .official-list a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 4px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .official-list a:hover { background: rgba(255,255,255,0.75); }
+  .official-list .t {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.4;
+  }
+  .official-list .go {
+    flex-shrink: 0;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 11px;
+    white-space: nowrap;
+  }
 
   .page-note {
     margin-top: 20px;
@@ -2069,9 +4259,9 @@
   @media (max-width: 1180px) {
     .shell { grid-template-columns: 76px minmax(0, 1fr); }
     .rail { display: none; }
-    .grid-apps { grid-template-columns: repeat(6, 1fr); }
     .masonry-4 { columns: 3; }
     .grid-4 { grid-template-columns: repeat(3, 1fr); }
+    .by-grid { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 860px) {
     body { padding: 0; }
@@ -2081,7 +4271,8 @@
     .feed-split { grid-template-columns: 1fr; }
     .masonry-4 { columns: 2; }
     .grid-4 { grid-template-columns: repeat(2, 1fr); }
-    .grid-apps { grid-template-columns: repeat(4, 1fr); }
+    .by-grid { grid-template-columns: 1fr; }
+    .grid-apps { grid-template-columns: repeat(3, 1fr); }
     .quick-row { grid-template-columns: repeat(3, 1fr); }
   }
 </style>
@@ -2110,13 +4301,13 @@
         <button class="nav-item" data-page="welfare" title="福利">
           <div class="nav-ico">🎁</div><span>福利</span>
         </button>
-        <button class="nav-item" data-page="dating" title="约炮">
-          <div class="nav-ico">❀</div><span>约炮</span>
+        <button class="nav-item" data-page="dating" title="包养">
+          <div class="nav-ico">❀</div><span>包养</span>
         </button>
         <button class="nav-item" data-page="mine" title="我的">
           <div class="nav-ico">☺</div><span>我的</span>
         </button>
-        <button class="nav-item" data-page="discuss" title="临时讨论">
+        <button class="nav-item" data-page="discuss" title="临时讨论" hidden aria-hidden="true">
           <div class="nav-ico">※</div><span>讨论</span>
         </button>
       </aside>
@@ -2130,40 +4321,49 @@
             <div class="top-row">
               <div class="brand-mini">吃瓜</div>
               <button class="link-chip">会员精选</button>
-              <button class="ai-chip">AI科技</button>
-              <div class="search-wrap">
+              <button type="button" class="ai-chip" id="btn-ai-tech">AI科技</button>
+              <div class="search-wrap" id="home-search-wrap" title="进入搜索">
                 <span class="ph">⌕</span>
-                <input class="ph" placeholder="输入您想搜索的关键词（占位）" />
-                <button class="btn-search">搜索</button>
+                <input class="ph" id="home-search-input" placeholder="输入您想搜索的关键词（占位）" readonly />
+                <button type="button" class="btn-search" id="home-search-btn">搜索</button>
               </div>
-              <button class="icon-btn" title="签到">签</button>
-              <button class="icon-btn" title="榜单">榜</button>
+              <button type="button" class="icon-btn" id="btn-checkin" title="签到">签</button>
+              <button type="button" class="icon-btn" id="btn-rank" title="榜单">榜</button>
             </div>
 
-            <div class="channels" id="home-channels">
-              <button class="ch active">首页</button>
-              <button class="ch">今日吃瓜</button>
-              <button class="ch">AI成人短剧</button>
-              <button class="ch">51原创</button>
-              <button class="ch">竞技吃瓜</button>
-              <button class="ch">学生校园</button>
-              <button class="ch">每日大赛</button>
-              <button class="ch">网红黑料</button>
-              <button class="ch">网黄合集</button>
-              <button class="ch">吃瓜榜单</button>
-              <button class="ch-more" title="更多频道">▦</button>
+            <div class="channels-wrap" id="home-channels-wrap">
+              <div class="channels" id="home-channels">
+                <button type="button" class="ch active" data-ch="首页">首页</button>
+                <button type="button" class="ch" data-ch="今日吃瓜">今日吃瓜</button>
+                <button type="button" class="ch" data-ch="AI成人短剧">AI成人短剧</button>
+                <button type="button" class="ch" data-ch="51原创">51原创</button>
+                <button type="button" class="ch" data-ch="竞技吃瓜">竞技吃瓜</button>
+                <button type="button" class="ch" data-ch="学生校园">学生校园</button>
+                <button type="button" class="ch" data-ch="每日大赛">每日大赛</button>
+                <button type="button" class="ch" data-ch="网红黑料">网红黑料</button>
+                <button type="button" class="ch" data-ch="网黄合集">网黄合集</button>
+                <button type="button" class="ch" data-ch="吃瓜榜单">吃瓜榜单</button>
+                <button type="button" class="ch-more" id="home-ch-more" title="更多频道" aria-expanded="false">▦</button>
+              </div>
+              <div class="ch-panel" id="home-ch-panel" role="dialog" aria-label="全部频道">
+                <div class="ch-panel-hd">
+                  <span class="tit">全部频道</span>
+                  <button type="button" class="ch-panel-close" id="home-ch-close">收起 ▴</button>
+                </div>
+                <div class="ch-panel-grid" id="home-ch-grid"></div>
+              </div>
             </div>
 
-            <div class="layout-switch" id="home-layout-switch">
-              <button class="active" data-mode="single">单列限宽</button>
-              <button data-mode="dual">双列网格</button>
-            </div>
-            <p class="hint">广告始终跟列表在一起：单列同宽同高居中；双列两格等宽轮播（右→左）。</p>
-
-            <!-- Mode A: 单列限宽 — 广告与内容同宽同高、一起居中 -->
+            <!-- 单列：peek Banner + Web 样式卡片 -->
             <div class="home-mode feed-single active" id="mode-single"></div>
-            <!-- Mode B: 双列 — 广告横跨等宽，两格轮播 -->
-            <div class="home-mode feed-dual" id="mode-dual"></div>
+
+            <div class="home-float" id="home-float" aria-label="悬浮广告">
+              <button type="button" class="home-float-close" id="home-float-close" aria-label="关闭">×</button>
+              <div class="home-float-stage" id="home-float-stage">
+                <div class="ph-block" aria-label="广告"></div>
+              </div>
+              <div class="home-float-dots" id="home-float-dots"></div>
+            </div>
           </div>
 
           <!-- ========== 文章详情（新闻式二级页） ========== -->
@@ -2175,14 +4375,54 @@
             <div class="art-scroll" id="article-detail-scroll"></div>
           </div>
 
+          <!-- ========== 搜索页 ========== -->
+          <div class="page" id="page-search">
+            <div class="sp-top">
+              <button type="button" class="back" id="search-back" aria-label="返回">‹</button>
+              <div class="sp-search">
+                <span>⌕</span>
+                <input type="text" id="search-page-input" placeholder="输入您想搜索的关键词" />
+                <button type="button" class="go" id="search-page-btn">搜索</button>
+              </div>
+            </div>
+            <div class="sp-scroll">
+              <div class="sp-sec">
+                <div class="sp-sec-hd">
+                  <span class="ico">⏱</span>
+                  <h4>搜索历史</h4>
+                  <button type="button" class="clear" id="search-clear-hist">清除记录</button>
+                </div>
+                <div class="sp-empty" id="search-hist-empty">暂无搜索记录</div>
+                <div class="sp-tags" id="search-hist-tags" hidden></div>
+              </div>
+              <div class="sp-sec">
+                <div class="sp-sec-hd">
+                  <span class="ico">🔥</span>
+                  <h4>热门标签</h4>
+                </div>
+                <div class="sp-tags" id="search-hot-tags"></div>
+              </div>
+              <div class="sp-banner" id="search-banner">
+                <div class="sp-banner-rail" id="search-banner-rail"></div>
+              </div>
+              <div class="sp-sec">
+                <div class="sp-sec-hd">
+                  <span class="ico">⚡</span>
+                  <h4>热搜总榜</h4>
+                </div>
+                <div class="sp-hot-grid" id="search-hot-grid"></div>
+              </div>
+            </div>
+          </div>
+
           <!-- ========== 2. 视频 ========== -->
           <div class="page" id="page-video">
             <div class="top-row">
               <div class="brand-mini">视频</div>
-              <div class="search-wrap">
+              <div class="search-wrap" id="video-search-wrap" title="进入搜索">
                 <span class="ph">⌕</span>
-                <input class="ph" placeholder="搜索视频关键词（占位）" />
-                <button class="btn-search">搜索</button>
+                <input class="ph" id="video-search-input" placeholder="输入您想搜索的关键词（占位）" readonly />
+                <button type="button" class="btn-search" id="video-search-btn">搜索</button>
               </div>
             </div>
             <div class="channels">
@@ -2229,59 +4469,58 @@
             <div class="vd-top">
               <button type="button" class="sub-back" id="video-detail-back" aria-label="返回">‹</button>
               <h2 id="video-detail-title">视频详情</h2>
-              <div class="vd-layout-switch" id="video-detail-layout">
-                <button type="button" class="active" data-vd="douyin">抖音式</button>
-                <button type="button" data-vd="bili">B站式</button>
-              </div>
             </div>
             <div class="vd-body">
-              <!-- 抖音式 -->
-              <div class="vd-mode vd-douyin active" id="vd-mode-douyin">
-                <div class="vd-douyin-stage">
-                  <div class="ph-block" id="vd-dy-cover">播放器占位</div>
-                  <div class="vd-dy-side">
-                    <button type="button" class="vd-dy-btn"><span class="ico">头</span>关注</button>
-                    <button type="button" class="vd-dy-btn"><span class="ico">赞</span><span id="vd-dy-like">1.2万</span></button>
-                    <button type="button" class="vd-dy-btn"><span class="ico">评</span><span id="vd-dy-cmt">320</span></button>
-                    <button type="button" class="vd-dy-btn"><span class="ico">藏</span>收藏</button>
-                    <button type="button" class="vd-dy-btn"><span class="ico">转</span>分享</button>
-                  </div>
-                  <div class="vd-dy-bottom">
-                    <div class="t" id="vd-dy-title">标题</div>
-                    <div class="d" id="vd-dy-desc">简介占位</div>
-                  </div>
-                  <div class="vd-dy-progress"><i></i></div>
-                </div>
-              </div>
-              <!-- B站式 -->
-              <div class="vd-mode vd-bili" id="vd-mode-bili">
+              <div class="vd-mode vd-bili active" id="vd-mode-bili">
                 <div class="vd-bili-main">
                   <div class="vd-bili-player">
-                    <div class="ph-block" id="vd-bili-cover">播放器占位 16:9</div>
+                    <div class="ph-block" id="vd-bili-cover" aria-label="播放器"></div>
                     <div class="play-fab">▶</div>
-                  </div>
-                  <div class="vd-bili-meta">
-                    <h3 id="vd-bili-title">标题</h3>
-                    <div class="row">
-                      <span id="vd-bili-plays">播放 0</span>
-                      <span id="vd-bili-date">日期</span>
-                      <span id="vd-bili-dur">时长</span>
+                    <button type="button" class="vd-bili-full" id="vd-bili-full">看完整版</button>
+                    <div class="vd-bili-bar" id="vd-bili-bar">
+                      <button type="button" id="vd-bili-mute" aria-label="静音">🔊</button>
+                      <span class="time" id="vd-bili-time">00:12 / 08:00</span>
+                      <div class="spacer"></div>
+                      <button type="button" id="vd-bili-danmaku">弹幕 开</button>
+                      <button type="button" id="vd-bili-quality">清晰度 高清</button>
+                      <button type="button" id="vd-bili-speed">倍速 1.0x</button>
+                      <button type="button" id="vd-bili-feedback">反馈</button>
                     </div>
-                  </div>
-                  <div class="vd-bili-actions">
-                    <button type="button">👍 点赞</button>
-                    <button type="button">☆ 收藏</button>
-                    <button type="button">⇄ 投币占位</button>
-                    <button type="button">分享</button>
-                  </div>
-                  <div class="vd-comments">
-                    <h4 class="ph">评论 <span id="vd-bili-cmt-n">0</span></h4>
-                    <div id="vd-bili-comments"></div>
                   </div>
                 </div>
                 <aside class="vd-bili-side">
-                  <h4 class="ph">相关推荐</h4>
-                  <div id="vd-bili-recs"></div>
+                  <div class="vd-bili-tabs" id="vd-bili-tabs">
+                    <button type="button" class="active" data-bili-tab="intro">简介</button>
+                    <button type="button" data-bili-tab="cmt">评论 <span id="vd-bili-cmt-n">0</span></button>
+                  </div>
+                  <div class="vd-bili-pane active" id="vd-bili-pane-intro">
+                    <div class="vd-bili-meta">
+                      <h3 id="vd-bili-title">标题</h3>
+                      <div class="vd-bili-stats">
+                        <span class="st"><span class="ico" aria-hidden="true">👁</span><span id="vd-bili-views">0</span></span>
+                        <span class="st"><span class="ico" aria-hidden="true">👍</span><span id="vd-bili-likes">0</span></span>
+                        <span class="st"><span class="ico" aria-hidden="true">💬</span><span id="vd-bili-cmts">0</span></span>
+                        <span class="st"><span class="ico" aria-hidden="true">☆</span><span id="vd-bili-favs">0</span></span>
+                        <button type="button" class="share" id="vd-bili-share" aria-label="分享">↗</button>
+                      </div>
+                    </div>
+                    <div class="vd-bili-tags" id="vd-bili-tags"></div>
+                    <div class="vd-bili-ad" aria-label="广告">
+                      <div class="ph-block" aria-label="广告"></div>
+                    </div>
+                    <div class="sec-tit">推荐内容</div>
+                    <div id="vd-bili-recs"></div>
+                  </div>
+                  <div class="vd-bili-pane" id="vd-bili-pane-cmt">
+                    <div id="vd-bili-comments"></div>
+                    <div class="vd-bili-cmt-box">
+                      <div class="av ph-block" aria-hidden="true"></div>
+                      <div class="field">
+                        <input type="text" id="vd-bili-cmt-input" placeholder="发一条友善的评论" />
+                        <button type="button" class="send" id="vd-bili-cmt-send">发送</button>
+                      </div>
+                    </div>
+                  </div>
                 </aside>
               </div>
             </div>
@@ -2295,14 +4534,13 @@
               <button class="st">发现</button>
               <button class="st">关注</button>
               <div class="right-actions">
-                <button class="icon-btn" title="搜索">⌕</button>
-                <button class="btn-publish">＋ 发布</button>
+                <div class="search-wrap" id="community-search-wrap" title="进入搜索">
+                  <span class="ph">⌕</span>
+                  <input class="ph" id="community-search-input" placeholder="输入您想搜索的关键词（占位）" readonly />
+                  <button type="button" class="btn-search" id="community-search-btn">搜索</button>
+                </div>
+                <button type="button" class="btn-publish">＋ 发布</button>
               </div>
-            </div>
-            <div class="announce">
-              <span>📢</span>
-              <span class="ph">社区公告占位：新用户规范说明（可关闭）</span>
-              <button class="x">✕</button>
             </div>
             <div class="banner">
               <div class="page-banner" id="community-banner">
@@ -2324,17 +4562,20 @@
                 </div>
               </div>
             </div>
-
-            <div class="h-scroll" id="community-topics" title="左右滑动栏目">
-              <!-- filled by js -->
+            <div class="announce">
+              <span>📢</span>
+              <span class="ph">社区公告占位：新用户规范说明（可关闭）</span>
+              <button class="x">✕</button>
             </div>
+
+            <div class="h-scroll" id="community-topics" title="左右滑动栏目"></div>
 
             <div class="filters" style="align-items:center">
               <button class="pill active">最热</button>
               <button class="pill">最新</button>
               <button class="pill">视频</button>
               <button class="pill">图片</button>
-              <button class="icon-btn" style="margin-left:auto" title="布局">▥</button>
+              <button type="button" class="icon-btn" id="community-layout-btn" style="margin-left:auto" title="布局（口径占位）" aria-label="布局">▥</button>
             </div>
             <div class="masonry-4" id="community-masonry"></div>
           </div>
@@ -2379,6 +4620,10 @@
                 </div>
               </div>
             </div>
+            <div class="dp-rec" id="pd-rec" style="flex:0 0 auto;max-height:280px;margin-top:14px">
+              <div class="section-hd"><h3 class="ph">相关推荐</h3></div>
+              <div class="masonry-4" id="pd-rec-masonry" style="columns:4;column-gap:12px"></div>
+            </div>
           </div>
 
           <!-- ========== 4. 福利 ========== -->
@@ -2405,7 +4650,10 @@
             <div class="top-row">
               <div class="brand-mini">精选约炮</div>
               <div style="flex:1"></div>
-              <button class="icon-btn outline">申请入驻</button>
+              <div class="right-actions" style="display:flex;align-items:center;gap:8px">
+                <button type="button" class="icon-btn outline" id="dating-apply-btn">申请入驻</button>
+                <button type="button" class="btn-publish" id="dating-publish-btn">＋ 发布</button>
+              </div>
             </div>
 
             <div class="city-scroll" id="dating-cities" title="城市横滑">
@@ -2421,30 +4669,53 @@
             </div>
 
             <div class="dating-tabs channels" id="dating-tabs" title="栏目横滑">
-              <button class="ch active">推荐</button>
-              <button class="ch">包养</button>
-              <button class="ch">外围</button>
-              <button class="ch">楼凤</button>
-              <button class="ch">会所</button>
-              <button class="ch">认证专区</button>
-              <button class="ch">同城速约</button>
-              <button class="ch">高端定制</button>
+              <button type="button" class="ch active" data-dating-mode="reco">推荐</button>
+              <button type="button" class="ch" data-dating-mode="baoyang" data-dating-tab="包养">包养</button>
+              <button type="button" class="ch" data-dating-mode="list">外围</button>
+              <button type="button" class="ch" data-dating-mode="list">楼凤</button>
+              <button type="button" class="ch" data-dating-mode="list">会所</button>
+              <button type="button" class="ch" data-dating-mode="list-plain">认证专区</button>
             </div>
 
-            <div class="section-hd">
-              <h3 class="ph">店铺推荐</h3>
-              <button type="button" class="more" id="dating-stores-more">更多 ›</button>
-            </div>
-            <div class="store-scroll-wrap">
-              <button type="button" class="store-scroll-nav store-scroll-prev" id="dating-stores-prev" aria-label="向左滑">‹</button>
-              <button type="button" class="store-scroll-nav store-scroll-next" id="dating-stores-next" aria-label="向右滑">›</button>
-              <div class="store-scroll" id="dating-stores" title="左右滑动查看更多店铺"></div>
+            <!-- 推荐等：店铺横滑 + 人气四列 -->
+            <div class="dating-panel" id="dating-panel-reco">
+              <div class="section-hd">
+                <h3 class="ph">店铺推荐</h3>
+                <button type="button" class="more" id="dating-stores-more">更多 ›</button>
+              </div>
+              <div class="store-scroll-wrap">
+                <button type="button" class="store-scroll-nav store-scroll-prev" id="dating-stores-prev" aria-label="向左滑">‹</button>
+                <button type="button" class="store-scroll-nav store-scroll-next" id="dating-stores-next" aria-label="向右滑">›</button>
+                <div class="store-scroll" id="dating-stores" title="左右滑动查看更多店铺"></div>
+              </div>
+              <div class="section-hd">
+                <h3 class="ph">人气推荐</h3>
+              </div>
+              <div class="grid-4" id="dating-people"></div>
             </div>
 
-            <div class="section-hd">
-              <h3 class="ph">人气推荐</h3>
+            <!-- 包养：筛选行 + 左图右文三列卡 -->
+            <div class="dating-panel" id="dating-panel-baoyang" hidden>
+              <div class="dating-sort" id="dating-sort-baoyang">
+                <button type="button" class="pill active" data-sort="猜你喜欢">猜你喜欢</button>
+                <button type="button" class="pill" data-sort="最新上架">最新上架</button>
+                <button type="button" class="pill" data-sort="随机推荐">随机推荐</button>
+                <button type="button" class="sort-filter" data-dating-filter>筛选</button>
+              </div>
+              <div class="by-grid" id="dating-baoyang-grid"></div>
             </div>
-            <div class="grid-4" id="dating-people"></div>
+
+            <!-- 外围 / 楼凤 / 会所：竖卡横滑 + 筛选 + 四列；认证专区：无横滑，仅筛选 + 四列 -->
+            <div class="dating-panel" id="dating-panel-list" hidden>
+              <div class="dating-vscroll" id="dating-vscroll" title="左右滑动精选竖卡"></div>
+              <div class="dating-sort" id="dating-sort-list">
+                <button type="button" class="pill active" data-sort="猜你喜欢">猜你喜欢</button>
+                <button type="button" class="pill" data-sort="最新上架">最新上架</button>
+                <button type="button" class="pill" data-sort="随机推荐">随机推荐</button>
+                <button type="button" class="sort-filter" data-dating-filter>筛选</button>
+              </div>
+              <div class="grid-4" id="dating-list-grid"></div>
+            </div>
           </div>
 
           <!-- ========== 约炮 · 更多店铺（二级页） ========== -->
@@ -2458,18 +4729,129 @@
               <button type="button" class="st" data-sort="最新上架">最新上架</button>
               <button type="button" class="city-more" id="stores-more-city">⌖ 更多城市</button>
             </div>
-            <div class="stores-grid-3" id="stores-more-grid"></div>
+            <div class="stores-grid-4" id="stores-more-grid"></div>
             <button type="button" class="stores-fab" id="stores-more-fab" title="消息占位">
               消
               <span class="badge">99</span>
             </button>
           </div>
 
-          <!-- ========== 6. 我的 ========== -->
-          <div class="page" id="page-mine">
+          <!-- ========== 约炮 · 帖子详情（左图右文 + 底部推荐） ========== -->
+          <div class="page" id="page-dating-post">
+            <div class="vd-top">
+              <button type="button" class="sub-back" id="dating-post-back" aria-label="返回">‹</button>
+              <h2>帖子详情</h2>
+            </div>
+            <div class="dp-main">
+              <div class="dp-media">
+                <div class="dp-media-stage" id="dp-media-stage">
+                  <div class="ph-block" id="dp-media-cover">约炮帖封面</div>
+                  <span class="dp-tag" id="dp-tag">楼凤</span>
+                  <span class="dp-pager" id="dp-pager">1/4</span>
+                </div>
+              </div>
+              <div class="dp-side">
+                <div class="dp-side-scroll">
+                  <div class="dp-user">
+                    <div class="av ph-block">头</div>
+                    <div class="nm" id="dp-name">全国大表姐</div>
+                    <div class="price" id="dp-price">800元/一次</div>
+                  </div>
+                  <div class="dp-loc" id="dp-loc">地点 · 贵阳市</div>
+                  <div class="dp-desc" id="dp-desc">好评如潮，有房间，可外出，见面后再付款，服务态度好，环境干净卫生。（文案占位）</div>
+                  <div class="dp-specs" id="dp-specs">25岁 / 168cm / E罩杯</div>
+                  <div class="dp-warn">防骗提示：先服务后付款，平台不担保线下交易。请认准<em>官方严选</em>标识。（占位）</div>
+                  <div class="dp-lock">
+                    <div class="dp-lock-row">
+                      <span class="k">详细地址</span>
+                      <span class="v">**********</span>
+                      <button type="button" class="go" data-unlock="addr">立即解锁查看</button>
+                    </div>
+                    <div class="dp-lock-row">
+                      <span class="k">联系方式</span>
+                      <span class="v">**********</span>
+                      <button type="button" class="go" data-unlock="contact">立即解锁查看</button>
+                    </div>
+                  </div>
+                  <div class="dp-tabs" id="dp-tabs">
+                    <button type="button" class="active" data-tab="basic">基本信息</button>
+                    <button type="button" data-tab="reviews">评价回复</button>
+                  </div>
+                  <div class="dp-attrs" id="dp-attrs">
+                    <div class="row"><span class="k">城市</span><span class="v">贵阳市</span></div>
+                    <div class="row"><span class="k">身高</span><span class="v">168cm</span></div>
+                    <div class="row"><span class="k">体重</span><span class="v">—</span></div>
+                  </div>
+                </div>
+                <div class="dp-foot">
+                  <button type="button" class="mini" id="dp-shop">
+                    <div class="ico ph-block">店</div>
+                    店铺
+                  </button>
+                  <button type="button" class="mini" id="dp-fav">
+                    <div class="ico ph-block">☆</div>
+                    收藏
+                  </button>
+                  <button type="button" class="pay" id="dp-pay">支付定金 100 金币</button>
+                </div>
+              </div>
+            </div>
+            <div class="dp-rec">
+              <div class="section-hd"><h3 class="ph">相关推荐</h3></div>
+              <div class="grid-4" id="dp-rec-grid"></div>
+            </div>
+          </div>
+
+          <!-- ========== 约炮 · 店铺详情（上左图右文 + 筛选 + 一排 4 卡） ========== -->
+          <div class="page" id="page-store-detail">
+            <div class="vd-top">
+              <button type="button" class="sub-back" id="store-detail-back" aria-label="返回">‹</button>
+              <h2 id="store-detail-title">店铺详情</h2>
+            </div>
+            <div class="sd-hero">
+              <div class="sd-hero-media">
+                <div class="ph-block" id="sd-hero-cover">店铺 Banner</div>
+              </div>
+              <div class="sd-hero-body">
+                <div class="title-row">
+                  <h3 id="sd-name">爱情乐园</h3>
+                  <span class="tag">官方严选</span>
+                </div>
+                <div class="meta">
+                  <span id="sd-loc">深圳市 · 全国一二三四五线城市</span>
+                  <span id="sd-cnt">店内女郎：713 位</span>
+                </div>
+                <p class="desc" id="sd-desc">十年诚信老店，资源优质，服务好；一次解锁终身抵扣。（文案占位）</p>
+                <div class="meta">
+                  <span id="sd-hours">营业：12:00–03:00</span>
+                </div>
+              </div>
+            </div>
+            <div class="sd-toolbar" id="sd-toolbar">
+              <button type="button" class="st active" data-sort="综合">综合</button>
+              <button type="button" class="st" data-sort="最新上架">最新上架</button>
+              <button type="button" class="st" data-sort="价格优先">价格优先</button>
+              <button type="button" class="cat" id="sd-cat">全部分类 ▾</button>
+              <div class="sd-cat-menu" id="sd-cat-menu" hidden>
+                <div class="hd">全部分类</div>
+                <button type="button" class="on" data-cat="全部">全部</button>
+                <button type="button" data-cat="包养">包养</button>
+                <button type="button" data-cat="外围">外围</button>
+                <button type="button" data-cat="楼凤">楼凤</button>
+                <button type="button" data-cat="会所">会所</button>
+                <button type="button" data-cat="认证专区">认证专区</button>
+              </div>
+            </div>
+            <div class="sd-grid-wrap">
+              <div class="grid-4" id="sd-people-grid"></div>
+            </div>
+          </div>
+
+          <!-- ========== 6. 我的（桌面 Demo 隐藏；侧栏点我的仅 Toast） ========== -->
+          <div class="page" id="page-mine" hidden aria-hidden="true">
             <div class="top-row" style="justify-content:flex-end; margin-bottom:0">
-              <button class="icon-btn" title="签到">签</button>
-              <button class="icon-btn" title="通知">铃</button>
+              <button type="button" class="icon-btn" data-open-checkin title="签到">签</button>
+              <button type="button" class="icon-btn" title="通知">铃</button>
             </div>
             <div class="mine-head">
               <div class="mine-avatar ph-block">头</div>
@@ -2532,61 +4914,174 @@
           <!-- ========== 临时讨论 ========== -->
           <div class="page" id="page-discuss">
             <div class="discuss">
-              <h1>临时讨论</h1>
-              <p class="lead">桌面端适配讨论底稿（Demo 内临时候选页，非正式产品 Tab）。桌面端为 Flutter 独立开发，开发成本与 APP 接近；更需卡齐「同构规则」，避免双端行为分叉。</p>
+              <h1>临时讨论 · 会议纪要</h1>
+              <p class="lead">会议时间：2026-11-18 10:57–11:37（北京时间）。参与：曾阿牛、萧玖、曾世傲、晋瑞、小鹿等。桌面端 Flutter 独立开发（Win/Mac 同一套），数据沿用 APP；本页为讨论底稿，非正式产品 Tab。</p>
 
               <section class="discuss-block">
-                <h2>优化思路 <span class="tag ok">方向</span></h2>
+                <h2>会议结论 <span class="tag ok">已对齐</span></h2>
                 <ol>
                   <li>
-                    <strong>与 APP 同构，不另做一套产品</strong>
-                    <div class="sub">数据接口、业务对象、入口语义跟 APP 对齐；桌面改布局密度与空间用法，不改信息架构。功能/入口不做大幅加减。</div>
+                    <strong>整体方向</strong>
+                    <div class="sub">结构尽量与 APP 对齐；内容提高密度、不做拉伸；详情整页沉浸并参考抖音/B 站/小红书；非核心页（我的、福利）沿用 APP 做大屏适配。本版优先交互与 UI，功能补齐后续再评估。</div>
                   </li>
                   <li>
-                    <strong>列表：内容不拉伸，用加列提密度</strong>
-                    <div class="sub">卡片比例锁死；横卡少加列（如视频 2→3），竖卡多加列（如社区 2→4）。禁止为铺满大屏把单卡拉巨宽、改比例。</div>
+                    <strong>列表密度</strong>
+                    <div class="sub">视频 2→3 列；社区 PC 用卡片并加到 4 列（APP 已从瀑布流改回广场式，PC 一并跟上）。首页倾向单列卡片（参考 Web 外端），宽度适当限宽。</div>
                   </li>
                   <li>
-                    <strong>详情：整页沉浸 + 参考主流大屏形态</strong>
-                    <div class="sub">点进详情仍是整页内容。短视频可参考抖音式；长视频参考 B 站式；社区笔记参考小红书式；图文吃瓜参考新闻长文。字段与互动与 APP 同源。</div>
+                    <strong>详情形态</strong>
+                    <div class="sub">图文/社区偏左图右文 + 底部推荐；视频可抖音式（点开评论弹层）或 B 站式（旁侧评论推荐），会上有倾向左内容右评论便于刷评论。</div>
                   </li>
                   <li>
-                    <strong>非核心浏览页：沿用 APP，做大屏适配</strong>
-                    <div class="sub">「我的」「福利」等：结构与入口跟 APP 一致，桌面做限宽/栅格/留白，不重做信息架构。</div>
+                    <strong>广告</strong>
+                    <div class="sub">PC 与 APP 同素材时宽高尽量一致，避免 PC 把高度拉爆。倾向：广告区左右滑双帧，或中间广告 + 两侧露出以降视觉高度。PC 可单独配广告位（商务），顶部分类位 SSP 可单独给 PC，最好同步 APP 数据；关注放大模糊，建议分端素材。</div>
                   </li>
                   <li>
-                    <strong>共享层优先于 UI 分叉</strong>
-                    <div class="sub">同一套接口契约、状态机、埋点/权限；UI 允许双端各写，业务规则禁止分叉。用「APP 页 → 桌面布局策略」映射表对齐研发。</div>
+                    <strong>迭代节奏</strong>
+                    <div class="sub">APP 先迭代，PC 后续跟进；晋瑞在 APP 有更新时同步给曾阿牛。</div>
                   </li>
                   <li>
-                    <strong>导航形态可变，语义不变</strong>
-                    <div class="sub">底栏 Tab → 桌面侧栏均可；一级入口名称与顺序建议与 APP 一致。</div>
+                    <strong>用户定位补充</strong>
+                    <div class="sub">会上提到 PC 更偏上传类用户，APP 偏普通用户——是否作为正式定位仍需产品确认。</div>
                   </li>
                 </ol>
               </section>
 
               <section class="discuss-block">
-                <h2>待讨论 <span class="tag wait">待拍板</span></h2>
+                <h2>视频 Tab（完全新增） <span class="tag ok">范围收口</span></h2>
+                <ol>
+                  <li>
+                    <strong>1. 顶部搜索</strong>
+                    <div class="sub">与首页同一套搜索逻辑与跳转（进搜索页）。</div>
+                  </li>
+                  <li>
+                    <strong>2. 分类 + 广告 + 平铺筛选</strong>
+                    <div class="sub">分类频道行；其下广告位（可横滑）；再下方平铺筛选（最新 / 最热等）。</div>
+                  </li>
+                  <li>
+                    <strong>3. 视频列表</strong>
+                    <div class="sub">三列卡片；左上角解锁角标 VIP 或「X 金币」。</div>
+                  </li>
+                  <li>
+                    <strong>4. 视频详情（B 站式 · 左视频右文）</strong>
+                    <div class="sub">左：播放器 + 底栏（静音 / 时长 / 弹幕 / 清晰度 / 倍速 / 反馈）+「看完整版」（会员引导开通；金币够则扣币、不够引导买币）。右：简介 / 评论 Tab。简介 = 标题 + 浏览/点赞/评论/收藏/分享 + 标签 + 广告 + 推荐（上图下文一排 2）。评论 = 列表滚动、输入框固定底部。详情页隐藏右侧「联系我们 / 24H热瓜」。无抖音模式。</div>
+                  </li>
+                </ol>
+                <p class="sub" style="margin-top:10px">本期视频 Tab 范围以上 4 块；其余能力不扩。</p>
+              </section>
+
+              <section class="discuss-block">
+                <h2>约炮顶栏 / 栏目 <span class="tag ok">已记</span></h2>
+                <ul>
+                  <li>
+                    <strong>顶栏右侧按钮</strong>
+                    <div class="sub">保留「申请入驻」与「＋ 发布」；发布为主按钮（黑/强调底），申请入驻为描边次要钮。</div>
+                  </li>
+                  <li>
+                    <strong>栏目 Tab</strong>
+                    <div class="sub">推荐 / 包养 / 外围 / 楼凤 / 会所 / 认证专区。删除「同城速约」「高端定制」。认证专区与会所同交互，但不展示顶部横滑竖卡（直接筛选 + 列表）。</div>
+                  </li>
+                  <li>
+                    <strong>右侧栏</strong>
+                    <div class="sub">视频整页、约炮整页（含店铺详情 / 更多店铺）、福利页不展示右侧「联系我们 / 24H热瓜」。</div>
+                  </li>
+                  <li>
+                    <strong>我的</strong>
+                    <div class="sub">桌面 Demo 隐藏「我的」页；侧栏点「我的」不跳转，Toast「我的（请使用 APP 查看）」，沿用现有 Toast 样式。</div>
+                  </li>
+                  <li>
+                    <strong>福利图标</strong>
+                    <div class="sub">一排 6 个，图标加大。</div>
+                  </li>
+                  <li>
+                    <strong>包养</strong>
+                    <div class="sub">独立面板：顶栏筛选（猜你喜欢 / 最新上架 / 随机推荐 / 筛选）+ 左图右文三列卡片列表（城市 / 年龄 / 身高 / 胸围 / 最低消费）。</div>
+                  </li>
+                  <li>
+                    <strong>外围 / 楼凤 / 会所</strong>
+                    <div class="sub">统一 APP 交互：上横滑竖卡 → 筛选行（猜你喜欢 / 最新上架 / 随机推荐 / 筛选）→ 一排 4 卡片列表。筛选打开「高级筛选」弹层（年龄单选 + 服务类型多选；重置 / 确定；点遮罩不关）。</div>
+                  </li>
+                  <li>
+                    <strong>店铺详情</strong>
+                    <div class="sub">参考 APP：上部左图右文（店名 / 官方严选 / 城市 / 店内女郎数 / 简介）；中部综合 / 最新上架 / 价格优先 + 全部分类弹出；下部一排 4 店员卡（封面角标 + 标题 + 价格 + 服务标签）。</div>
+                  </li>
+                </ul>
+              </section>
+
+              <section class="discuss-block">
+                <h2>社区布局切换 <span class="tag ok">已记 · 仅口径</span></h2>
+                <ul>
+                  <li>
+                    <strong>筛选栏右侧「布局」按钮</strong>
+                    <div class="sub">逻辑口径：默认「卡片模式」（新增，当前 Demo 展示态）；可切回「贴吧 / 原有帖子模式」。Demo 不实现真实切换，点击仅 Toast「切换原有帖子模式」。</div>
+                  </li>
+                  <li>
+                    <strong>帖子详情页</strong>
+                    <div class="sub">沿用现有小红书式左右分栏，本期不改。</div>
+                  </li>
+                </ul>
+              </section>
+
+              <section class="discuss-block">
+                <h2>首页相关需求清单 <span class="tag wait">进行中</span></h2>
+                <ol>
+                  <li>
+                    <strong>1. 广告位置与交互</strong>
+                    <div class="sub">顶栏 Banner：中间主位 + 两侧露出重叠，固定 823×413，可点两侧切换；信息流穿插广告：纯图、与文字卡同尺寸 823×303；搜索页广告：一排约 2–3 个横滑。右侧栏（联系我们 / 24H热瓜）保留现网 PC。</div>
+                  </li>
+                  <li>
+                    <strong>2. 内容卡片样式</strong>
+                    <div class="sub">整图封面 823×303；底栏标题 + 作者/日期/分类小字；操作区右对齐（浏览 / 评论 / 点赞 + 分享）；列表最大宽 823、最小边距 24，比例固定等比缩放。</div>
+                  </li>
+                  <li>
+                    <strong>3. 榜单、签到入口与页面</strong>
+                    <div class="sub">入口位置/样式按 PC 调整；榜单、签到均为独立二级页（不走弹窗），沿用现有业务逻辑。Demo 现状仍为弹窗，需改回独立页。</div>
+                  </li>
+                  <li>
+                    <strong>4. 新增悬浮广告位</strong>
+                    <div class="sub">首页右下角竖版悬浮广告：可轮播、可关闭。</div>
+                  </li>
+                  <li>
+                    <strong>5. 搜索页 · 热搜总榜</strong>
+                    <div class="sub">总榜样式优化，对齐 APP（桌面可 2–3 列）。</div>
+                  </li>
+                  <li>
+                    <strong>6. 搜索结果页 + 社区卡片</strong>
+                    <div class="sub">搜索结果卡片样式调整；社区卡片同步调整到统一规范。</div>
+                  </li>
+                  <li>
+                    <strong>7. 搜索 · 标签与卡片</strong>
+                    <div class="sub">热门标签保留；相关卡片样式按统一内容卡规范调整。</div>
+                  </li>
+                  <li>
+                    <strong>8. 历史页卡片统一</strong>
+                    <div class="sub">历史记录等页的卡片也改成统一内容卡片规范（同首页文字卡）。</div>
+                  </li>
+                </ol>
+              </section>
+
+              <section class="discuss-block">
+                <h2>待跟进 <span class="tag wait">待拍板/待沟通</span></h2>
                 <ul>
                   <li>
                     <strong>桌面端定位与目标</strong>
-                    <div class="sub">桌面到底要解决什么问题、服务谁？目标是与 APP 能力/体验保持一致（同一产品的大屏形态），还是另有额外目标与背景（例如拉新、时长、运营投放、特定场景效率）？定位不清会导致列表密度、详情范式、迭代节奏都无法收口，需与运营、项目负责人先对齐。</div>
+                    <div class="sub">与 APP 同构即可，还是另有额外目标背景（上传效率、投放、时长等）？影响列表/详情/迭代取舍。</div>
                   </li>
                   <li>
-                    <strong>首页 / 视频 / 社区顶部广告尺寸</strong>
-                    <div class="sub">大屏下广告会做尺寸调整（宽度对齐内容列、高度限高/更扁比例），避免半屏广告挤压列表。需确认：各 Tab 广告统一规范，还是首页 / 视频 / 社区分别定比例与素材规范；是否支持轮播、与列表是否必须同宽。</div>
+                    <strong>广告最终形态与技术实现</strong>
+                    <div class="sub">双帧横滑 vs 中间露出两侧；与研发确认素材比例、SSP/商务单独配置流程；PC 与 PWA 同素材时宽高对齐。</div>
                   </li>
                   <li>
-                    <strong>首页 Feed 大屏主形态</strong>
-                    <div class="sub">单列限宽 vs 双列网格，默认哪一种；是否允许用户切换。</div>
+                    <strong>视频详情主推范式</strong>
+                    <div class="sub">抖音式弹层评论 vs B 站式侧栏评论推荐，是否按内容类型分流。</div>
                   </li>
                   <li>
-                    <strong>各类型详情的主推范式</strong>
-                    <div class="sub">视频详情主推抖音式还是 B 站式（或按内容类型分流）；社区是否固定小红书左右栏。</div>
+                    <strong>发布与上传流程</strong>
+                    <div class="sub">后续是否需要针对上传类用户优化 PC 发布/上传流程。</div>
                   </li>
                   <li>
-                    <strong>后续迭代节奏</strong>
-                    <div class="sub">桌面与 APP 保持同节奏同步迭代，还是定期把 APP 相关能力汇总后，再批量更新到桌面？需和运营、项目负责人对齐发布与排期方式。</div>
+                    <strong>福利页铺法</strong>
+                    <div class="sub">萧玖：不要细分推荐分类，直接全部铺出，避免显得空——待落地确认。</div>
                   </li>
                 </ul>
               </section>
@@ -2596,29 +5091,189 @@
         </div>
       </section>
 
-      <!-- Right rail -->
+      <!-- Right rail：联系我们固定；首页热瓜 / 社区作者+官方 -->
       <aside class="rail">
         <h4>联系我们</h4>
         <div class="contact">
           <a href="javascript:;">
-            <div class="ico ph-block">TG</div>
-            <span class="ph">官方用户群</span>
+            <div class="ico ph-block">✈</div>
+            <span class="lab">官方用户交流社群</span>
             <span class="go">立即加入 ›</span>
           </a>
           <a href="javascript:;">
             <div class="ico ph-block">商</div>
-            <span class="ph">商务合作</span>
+            <span class="lab">商务合作</span>
             <span class="go">立即洽谈 ›</span>
           </a>
           <a href="javascript:;">
             <div class="ico ph-block">审</div>
-            <span class="ph">内容审核投诉</span>
+            <span class="lab">联系官方审核提现</span>
             <span class="go">立即联系 ›</span>
           </a>
         </div>
-        <h4>24H 热瓜</h4>
-        <ol class="hot-list" id="hot-list"></ol>
+        <div class="rail-home-extra">
+          <h4>24H热瓜🔥</h4>
+          <ol class="hot-list" id="hot-list"></ol>
+        </div>
+        <div class="rail-community-extra">
+          <div class="rail-card">
+            <h4>人气作者Top5</h4>
+            <ul class="author-list" id="rail-authors"></ul>
+          </div>
+          <div class="rail-card official">
+            <h4>官方发布</h4>
+            <div class="official-list" id="rail-official"></div>
+          </div>
+        </div>
       </aside>
+    </div>
+  </div>
+
+  <!-- 约炮 · 高级筛选（编辑类：点遮罩不关） -->
+  <div class="df-mask" id="dating-filter-mask" aria-hidden="true">
+    <div class="df-modal" role="dialog" aria-modal="true" aria-labelledby="df-title">
+      <div class="df-hd">
+        <h3 id="df-title">高级筛选</h3>
+        <button type="button" class="x" id="df-close" aria-label="关闭">✕</button>
+      </div>
+      <div class="df-scroll">
+        <div class="df-sec" data-df-group="age" data-multi="0">
+          <h4>年龄</h4>
+          <div class="df-tags">
+            <button type="button" class="on" data-v="不限">不限</button>
+            <button type="button" data-v="全部">全部</button>
+            <button type="button" data-v="18-21岁">18-21岁</button>
+            <button type="button" data-v="21-24岁">21-24岁</button>
+            <button type="button" data-v="24-28岁">24-28岁</button>
+            <button type="button" data-v="28以上">28以上</button>
+          </div>
+        </div>
+        <div class="df-sec" data-df-group="service" data-multi="1">
+          <h4>服务类型 <span class="hint">可多选</span></h4>
+          <div class="df-tags" id="df-service-tags"></div>
+        </div>
+      </div>
+      <div class="df-ft">
+        <button type="button" class="reset" id="df-reset">重置</button>
+        <button type="button" class="ok" id="df-ok">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 每日签到弹窗（含明细，均保持弹窗） -->
+  <div class="ci-mask" id="checkin-mask" aria-hidden="true">
+    <div class="ci-modal" role="dialog" aria-modal="true" aria-labelledby="ci-title">
+      <div class="ci-view active" id="ci-view-main">
+        <div class="ci-hd">
+          <button type="button" class="back" id="ci-close" title="关闭" aria-label="关闭">‹</button>
+          <h3 id="ci-title">每日签到</h3>
+          <button type="button" class="link" id="ci-open-detail">明细</button>
+        </div>
+        <div class="ci-scroll">
+          <div class="ci-lv-row">
+            <div>
+              <div class="lv">LV.<em>1</em></div>
+            </div>
+            <div class="mid">
+              <button type="button" class="rule" id="ci-lv-rule">等级规则 ›</button>
+              <div class="ci-bar"><i style="width:0%"></i></div>
+              <div class="hint">0 / 100 · 还差 100 经验升级到 Lv.2</div>
+            </div>
+            <div class="ci-badge">V1</div>
+          </div>
+          <div class="ci-streak-tit">已连续签到 0 天</div>
+          <div class="ci-streak" id="ci-streak"></div>
+          <div class="ci-points">
+            <span>我的积分：0</span>
+            <button type="button" class="go" id="ci-redeem">积分兑换 ›</button>
+          </div>
+          <div class="ci-tabs" id="ci-task-tabs">
+            <button type="button" class="active" data-tab="daily">每日任务</button>
+            <button type="button" data-tab="more">更多任务</button>
+          </div>
+          <div id="ci-task-list"></div>
+          <div class="ci-refresh">任务每天 24:00 刷新～</div>
+          <div class="ci-rules">
+            <h4>规则说明</h4>
+            <ol>
+              <li>登录 APP 并完成一项每日任务即可自动领取签到奖励；每位用户每天可签到 1 次。</li>
+              <li>连续签到满 7 天后，从第 1 天重新开始循环。</li>
+              <li>中断签到后，从第 1 天重新累计。</li>
+              <li>评论需不少于 6 个字符，且不能为纯表情/符号，方可计入等级经验与签到。</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div class="ci-view" id="ci-view-detail">
+        <div class="ci-hd">
+          <button type="button" class="back" id="ci-detail-back" aria-label="返回签到">‹</button>
+          <div class="ci-hd-tabs" id="ci-detail-tabs">
+            <button type="button" class="active" data-tab="points">积分明细</button>
+            <button type="button" data-tab="exp">经验明细</button>
+          </div>
+          <span></span>
+        </div>
+        <div class="ci-empty" id="ci-detail-empty">
+          <div class="panda">🐼🍉</div>
+          <div>暂无数据</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 排行榜弹窗：点卡片进文章详情 -->
+  <div class="rk-mask" id="rank-mask" aria-hidden="true">
+    <div class="rk-modal" role="dialog" aria-modal="true" aria-labelledby="rk-title">
+      <div class="rk-hero">
+        <button type="button" class="back" id="rk-close" aria-label="关闭">‹</button>
+        <div class="crown" aria-hidden="true">👑</div>
+        <h3 id="rk-title">排行榜</h3>
+        <div class="rk-main-tabs" id="rk-main-tabs">
+          <button type="button" class="active" data-tab="board">榜单</button>
+          <button type="button" data-tab="history">历史</button>
+        </div>
+      </div>
+      <div class="rk-toolbar">
+        <div class="rk-chips" id="rk-chips">
+          <button type="button" class="active" data-chip="热榜">吃瓜热榜</button>
+          <button type="button" data-chip="日">日榜单</button>
+          <button type="button" data-chip="周">周榜单</button>
+          <button type="button" data-chip="月">月榜单</button>
+        </div>
+        <div class="rk-hist-bar" id="rk-hist-bar">
+          <div class="search">
+            <span>⌕</span>
+            <input type="text" placeholder="输入您想搜索的关键词" id="rk-search" />
+            <button type="button" class="go" id="rk-search-btn">搜索</button>
+          </div>
+          <button type="button" class="date" id="rk-date">2026-11-18</button>
+        </div>
+      </div>
+      <div class="rk-list" id="rk-list"></div>
+    </div>
+  </div>
+
+  <!-- AI科技弹窗 -->
+  <div class="ai-mask" id="ai-mask" aria-hidden="true">
+    <div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="ai-title">
+      <div class="ai-hd">
+        <button type="button" class="back" id="ai-close" aria-label="关闭">‹</button>
+        <h3 id="ai-title">AI科技</h3>
+      </div>
+      <div class="ai-grid" id="ai-grid"></div>
+    </div>
+  </div>
+
+  <!-- 视频看完整版：会员 / 金币引导 -->
+  <div class="vu-mask" id="vu-mask" aria-hidden="true">
+    <div class="vu-modal" role="dialog" aria-modal="true" aria-labelledby="vu-title">
+      <div class="ico vip" id="vu-ico">V</div>
+      <h3 id="vu-title">开通会员看完整版</h3>
+      <p class="desc" id="vu-desc">开通会员即可解锁本片完整内容。</p>
+      <div class="acts">
+        <button type="button" class="cancel" id="vu-cancel">取消</button>
+        <button type="button" class="ok" id="vu-ok">去开通会员</button>
+      </div>
     </div>
   </div>
 
@@ -2633,68 +5288,119 @@
     { id: 6, title: "首页条目标题占位 F · 运营活动说明卡", author: "运营号", date: "2026-11-10", cat: "首页", views: "9.2万", comments: "12", likes: "430", badge: "" }
   ];
 
-  function coverHTML(item, label) {
-    return `<div class="card-cover">
-      ${item.badge ? `<span class="badge">${item.badge}</span>` : ""}
-      <div class="ph-block" style="width:100%;height:100%">${label || "封面"}</div>
-    </div>`;
-  }
-
-  function cardHTML(item) {
-    return `<article class="card" data-id="${item.id}">
-      ${coverHTML(item)}
-      <div class="card-body">
-        <div class="card-title">${item.title}</div>
-        <div class="card-meta">
-          <span>${item.author}</span><span>${item.date}</span><span>${item.cat}</span>
-        </div>
-        <div class="card-stats">
-          <span>👁 ${item.views}</span>
-          <span>💬 ${item.comments}</span>
-          <span>👍 ${item.likes}</span>
-          <span class="share">分享</span>
+  /* 文字卡片：整图 + 标题 / 小字 / 浏览·评论·点赞·分享 */
+  function webCardHTML(item) {
+    const badge = item.badge === "热推" ? "热门" : item.badge;
+    return `<article class="web-card" data-type="article" data-id="${item.id}">
+      <div class="web-card-cover">
+        ${badge ? `<span class="badge">${badge}</span>` : ""}
+        <div class="ph-block" aria-hidden="true"></div>
+        <div class="web-card-overlay">
+          <div class="t">${item.title}</div>
+          <div class="m"><span>${item.author}</span><span>${item.date}</span><span>${item.cat}</span></div>
+          <div class="web-card-stats">
+            <span class="st"><span class="ico" aria-hidden="true">👁</span>${item.views}</span>
+            <span class="st"><span class="ico" aria-hidden="true">💬</span>${item.comments}</span>
+            <span class="st"><span class="ico" aria-hidden="true">👍</span>${item.likes}</span>
+            <button type="button" class="share" data-share="${item.id}" aria-label="分享">↗</button>
+          </div>
         </div>
       </div>
     </article>`;
   }
 
-  // 广告素材占位（多帧，供双列左右滑）
-  const adSlides = [
-    "广告位 A · 运营色块",
-    "广告位 B · 活动色块",
-    "广告位 C · 会员色块",
-    "广告位 D · 专题色块"
-  ];
-
-  function singleAdHTML() {
-    return `<div class="home-ad" aria-label="首页广告">
-      <div class="ad-frame"><div class="ph-block">单列广告 · 同宽扁图（16:5）</div></div>
+  /* 广告卡片 / Banner：纯图，无任何文案 */
+  function webAdHTML() {
+    return `<div class="home-ad" data-type="ad">
+      <div class="ad-frame"><div class="ph-block" aria-label="广告"></div></div>
     </div>`;
   }
 
-  function dualAdHTML() {
-    const slides = adSlides.map((t, i) =>
-      `<div class="ad-slide" data-i="${i}"><div class="ph-block">${t}</div></div>`
-    ).join("");
-    const dots = adSlides.map((_, i) =>
-      `<button type="button" data-dot="${i}" class="${i === 0 ? "active" : ""}" aria-label="第${i + 1}帧"></button>`
-    ).join("");
-    return `<div class="home-ad-dual" id="dual-ad">
-      <button type="button" class="ad-nav ad-prev" aria-label="上一帧">‹</button>
-      <button type="button" class="ad-nav ad-next" aria-label="下一帧">›</button>
-      <div class="ad-viewport">
-        <div class="ad-track" id="dual-ad-track">${slides}</div>
+  const adSlideCount = 4;
+
+  function homePeekHTML() {
+    return `<div class="home-peek" id="home-peek" data-type="ad">
+      <div class="home-peek-rail">
+        <div class="home-peek-side" id="home-peek-left"><div class="ph-block" aria-label="广告"></div></div>
+        <div class="home-peek-main" id="home-peek-main"><div class="ph-block" aria-label="广告"></div></div>
+        <div class="home-peek-side" id="home-peek-right"><div class="ph-block" aria-label="广告"></div></div>
       </div>
-      <div class="ad-dots" id="dual-ad-dots">${dots}</div>
+      <div class="home-peek-dots" id="home-peek-dots">
+        ${Array.from({ length: adSlideCount }, (_, i) => `<button type="button" data-dot="${i}" class="${i === 0 ? "active" : ""}" aria-label="第${i + 1}张"></button>`).join("")}
+      </div>
     </div>`;
   }
 
-  // render home modes：广告塞进各自列表容器
   const single = document.getElementById("mode-single");
-  const dual = document.getElementById("mode-dual");
+  single.innerHTML = homePeekHTML() + homeItems.map((item, i) => {
+    const card = webCardHTML(item);
+    return (i === 1 || i === 3) ? card + webAdHTML() : card;
+  }).join("");
 
-  single.innerHTML = singleAdHTML() + homeItems.map(cardHTML).join("");
-  dual.innerHTML = dualAdHTML() + homeItems.map(cardHTML).join("");
+  (function initHomePeek() {
+    let index = 0;
+    const n = adSlideCount;
+    const main = document.getElementById("home-peek-main");
+    const left = document.getElementById("home-peek-left");
+    const right = document.getElementById("home-peek-right");
+    const dots = document.getElementById("home-peek-dots");
+    function paint() {
+      main.innerHTML = `<div class="ph-block" aria-label="广告"></div>`;
+      left.innerHTML = `<div class="ph-block" aria-label="广告"></div>`;
+      right.innerHTML = `<div class="ph-block" aria-label="广告"></div>`;
+      dots.querySelectorAll("button").forEach((b, i) => b.classList.toggle("active", i === index));
+    }
+    function go(to) {
+      index = ((to % n) + n) % n;
+      paint();
+    }
+    left.addEventListener("click", () => go(index - 1));
+    right.addEventListener("click", () => go(index + 1));
+    dots.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-dot]");
+      if (btn) go(Number(btn.dataset.dot));
+    });
+    paint();
+  })();
+
+  (function initHomeFloat() {
+    const box = document.getElementById("home-float");
+    const stage = document.getElementById("home-float-stage");
+    const dots = document.getElementById("home-float-dots");
+    const closeBtn = document.getElementById("home-float-close");
+    const n = 3;
+    let index = 0;
+    let timer = null;
+    function paint() {
+      stage.innerHTML = `<div class="ph-block" aria-label="广告"></div>`;
+      dots.innerHTML = Array.from({ length: n }, (_, i) =>
+        `<span class="${i === index ? "on" : ""}"></span>`
+      ).join("");
+    }
+    function go(to) {
+      index = ((to % n) + n) % n;
+      paint();
+    }
+    function start() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        if (!document.getElementById("page-home").classList.contains("active")) return;
+        if (box.hidden) return;
+        go(index + 1);
+      }, 3200);
+    }
+    closeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      box.hidden = true;
+      clearInterval(timer);
+    });
+    box.addEventListener("click", (e) => {
+      if (e.target.closest(".home-float-close")) return;
+      go(index + 1);
+    });
+    paint();
+    start();
+  })();
 
   function articleDetailHTML(item) {
     return `
@@ -2765,131 +5471,309 @@
     document.querySelector(".main-scroll").scrollTop = 0;
   }
 
-  function bindHomeArticleClicks(root) {
-    root.addEventListener("click", (e) => {
-      if (e.target.closest(".home-ad, .home-ad-dual, .ad-nav, .ad-dots")) return;
-      const card = e.target.closest("article.card");
-      if (!card || !root.contains(card)) return;
-      openArticleDetail(card.dataset.id);
-    });
-  }
-  bindHomeArticleClicks(single);
-  bindHomeArticleClicks(dual);
+  single.addEventListener("click", (e) => {
+    if (e.target.closest(".home-peek")) return;
+    if (e.target.closest(".home-ad")) return;
+    const shareBtn = e.target.closest("button.share[data-share]");
+    if (shareBtn) {
+      e.stopPropagation();
+      showToast("分享链接已复制（占位）");
+      return;
+    }
+    const card = e.target.closest("article.web-card");
+    if (!card) return;
+    openArticleDetail(card.dataset.id);
+  });
   document.getElementById("article-detail-back").addEventListener("click", closeArticleDetail);
 
-  // 双列广告：视口固定两格；切换时右格滑到左格，左侧移出，右侧进入新帧
-  (function initDualAdCarousel() {
-    const root = document.getElementById("dual-ad");
-    if (!root) return;
-    const track = document.getElementById("dual-ad-track");
-    const dotsWrap = document.getElementById("dual-ad-dots");
-    const n = adSlides.length;
-    let index = 0; // 左侧可见帧的下标；右侧为 (index+1)%n
-    let lock = false;
+  // 搜索页：点首页搜索框 / 搜索按钮进入
+  (function initSearchPage() {
+    const page = document.getElementById("page-search");
+    const input = document.getElementById("search-page-input");
+    const histEmpty = document.getElementById("search-hist-empty");
+    const histTags = document.getElementById("search-hist-tags");
+    const hotTags = document.getElementById("search-hot-tags");
+    const hotGrid = document.getElementById("search-hot-grid");
+    const bannerRail = document.getElementById("search-banner-rail");
+    let hist = [];
+    const tagList = ["#高颜值", "#人妻", "#约炮大神", "#内射", "#深喉", "#跳蛋", "#4P", "#外围"];
+    const bannerSlides = ["A", "B", "C", "D", "E"];
+    const hotItems = [
+      { id: 1, rank: 1, views: "82.2万浏览", title: "首页条目标题占位 A · 热门合集第二十八弹", comments: "99评论", author: "瓜弟", date: "2026年11月18日" },
+      { id: 2, rank: 2, views: "61.0万浏览", title: "首页条目标题占位 B · 专题报道长标题两行演示", comments: "48评论", author: "瓜田", date: "2026年11月17日" },
+      { id: 3, rank: 3, views: "44.5万浏览", title: "首页条目标题占位 C · 校园相关内容摘要", comments: "32评论", author: "瓜仔", date: "2026年11月16日" },
+      { id: 4, rank: 4, views: "28.8万浏览", title: "首页条目标题占位 D · 赛事吃瓜回顾", comments: "15评论", author: "瓜嫂", date: "2026年11月15日" },
+      { id: 5, rank: 5, views: "19.2万浏览", title: "首页条目标题占位 E · AI 短剧推荐位", comments: "11评论", author: "51cg", date: "2026年11月14日" },
+      { id: 6, rank: 6, views: "9.6万浏览", title: "首页条目标题占位 F · 运营活动说明卡", comments: "6评论", author: "运营号", date: "2026年11月13日" }
+    ];
 
-    function slideWidth() {
-      const slide = track.querySelector(".ad-slide");
-      if (!slide) return 0;
-      return slide.getBoundingClientRect().width;
+    function rankBadge(n) {
+      if (n === 1) return `<span class="rk-rank t1">TOP1</span>`;
+      if (n === 2) return `<span class="rk-rank t2">TOP2</span>`;
+      if (n === 3) return `<span class="rk-rank t3">TOP3</span>`;
+      return `<span class="rk-rank" style="background:#444;color:#fff">TOP${n}</span>`;
     }
 
-    function paint() {
-      // 轨道始终按 0..n-1 顺序排；用 transform 让 index 对齐视口左缘
-      track.style.transition = "none";
-      track.style.transform = `translateX(${-index * slideWidth()}px)`;
-      // 为循环：复制前两帧接在末尾，便于从最后滑到开头
-      dotsWrap.querySelectorAll("button").forEach((b, i) => {
-        b.classList.toggle("active", i === index);
-      });
-    }
+    hotTags.innerHTML = tagList.map((t) => `<button type="button" data-tag="${t}">${t}</button>`).join("");
+    hotGrid.innerHTML = hotItems.map((it) => `
+      <button type="button" class="sp-hot-card" data-id="${it.id}">
+        <div class="sp-hot-thumb">
+          ${rankBadge(it.rank)}
+          <div class="ph-block">51</div>
+        </div>
+        <div class="sp-hot-body">
+          <div class="views">${it.views}</div>
+          <div class="t">${it.title}</div>
+          <div class="m"><span>${it.comments}</span><span>${it.author}</span><span>${it.date}</span></div>
+        </div>
+      </button>`).join("");
 
-    // 循环：末尾追加前两帧克隆，便于「右→左」连续滑
-    const clones = adSlides.slice(0, 2).map((t, i) => {
-      const el = document.createElement("div");
-      el.className = "ad-slide clone";
-      el.innerHTML = `<div class="ph-block">${t}（循环）</div>`;
-      el.dataset.clone = String(i);
-      return el;
-    });
-    clones.forEach((c) => track.appendChild(c));
+    bannerRail.innerHTML = bannerSlides.map(() =>
+      `<div class="sp-banner-item"><div class="ph-block" aria-label="广告"></div></div>`
+    ).join("");
 
-    function go(nextIndex, dir) {
-      if (lock) return;
-      lock = true;
-      const from = index;
-      const w = slideWidth();
-      // 目标：视觉上右格变左格
-      let animTo = nextIndex;
-      if (dir > 0 && nextIndex < from) {
-        // 向右循环：滑到克隆区
-        animTo = n + nextIndex;
+    function renderHist() {
+      if (!hist.length) {
+        histEmpty.hidden = false;
+        histTags.hidden = true;
+        histTags.innerHTML = "";
+        return;
       }
-      track.style.transition = "transform 0.35s ease";
-      track.style.transform = `translateX(${-animTo * w}px)`;
-      const onEnd = () => {
-        track.removeEventListener("transitionend", onEnd);
-        index = ((nextIndex % n) + n) % n;
-        track.style.transition = "none";
-        track.style.transform = `translateX(${-index * w}px)`;
-        dotsWrap.querySelectorAll("button").forEach((b, i) => {
-          b.classList.toggle("active", i === index);
-        });
-        lock = false;
-      };
-      track.addEventListener("transitionend", onEnd);
+      histEmpty.hidden = true;
+      histTags.hidden = false;
+      histTags.innerHTML = hist.map((t) =>
+        `<button type="button" data-tag="${t}">${t}</button>`
+      ).join("");
     }
 
-    function next() { go((index + 1) % n, 1); }
-    function prev() { go((index - 1 + n) % n, -1); }
+    function openSearch(preset) {
+      document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+      page.classList.add("active");
+      document.querySelectorAll(".nav-item").forEach((b) => {
+        b.classList.toggle("active", b.dataset.page === "home");
+      });
+      document.querySelector(".main-scroll").scrollTop = 0;
+      if (preset) input.value = preset;
+      requestAnimationFrame(() => input.focus());
+    }
+    function closeSearch() {
+      document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+      document.getElementById("page-home").classList.add("active");
+      document.querySelectorAll(".nav-item").forEach((b) => {
+        b.classList.toggle("active", b.dataset.page === "home");
+      });
+      document.querySelector(".main-scroll").scrollTop = 0;
+    }
+    function doSearch() {
+      const q = input.value.trim();
+      if (!q) {
+        showToast("请输入关键词");
+        return;
+      }
+      hist = [q, ...hist.filter((x) => x !== q)].slice(0, 10);
+      renderHist();
+      showToast(`搜索「${q}」（占位）`);
+    }
 
-    root.querySelector(".ad-next").addEventListener("click", next);
-    root.querySelector(".ad-prev").addEventListener("click", prev);
-    dotsWrap.addEventListener("click", (e) => {
-      const btn = e.target.closest("button[data-dot]");
+    function enterSearch(e) {
+      e.preventDefault();
+      openSearch();
+    }
+    document.getElementById("home-search-wrap").addEventListener("click", enterSearch);
+    document.getElementById("home-search-input").addEventListener("focus", enterSearch);
+    document.getElementById("home-search-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      openSearch();
+    });
+    document.getElementById("video-search-wrap").addEventListener("click", enterSearch);
+    document.getElementById("video-search-input").addEventListener("focus", enterSearch);
+    document.getElementById("video-search-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      openSearch();
+    });
+    document.getElementById("community-search-wrap").addEventListener("click", enterSearch);
+    document.getElementById("community-search-input").addEventListener("focus", enterSearch);
+    document.getElementById("community-search-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      openSearch();
+    });
+    document.getElementById("search-back").addEventListener("click", closeSearch);
+    document.getElementById("search-page-btn").addEventListener("click", doSearch);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doSearch();
+    });
+    document.getElementById("search-clear-hist").addEventListener("click", () => {
+      hist = [];
+      renderHist();
+      showToast("已清除搜索记录");
+    });
+    hotTags.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-tag]");
       if (!btn) return;
-      const to = Number(btn.dataset.dot);
-      if (to === index) return;
-      go(to, to > index ? 1 : -1);
+      input.value = btn.dataset.tag;
+      doSearch();
     });
-
-    // 初始与 resize 时校正位移
-    paint();
-    window.addEventListener("resize", () => {
-      track.style.transition = "none";
-      track.style.transform = `translateX(${-index * slideWidth()}px)`;
+    histTags.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-tag]");
+      if (!btn) return;
+      input.value = btn.dataset.tag;
+      doSearch();
     });
+    hotGrid.addEventListener("click", (e) => {
+      const card = e.target.closest(".sp-hot-card");
+      if (!card) return;
+      openArticleDetail(card.dataset.id);
+    });
+    renderHist();
   })();
 
-  // layout switch
-  document.getElementById("home-layout-switch").addEventListener("click", (e) => {
-    const btn = e.target.closest("button[data-mode]");
-    if (!btn) return;
-    const mode = btn.dataset.mode;
-    document.querySelectorAll("#home-layout-switch button").forEach((b) => b.classList.toggle("active", b === btn));
-    document.querySelectorAll(".home-mode").forEach((el) => el.classList.remove("active"));
-    document.getElementById("mode-" + mode).classList.add("active");
-    // 切到双列时校正广告轨道宽度
-    if (mode === "dual") {
-      requestAnimationFrame(() => {
-        const track = document.getElementById("dual-ad-track");
-        if (!track) return;
-        const slide = track.querySelector(".ad-slide");
-        if (!slide) return;
-        const activeDot = document.querySelector("#dual-ad-dots button.active");
-        const idx = activeDot ? Number(activeDot.dataset.dot) : 0;
-        const w = slide.getBoundingClientRect().width;
-        track.style.transition = "none";
-        track.style.transform = `translateX(${-idx * w}px)`;
-      });
-    }
+  // 首页全部频道：点击 ▦ 展开 / 频道条左滑展开
+  const HOME_CHANNELS = [
+    "首页", "今日吃瓜", "AI成人短剧", "51原创", "竞技吃瓜", "学生校园",
+    "每日大赛", "网红黑料", "网黄合集", "吃瓜榜单", "瓜友点播", "成人视频",
+    "骚男骚女", "吃瓜看戏", "明星爆料", "擦边撩骚", "热门大瓜", "伦理道德",
+    "海外吃瓜", "性爱技巧", "人人吃瓜", "吃瓜新闻", "必看大瓜", "领导干部",
+    "51原创短剧", "探花精选", "往期活动", "国产视频", "软萌甜妹"
+  ];
+  const homeChWrap = document.getElementById("home-channels-wrap");
+  const homeChBar = document.getElementById("home-channels");
+  const homeChMore = document.getElementById("home-ch-more");
+  const homeChPanel = document.getElementById("home-ch-panel");
+  const homeChGrid = document.getElementById("home-ch-grid");
+  let homeChOpen = false;
+
+  function syncHomeChannelActive(name) {
+    homeChBar.querySelectorAll(".ch").forEach((b) => {
+      b.classList.toggle("active", b.dataset.ch === name);
+    });
+    homeChGrid.querySelectorAll(".ch-cell").forEach((b) => {
+      b.classList.toggle("active", b.dataset.ch === name);
+    });
+  }
+
+  function renderHomeChGrid() {
+    const cur = homeChBar.querySelector(".ch.active")?.dataset.ch || "首页";
+    homeChGrid.innerHTML = HOME_CHANNELS.map((name) =>
+      `<button type="button" class="ch-cell${name === cur ? " active" : ""}" data-ch="${name}">${name}</button>`
+    ).join("");
+  }
+
+  function openHomeChPanel() {
+    if (homeChOpen) return;
+    renderHomeChGrid();
+    homeChPanel.classList.add("open");
+    homeChMore.classList.add("open");
+    homeChMore.setAttribute("aria-expanded", "true");
+    homeChMore.textContent = "▴";
+    homeChMore.title = "收起频道";
+    homeChOpen = true;
+  }
+
+  function closeHomeChPanel() {
+    if (!homeChOpen) return;
+    homeChPanel.classList.remove("open");
+    homeChMore.classList.remove("open");
+    homeChMore.setAttribute("aria-expanded", "false");
+    homeChMore.textContent = "▦";
+    homeChMore.title = "更多频道";
+    homeChOpen = false;
+  }
+
+  function toggleHomeChPanel() {
+    if (homeChOpen) closeHomeChPanel();
+    else openHomeChPanel();
+  }
+
+  homeChMore.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleHomeChPanel();
   });
+  document.getElementById("home-ch-close").addEventListener("click", (e) => {
+    e.stopPropagation();
+    closeHomeChPanel();
+  });
+  homeChGrid.addEventListener("click", (e) => {
+    const cell = e.target.closest(".ch-cell");
+    if (!cell) return;
+    const name = cell.dataset.ch;
+    // 顶栏没有的频道：先插入到 ▦ 前并激活
+    let barBtn = homeChBar.querySelector(`.ch[data-ch="${name}"]`);
+    if (!barBtn) {
+      barBtn = document.createElement("button");
+      barBtn.type = "button";
+      barBtn.className = "ch";
+      barBtn.dataset.ch = name;
+      barBtn.textContent = name;
+      homeChBar.insertBefore(barBtn, homeChMore);
+    }
+    syncHomeChannelActive(name);
+    closeHomeChPanel();
+    showToast(`已切换「${name}」`);
+  });
+  document.addEventListener("click", (e) => {
+    if (!homeChOpen) return;
+    if (e.target.closest("#home-channels-wrap")) return;
+    closeHomeChPanel();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeHomeChPanel();
+  });
+
+  // 左滑：频道条横向滑动触底后再左滑，或指针左滑手势
+  (function bindHomeChSwipe() {
+    let startX = 0;
+    let startY = 0;
+    let startLeft = 0;
+    let tracking = false;
+    homeChBar.addEventListener("pointerdown", (e) => {
+      if (e.target.closest(".ch-more")) return;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      tracking = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      startLeft = homeChBar.scrollLeft;
+    });
+    homeChBar.addEventListener("pointermove", (e) => {
+      if (!tracking) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dy) > Math.abs(dx)) return;
+      // 已滚到最右且继续左滑（手指右→左，dx 为负）
+      const atEnd = homeChBar.scrollLeft + homeChBar.clientWidth >= homeChBar.scrollWidth - 2;
+      if (atEnd && dx < -56) {
+        tracking = false;
+        openHomeChPanel();
+      }
+    });
+    homeChBar.addEventListener("pointerup", (e) => {
+      if (!tracking) return;
+      tracking = false;
+      const dx = e.clientX - startX;
+      const atEnd = startLeft + homeChBar.clientWidth >= homeChBar.scrollWidth - 2
+        || homeChBar.scrollLeft + homeChBar.clientWidth >= homeChBar.scrollWidth - 2;
+      if (atEnd && dx < -56) openHomeChPanel();
+    });
+    homeChBar.addEventListener("pointercancel", () => { tracking = false; });
+  })();
 
   // channel / pill / city active toggles
   document.body.addEventListener("click", (e) => {
-    const ch = e.target.closest(".channels .ch, .dating-tabs .ch");
-    if (ch && ch.parentElement) {
+    const ch = e.target.closest("#home-channels .ch, .dating-tabs .ch, .channels .ch");
+    if (ch && ch.parentElement && !ch.closest("#home-ch-grid")) {
       ch.parentElement.querySelectorAll(".ch").forEach((x) => x.classList.remove("active"));
       ch.classList.add("active");
+      if (ch.closest("#home-channels") && ch.dataset.ch) {
+        syncHomeChannelActive(ch.dataset.ch);
+      }
+      if (ch.closest("#dating-tabs") && typeof switchDatingTab === "function") {
+        switchDatingTab(ch);
+      }
+    }
+    const datingSort = e.target.closest(".dating-sort .pill");
+    if (datingSort && datingSort.parentElement) {
+      datingSort.parentElement.querySelectorAll(".pill").forEach((x) => x.classList.remove("active"));
+      datingSort.classList.add("active");
+      showToast(`${datingSort.dataset.sort || datingSort.textContent.trim()}（占位）`);
     }
     const pill = e.target.closest(".filters .pill");
     if (pill && pill.parentElement) {
@@ -2969,63 +5853,97 @@
   initPageBanner("video-banner", "video-banner-track", "video-banner-dots");
   initPageBanner("community-banner", "community-banner-track", "community-banner-dots");
 
-  // video grid 3 col
-  const videos = Array.from({ length: 9 }, (_, i) => ({
-    id: i + 1,
-    title: `视频卡片标题占位 ${i + 1} · 横向封面演示`,
-    date: `11月${10 + (i % 8)}日`,
-    comments: (i * 3 + 1),
-    plays: 1000 + i * 377,
-    dur: `${8 + (i % 5)}:${(i * 7 % 60).toString().padStart(2, "0")}`,
-    vip: i % 3 === 0
-  }));
+  // video grid 3 col · unlock: vip | coin
+  let userCoins = 50;
+  let currentVideo = null;
+  const videos = Array.from({ length: 9 }, (_, i) => {
+    const unlock = i % 3 === 0 ? "vip" : "coin";
+    return {
+      id: i + 1,
+      title: `视频卡片标题占位 ${i + 1} · 横向封面演示`,
+      date: `11月${10 + (i % 8)}日`,
+      comments: (i * 3 + 1),
+      plays: 1000 + i * 377,
+      dur: `${8 + (i % 5)}:${(i * 7 % 60).toString().padStart(2, "0")}`,
+      unlock,
+      coinCost: unlock === "coin" ? 30 + (i % 4) * 30 : 0,
+      unlocked: false
+    };
+  });
+  function videoUnlockBadge(v) {
+    if (v.unlock === "vip") return `<span class="badge vip">VIP</span>`;
+    return `<span class="badge coin">${v.coinCost} 金币</span>`;
+  }
   document.getElementById("video-grid").innerHTML = videos.map((v) => `
     <article class="card v-card" data-vid="${v.id}">
       <div class="card-cover">
-        ${v.vip ? `<span class="badge vip">VIP</span>` : ""}
+        ${videoUnlockBadge(v)}
         <span class="badge plays">▶ ${v.plays}</span>
         <span class="badge dur">${v.dur}</span>
         <div class="ph-block">视频封面 ${v.id}</div>
       </div>
       <div class="card-body">
         <div class="card-title">${v.title}</div>
-        <div class="card-meta"><span>${v.date}</span><span>评论 ${v.comments}</span></div>
+        <div class="card-meta"><span>${v.date}</span></div>
       </div>
     </article>`).join("");
 
-  function fillVideoDetail(v) {
-    document.getElementById("video-detail-title").textContent = v.title;
-    document.getElementById("vd-dy-cover").textContent = `抖音式播放器 · 视频 ${v.id}`;
-    document.getElementById("vd-dy-title").textContent = `@作者${v.id} · ${v.title}`;
-    document.getElementById("vd-dy-desc").textContent = `简介占位：${v.title}。时长 ${v.dur} · ${v.date}`;
-    document.getElementById("vd-dy-like").textContent = `${(v.plays / 100).toFixed(1)}万`;
-    document.getElementById("vd-dy-cmt").textContent = String(v.comments);
+  function paintFullBtn(v) {
+    const btn = document.getElementById("vd-bili-full");
+    if (!v || v.unlocked) {
+      btn.hidden = true;
+      return;
+    }
+    btn.hidden = false;
+    btn.textContent = v.unlock === "vip" ? "看完整版" : `${v.coinCost} 金币 看完整版`;
+  }
 
-    document.getElementById("vd-bili-cover").textContent = `B站式播放器 · 视频 ${v.id} · 16:9`;
+  function fillVideoDetail(v) {
+    currentVideo = v;
+    document.getElementById("video-detail-title").textContent = v.title;
+    const biliCover = document.getElementById("vd-bili-cover");
+    biliCover.textContent = "";
+    biliCover.setAttribute("aria-label", `播放器 · 视频 ${v.id}`);
+    paintFullBtn(v);
     document.getElementById("vd-bili-title").textContent = v.title;
-    document.getElementById("vd-bili-plays").textContent = `播放 ${v.plays}`;
-    document.getElementById("vd-bili-date").textContent = v.date;
-    document.getElementById("vd-bili-dur").textContent = `时长 ${v.dur}`;
+    document.getElementById("vd-bili-views").textContent = String(v.plays);
+    document.getElementById("vd-bili-likes").textContent = `${(v.plays / 100).toFixed(1)}万`;
+    document.getElementById("vd-bili-cmts").textContent = String(v.comments);
+    document.getElementById("vd-bili-favs").textContent = String(80 + v.id * 17);
     document.getElementById("vd-bili-cmt-n").textContent = String(v.comments);
+    const tagPool = ["#今日吃瓜", "#热门合集", "#51原创", "#短剧推荐", "#周末特辑", "#网红黑料"];
+    const tags = [tagPool[v.id % tagPool.length], tagPool[(v.id + 2) % tagPool.length], tagPool[(v.id + 4) % tagPool.length]];
+    document.getElementById("vd-bili-tags").innerHTML = tags.map((t) =>
+      `<button type="button" data-tag="${t}">${t}</button>`
+    ).join("");
     document.getElementById("vd-bili-comments").innerHTML = Array.from({ length: 6 }, (_, i) => `
       <div class="vd-cmt">
-        <div class="av ph-block">头</div>
+        <div class="av ph-block" aria-hidden="true"></div>
         <div>
           <div class="nm">用户${i + 1}</div>
           <div class="tx">评论占位 ${i + 1}：这部不错，求更新 / 求合集（文案占位）。</div>
         </div>
       </div>`).join("");
+    document.getElementById("vd-bili-time").textContent = `00:12 / ${v.dur.padStart(5, "0")}`;
     document.getElementById("vd-bili-recs").innerHTML = videos
       .filter((x) => x.id !== v.id)
       .slice(0, 6)
       .map((x) => `
         <article class="vd-rec" data-vid="${x.id}">
-          <div class="thumb"><div class="ph-block">推荐 ${x.id}</div></div>
+          <div class="thumb">
+            <div class="ph-block" aria-label="推荐"></div>
+            <span class="dur">${x.dur}</span>
+          </div>
           <div class="info">
             <div class="t">${x.title}</div>
-            <div class="m">▶ ${x.plays} · ${x.dur}</div>
+            <div class="m">▶ ${x.plays}</div>
           </div>
         </article>`).join("");
+    document.querySelectorAll("#vd-bili-tabs button").forEach((b) => {
+      b.classList.toggle("active", b.dataset.biliTab === "intro");
+    });
+    document.getElementById("vd-bili-pane-intro").classList.add("active");
+    document.getElementById("vd-bili-pane-cmt").classList.remove("active");
   }
 
   function openVideoDetail(id) {
@@ -3055,12 +5973,121 @@
     openVideoDetail(card.dataset.vid);
   });
   document.getElementById("video-detail-back").addEventListener("click", closeVideoDetail);
-  document.getElementById("video-detail-layout").addEventListener("click", (e) => {
-    const btn = e.target.closest("button[data-vd]");
+  document.getElementById("vd-bili-tabs").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-bili-tab]");
     if (!btn) return;
-    document.querySelectorAll("#video-detail-layout button").forEach((b) => b.classList.toggle("active", b === btn));
-    document.querySelectorAll(".vd-mode").forEach((el) => el.classList.remove("active"));
-    document.getElementById("vd-mode-" + btn.dataset.vd).classList.add("active");
+    const tab = btn.dataset.biliTab;
+    document.querySelectorAll("#vd-bili-tabs button").forEach((b) => b.classList.toggle("active", b === btn));
+    document.getElementById("vd-bili-pane-intro").classList.toggle("active", tab === "intro");
+    document.getElementById("vd-bili-pane-cmt").classList.toggle("active", tab === "cmt");
+  });
+  document.getElementById("vd-bili-cmt-send").addEventListener("click", () => {
+    const input = document.getElementById("vd-bili-cmt-input");
+    const q = (input.value || "").trim();
+    if (!q) {
+      showToast("请输入评论内容");
+      return;
+    }
+    showToast("评论已发送（占位）");
+    input.value = "";
+  });
+  (function initVideoUnlock() {
+    const mask = document.getElementById("vu-mask");
+    const ico = document.getElementById("vu-ico");
+    const title = document.getElementById("vu-title");
+    const desc = document.getElementById("vu-desc");
+    const ok = document.getElementById("vu-ok");
+    let mode = "vip";
+    function openVu(next) {
+      mode = next;
+      if (mode === "vip") {
+        ico.className = "ico vip";
+        ico.textContent = "V";
+        title.textContent = "开通会员看完整版";
+        desc.textContent = "本片需会员解锁。开通会员后可观看完整内容。";
+        ok.className = "ok";
+        ok.textContent = "去开通会员";
+      } else if (mode === "buy") {
+        ico.className = "ico coin";
+        ico.textContent = "币";
+        title.textContent = "金币不足";
+        desc.textContent = `当前余额 ${userCoins} 金币，解锁还需 ${currentVideo.coinCost} 金币。请先购买金币。`;
+        ok.className = "ok coin";
+        ok.textContent = "去购买金币";
+      }
+      mask.classList.add("open");
+      mask.setAttribute("aria-hidden", "false");
+    }
+    function closeVu() {
+      mask.classList.remove("open");
+      mask.setAttribute("aria-hidden", "true");
+    }
+    document.getElementById("vd-bili-full").addEventListener("click", (e) => {
+      e.stopPropagation();
+      const v = currentVideo;
+      if (!v || v.unlocked) return;
+      if (v.unlock === "vip") {
+        openVu("vip");
+        return;
+      }
+      if (userCoins >= v.coinCost) {
+        userCoins -= v.coinCost;
+        v.unlocked = true;
+        paintFullBtn(v);
+        showToast(`已消耗 ${v.coinCost} 金币，完整版已解锁（余额 ${userCoins}）`);
+        return;
+      }
+      openVu("buy");
+    });
+    document.getElementById("vu-cancel").addEventListener("click", closeVu);
+    ok.addEventListener("click", () => {
+      if (mode === "vip") showToast("跳转开通会员（占位）");
+      else showToast("跳转购买金币（占位）");
+      closeVu();
+    });
+  })();
+  (function initVdBar() {
+    const mute = document.getElementById("vd-bili-mute");
+    const danmaku = document.getElementById("vd-bili-danmaku");
+    const quality = document.getElementById("vd-bili-quality");
+    const speed = document.getElementById("vd-bili-speed");
+    let muted = false;
+    let dmOn = true;
+    const quals = ["清晰度 高清", "清晰度 超清", "清晰度 标清"];
+    const speeds = ["倍速 1.0x", "倍速 1.25x", "倍速 1.5x", "倍速 2.0x"];
+    let qi = 0;
+    let si = 0;
+    mute.addEventListener("click", () => {
+      muted = !muted;
+      mute.textContent = muted ? "🔇" : "🔊";
+      showToast(muted ? "已静音" : "取消静音");
+    });
+    danmaku.addEventListener("click", () => {
+      dmOn = !dmOn;
+      danmaku.textContent = dmOn ? "弹幕 开" : "弹幕 关";
+      showToast(dmOn ? "弹幕已开启" : "弹幕已关闭");
+    });
+    quality.addEventListener("click", () => {
+      qi = (qi + 1) % quals.length;
+      quality.textContent = quals[qi];
+      showToast(quals[qi]);
+    });
+    speed.addEventListener("click", () => {
+      si = (si + 1) % speeds.length;
+      speed.textContent = speeds[si];
+      showToast(speeds[si]);
+    });
+    document.getElementById("vd-bili-feedback").addEventListener("click", () => {
+      showToast("反馈（占位）");
+    });
+  })();
+  document.getElementById("vd-bili-share").addEventListener("click", () => {
+    showToast("分享链接已复制（占位）");
+  });
+  document.getElementById("vd-bili-tags").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-tag]");
+    if (!btn) return;
+    showToast(`标签「${btn.dataset.tag}」（占位）`);
   });
   document.getElementById("vd-bili-recs").addEventListener("click", (e) => {
     const rec = e.target.closest(".vd-rec");
@@ -3071,7 +6098,7 @@
   // community topics horizontal
   const topics = ["#今日吃瓜", "#今日大瓜", "#原创精选", "#热议话题", "#短剧安利", "#同城爆料", "#周末特辑", "#编辑推荐"];
   document.getElementById("community-topics").innerHTML = topics.map((t, i) => `
-    <button class="topic-card">
+    <button type="button" class="topic-card">
       <div class="ph-block">
         <strong>${t}</strong>
         <span>${100 + i * 37} 动态</span>
@@ -3109,6 +6136,10 @@
       </div>
     </article>`).join("");
 
+  document.getElementById("community-layout-btn").addEventListener("click", () => {
+    showToast("切换原有帖子模式");
+  });
+
   function openPostDetail(id) {
     const p = posts.find((x) => x.id === Number(id));
     if (!p) return;
@@ -3136,6 +6167,17 @@
           <div class="tx">评论占位 ${i + 1}：写得不错，求后续 / 已关注作者（文案占位）。</div>
         </div>
       </div>`).join("");
+    document.getElementById("pd-rec-masonry").innerHTML = posts
+      .filter((x) => x.id !== p.id)
+      .slice(0, 8)
+      .map((r) => `
+      <article class="m-card" data-pid="${r.id}" style="break-inside:avoid;margin-bottom:12px">
+        <div class="ph-block ${r.h}">推荐 ${r.id}</div>
+        <div class="m-body">
+          <div class="card-title">${r.title}</div>
+          <div class="user-row"><div class="avatar"></div><span>${r.author}</span><span style="margin-left:auto">👍 ${r.likes}</span></div>
+        </div>
+      </article>`).join("");
 
     document.querySelectorAll(".page").forEach((el) => el.classList.remove("active"));
     document.getElementById("page-post-detail").classList.add("active");
@@ -3165,6 +6207,11 @@
     openPostDetail(card.dataset.pid);
   });
   document.getElementById("post-detail-back").addEventListener("click", closePostDetail);
+  document.getElementById("pd-rec-masonry").addEventListener("click", (e) => {
+    const card = e.target.closest(".m-card");
+    if (!card) return;
+    openPostDetail(card.dataset.pid);
+  });
 
   // welfare apps
   const apps = ["PG游戏", "直播A", "直播B", "看片站", "加速器", "漫画社", "短剧屋", "交友厅",
@@ -3176,6 +6223,13 @@
     </button>`).join("");
 
   // dating stores + people（店铺横滑 + 更多跳转占位）
+  let datingReturnPage = "page-dating";
+  document.getElementById("dating-publish-btn").addEventListener("click", () => {
+    showToast("发布（占位）");
+  });
+  document.getElementById("dating-apply-btn").addEventListener("click", () => {
+    showToast("申请入驻（占位）");
+  });
   function showToast(msg) {
     let el = document.getElementById("demo-toast");
     if (!el) {
@@ -3190,10 +6244,258 @@
     showToast._t = setTimeout(() => el.classList.remove("show"), 1800);
   }
 
+  // 每日签到弹窗（明细仍在弹窗内切换）
+  (function initCheckinModal() {
+    const mask = document.getElementById("checkin-mask");
+    const viewMain = document.getElementById("ci-view-main");
+    const viewDetail = document.getElementById("ci-view-detail");
+    const streak = document.getElementById("ci-streak");
+    const taskList = document.getElementById("ci-task-list");
+    const dailyTasks = [
+      { ico: "评", title: "今日首评", exp: "+5 经验", pts: "+100", desc: "今日发布 0/1 条有效评论" },
+      { ico: "帖", title: "今日发帖", exp: "+10 经验", pts: "+200", desc: "今日发布 0/1 条动态" },
+      { ico: "享", title: "分享内容", exp: "+5 经验", pts: "+50", desc: "今日分享 0/1 次" }
+    ];
+    const moreTasks = [
+      { ico: "邀", title: "邀请好友", exp: "+20 经验", pts: "+500", desc: "成功邀请 0/1 位新用户" },
+      { ico: "善", title: "完善资料", exp: "+15 经验", pts: "+100", desc: "完善个人资料 0/1" },
+      { ico: "看", title: "浏览 3 篇", exp: "+5 经验", pts: "+30", desc: "今日浏览内容 0/3" }
+    ];
+
+    streak.innerHTML = Array.from({ length: 7 }, (_, i) => {
+      const day = i + 1;
+      const exp = day === 7 ? "+100 经验" : "+50 经验";
+      return `<div class="ci-day"><div class="exp">${exp}</div><div class="n">第${day}天</div></div>`;
+    }).join("");
+
+    function renderTasks( whichtab) {
+      const list = whichtab === "more" ? moreTasks : dailyTasks;
+      taskList.innerHTML = list.map((t) => `
+        <div class="ci-task">
+          <div class="ico">${t.ico}</div>
+          <div class="body">
+            <div class="t">${t.title}<span class="pill">${t.exp}</span><span class="pts">${t.pts}</span></div>
+            <div class="d">${t.desc}</div>
+          </div>
+          <button type="button" class="act" data-task="${t.title}">去完成</button>
+        </div>`).join("");
+    }
+    renderTasks("daily");
+
+    function showMain() {
+      viewDetail.classList.remove("active");
+      viewMain.classList.add("active");
+    }
+    function showDetail(tab) {
+      viewMain.classList.remove("active");
+      viewDetail.classList.add("active");
+      document.querySelectorAll("#ci-detail-tabs button").forEach((b) => {
+        b.classList.toggle("active", b.dataset.tab === tab);
+      });
+    }
+    function openCheckin() {
+      showMain();
+      mask.classList.add("open");
+      mask.setAttribute("aria-hidden", "false");
+    }
+    function closeCheckin() {
+      mask.classList.remove("open");
+      mask.setAttribute("aria-hidden", "true");
+      showMain();
+    }
+
+    document.getElementById("btn-checkin").addEventListener("click", openCheckin);
+    document.querySelectorAll("[data-open-checkin]").forEach((btn) => {
+      btn.addEventListener("click", openCheckin);
+    });
+    document.getElementById("ci-close").addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeCheckin();
+    });
+    document.getElementById("ci-open-detail").addEventListener("click", () => showDetail("points"));
+    document.getElementById("ci-detail-back").addEventListener("click", showMain);
+    document.getElementById("ci-detail-tabs").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-tab]");
+      if (!btn) return;
+      showDetail(btn.dataset.tab);
+    });
+    document.getElementById("ci-task-tabs").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-tab]");
+      if (!btn) return;
+      document.querySelectorAll("#ci-task-tabs button").forEach((b) => b.classList.toggle("active", b === btn));
+      renderTasks(btn.dataset.tab);
+    });
+    taskList.addEventListener("click", (e) => {
+      const act = e.target.closest(".act");
+      if (!act) return;
+      showToast(`去完成「${act.dataset.task}」（占位）`);
+    });
+    document.getElementById("ci-lv-rule").addEventListener("click", () => showToast("等级规则（占位）"));
+    document.getElementById("ci-redeem").addEventListener("click", () => showToast("积分兑换（占位）"));
+    // 预览类弹窗：点遮罩关闭；点弹窗内容不关
+    mask.addEventListener("click", (e) => {
+      if (e.target === mask) closeCheckin();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && mask.classList.contains("open")) closeCheckin();
+    });
+  })();
+
+  // 排行榜弹窗：点内容进文章详情
+  (function initRankModal() {
+    const mask = document.getElementById("rank-mask");
+    const list = document.getElementById("rk-list");
+    const chips = document.getElementById("rk-chips");
+    const histBar = document.getElementById("rk-hist-bar");
+    const rankItems = [
+      { id: 1, rank: 1, views: "10006.9万浏览", title: "首页条目标题占位 A · 热门合集第二十八弹", comments: "3.2千评论", author: "瓜弟", date: "2026年11月18日" },
+      { id: 2, rank: 2, views: "1.4千万浏览", title: "首页条目标题占位 B · 专题报道长标题两行演示", comments: "5评论", author: "瓜田", date: "2026年11月17日" },
+      { id: 3, rank: 3, views: "860.2万浏览", title: "首页条目标题占位 C · 校园相关内容摘要", comments: "128评论", author: "瓜仔", date: "2026年11月16日" },
+      { id: 4, rank: 4, views: "420.5万浏览", title: "首页条目标题占位 D · 赛事吃瓜回顾", comments: "66评论", author: "瓜嫂", date: "2026年11月15日" },
+      { id: 5, rank: 5, views: "288.0万浏览", title: "首页条目标题占位 E · AI 短剧推荐位", comments: "41评论", author: "51cg", date: "2026年11月14日" },
+      { id: 6, rank: 6, views: "96.3万浏览", title: "首页条目标题占位 F · 运营活动说明卡", comments: "12评论", author: "运营号", date: "2026年11月13日" }
+    ];
+
+    function rankBadge(n) {
+      if (n === 1) return `<span class="rk-rank t1">TOP1</span>`;
+      if (n === 2) return `<span class="rk-rank t2">TOP2</span>`;
+      if (n === 3) return `<span class="rk-rank t3">TOP3</span>`;
+      return "";
+    }
+
+    function renderRankList(filterLabel) {
+      const suffix = filterLabel ? ` · ${filterLabel}` : "";
+      list.innerHTML = rankItems.map((it) => `
+        <button type="button" class="rk-card" data-id="${it.id}">
+          <div class="rk-thumb">
+            ${rankBadge(it.rank)}
+            <div class="ph-block">51</div>
+          </div>
+          <div class="rk-body">
+            <div class="rk-views">${it.views}${suffix}</div>
+            <div class="rk-title">${it.title}</div>
+            <div class="rk-meta"><span>${it.comments}</span><span>${it.author}</span><span>${it.date}</span></div>
+          </div>
+        </button>`).join("");
+    }
+
+    function setMainTab(tab) {
+      document.querySelectorAll("#rk-main-tabs button").forEach((b) => {
+        b.classList.toggle("active", b.dataset.tab === tab);
+      });
+      const isHist = tab === "history";
+      chips.classList.toggle("hide", isHist);
+      histBar.classList.toggle("show", isHist);
+      renderRankList(isHist ? "历史" : (chips.querySelector(".active")?.dataset.chip || "热榜"));
+    }
+
+    function openRank() {
+      setMainTab("board");
+      mask.classList.add("open");
+      mask.setAttribute("aria-hidden", "false");
+    }
+    function closeRank() {
+      mask.classList.remove("open");
+      mask.setAttribute("aria-hidden", "true");
+    }
+
+    document.getElementById("btn-rank").addEventListener("click", openRank);
+    document.getElementById("rk-close").addEventListener("click", closeRank);
+    document.getElementById("rk-main-tabs").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-tab]");
+      if (!btn) return;
+      setMainTab(btn.dataset.tab);
+    });
+    chips.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-chip]");
+      if (!btn) return;
+      chips.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b === btn));
+      renderRankList(btn.dataset.chip);
+    });
+    document.getElementById("rk-search-btn").addEventListener("click", () => {
+      const q = document.getElementById("rk-search").value.trim();
+      showToast(q ? `搜索「${q}」（占位）` : "请输入关键词");
+    });
+    document.getElementById("rk-date").addEventListener("click", () => showToast("选择日期（占位）"));
+    list.addEventListener("click", (e) => {
+      const card = e.target.closest(".rk-card");
+      if (!card) return;
+      closeRank();
+      openArticleDetail(card.dataset.id);
+    });
+    mask.addEventListener("click", (e) => {
+      if (e.target === mask) closeRank();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && mask.classList.contains("open")) closeRank();
+    });
+    renderRankList("热榜");
+  })();
+
+  // AI科技弹窗（入口卡片略小于参考图）
+  (function initAiTechModal() {
+    const mask = document.getElementById("ai-mask");
+    const grid = document.getElementById("ai-grid");
+    const tools = [
+      { id: "face", name: "ai图片/视频换脸", tip: "换脸" },
+      { id: "undress", name: "ai脱衣", tip: "脱衣" },
+      { id: "i2v", name: "图生视频", tip: "图生视频" },
+      { id: "draw", name: "ai绘画", tip: "绘画" },
+      { id: "novel", name: "小说创作", tip: "小说" }
+    ];
+    grid.innerHTML = tools.map((t) => `
+      <button type="button" class="ai-card" data-ai="${t.id}">
+        <div class="ph-block">${t.tip}</div>
+        <span class="lab">${t.name}</span>
+      </button>`).join("");
+
+    function openAi() {
+      mask.classList.add("open");
+      mask.setAttribute("aria-hidden", "false");
+    }
+    function closeAi() {
+      mask.classList.remove("open");
+      mask.setAttribute("aria-hidden", "true");
+    }
+
+    document.getElementById("btn-ai-tech").addEventListener("click", openAi);
+    document.getElementById("ai-close").addEventListener("click", closeAi);
+    grid.addEventListener("click", (e) => {
+      const card = e.target.closest(".ai-card");
+      if (!card) return;
+      const name = tools.find((t) => t.id === card.dataset.ai)?.name || "AI能力";
+      showToast(`打开「${name}」（占位）`);
+    });
+    mask.addEventListener("click", (e) => {
+      if (e.target === mask) closeAi();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && mask.classList.contains("open")) closeAi();
+    });
+  })();
+
+  function personCardHTML(i, opts) {
+    const id = opts && opts.id != null ? opts.id : i;
+    const pop = 300 + i * 220;
+    const price = 600 + i * 50;
+    const area = ["上海全区", "广州各区", "贵阳市", "成都市", "杭州市"][(i - 1) % 5];
+    return `<article class="card person" data-pid="${id}">
+      <div class="card-cover" style="aspect-ratio:3/4">
+        <span class="badge" style="left:8px;right:auto">人气 ${pop}</span>
+        <span class="badge" style="right:8px;left:auto;background:#2f9e63">会所</span>
+        <div class="ph-block" style="width:100%;height:100%">人像竖卡 ${i}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${area} · 人气推荐 ${i}</div>
+        <div class="price">${price}元 / 小时</div>
+      </div>
+    </article>`;
+  }
+
   const storeScroll = document.getElementById("dating-stores");
   storeScroll.innerHTML = Array.from({ length: 8 }, (_, idx) => {
     const i = idx + 1;
-    return `<article class="store-card">
+    return `<article class="store-card" data-sid="${i}">
       <div class="ph-block">店铺横卡 Banner ${i}</div>
       <div class="store-body">
         <div class="card-title">店铺推荐标题占位 ${i}</div>
@@ -3225,32 +6527,206 @@
     let startX = 0;
     let startLeft = 0;
     let dragging = false;
+    let moved = false;
     scroller.addEventListener("pointerdown", (e) => {
       if (e.pointerType === "mouse" && e.button !== 0) return;
       dragging = true;
+      moved = false;
       startX = e.clientX;
       startLeft = scroller.scrollLeft;
       scroller.setPointerCapture(e.pointerId);
     });
     scroller.addEventListener("pointermove", (e) => {
       if (!dragging) return;
-      scroller.scrollLeft = startLeft - (e.clientX - startX);
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) > 4) moved = true;
+      scroller.scrollLeft = startLeft - dx;
     });
-    scroller.addEventListener("pointerup", () => { dragging = false; });
+    scroller.addEventListener("pointerup", (e) => {
+      dragging = false;
+      if (moved) return;
+      const card = e.target.closest(".store-card");
+      if (card) {
+        datingReturnPage = "page-dating";
+        openStoreDetail(card.dataset.sid);
+      }
+    });
     scroller.addEventListener("pointercancel", () => { dragging = false; });
   })();
 
-  document.getElementById("dating-people").innerHTML = Array.from({ length: 8 }, (_, i) => `
-    <article class="card person">
-      <div class="card-cover" style="aspect-ratio:3/4">
-        <span class="badge" style="left:8px;right:auto">人气 ${300 + i * 220}</span>
-        <div class="ph-block" style="width:100%;height:100%">人像竖卡 ${i + 1}</div>
+  document.getElementById("dating-people").innerHTML =
+    Array.from({ length: 8 }, (_, i) => personCardHTML(i + 1)).join("");
+  document.getElementById("dating-people").addEventListener("click", (e) => {
+    const card = e.target.closest(".person");
+    if (!card) return;
+    datingReturnPage = "page-dating";
+    openDatingPost(card.dataset.pid);
+  });
+
+  const datingListTabs = new Set(["外围", "楼凤", "会所"]);
+  const datingTags = ["上门", "有房", "可约", "认证"];
+  function datingOverlayCard(i, asButton) {
+    const pop = 12000 + i * 1370;
+    const price = 600 + (i % 7) * 80;
+    const tag = datingTags[i % datingTags.length];
+    const name = ["莉姐", "小雅", "晴晴", "婉婉", "美美", "可可"][i % 6] + (i > 6 ? i : "");
+    const tagName = document.querySelector("#dating-tabs .ch.active")?.textContent.trim() || "外围";
+    const inner = `
+      <div class="ph-block" aria-hidden="true">${tagName}竖卡 ${i}</div>
+      <span class="hot">🔥 人气: ${pop}</span>
+      <span class="tag">${tag}</span>
+      <div class="cap"><div class="nm">${name}</div><div class="pr">最低消费 ${price}元/一次</div></div>`;
+    if (asButton) {
+      return `<button type="button" class="dating-vcard" data-pid="${100 + i}">${inner}</button>`;
+    }
+    return `<button type="button" class="dating-list-card" data-pid="${200 + i}">${inner}</button>`;
+  }
+  function fillDatingListPanel() {
+    document.getElementById("dating-vscroll").innerHTML =
+      Array.from({ length: 8 }, (_, i) => datingOverlayCard(i + 1, true)).join("");
+    document.getElementById("dating-list-grid").innerHTML =
+      Array.from({ length: 12 }, (_, i) => datingOverlayCard(i + 1, false)).join("");
+  }
+  fillDatingListPanel();
+
+  const byTitles = [
+    "大表姐🇨🇳 真正老招牌 包养资源",
+    "红姐全国及【海处】高端包养",
+    "蜜桃⭐ 北京⭐ 全新包养资源",
+    "小姨✨ 可长伴 可短约",
+    "婉婉 · 高端定制包养",
+    "晴晴全国可飞 颜值在线",
+    "美美本地可约 包夜优先",
+    "可可 · 学生兼职包养",
+    "莉姐老牌口碑 回头客多"
+  ];
+  function baoyangCardHTML(i) {
+    const city = ["北京市", "上海市", "广州市", "深圳市", "杭州市", "成都市"][i % 6];
+    const age = 19 + (i % 8);
+    const height = 160 + (i % 16);
+    const cup = ["B罩杯", "C罩杯", "D罩杯", "E罩杯"][i % 4];
+    const unit = ["次", "天", "月"][i % 3];
+    const price = unit === "月" ? 20000 + i * 1500 : 3000 + i * 666;
+    return `<button type="button" class="by-card" data-pid="${300 + i}">
+      <div class="thumb"><div class="ph-block">包养 ${i}</div></div>
+      <div class="info">
+        <div class="tit">${byTitles[(i - 1) % byTitles.length]}</div>
+        <div class="row"><span class="k">城市</span><span class="v">${city}</span></div>
+        <div class="row"><span class="k">年龄</span><span class="v">${age}</span></div>
+        <div class="row"><span class="k">身高</span><span class="v">${height}</span></div>
+        <div class="row"><span class="k">胸围</span><span class="v">${cup}</span></div>
+        <div class="price">最低消费 <em>${price}/${unit}</em></div>
       </div>
-      <div class="card-body">
-        <div class="card-title">同城人气标题占位 ${i + 1}</div>
-        <div class="price">${600 + i * 50}元 / 次（占位）</div>
-      </div>
-    </article>`).join("");
+    </button>`;
+  }
+  function fillBaoyangPanel() {
+    document.getElementById("dating-baoyang-grid").innerHTML =
+      Array.from({ length: 9 }, (_, i) => baoyangCardHTML(i + 1)).join("");
+  }
+  fillBaoyangPanel();
+
+  function switchDatingTab(ch) {
+    const name = ch.textContent.trim();
+    const mode = ch.dataset.datingMode || (datingListTabs.has(name) ? "list" : "reco");
+    const panelReco = document.getElementById("dating-panel-reco");
+    const panelList = document.getElementById("dating-panel-list");
+    const panelBy = document.getElementById("dating-panel-baoyang");
+    const vscroll = document.getElementById("dating-vscroll");
+    const isList = mode === "list" || mode === "list-plain";
+    const isBaoyang = mode === "baoyang" || name === "包养";
+    const showHero = mode === "list";
+    panelReco.hidden = isList || isBaoyang;
+    panelList.hidden = !isList;
+    panelBy.hidden = !isBaoyang;
+    vscroll.hidden = !showHero;
+    if (isList) fillDatingListPanel();
+    if (isBaoyang) fillBaoyangPanel();
+  }
+
+  document.getElementById("dating-vscroll").addEventListener("click", (e) => {
+    const card = e.target.closest("[data-pid]");
+    if (!card) return;
+    datingReturnPage = "page-dating";
+    openDatingPost(card.dataset.pid);
+  });
+  document.getElementById("dating-list-grid").addEventListener("click", (e) => {
+    const card = e.target.closest("[data-pid]");
+    if (!card) return;
+    datingReturnPage = "page-dating";
+    openDatingPost(card.dataset.pid);
+  });
+  document.getElementById("dating-baoyang-grid").addEventListener("click", (e) => {
+    const card = e.target.closest("[data-pid]");
+    if (!card) return;
+    datingReturnPage = "page-dating";
+    openDatingPost(card.dataset.pid);
+  });
+
+  (function initDatingFilterModal() {
+    const mask = document.getElementById("dating-filter-mask");
+    const services = ["不限", "69", "cosplay", "jk", "SM", "三通", "丝袜", "乳交", "冰火", "制服诱惑", "口交", "口爆", "口爱", "多P", "情趣内衣", "指滑", "毒龙", "水磨"];
+    const svcBox = document.getElementById("df-service-tags");
+    svcBox.innerHTML = services.map((s, i) =>
+      `<button type="button" class="${i === 0 ? "on" : ""}" data-v="${s}">${s}</button>`
+    ).join("");
+
+    function openDf() {
+      mask.classList.add("open");
+      mask.setAttribute("aria-hidden", "false");
+    }
+    function closeDf() {
+      mask.classList.remove("open");
+      mask.setAttribute("aria-hidden", "true");
+    }
+    function resetDf() {
+      mask.querySelectorAll(".df-sec").forEach((sec) => {
+        const btns = [...sec.querySelectorAll(".df-tags button")];
+        btns.forEach((b) => b.classList.remove("on"));
+        const unlimited = btns.find((b) => b.dataset.v === "不限") || btns[0];
+        if (unlimited) unlimited.classList.add("on");
+      });
+    }
+
+    document.querySelectorAll("[data-dating-filter]").forEach((btn) => {
+      btn.addEventListener("click", openDf);
+    });
+    document.getElementById("df-close").addEventListener("click", closeDf);
+    document.getElementById("df-reset").addEventListener("click", () => {
+      resetDf();
+      showToast("已重置筛选");
+    });
+    document.getElementById("df-ok").addEventListener("click", () => {
+      closeDf();
+      showToast("已应用筛选（占位）");
+    });
+    mask.addEventListener("click", (e) => {
+      if (e.target === mask) return; /* 编辑类：点遮罩不关 */
+    });
+    mask.querySelectorAll(".df-sec").forEach((sec) => {
+      sec.addEventListener("click", (e) => {
+        const btn = e.target.closest(".df-tags button");
+        if (!btn) return;
+        const multi = sec.dataset.multi === "1";
+        const btns = [...sec.querySelectorAll(".df-tags button")];
+        if (btn.dataset.v === "不限") {
+          btns.forEach((b) => b.classList.remove("on"));
+          btn.classList.add("on");
+          return;
+        }
+        const unlimited = btns.find((b) => b.dataset.v === "不限");
+        if (unlimited) unlimited.classList.remove("on");
+        if (multi) {
+          btn.classList.toggle("on");
+          if (!btns.some((b) => b.classList.contains("on") && b.dataset.v !== "不限")) {
+            if (unlimited) unlimited.classList.add("on");
+          }
+        } else {
+          btns.forEach((b) => b.classList.remove("on"));
+          btn.classList.add("on");
+        }
+      });
+    });
+  })();
 
   // mine tools
   const tools = [
@@ -3280,6 +6756,44 @@
   document.getElementById("hot-list").innerHTML = hots.map((t, i) => `
     <li><span class="n">${i + 1}</span><span>${t}</span></li>`).join("");
 
+  const railAuthors = [
+    { name: "寂寞少妇每日更新", fans: 29204, arts: 1764 },
+    { name: "不吃香菜", fans: 18820, arts: 902 },
+    { name: "吃瓜研究所", fans: 15660, arts: 640 },
+    { name: "夜色观察员", fans: 12008, arts: 411 },
+    { name: "同城爆料君", fans: 9860, arts: 288 }
+  ];
+  document.getElementById("rail-authors").innerHTML = railAuthors.map((a) => `
+    <li>
+      <div class="av ph-block" aria-hidden="true"></div>
+      <div class="nm">${a.name}</div>
+      <div class="meta">
+        <div class="fans">粉丝${a.fans}</div>
+        <div class="arts">文章${a.arts}篇</div>
+      </div>
+    </li>`).join("");
+
+  const railOfficial = [
+    "51吃瓜社区发帖规范及发帖教程",
+    "原创/二创作者火热招募中!",
+    "51吃瓜全新版本更新公告!"
+  ];
+  document.getElementById("rail-official").innerHTML = railOfficial.map((t) => `
+    <a href="javascript:;">
+      <span class="t">${t}</span>
+      <span class="go">阅读 ›</span>
+    </a>`).join("");
+  document.getElementById("rail-official").addEventListener("click", (e) => {
+    const a = e.target.closest("a");
+    if (!a) return;
+    showToast("官方发布（占位）");
+  });
+  document.getElementById("rail-authors").addEventListener("click", (e) => {
+    const li = e.target.closest("li");
+    if (!li) return;
+    showToast("作者主页（占位）");
+  });
+
   // 更多店铺二级页
   const cities = ["拉萨市", "上海市", "北京市", "广州市", "深圳市", "成都市", "杭州市", "重庆市", "武汉市"];
   const hours = ["10:00-22:00", "12:00-03:00", "14:00-02:00", "11:00-23:00"];
@@ -3287,7 +6801,7 @@
     const city = cities[(i - 1) % cities.length];
     const hour = hours[(i - 1) % hours.length];
     const count = 3 + (i % 12);
-    return `<article class="more-store-card">
+    return `<article class="more-store-card" data-sid="${i}">
       <div class="more-store-hero">
         <div class="ph-block">店铺封面 ${i}</div>
         <span class="hours">${hour}</span>
@@ -3310,20 +6824,21 @@
   document.getElementById("stores-more-grid").innerHTML =
     Array.from({ length: 12 }, (_, i) => moreStoreCardHTML(i + 1)).join("");
 
-  function openStoresMore() {
-    document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
-    document.getElementById("page-stores-more").classList.add("active");
+  function markDatingNav() {
     document.querySelectorAll(".nav-item").forEach((b) => {
       b.classList.toggle("active", b.dataset.page === "dating");
     });
+  }
+  function openStoresMore() {
+    document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+    document.getElementById("page-stores-more").classList.add("active");
+    markDatingNav();
     document.querySelector(".main-scroll").scrollTop = 0;
   }
   function closeStoresMore() {
     document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
     document.getElementById("page-dating").classList.add("active");
-    document.querySelectorAll(".nav-item").forEach((b) => {
-      b.classList.toggle("active", b.dataset.page === "dating");
-    });
+    markDatingNav();
     document.querySelector(".main-scroll").scrollTop = 0;
   }
   document.getElementById("stores-more-back").addEventListener("click", closeStoresMore);
@@ -3340,6 +6855,186 @@
     st.classList.add("active");
     showToast(`已切换「${st.dataset.sort}」（列表刷新占位）`);
   });
+  document.getElementById("stores-more-grid").addEventListener("click", (e) => {
+    const card = e.target.closest(".more-store-card");
+    if (!card) return;
+    datingReturnPage = "page-stores-more";
+    openStoreDetail(card.dataset.sid);
+  });
+
+  function openDatingPost(id) {
+    const n = Number(id) || 1;
+    const areas = ["贵阳市", "上海市", "广州市", "成都市", "杭州市"];
+    const tags = ["楼凤", "外围", "会所", "包养"];
+    document.getElementById("dp-media-cover").textContent = `约炮帖封面 ${n}`;
+    document.getElementById("dp-tag").textContent = tags[(n - 1) % tags.length];
+    document.getElementById("dp-pager").textContent = `1/4`;
+    document.getElementById("dp-name").textContent = `同城人气用户 ${n}`;
+    document.getElementById("dp-price").textContent = `${600 + n * 50}元/一次`;
+    document.getElementById("dp-loc").textContent = `地点 · ${areas[(n - 1) % areas.length]}`;
+    document.getElementById("dp-desc").textContent =
+      `好评如潮，有房间，可外出，见面后再付款。服务态度好，环境干净卫生。（帖子 ${n} 文案占位）`;
+    document.getElementById("dp-specs").textContent = `${22 + (n % 8)}岁 / ${160 + (n % 12)}cm / ${"ABCDEF"[n % 6]}罩杯`;
+    document.getElementById("dp-attrs").innerHTML = `
+      <div class="row"><span class="k">城市</span><span class="v">${areas[(n - 1) % areas.length]}</span></div>
+      <div class="row"><span class="k">身高</span><span class="v">${160 + (n % 12)}cm</span></div>
+      <div class="row"><span class="k">体重</span><span class="v">—</span></div>`;
+    document.getElementById("dp-rec-grid").innerHTML =
+      Array.from({ length: 8 }, (_, i) => personCardHTML(i + 1, { id: 100 + i + 1 })).join("");
+    document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+    document.getElementById("page-dating-post").classList.add("active");
+    markDatingNav();
+    document.querySelector(".main-scroll").scrollTop = 0;
+  }
+  function closeDatingPost() {
+    document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+    if (datingReturnPage === "page-store-detail") {
+      document.getElementById("page-store-detail").classList.add("active");
+    } else if (datingReturnPage === "page-dating-post") {
+      document.getElementById("page-dating").classList.add("active");
+      datingReturnPage = "page-dating";
+    } else {
+      document.getElementById("page-dating").classList.add("active");
+      datingReturnPage = "page-dating";
+    }
+    markDatingNav();
+    document.querySelector(".main-scroll").scrollTop = 0;
+  }
+  document.getElementById("dating-post-back").addEventListener("click", closeDatingPost);
+  document.getElementById("dp-rec-grid").addEventListener("click", (e) => {
+    const card = e.target.closest(".person");
+    if (!card) return;
+    datingReturnPage = "page-dating-post";
+    openDatingPost(card.dataset.pid);
+  });
+  document.getElementById("dp-tabs").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-tab]");
+    if (!btn) return;
+    document.querySelectorAll("#dp-tabs button").forEach((b) => b.classList.toggle("active", b === btn));
+    if (btn.dataset.tab === "reviews") {
+      document.getElementById("dp-attrs").innerHTML =
+        `<div class="row"><span class="v">暂无评价，成为第一个留言的人吧。（占位）</span></div>`;
+    } else {
+      const loc = document.getElementById("dp-loc").textContent.replace("地点 · ", "");
+      document.getElementById("dp-attrs").innerHTML = `
+        <div class="row"><span class="k">城市</span><span class="v">${loc}</span></div>
+        <div class="row"><span class="k">身高</span><span class="v">168cm</span></div>
+        <div class="row"><span class="k">体重</span><span class="v">—</span></div>`;
+    }
+  });
+  document.querySelector("#page-dating-post .dp-lock").addEventListener("click", (e) => {
+    const go = e.target.closest("[data-unlock]");
+    if (!go) return;
+    showToast(go.dataset.unlock === "addr" ? "解锁详细地址（占位）" : "解锁联系方式（占位）");
+  });
+  document.getElementById("dp-shop").addEventListener("click", () => {
+    datingReturnPage = "page-dating-post";
+    openStoreDetail(1);
+  });
+  document.getElementById("dp-fav").addEventListener("click", () => showToast("已收藏（占位）"));
+  document.getElementById("dp-pay").addEventListener("click", () => showToast("支付定金 100 金币（占位）"));
+
+  const sdSvcTags = ["乳交", "舌吻", "丝袜", "制服", "口交", "SM", "指滑", "冰火"];
+  function sdPersonCardHTML(i) {
+    const pop = 80 + i * 17;
+    const price = 600 + (i % 9) * 50;
+    const title = ["湛江🎀 私密会所佳丽", "深圳·气质空姐风", "广州本地可约", "杭州高颜值兼职", "成都温柔学姐", "上海高端定制"][i % 6];
+    const tags = [sdSvcTags[i % sdSvcTags.length], sdSvcTags[(i + 3) % sdSvcTags.length]];
+    return `<button type="button" class="sd-card" data-pid="${200 + i}">
+      <div class="cover">
+        <div class="ph-block">店员 ${i}</div>
+        <span class="hot">人气:${pop}</span>
+        <span class="badge">会所</span>
+      </div>
+      <div class="body">
+        <div class="tit">${title} ${i}</div>
+        <div class="price">${price}元/一次</div>
+        <div class="tags">${tags.map((t) => `<span>${t}</span>`).join("")}</div>
+      </div>
+    </button>`;
+  }
+  function fillStoreDetailGrid() {
+    document.getElementById("sd-people-grid").innerHTML =
+      Array.from({ length: 12 }, (_, i) => sdPersonCardHTML(i + 1)).join("");
+  }
+  function openStoreDetail(id) {
+    const n = Number(id) || 1;
+    const city = cities[(n - 1) % cities.length];
+    const hour = hours[(n - 1) % hours.length];
+    const count = 700 + n * 113;
+    const name = n === 1 ? "爱情乐园" : `测试店铺${n}`;
+    document.getElementById("store-detail-title").textContent = name;
+    document.getElementById("sd-hero-cover").textContent = `${name} · Banner`;
+    document.getElementById("sd-name").textContent = name;
+    document.getElementById("sd-desc").textContent =
+      `十年诚信老店，资源优质，服务好；一次解锁终身抵扣。覆盖${city}及周边。（店铺 ${n} 文案占位）`;
+    document.getElementById("sd-loc").textContent = `${city} · 全国一二三四五线城市`;
+    document.getElementById("sd-cnt").textContent = `店内女郎：${count} 位`;
+    document.getElementById("sd-hours").textContent = `营业：${hour}`;
+    fillStoreDetailGrid();
+    document.getElementById("sd-cat-menu").classList.remove("open");
+    document.getElementById("sd-cat-menu").hidden = true;
+    document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+    document.getElementById("page-store-detail").classList.add("active");
+    markDatingNav();
+    document.querySelector(".main-scroll").scrollTop = 0;
+  }
+  function closeStoreDetail() {
+    document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+    if (datingReturnPage === "page-stores-more") {
+      document.getElementById("page-stores-more").classList.add("active");
+    } else if (datingReturnPage === "page-dating-post") {
+      document.getElementById("page-dating-post").classList.add("active");
+    } else {
+      document.getElementById("page-dating").classList.add("active");
+      datingReturnPage = "page-dating";
+    }
+    markDatingNav();
+    document.querySelector(".main-scroll").scrollTop = 0;
+  }
+  document.getElementById("store-detail-back").addEventListener("click", closeStoreDetail);
+  document.getElementById("sd-people-grid").addEventListener("click", (e) => {
+    const card = e.target.closest(".sd-card");
+    if (!card) return;
+    datingReturnPage = "page-store-detail";
+    openDatingPost(card.dataset.pid);
+  });
+  document.getElementById("sd-toolbar").addEventListener("click", (e) => {
+    const menu = document.getElementById("sd-cat-menu");
+    const st = e.target.closest(".st");
+    if (st) {
+      st.parentElement.querySelectorAll(".st").forEach((x) => x.classList.remove("active"));
+      st.classList.add("active");
+      menu.classList.remove("open");
+      menu.hidden = true;
+      showToast(`已切换「${st.dataset.sort}」（列表刷新占位）`);
+      fillStoreDetailGrid();
+      return;
+    }
+    const catItem = e.target.closest("#sd-cat-menu button[data-cat]");
+    if (catItem) {
+      menu.querySelectorAll("button[data-cat]").forEach((b) => b.classList.toggle("on", b === catItem));
+      document.getElementById("sd-cat").textContent = `${catItem.dataset.cat} ▾`;
+      menu.classList.remove("open");
+      menu.hidden = true;
+      showToast(`分类「${catItem.dataset.cat}」（占位）`);
+      fillStoreDetailGrid();
+      return;
+    }
+    if (e.target.closest("#sd-cat")) {
+      const open = !menu.classList.contains("open");
+      menu.hidden = !open;
+      menu.classList.toggle("open", open);
+      return;
+    }
+  });
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("#sd-toolbar")) return;
+    const menu = document.getElementById("sd-cat-menu");
+    if (!menu || menu.hidden) return;
+    menu.classList.remove("open");
+    menu.hidden = true;
+  });
 
   // page switching
   const pages = {
@@ -3347,15 +7042,18 @@
     video: "page-video",
     community: "page-community",
     welfare: "page-welfare",
-    dating: "page-dating",
-    mine: "page-mine",
-    discuss: "page-discuss"
+    dating: "page-dating"
   };
   document.querySelectorAll(".nav-item").forEach((btn) => {
     btn.addEventListener("click", () => {
+      if (btn.dataset.page === "mine") {
+        showToast("我的（请使用 APP 查看）");
+        return;
+      }
       document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       const id = pages[btn.dataset.page];
+      if (!id) return;
       document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
       document.getElementById(id).classList.add("active");
       document.querySelector(".main-scroll").scrollTop = 0;
