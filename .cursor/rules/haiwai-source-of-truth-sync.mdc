@@ -58,6 +58,13 @@ alwaysApply: true
 | `海外项目/51视频/product-purchase-limit-prerequisite-prd.html` | `51VIDEO/product-purchase-limit-prerequisite-prd.html` |
 | `海外项目/51视频/prd-screens/*` | `51VIDEO/prd-screens/`（同名文件覆盖） |
 
+## 51吃瓜 · 桌面壳 Demo / PRD
+
+| 编辑源（只改这里） | 同步目标 |
+| --- | --- |
+| `海外项目/51吃瓜/客户端/desktop-pwa-shell-demo.html` | `51chiguadesk/desktop-pwa-shell-demo.html` |
+| `海外项目/51吃瓜/客户端/desktop-pwa-shell-prd.html` | `51chiguadesk/desktop-pwa-shell-prd.html` |
+
 ## 产品分享 / PPT
 
 | 编辑源（只改这里） | 同步目标 |
