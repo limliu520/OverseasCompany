@@ -3791,28 +3791,28 @@
     min-height: 0;
     overflow: hidden;
   }
-  .vd-mode { display: none; height: 100%; min-height: 0; }
+  .vd-mode { display: none; min-height: 0; }
   .vd-mode.active { display: flex; }
-
-  /* B 站式：左播放器；右栏简介/评论。简介下广告+推荐；评论下输入框+列表 */
-  .vd-bili {
-    flex-direction: row;
-    gap: 16px;
+  #vd-mode-bili.active {
+    position: relative;
+    height: auto;
+    max-height: 100%;
+    display: block;
   }
+
+  /* B 站式：顶栏返回+标题；左 16:9 圆角播放器；右栏与播放器等高；框内画面自适应 */
   .vd-bili-main {
-    flex: 1;
+    width: calc(100% - min(380px, 36%) - 16px);
     min-width: 0;
     display: flex;
     flex-direction: column;
-    min-height: 0;
   }
-  /* 播放器框贴满左侧可用高度（与主区窗口等高）；框内画面等比自适应 */
   .vd-bili-player {
     border-radius: var(--radius);
     overflow: hidden;
+    aspect-ratio: 16 / 9;
     position: relative;
-    flex: 1;
-    min-height: 0;
+    flex-shrink: 0;
     width: 100%;
     background: #111;
     display: flex;
@@ -3954,12 +3954,14 @@
   }
   .vd-bili-bar .spacer { flex: 1; min-width: 8px; }
   .vd-bili-side {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
     width: min(380px, 36%);
-    flex: 0 0 min(380px, 36%);
     min-width: 280px;
     display: flex;
     flex-direction: column;
-    min-height: 0;
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: var(--radius);
