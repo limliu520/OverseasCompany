@@ -1626,8 +1626,12 @@
     height: 100%;
     font-size: 13px;
   }
-  /* 视频 / 社区：与列表等宽扁 Banner，可左右滑动（共用） */
-  #page-video .banner,
+  /* 视频列表广告：与首页同款 peek（中间主位 + 两侧露出） */
+  #page-video .video-peek {
+    max-width: none;
+    margin: 0 0 16px;
+  }
+  /* 社区：与列表等宽扁 Banner，可左右滑动 */
   #page-community .banner {
     max-width: none;
     margin: 0 0 16px;
@@ -1891,21 +1895,10 @@
     line-height: 1;
     opacity: 0.9;
   }
-  .web-card-stats .share {
-    pointer-events: auto;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.18);
-    color: #fff;
-    display: grid;
-    place-items: center;
-    font-size: 13px;
-    border: 1px solid rgba(255,255,255,0.28);
+  .web-card-stats .share-ico {
+    pointer-events: none;
+    opacity: 0.9;
     flex-shrink: 0;
-  }
-  .web-card-stats .share:hover {
-    background: rgba(255,255,255,0.28);
   }
   .web-card .badge {
     position: absolute;
@@ -3813,17 +3806,27 @@
     flex-direction: column;
     min-height: 0;
   }
+  /* 播放器框贴满左侧可用高度（与主区窗口等高）；框内画面等比自适应 */
   .vd-bili-player {
     border-radius: var(--radius);
     overflow: hidden;
-    aspect-ratio: 16 / 9;
     position: relative;
-    flex-shrink: 0;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
     background: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .vd-bili-player .ph-block {
+  .vd-bili-player .ph-block,
+  .vd-bili-player video,
+  .vd-bili-player img {
     width: 100%;
     height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
     font-size: 16px;
   }
   .vd-bili-player .play-fab {
@@ -4902,8 +4905,8 @@
         <button class="nav-item" data-page="welfare" title="福利">
           <div class="nav-ico">🎁</div><span>福利</span>
         </button>
-        <button class="nav-item" data-page="dating" title="包养">
-          <div class="nav-ico">❀</div><span>包养</span>
+        <button class="nav-item" data-page="dating" title="约炮">
+          <div class="nav-ico">❀</div><span>约炮</span>
         </button>
         <button class="nav-item" data-page="mine" title="我的">
           <div class="nav-ico">☺</div><span>我的</span>
@@ -4930,7 +4933,6 @@
               </div>
               <button type="button" class="icon-btn" id="btn-checkin" title="签到">签</button>
               <button type="button" class="icon-btn" id="btn-rank" title="榜单">榜</button>
-              <button type="button" class="icon-btn" id="btn-history" title="历史">史</button>
             </div>
 
             <div class="channels-wrap" id="home-channels-wrap">
@@ -5056,24 +5058,18 @@
               <button class="ch">原创精选</button>
               <button class="ch-more">▦</button>
             </div>
-            <div class="banner">
-              <div class="page-banner" id="video-banner">
-                <button type="button" class="page-banner-nav page-banner-prev" aria-label="上一张">‹</button>
-                <button type="button" class="page-banner-nav page-banner-next" aria-label="下一张">›</button>
-                <div class="page-banner-viewport">
-                  <div class="page-banner-track" id="video-banner-track">
-                    <div class="page-banner-slide"><div class="ph-block">视频 Banner 1 · 与三列等宽 · 可左右滑</div></div>
-                    <div class="page-banner-slide"><div class="ph-block">视频 Banner 2 · 活动运营位</div></div>
-                    <div class="page-banner-slide"><div class="ph-block">视频 Banner 3 · 会员推荐位</div></div>
-                    <div class="page-banner-slide"><div class="ph-block">视频 Banner 4 · 专题入口位</div></div>
-                  </div>
-                </div>
-                <div class="page-banner-dots" id="video-banner-dots">
-                  <button type="button" class="active" data-dot="0" aria-label="第1帧"></button>
-                  <button type="button" data-dot="1" aria-label="第2帧"></button>
-                  <button type="button" data-dot="2" aria-label="第3帧"></button>
-                  <button type="button" data-dot="3" aria-label="第4帧"></button>
-                </div>
+            <!-- 与首页同款：中间主位 + 两侧露出 -->
+            <div class="home-peek video-peek" id="video-peek" data-type="ad">
+              <div class="home-peek-rail">
+                <div class="home-peek-side" id="video-peek-left"><div class="ph-block" aria-label="广告"></div></div>
+                <div class="home-peek-main" id="video-peek-main"><div class="ph-block" aria-label="广告"></div></div>
+                <div class="home-peek-side" id="video-peek-right"><div class="ph-block" aria-label="广告"></div></div>
+              </div>
+              <div class="home-peek-dots" id="video-peek-dots">
+                <button type="button" class="active" data-dot="0" aria-label="第1张"></button>
+                <button type="button" data-dot="1" aria-label="第2张"></button>
+                <button type="button" data-dot="2" aria-label="第3张"></button>
+                <button type="button" data-dot="3" aria-label="第4张"></button>
               </div>
             </div>
             <div class="filters">
@@ -5670,7 +5666,7 @@
                   </li>
                   <li>
                     <strong>右侧栏</strong>
-                    <div class="sub">首页：联系我们 + 24H热瓜。社区 / 话题二级 / 帖子详情：联系我们 + 人气作者Top5 + 官方发布。视频整页、约炮整页（含店铺详情 / 更多店铺）、福利页、文章详情隐藏右侧栏。</div>
+                    <div class="sub">首页：联系我们 + 24H热瓜。社区 / 话题二级 / 帖子详情：联系我们 + 人气作者Top5 + 官方发布。视频整页、约炮整页（含店铺详情 / 更多店铺）、福利页隐藏右侧栏。文章详情沿用现网（含侧栏），Demo 点入口 Toast「文章详情和现网一致」。</div>
                   </li>
                   <li>
                     <strong>我的</strong>
@@ -5722,10 +5718,10 @@
                   </li>
                   <li>
                     <strong>2. 内容卡片样式</strong>
-                    <div class="sub">整图封面 823×303；底栏标题 + 作者/日期/分类小字；操作区右对齐（浏览 / 评论 / 点赞 + 分享）；列表最大宽 823、最小边距 24，比例固定等比缩放。</div>
+                    <div class="sub">整图封面 823×303；底栏标题 + 作者/日期/分类小字；右下角浏览 / 评论 / 点赞 / 分享图标仅为展示。整卡可点进详情（赞/分享在详情内操作）；Demo 点卡 Toast「文章详情和现网一致」。列表最大宽 823、最小边距 24，比例固定等比缩放。</div>
                   </li>
                   <li>
-                    <strong>3. 榜单、签到、历史</strong>
+                    <strong>3. 榜单、签到</strong>
                     <div class="sub">跳转二级页，与当前 PC 保持一致。Demo 点入口仅 Toast「二级页和当前 PC 保持一致」。</div>
                   </li>
                   <li>
@@ -5743,10 +5739,6 @@
                   <li>
                     <strong>7. 搜索 · 标签与卡片</strong>
                     <div class="sub">热门标签保留；相关卡片样式按统一内容卡规范调整。</div>
-                  </li>
-                  <li>
-                    <strong>8. 历史页</strong>
-                    <div class="sub">与当前 PC 二级页保持一致；Demo 点入口 Toast「二级页和当前 PC 保持一致」。</div>
                   </li>
                 </ol>
               </section>
@@ -6026,7 +6018,7 @@
             <span class="st"><span class="ico" aria-hidden="true">👁</span>${item.views}</span>
             <span class="st"><span class="ico" aria-hidden="true">💬</span>${item.comments}</span>
             <span class="st"><span class="ico" aria-hidden="true">👍</span>${item.likes}</span>
-            <button type="button" class="share" data-share="${item.id}" aria-label="分享">↗</button>
+            <span class="st share-ico" aria-hidden="true">↗</span>
           </div>
         </div>
       </div>
@@ -6061,13 +6053,14 @@
     return (i === 1 || i === 3) ? card + webAdHTML() : card;
   }).join("");
 
-  (function initHomePeek() {
+  function bindPeekBanner(ids, slideCount) {
+    const main = document.getElementById(ids.main);
+    const left = document.getElementById(ids.left);
+    const right = document.getElementById(ids.right);
+    const dots = document.getElementById(ids.dots);
+    if (!main || !left || !right || !dots) return;
     let index = 0;
-    const n = adSlideCount;
-    const main = document.getElementById("home-peek-main");
-    const left = document.getElementById("home-peek-left");
-    const right = document.getElementById("home-peek-right");
-    const dots = document.getElementById("home-peek-dots");
+    const n = slideCount;
     function paint() {
       main.innerHTML = `<div class="ph-block" aria-label="广告"></div>`;
       left.innerHTML = `<div class="ph-block" aria-label="广告"></div>`;
@@ -6085,7 +6078,15 @@
       if (btn) go(Number(btn.dataset.dot));
     });
     paint();
-  })();
+  }
+  bindPeekBanner(
+    { main: "home-peek-main", left: "home-peek-left", right: "home-peek-right", dots: "home-peek-dots" },
+    adSlideCount
+  );
+  bindPeekBanner(
+    { main: "video-peek-main", left: "video-peek-left", right: "video-peek-right", dots: "video-peek-dots" },
+    adSlideCount
+  );
 
   (function initHomeFloat() {
     const box = document.getElementById("home-float");
@@ -6176,23 +6177,8 @@
   let articleDetailReturnPage = "page-home";
 
   function openArticleDetail(id) {
-    const item = homeItems.find((x) => x.id === Number(id)) || homeItems[0];
-    if (!item) return;
-    const activePage = document.querySelector(".page.active");
-    if (activePage && activePage.id !== "page-article-detail") {
-      articleDetailReturnPage = activePage.id;
-    }
-    document.getElementById("article-detail-scroll").innerHTML = articleDetailHTML({
-      ...item,
-      id: Number(id) || item.id
-    });
-    document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
-    document.getElementById("page-article-detail").classList.add("active");
-    document.querySelectorAll(".nav-item").forEach((b) => {
-      b.classList.toggle("active", b.dataset.page === "home");
-    });
-    document.querySelector(".main-scroll").scrollTop = 0;
-    document.getElementById("article-detail-scroll").scrollTop = 0;
+    // 文章详情沿用现网，本期 Demo 不跳转演示页
+    showToast("文章详情和现网一致");
   }
 
   function closeArticleDetail() {
@@ -6208,12 +6194,6 @@
   single.addEventListener("click", (e) => {
     if (e.target.closest(".home-peek")) return;
     if (e.target.closest(".home-ad")) return;
-    const shareBtn = e.target.closest("button.share[data-share]");
-    if (shareBtn) {
-      e.stopPropagation();
-      showToast("分享链接已复制（占位）");
-      return;
-    }
     const card = e.target.closest("article.web-card");
     if (!card) return;
     openArticleDetail(card.dataset.id);
@@ -6503,11 +6483,6 @@
       }
     });
     articleList.addEventListener("click", (e) => {
-      if (e.target.closest("button.share")) {
-        e.stopPropagation();
-        showToast("分享链接已复制（占位）");
-        return;
-      }
       const card = e.target.closest("article.web-card");
       if (!card) return;
       openArticleDetail(card.dataset.id);
@@ -6523,11 +6498,6 @@
     bindSearchPostOpen(postList);
     document.getElementById("tag-detail-back").addEventListener("click", closeTagDetail);
     document.getElementById("tag-article-list").addEventListener("click", (e) => {
-      if (e.target.closest("button.share")) {
-        e.stopPropagation();
-        showToast("分享链接已复制（占位）");
-        return;
-      }
       const card = e.target.closest("article.web-card");
       if (!card) return;
       openArticleDetail(card.dataset.id);
@@ -6758,7 +6728,6 @@
     window.addEventListener("resize", () => paint(false));
     paint(false);
   }
-  initPageBanner("video-banner", "video-banner-track", "video-banner-dots");
   initPageBanner("community-banner", "community-banner-track", "community-banner-dots");
 
   // video grid 3 col · unlock: vip | coin
@@ -7456,12 +7425,11 @@
     showToast._t = setTimeout(() => el.classList.remove("show"), 1800);
   }
 
-  // 签到 / 榜单 / 历史：二级页与当前 PC 一致；Demo 仅 Toast
+  // 签到 / 榜单：二级页与当前 PC 一致；Demo 仅 Toast
   (function initPcSecondaryToasts() {
     const toastPc = () => showToast("二级页和当前 PC 保持一致");
     document.getElementById("btn-checkin").addEventListener("click", toastPc);
     document.getElementById("btn-rank").addEventListener("click", toastPc);
-    document.getElementById("btn-history").addEventListener("click", toastPc);
     document.querySelectorAll("[data-open-checkin]").forEach((btn) => {
       btn.addEventListener("click", toastPc);
     });

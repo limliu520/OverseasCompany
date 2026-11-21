@@ -6,13 +6,33 @@
 <title>51吃瓜 · 桌面端壳 PRD</title>
 <style>
 * { box-sizing: border-box; }
-html, body { margin: 0; min-height: 100%; }
+html, body { margin: 0; height: 100%; }
 body {
   background: #f6f5f3;
   color: #1c1c1f;
   font: 15px/1.65 "PingFang SC", "Noto Sans SC", sans-serif;
+  overflow: hidden;
 }
-.prd-shell {
+.bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 10000; height: 52px;
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 20px; background: #fff; border-bottom: 1px solid #e4e2de;
+}
+.bar .brand { font-size: 13px; color: #5e5e66; margin-right: 8px; }
+.tabs { display: flex; gap: 6px; align-items: center; }
+.tab {
+  border: 1px solid transparent; background: transparent; color: #5e5e66;
+  border-radius: 8px; padding: 6px 14px; font: inherit; cursor: pointer;
+}
+.tab.on { color: #1c1c1f; background: #f6f5f3; border-color: #e4e2de; }
+.pane { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; overflow: auto; z-index: 1; }
+.pane[hidden] { display: none !important; }
+#view-prd { background: #f6f5f3; }
+#view-demo { background: #0f1115; overflow: hidden; }
+#view-demo iframe {
+  display: block; width: 100%; height: 100%; border: 0; background: #0f1115;
+}
+#view-prd .prd-shell {
   display: grid;
   grid-template-columns: 200px minmax(0, 1120px);
   gap: 20px;
@@ -21,17 +41,17 @@ body {
   padding: 20px 20px 64px;
   align-items: start;
 }
-.prd-nav {
+#view-prd .prd-nav {
   position: sticky;
   top: 12px;
-  max-height: calc(100vh - 24px);
+  max-height: calc(100vh - 76px);
   overflow: auto;
   background: #fff;
   border: 1px solid #e4e2de;
   border-radius: 12px;
   padding: 12px 10px;
 }
-.prd-nav .nav-title {
+#view-prd .prd-nav .nav-title {
   font-size: 11px;
   font-weight: 650;
   letter-spacing: 0.04em;
@@ -40,7 +60,7 @@ body {
   padding: 0 6px 8px;
   border-bottom: 1px solid #efe8ef;
 }
-.prd-nav a {
+#view-prd .prd-nav a {
   display: block;
   padding: 7px 8px;
   margin: 2px 0;
@@ -51,28 +71,28 @@ body {
   line-height: 1.35;
   border: 1px solid transparent;
 }
-.prd-nav a:hover { background: #f6f5f3; }
-.prd-nav a.on {
+#view-prd .prd-nav a:hover { background: #f6f5f3; }
+#view-prd .prd-nav a.on {
   background: #fce4ec;
   border-color: #f8bbd0;
   color: #ad1457;
   font-weight: 600;
 }
-.wrap { max-width: 1120px; margin: 0; padding: 8px 0 0; }
-h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
-h2 { font-size: 18px; margin: 28px 0 10px; }
-h3 { font-size: 14px; margin: 18px 0 8px; color: #c2185b; font-weight: 650; }
-h4 { font-size: 13px; margin: 14px 0 6px; color: #3a3a42; font-weight: 650; }
-.meta { color: #5e5e66; font-size: 13px; margin-bottom: 8px; }
-.meta span { margin-right: 14px; }
-p { margin: 0 0 10px; }
-ul, ol { margin: 0 0 10px; padding-left: 18px; }
-li { margin: 5px 0; }
-li > ul, li > ol { margin: 4px 0 6px; }
-table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin: 8px 0 16px; }
-th, td { border: 1px solid #e4e2de; padding: 8px 10px; text-align: left; vertical-align: top; }
-th { background: #f3f0f2; }
-.block {
+#view-prd .wrap { max-width: 1120px; margin: 0; padding: 8px 0 0; }
+#view-prd h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
+#view-prd h2 { font-size: 18px; margin: 28px 0 10px; }
+#view-prd h3 { font-size: 14px; margin: 18px 0 8px; color: #c2185b; font-weight: 650; }
+#view-prd h4 { font-size: 13px; margin: 14px 0 6px; color: #3a3a42; font-weight: 650; }
+#view-prd .meta { color: #5e5e66; font-size: 13px; margin-bottom: 8px; }
+#view-prd .meta span { margin-right: 14px; }
+#view-prd p { margin: 0 0 10px; }
+#view-prd ul, #view-prd ol { margin: 0 0 10px; padding-left: 18px; }
+#view-prd li { margin: 5px 0; }
+#view-prd li > ul, #view-prd li > ol { margin: 4px 0 6px; }
+#view-prd table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin: 8px 0 16px; }
+#view-prd th, #view-prd td { border: 1px solid #e4e2de; padding: 8px 10px; text-align: left; vertical-align: top; }
+#view-prd th { background: #f3f0f2; }
+#view-prd .block {
   background: #fff;
   border: 1px solid #e4e2de;
   border-radius: 12px;
@@ -80,12 +100,12 @@ th { background: #f3f0f2; }
   margin: 16px 0;
   scroll-margin-top: 16px;
 }
-.id { font-size: 12px; color: #c2185b; letter-spacing: 0.04em; }
-.note { color: #5e5e66; font-size: 13px; margin-top: 24px; }
-.check td:last-child { white-space: nowrap; width: 72px; text-align: center; }
+#view-prd .id { font-size: 12px; color: #c2185b; letter-spacing: 0.04em; }
+#view-prd .note { color: #5e5e66; font-size: 13px; margin-top: 24px; }
+#view-prd .check td:last-child { white-space: nowrap; width: 72px; text-align: center; }
 @media (max-width: 1100px) {
-  .prd-shell { grid-template-columns: 1fr; padding: 16px; }
-  .prd-nav {
+  #view-prd .prd-shell { grid-template-columns: 1fr; padding: 16px; }
+  #view-prd .prd-nav {
     position: sticky;
     top: 0;
     z-index: 5;
@@ -95,12 +115,64 @@ th { background: #f3f0f2; }
     gap: 4px;
     padding: 10px;
   }
-  .prd-nav .nav-title { width: 100%; margin-bottom: 4px; padding-bottom: 6px; }
-  .prd-nav a { margin: 0; }
+  #view-prd .prd-nav .nav-title { width: 100%; margin-bottom: 4px; padding-bottom: 6px; }
+  #view-prd .prd-nav a { margin: 0; }
 }
+
+
+#view-prd .pair.block {
+  display: grid;
+  grid-template-columns: minmax(260px, 38%) 1fr;
+  gap: 18px;
+  align-items: start;
+}
+#view-prd .shots { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+#view-prd .shots figure { margin: 0; }
+#view-prd .shots img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  border: 1px solid #e4e2de;
+  background: #111;
+  cursor: zoom-in;
+}
+#view-prd .shots figcaption { color: #5e5e66; font-size: 12px; margin-top: 6px; line-height: 1.45; }
+#view-prd .copy { min-width: 0; }
+#view-prd .copy .id { margin-bottom: 2px; }
+#view-prd .copy h2 { margin-top: 0; }
+.lightbox {
+  position: fixed; inset: 0; z-index: 20000; display: none;
+  align-items: center; justify-content: center; padding: 24px;
+  background: rgba(0,0,0,.82); cursor: zoom-out;
+}
+.lightbox.is-open { display: flex; }
+.lightbox img {
+  max-width: min(96vw, 1400px); max-height: 92vh;
+  width: auto; height: auto; border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.45); cursor: default;
+}
+@media (max-width: 1100px) {
+  #view-prd .pair.block { grid-template-columns: 1fr; }
+}
+
 </style>
 </head>
 <body>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="图片放大">
+  <img alt="" />
+</div>
+
+<div class="bar">
+  <span class="brand">51吃瓜 · 桌面端壳</span>
+  <div class="tabs" id="modeTabs" role="tablist">
+    <button type="button" class="tab on" data-mode="prd" role="tab" aria-selected="true">PRD</button>
+    <button type="button" class="tab" data-mode="demo" role="tab" aria-selected="false">Demo</button>
+  </div>
+</div>
+
+<div class="pane" id="view-prd" role="tabpanel">
 <div class="prd-shell">
   <nav class="prd-nav" id="prd-nav" aria-label="快捷定位">
     <div class="nav-title">目录</div>
@@ -109,7 +181,6 @@ th { background: #f3f0f2; }
     <a href="#fc-sh-01">FC-SH-01 主导航</a>
     <a href="#fc-sh-02">FC-SH-02 右侧栏</a>
     <a href="#fc-hm-01">FC-HM-01 内容卡</a>
-    <a href="#fc-hm-02">FC-HM-02 频道栏</a>
     <a href="#fc-hm-03">FC-HM-03 广告位</a>
     <a href="#fc-hm-04">FC-HM-04 二级入口</a>
     <a href="#fc-sr-01">FC-SR-01 搜索入口</a>
@@ -132,17 +203,17 @@ th { background: #f3f0f2; }
   <div class="wrap">
     <h1>51吃瓜 · 桌面端壳 PRD</h1>
     <p class="meta">
-      <span>版本：1.1（文字稿加厚 · 配图待补）</span>
+      <span>版本：1.3（PRD + Demo 合页 · 已嵌 Demo 截图）</span>
       <span>日期：2026-11-20</span>
       <span>适用端：桌面 Flutter（Win / Mac）</span>
-      <span>对照 Demo：desktop-pwa-shell-demo.html</span>
+      <span>顶栏可切 Demo 可点原型</span>
     </p>
 
     <section id="sec-purpose">
       <h2>版本目的 / 需求背景</h2>
       <p>桌面端以 Flutter 独立交付（Win / Mac 同一套），数据沿用 APP。结构与 APP 对齐，提高信息密度，详情整页沉浸；本版优先交互与 UI 收口，业务接口按现网能力对接。</p>
       <p>本期覆盖壳层导航与右侧栏、首页内容卡与广告位、统一搜索、新增视频 Tab（B 站式详情）、社区推荐 / 发现 / 话题二级 / 发帖与帖子详情、福利双广告与图标、约炮栏目与店铺详情。上传与发布保留原有业务逻辑。广告沿用移动端投放，尺寸与 APP 对齐，宽屏用「一列多个」或「中间主位 + 两侧露出」控制高度。</p>
-      <p>社区子 Tab「订阅」「关注」沿用现网。榜单、签到、历史跳转现网 PC 同款二级页。Feed 站点侧搜索 / 官方页另有独立 PRD，与本壳搜索样式分开跟。</p>
+      <p>社区子 Tab「订阅」「关注」沿用现网。榜单、签到跳转现网 PC 同款二级页。Feed 站点侧搜索 / 官方页另有独立 PRD，与本壳搜索样式分开跟。</p>
     </section>
 
     <section id="sec-matrix">
@@ -152,17 +223,16 @@ th { background: #f3f0f2; }
           <tr><th>功能ID</th><th>模块</th><th>名称</th><th>描述</th><th>备注</th></tr>
         </thead>
         <tbody>
-          <tr><td>FC-SH-01</td><td>壳层</td><td>主导航</td><td>左侧五项：吃瓜 / 视频 / 社区 / 福利 / 包养；切换主区、高亮、滚动与二级页归位</td><td></td></tr>
-          <tr><td>FC-SH-02</td><td>壳层</td><td>右侧栏显隐</td><td>首页 / 社区链路展示对应侧栏；视频、约炮、福利、文章详情隐藏侧栏</td><td></td></tr>
+          <tr><td>FC-SH-01</td><td>壳层</td><td>主导航</td><td>左侧五项：吃瓜 / 视频 / 社区 / 福利 / 约炮；切换主区、高亮、滚动与二级页归位</td><td></td></tr>
+          <tr><td>FC-SH-02</td><td>壳层</td><td>右侧栏显隐</td><td>首页 / 搜索 / 社区链路展示对应侧栏；视频、约炮、福利隐藏侧栏；文章详情沿用现网</td><td></td></tr>
           <tr><td>FC-HM-01</td><td>首页</td><td>内容流与卡片</td><td>单列内容卡，最大宽约 823；整图封面 + 底栏信息与右对齐操作</td><td></td></tr>
-          <tr><td>FC-HM-02</td><td>首页</td><td>频道栏</td><td>横滑频道 + 全部频道面板</td><td></td></tr>
           <tr><td>FC-HM-03</td><td>首页</td><td>广告位</td><td>顶栏露出切换、信息流纯图、右下悬浮可关</td><td></td></tr>
-          <tr><td>FC-HM-04</td><td>首页</td><td>榜单 / 签到 / 历史</td><td>跳转现网 PC 同款二级页</td><td></td></tr>
+          <tr><td>FC-HM-04</td><td>首页</td><td>榜单 / 签到</td><td>跳转现网 PC 同款二级页</td><td></td></tr>
           <tr><td>FC-SR-01</td><td>搜索</td><td>入口与发现页</td><td>首页 / 视频 / 社区统一进搜索；历史、热门标签、热搜、横滑广告</td><td></td></tr>
           <tr><td>FC-SR-02</td><td>搜索</td><td>结果双类型</td><td>文章 Tab 用首页卡；帖子 Tab 默认卡片可切贴吧模式</td><td></td></tr>
           <tr><td>FC-SR-03</td><td>搜索</td><td>标签二级</td><td>热门标签进纯文章列表页</td><td></td></tr>
           <tr><td>FC-VD-01</td><td>视频</td><td>列表页</td><td>搜索、分类、广告、筛选、三列卡与解锁角标</td><td>本期范围</td></tr>
-          <tr><td>FC-VD-02</td><td>视频</td><td>详情页</td><td>B 站式左播放右简介/评论；看完整版扣币/开通</td><td>本期范围</td></tr>
+          <tr><td>FC-VD-02</td><td>视频</td><td>详情页</td><td>B 站式左播放右简介/评论；播放器框与主区窗口等高、画面自适应；看完整版扣币/开通</td><td>本期范围</td></tr>
           <tr><td>FC-CM-01</td><td>社区</td><td>推荐流</td><td>Banner、公告、话题横滑、筛选、卡片/贴吧切换</td><td></td></tr>
           <tr><td>FC-CM-02</td><td>社区</td><td>发现页</td><td>三卡、筛选、话题、APP 帖子流</td><td></td></tr>
           <tr><td>FC-CM-03</td><td>社区</td><td>话题二级</td><td>信息卡在上、筛选在下、默认卡片可切贴吧；发布带默认话题</td><td></td></tr>
@@ -178,20 +248,27 @@ th { background: #f3f0f2; }
 
 
     <!-- ========== 壳层 ========== -->
-    <article class="block" id="fc-sh-01">
-      <div class="id">FC-SH-01</div>
+    <article class="block pair" id="fc-sh-01">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/01-home-shell.png" alt="壳层：左侧五项主导航 + 中间主区 + 右侧栏（吃瓜默认页）" />
+          <figcaption>壳层：左侧五项主导航 + 中间主区 + 右侧栏（吃瓜默认页）</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-SH-01</div>
       <h2>壳层 · 主导航</h2>
       <h3>功能逻辑</h3>
       <p>桌面壳左侧为常驻主导航：顶部品牌标识 + 五个一级模块入口。点击某一项后，中间主内容区切换到该模块根页，导航选中态同步更新，主滚动区回到顶部。右侧栏显隐与内容按当前页类型由 FC-SH-02 决定，主导航本身始终可见。</p>
       <p>若用户正停留在某模块的二级页（如文章详情、视频详情、话题页、店铺详情、搜索结果），再点其它主导航项：先离开当前二级页，进入目标模块的根页，再按该模块规则刷新右侧栏。</p>
       <h3>业务规则</h3>
       <ul>
-        <li>导航项固定五项，自上而下顺序与文案：吃瓜、视频、社区、福利、包养（与 Demo / 上线口径一致；包养对应约炮业务模块）。</li>
+        <li>导航项固定五项，自上而下顺序与文案：吃瓜、视频、社区、福利、约炮（与 Demo / 上线口径一致）。</li>
         <li>每项为图标 + 文案；悬停有背景反馈；选中态为高亮背景 + 文案加粗（视觉对齐 Demo）。</li>
         <li>同一时刻仅一个主导航项为选中态。</li>
         <li>冷启动 / 打开应用默认落在「吃瓜」，该项为选中态。</li>
         <li>点当前已选中项：仍回到该模块根页并主滚动区回顶（等价于「回模块首页」），右侧栏按该根页规则展示。</li>
-        <li>榜单、签到、历史、搜索等从各页顶栏或内容区进入，见对应功能块。</li>
+        <li>榜单、签到、搜索等从各页顶栏或内容区进入，见对应功能块。</li>
       </ul>
       <h3>页面交互</h3>
       <ul>
@@ -199,7 +276,7 @@ th { background: #f3f0f2; }
         <li>点「视频」：主区展示视频列表根页；「视频」高亮；主滚动回顶；右侧栏隐藏。</li>
         <li>点「社区」：主区展示社区根页（默认推荐子 Tab，见 FC-CM-01）；「社区」高亮；主滚动回顶；右侧栏为社区侧栏。</li>
         <li>点「福利」：主区展示福利根页；「福利」高亮；主滚动回顶；右侧栏隐藏。</li>
-        <li>点「包养」：主区展示约炮根页；「包养」高亮；主滚动回顶；右侧栏隐藏。</li>
+        <li>点「约炮」：主区展示约炮根页；「约炮」高亮；主滚动回顶；右侧栏隐藏。</li>
         <li>从二级页点主导航切到其它模块：关闭 / 出栈当前二级页，进入目标根页；原二级页未保存的表单态丢弃（发帖等编辑弹层若仍打开则一并关闭，见 FC-CM-04）。</li>
       </ul>
       <h3>异常</h3>
@@ -210,21 +287,34 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>客户端路由维护「当前一级模块 + 模块内页面栈」。切换主导航时写入目标模块并清空该模块外的临时二级栈。各模块根页数据在进入时按该模块列表 / 配置接口拉取；右侧栏数据随 FC-SH-02 规则按路由刷新。</p>
+      </div>
     </article>
 
-    <article class="block" id="fc-sh-02">
-      <div class="id">FC-SH-02</div>
+    <article class="block pair" id="fc-sh-02">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/01-home-shell.png" alt="首页侧栏：联系我们 + 24H热瓜" />
+          <figcaption>首页侧栏：联系我们 + 24H热瓜</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/15-post-detail.png" alt="社区链路侧栏：联系我们 + 人气作者Top5 + 官方发布（帖子详情）" />
+          <figcaption>社区链路侧栏：联系我们 + 人气作者Top5 + 官方发布（帖子详情）</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-SH-02</div>
       <h2>壳层 · 右侧栏显隐</h2>
       <h3>功能逻辑</h3>
       <p>桌面壳为三列：左侧主导航、中间主内容、右侧辅助栏。右侧栏按当前路由在「首页侧栏」「社区侧栏」「整栏隐藏（主区拉满）」三种形态间切换。侧栏内容与中间页同源业务解耦：切换模块或进入二级页时，由路由规则决定显隐与区块组合，无需用户手动开关。</p>
-      <p>首页侧栏服务吃瓜内容发现（联系我们 + 24H 热瓜）。社区链路侧栏服务社区生态（联系我们 + 人气作者 Top5 + 官方发布）。视频、约炮、福利及文章详情等沉浸页收起侧栏，保证主区横向空间。</p>
+      <p>首页侧栏服务吃瓜内容发现（联系我们 + 24H 热瓜）。社区链路侧栏服务社区生态（联系我们 + 人气作者 Top5 + 官方发布）。搜索发现态 / 结果态 / 标签二级，以及榜单 / 签到二级页，均与现网 PC 一致保留首页侧栏。视频、约炮、福利等壳层改版页收起侧栏。文章详情沿用现网 PC（含侧栏显隐），本期不改版。</p>
       <h3>业务规则</h3>
       <ul>
         <li>首页根页（吃瓜内容流，含频道切换后的列表态）：展示首页侧栏 =「联系我们」+「24H热瓜」。</li>
         <li>社区链路（社区推荐 / 发现面板、话题二级、帖子详情）：展示社区侧栏 =「联系我们」+「人气作者Top5」+「官方发布」。</li>
-        <li>以下页面隐藏右侧栏，壳层收为「导航 + 主区」且主区拉满：视频列表、视频详情、约炮整页（含店铺详情、更多店铺、约炮帖详情）、福利整页、文章详情（新闻整页）。</li>
-        <li>搜索发现态 / 结果态 / 标签二级：隐藏右侧栏（与文章详情同属沉浸检索链路）。</li>
-        <li>榜单 / 签到 / 历史二级页：隐藏右侧栏；返回吃瓜首页后恢复首页侧栏。</li>
+        <li>搜索发现态 / 结果态 / 标签二级：展示首页侧栏（联系我们 + 24H热瓜），与现网 PC 一致；从社区入口进入搜索时仍用首页侧栏。</li>
+        <li>以下页面隐藏右侧栏，壳层收为「导航 + 主区」且主区拉满：视频列表、视频详情、约炮整页（含店铺详情、更多店铺、约炮帖详情）、福利整页。</li>
+        <li>榜单 / 签到二级页：展示首页侧栏（联系我们 + 24H热瓜），与现网 PC 一致。</li>
+        <li>文章详情：页面与侧栏显隐均沿用现网 PC，本期壳层不单独改版。</li>
         <li>「联系我们」为配置跳转（外链或站内页，与现网一致）；「24H热瓜」「人气作者」「官方发布」为可滚动列表，条目数按接口返回，超出侧栏高度内部滚动。</li>
       </ul>
       <h3>页面交互</h3>
@@ -233,7 +323,7 @@ th { background: #f3f0f2; }
         <li>返回首页根页：右侧栏展开为首页侧栏内容；若热瓜数据已缓存可先展示再静默刷新。</li>
         <li>返回社区链路页：右侧栏展开为社区侧栏内容。</li>
         <li>点「联系我们」：按配置打开落地（新窗口或站内，与现网一致）。</li>
-        <li>点「24H热瓜」条目：进入对应文章详情（隐藏侧栏）。</li>
+        <li>点「24H热瓜」条目：进入现网文章详情（侧栏按现网）。</li>
         <li>点「人气作者」：进入该作者主页或现网约定落地。</li>
         <li>点「官方发布」条目：进入对应帖子 / 内容详情。</li>
       </ul>
@@ -245,76 +335,60 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>显隐由客户端路由表驱动（页面类型 → 侧栏模式）。24H 热瓜、人气作者、官方发布分别请求现网对应接口；联系我们读客户端 / 运营配置。进入页时拉取；切换同源侧栏模式时可复用未过期缓存。</p>
+      </div>
     </article>
 
     <!-- ========== 首页 ========== -->
-    <article class="block" id="fc-hm-01">
-      <div class="id">FC-HM-01</div>
+    <article class="block pair" id="fc-hm-01">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/02-home-feed-cards.png" alt="首页单列内容卡（整图封面 + 底栏信息 + 右对齐操作）" />
+          <figcaption>首页单列内容卡（整图封面 + 底栏信息 + 右对齐操作）</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-HM-01</div>
       <h2>首页 · 内容流与卡片</h2>
       <h3>功能逻辑</h3>
-      <p>吃瓜首页主体为单列内容信息流。流内条目以「整图封面 + 底栏信息 + 右对齐操作」组成内容卡；流内可穿插纯图信息流广告（见 FC-HM-03）。点内容卡进入文章详情（新闻整页沉浸：隐藏右侧栏）。列表宽度受控，宽屏下保持固定比例等比缩放，避免封面被横向拉高。</p>
-      <p>内容流受当前频道（FC-HM-02）过滤。上拉分页追加；从文章详情返回时尽量恢复离开前的滚动位置与列表数据。</p>
+      <p>吃瓜首页主体为单列内容信息流。流内条目以「整图封面 + 底栏信息 + 右对齐操作」组成内容卡；流内可穿插纯图信息流广告（见 FC-HM-03）。列表宽度受控，宽屏下保持固定比例等比缩放，避免封面被横向拉高。点内容卡进入文章详情；文章详情页面与交互沿用现网 PC，本期不改版。</p>
+      <p>内容流受现网频道栏过滤（频道横滑 / 全部频道沿用现网，本期不改版）。上拉分页追加；从现网文章详情返回时尽量恢复离开前的滚动位置与列表数据。</p>
       <h3>业务规则</h3>
       <ul>
         <li>列表容器最大宽约 823px；相对主区左右最小边距 24px；封面与卡片比例固定，窗口变宽时等比缩放而非单边拉伸。</li>
         <li>内容卡封面口径约 823×303（与信息流广告同口径）。</li>
         <li>底栏信息：标题（可两行截断）、作者、发布日期、分类标签。</li>
-        <li>操作区整组右对齐，顺序：浏览数、评论数、点赞、分享。</li>
-        <li>点赞态：已赞高亮；浏览 / 评论数为只读展示，点评论区或整卡进详情后可评论。</li>
-        <li>文章详情为独立二级页：正文、媒体、评论与互动沿用现网文章能力；进入时隐藏壳层右侧栏（FC-SH-02）。</li>
+        <li>底栏右侧数据区整组右对齐，顺序展示：浏览数、评论数、点赞数、分享图标；均为只读展示，列表卡上不可点赞 / 分享。</li>
+        <li>赞 / 分享 / 评论等互动仅在文章详情内操作（沿用现网详情）。</li>
+        <li>文章详情沿用现网 PC（含侧栏显隐与正文互动），本期壳层不单独改版文章详情页。</li>
       </ul>
       <h3>页面交互</h3>
       <ul>
-        <li>点内容卡封面或标题区域：进入该文章详情；导航保持「吃瓜」高亮。</li>
-        <li>点分享：复制当前文章分享链接到剪贴板，Toast「分享链接已复制」。</li>
-        <li>点点赞：切换赞 / 取消赞，数字即时 ±1；失败见异常。</li>
+        <li>点内容卡任意区域（含底栏数据区）：正式版进入现网文章详情；Demo 仅 Toast「文章详情和现网一致」，停留当前列表、不跳转演示详情页。</li>
         <li>主滚动区接近底部：自动请求下一页并追加卡片；加载中底部展示「加载中…」。</li>
-        <li>文章详情点返回：回到首页内容流，恢复滚动位置；右侧栏恢复首页侧栏。</li>
+        <li>从现网文章详情返回：回到首页内容流，尽量恢复滚动位置；侧栏按首页规则展示。</li>
       </ul>
       <h3>异常</h3>
       <ul>
         <li>首屏列表为空 → 主区空态「暂无内容」。</li>
         <li>首屏加载失败 → Toast「加载失败，请重试」+ 主区可点「重新加载」→ 成功后展示列表。</li>
         <li>分页加载失败 → Toast「加载失败，请重试」→ 已展示内容保留，可再次触底重试。</li>
-        <li>点赞失败 → Toast「操作失败，请重试」→ 赞态与数字回滚。</li>
-        <li>分享复制失败 → Toast「复制失败，请重试」。</li>
-        <li>文章已删除或不存在 → Toast「内容不存在」→ 返回列表并可选从流中移除该项。</li>
+        <li>正式版打开文章详情失败 → Toast「页面打开失败，请重试」→ 停留列表。</li>
       </ul>
       <h3>数据流转</h3>
-      <p>Feed 列表按频道 ID + 分页游标请求现网内容接口。卡片携带文章 ID。详情、点赞、评论走文章接口。分享链接由客户端按文章 ID 生成现网约定 URL。</p>
+      <p>Feed 列表按频道 ID + 分页游标请求现网内容接口。卡片携带文章 ID 与展示用计数。详情跳转现网文章详情路由；赞 / 分享 / 评论在详情页走现网接口。</p>
+      </div>
     </article>
 
-    <article class="block" id="fc-hm-02">
-      <div class="id">FC-HM-02</div>
-      <h2>首页 · 频道栏</h2>
-      <h3>功能逻辑</h3>
-      <p>首页顶区提供频道横滑条，用于切换内容流所属栏目。频道过多时经「全部频道」入口打开面板，以宫格展示全部栏目供点选。横滑条与面板的选中态始终同步；切换频道后内容流从第一页重新加载。</p>
-      <h3>业务规则</h3>
-      <ul>
-        <li>频道名称、顺序、数量与现网栏目配置对齐。</li>
-        <li>默认选中第一项（或现网约定的默认栏目，如「推荐」）。</li>
-        <li>横滑条展示常用频道；「全部频道」入口固定在横滑条末端或约定位置。</li>
-        <li>全部频道面板为编辑类浮层：点遮罩不关闭；须点关闭按钮或选中某一频道后收起。</li>
-        <li>切换频道时清空当前列表并回到流顶部；分页游标重置。</li>
-      </ul>
-      <h3>页面交互</h3>
-      <ul>
-        <li>点横滑条某频道：该项高亮，其它取消；内容流按该频道刷新；主滚动回顶。</li>
-        <li>点「全部频道」：打开面板，当前频道在面板中高亮。</li>
-        <li>在面板点某频道格子：选中该频道，关闭面板，同步横滑条高亮并刷新内容流。</li>
-        <li>点面板关闭按钮：关闭面板，频道选择不变。</li>
-      </ul>
-      <h3>异常</h3>
-      <ul>
-        <li>频道列表加载失败 → Toast「频道加载失败，请重试」→ 若有上次成功缓存则继续展示缓存频道；无缓存则横滑条空态「频道加载失败」。</li>
-        <li>切换频道后 Feed 失败 → 按 FC-HM-01 列表失败处理；频道高亮保持在用户所选。</li>
-      </ul>
-      <h3>数据流转</h3>
-      <p>频道配置走现网栏目接口。选中频道 ID 作为 Feed 请求的必传参数。面板开闭为纯客户端状态。</p>
-    </article>
 
-    <article class="block" id="fc-hm-03">
-      <div class="id">FC-HM-03</div>
+    <article class="block pair" id="fc-hm-03">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/01-home-shell.png" alt="顶栏 Banner（中间主位 + 两侧露出）与右下悬浮广告" />
+          <figcaption>顶栏 Banner（中间主位 + 两侧露出）与右下悬浮广告</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-HM-03</div>
       <h2>首页 · 广告位</h2>
       <h3>功能逻辑</h3>
       <p>首页包含三类广告容器：顶栏 Banner（中间主位 + 两侧露出）、信息流纯图广告、右下角竖版悬浮广告。素材与投放沿用移动端（总则见 FC-AD-01）；桌面通过控高排布避免单条拉满整宽导致高度暴涨。</p>
@@ -340,26 +414,33 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>广告请求、曝光、点击上报沿用移动端广告 SDK / 接口。容器尺寸由桌面布局约束；创意 ID 与落地 URL 与 APP 同源。</p>
+      </div>
     </article>
 
-    <article class="block" id="fc-hm-04">
-      <div class="id">FC-HM-04</div>
-      <h2>首页 · 榜单 / 签到 / 历史</h2>
+    <article class="block pair" id="fc-hm-04">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/01-home-shell.png" alt="顶栏签到 / 榜单入口（正式跳转现网 PC 二级页）" />
+          <figcaption>顶栏签到 / 榜单入口（正式跳转现网 PC 二级页）</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-HM-04</div>
+      <h2>首页 · 榜单 / 签到</h2>
       <h3>功能逻辑</h3>
-      <p>首页顶栏提供「签到」「榜单」「历史」三个入口，分别进入现网 PC 已有的同款二级页。二级页的信息架构、交互与卡片样式与当前 PC 站保持一致；桌面壳负责入口跳转、返回栈与侧栏隐藏。</p>
+      <p>首页顶栏提供「签到」「榜单」两个入口，分别进入现网 PC 已有的同款二级页。二级页的信息架构、交互与卡片样式与当前 PC 站保持一致；桌面壳负责入口跳转与返回栈。右侧栏按现网展示首页侧栏（FC-SH-02）。</p>
       <h3>业务规则</h3>
       <ul>
-        <li>三个入口均为独立二级页（整页），不是弹窗。</li>
+        <li>两个入口均为独立二级页（整页），不是弹窗。</li>
         <li>二级页内交互、列表样式、业务规则复用现网 PC 实现。</li>
-        <li>进入任一二级页时隐藏壳层右侧栏；导航保持「吃瓜」高亮。</li>
+        <li>进入任一二级页时展示首页侧栏（联系我们 + 24H热瓜）；导航保持「吃瓜」高亮。</li>
         <li>Demo 阶段入口可先 Toast 占位；正式版必须进入真实二级页。</li>
       </ul>
       <h3>页面交互</h3>
       <ul>
         <li>点「签到」：进入签到二级页。</li>
         <li>点「榜单」：进入榜单二级页。</li>
-        <li>点「历史」：进入浏览历史二级页。</li>
-        <li>二级页内点返回：回到吃瓜首页根页，恢复首页侧栏与离开前滚动（若可恢复）。</li>
+        <li>二级页内点返回：回到吃瓜首页根页，侧栏保持首页侧栏，尽量恢复离开前滚动。</li>
         <li>二级页内点内容卡：按该页现网规则进入对应详情；详情返回回到该二级页。</li>
       </ul>
       <h3>异常</h3>
@@ -368,18 +449,26 @@ th { background: #f3f0f2; }
         <li>二级页内列表失败 → 沿用该 PC 页现网错误提示；若无则 Toast「加载失败，请重试」。</li>
       </ul>
       <h3>数据流转</h3>
-      <p>复用现网 PC 榜单、签到、历史页面路由与接口。桌面壳记录来源为首页，用于返回。</p>
+      <p>复用现网 PC 榜单、签到页面路由与接口。桌面壳记录来源为首页，用于返回。</p>
+      </div>
     </article>
 
     <!-- ========== 搜索 ========== -->
-    <article class="block" id="fc-sr-01">
-      <div class="id">FC-SR-01</div>
+    <article class="block pair" id="fc-sr-01">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/05-search-discover.png" alt="搜索发现态：历史、热门标签、横滑广告、热搜总榜" />
+          <figcaption>搜索发现态：历史、热门标签、横滑广告、热搜总榜</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-SR-01</div>
       <h2>搜索 · 入口与发现页</h2>
       <h3>功能逻辑</h3>
       <p>吃瓜、视频、社区三个模块顶栏的搜索入口进入同一套搜索页。搜索页默认「发现态」：搜索框、搜索历史、热门标签、横滑广告、热搜总榜。用户提交关键词后进入结果态（FC-SR-02）；点热门标签进入标签二级（FC-SR-03）。</p>
       <h3>业务规则</h3>
       <ul>
-        <li>三处入口行为一致：均打开本壳搜索页发现态，并隐藏右侧栏。</li>
+        <li>三处入口行为一致：均打开本壳搜索页发现态，并展示首页侧栏（FC-SH-02）。</li>
         <li>从哪一模块进入，返回时回到该模块当前页（保留其导航高亮）。</li>
         <li>搜索历史：本地存储；同一关键词去重并置顶；保留近期若干条（条数与现网一致，建议不少于 10）。</li>
         <li>热搜总榜样式对齐 APP；桌面可排 2–3 列以提高密度。</li>
@@ -406,10 +495,22 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>历史存本地。热门标签、热搜榜、广告分别请求现网搜索运营 / 投放接口。来源模块写入路由参数，供返回使用。</p>
+      </div>
     </article>
 
-    <article class="block" id="fc-sr-02">
-      <div class="id">FC-SR-02</div>
+    <article class="block pair" id="fc-sr-02">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/06-search-results-article.png" alt="搜索结果 · 文章 Tab（首页内容卡样式）" />
+          <figcaption>搜索结果 · 文章 Tab（首页内容卡样式）</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/07-search-results-post.png" alt="搜索结果 · 帖子 Tab（默认卡片，可切贴吧）" />
+          <figcaption>搜索结果 · 帖子 Tab（默认卡片，可切贴吧）</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-SR-02</div>
       <h2>搜索 · 结果双类型</h2>
       <h3>功能逻辑</h3>
       <p>结果态按内容类型分为「文章」「帖子」两个 Tab。文章结果使用与首页一致的内容卡；帖子结果默认卡片（瀑布流）模式，可通过布局按钮切换为贴吧 / 帖子列表模式，交互对齐社区推荐流布局切换。</p>
@@ -425,7 +526,7 @@ th { background: #f3f0f2; }
       <ul>
         <li>点「文章」/「帖子」Tab：切换列表；仅帖子 Tab 显示布局切换按钮。</li>
         <li>点布局按钮：在卡片 / 帖子模式间切换并 Toast。</li>
-        <li>点文章卡：进文章详情；详情返回回到结果态当前 Tab 与滚动。</li>
+        <li>点文章卡：正式版进现网文章详情，返回回到结果态当前 Tab 与滚动；Demo Toast「文章详情和现网一致」且不跳转。</li>
         <li>点帖子卡或帖子行：进帖子详情（FC-CM-05）；返回同理。</li>
         <li>结果列表触底：加载更多。</li>
         <li>在结果态修改关键词并搜索：刷新结果，历史更新。</li>
@@ -439,10 +540,18 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>请求参数含关键词、类型（文章 / 帖子）、分页。详情跳转携带内容 ID 与返回栈（搜索结果态）。</p>
+      </div>
     </article>
 
-    <article class="block" id="fc-sr-03">
-      <div class="id">FC-SR-03</div>
+    <article class="block pair" id="fc-sr-03">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/08-tag-detail.png" alt="热门标签二级：纯文章列表" />
+          <figcaption>热门标签二级：纯文章列表</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-SR-03</div>
       <h2>搜索 · 标签二级</h2>
       <h3>功能逻辑</h3>
       <p>在搜索发现态点击热门标签，进入该标签的二级列表页。页面为纯文章列表，卡片样式与首页内容卡一致。本页结构为顶栏返回 + 标签标题 + 文章流。</p>
@@ -451,12 +560,12 @@ th { background: #f3f0f2; }
         <li>页标题为标签名；展示时可去掉前导 #。</li>
         <li>列表只含文章；页面不提供文章 / 帖子 Tab，不提供布局切换。</li>
         <li>卡片样式、点击进详情、分页与 FC-HM-01 文章卡一致。</li>
-        <li>隐藏右侧栏。</li>
+        <li>展示首页侧栏（联系我们 + 24H热瓜），与搜索发现态 / 结果态一致。</li>
       </ul>
       <h3>页面交互</h3>
       <ul>
         <li>点热门标签：进入本页并加载该标签文章。</li>
-        <li>点文章卡：进文章详情；详情返回回到本标签页。</li>
+        <li>点文章卡：正式版进现网文章详情，返回回到本标签页；Demo Toast「文章详情和现网一致」且不跳转。</li>
         <li>点返回：回到搜索发现态。</li>
         <li>触底加载更多文章。</li>
       </ul>
@@ -468,18 +577,26 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>按标签 ID 或名称请求标签文章列表接口，与综合搜索结果接口区分。返回栈：标签页 → 发现态。</p>
+      </div>
     </article>
 
     <!-- ========== 视频 ========== -->
-    <article class="block" id="fc-vd-01">
-      <div class="id">FC-VD-01</div>
+    <article class="block pair" id="fc-vd-01">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/09-video-list.png" alt="视频列表：分类、首页同款露出广告、筛选、三列卡" />
+          <figcaption>视频列表：分类、首页同款露出广告、筛选、三列卡</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-VD-01</div>
       <h2>视频 · 列表页</h2>
       <h3>功能逻辑</h3>
-      <p>视频为壳层一级模块。列表根页自上而下：顶栏（含搜索）→ 分类频道行 → 可横滑广告 → 平铺筛选 → 三列视频卡片网格。点卡片进入 B 站式详情（FC-VD-02）。整页隐藏右侧栏。</p>
+      <p>视频为壳层一级模块。列表根页自上而下：顶栏（含搜索）→ 分类频道行 → 广告位（与首页顶栏同交互）→ 平铺筛选 → 三列视频卡片网格。点卡片进入 B 站式详情（FC-VD-02）。整页隐藏右侧栏。</p>
       <h3>业务规则</h3>
       <ul>
         <li>顶栏搜索进入统一搜索页（FC-SR-01），来源标记为视频。</li>
-        <li>分类频道行切换视频类目；其下广告为扁 Banner / 横滑多帧（FC-AD-01）。</li>
+        <li>分类频道行切换视频类目；其下广告与首页顶栏一致：中间主位 + 两侧露出，可点两侧切换 / 滑动（口径见 FC-HM-03 / FC-AD-01）。</li>
         <li>平铺筛选含「最新」「最热」等（与现网视频筛选项对齐）；与分类组合过滤列表。</li>
         <li>列表固定三列；卡片含封面、左上角解锁角标（VIP 或「X 金币」）、可选播放量 / 时长。</li>
         <li>标题与时间同一行：标题过长省略，时间靠右。</li>
@@ -489,6 +606,7 @@ th { background: #f3f0f2; }
       <ul>
         <li>点分类：高亮该类，列表从第一页刷新，主滚动回顶。</li>
         <li>点筛选：高亮该项，列表刷新。</li>
+        <li>点广告主位：按投放打开落地；点左右露出侧：切换主位帧（同首页顶栏）。</li>
         <li>点视频卡：进入该视频详情。</li>
         <li>点搜索：进统一搜索发现态。</li>
         <li>触底：加载更多视频卡。</li>
@@ -501,15 +619,24 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>分类 ID、筛选参数、分页请求视频列表接口。卡片携带视频 ID、解锁类型与价格、封面与时长等展示字段。</p>
+      </div>
     </article>
 
-    <article class="block" id="fc-vd-02">
-      <div class="id">FC-VD-02</div>
+    <article class="block pair" id="fc-vd-02">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/10-video-detail.png" alt="视频详情 B 站式：左播放右简介/评论" />
+          <figcaption>视频详情 B 站式：左播放右简介/评论</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-VD-02</div>
       <h2>视频 · 详情页</h2>
       <h3>功能逻辑</h3>
       <p>视频详情为 B 站式左右分栏沉浸页：左侧播放器 + 控制底栏 +「看完整版」；右侧「简介 / 评论」Tab。进入详情隐藏壳层右侧栏。播放完整版需满足会员或金币解锁条件。</p>
       <h3>业务规则</h3>
       <ul>
+        <li>左侧播放器框高度与主区可用窗口高度一致（随窗口缩放贴满左侧可用高度）；框内视频画面等比自适应（contain），不足处留黑边。</li>
         <li>左侧播放器底栏控件：静音、时长进度、弹幕开关、清晰度、倍速、反馈。</li>
         <li>「看完整版」分支：
           <ul>
@@ -520,10 +647,11 @@ th { background: #f3f0f2; }
         </li>
         <li>右侧默认「简介」Tab：标题、浏览 / 点赞 / 评论 / 收藏 / 分享、标签、广告位、推荐列表（上图下文，一排 2 卡）。</li>
         <li>「评论」Tab：评论列表区域可滚动；输入框固定在右侧面板底部。</li>
-        <li>布局为左右分栏（B 站式）。</li>
+        <li>布局为左右分栏（B 站式）；右侧栏高度与左侧播放区对齐。</li>
       </ul>
       <h3>页面交互</h3>
       <ul>
+        <li>进入详情 / 窗口缩放：左侧播放器框始终与主区窗口可用高度一致；框内画面按比例缩放适配，控制底栏与「看完整版」叠在播放器框内。</li>
         <li>点简介 / 评论 Tab：切换右侧面板内容。</li>
         <li>点「看完整版」：按会员 / 金币状态打开开通、扣币确认或买币引导；成功后播放器可播完整版并更新角标态。</li>
         <li>点赞 / 收藏 / 分享：分享复制链接 Toast「分享链接已复制」；赞藏即时更新。</li>
@@ -543,11 +671,19 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>详情、播放地址、解锁、评论、互动走视频 / 内容接口；会员与金币钱包走用户资产接口；广告沿用移动端投放。返回栈指向视频列表。</p>
+      </div>
     </article>
 
     <!-- ========== 社区 ========== -->
-    <article class="block" id="fc-cm-01">
-      <div class="id">FC-CM-01</div>
+    <article class="block pair" id="fc-cm-01">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/11-community-reco.png" alt="社区推荐：Banner、话题横滑、筛选、四列瀑布流" />
+          <figcaption>社区推荐：Banner、话题横滑、筛选、四列瀑布流</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-CM-01</div>
       <h2>社区 · 推荐</h2>
       <h3>功能逻辑</h3>
       <p>社区模块顶栏子 Tab 含：订阅、推荐、发现、关注。点「推荐」展示推荐面板。推荐流自上而下：与列表等宽的扁 Banner（可左右滑）→ 公告条 → 话题竖卡横滑 → 筛选行（最热 / 最新 / 视频 / 图片）+ 布局切换 → 默认四列瀑布流卡片（可切贴吧 / 帖子列表）。订阅、关注子页维持现网页面与交互。</p>
@@ -579,10 +715,18 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>推荐 Feed、话题横滑、公告走社区接口；布局模式可存本地偏好。子 Tab 状态由社区路由维护。</p>
+      </div>
     </article>
 
-    <article class="block" id="fc-cm-02">
-      <div class="id">FC-CM-02</div>
+    <article class="block pair" id="fc-cm-02">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/12-community-discover.png" alt="社区发现：三卡运营位 → 筛选 → 方话题 → APP 帖子流" />
+          <figcaption>社区发现：三卡运营位 → 筛选 → 方话题 → APP 帖子流</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-CM-02</div>
       <h2>社区 · 发现</h2>
       <h3>功能逻辑</h3>
       <p>点社区顶栏「发现」进入发现面板（与推荐互斥）。页面结构对齐 APP 发现，自上而下：顶区三卡运营位 → 文字筛选 Tab → 横滑方话题卡 → APP 样式帖子信息流。样式与首页文章卡、推荐瀑布流卡区分。顶栏搜索与「＋ 发布」在发现态仍可用（发布无默认话题）。</p>
@@ -623,10 +767,18 @@ th { background: #f3f0f2; }
           <tr><td>列表</td><td>默认四列瀑布流，可切贴吧</td><td>APP 帖子信息流</td></tr>
         </tbody>
       </table>
+      </div>
     </article>
 
-    <article class="block" id="fc-cm-03">
-      <div class="id">FC-CM-03</div>
+    <article class="block pair" id="fc-cm-03">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/13-topic-detail.png" alt="话题二级：信息卡在上、筛选在下、默认卡片流" />
+          <figcaption>话题二级：信息卡在上、筛选在下、默认卡片流</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-CM-03</div>
       <h2>社区 · 话题二级</h2>
       <h3>功能逻辑</h3>
       <p>从推荐或发现的话题卡进入话题二级页。页面结构固定：返回 + 话题标题 → 话题信息卡（含右侧「＋ 发布」）→ 筛选行 + 布局切换 → 帖子流（默认卡片模式，可切贴吧）。壳层右侧栏保持社区侧栏。</p>
@@ -656,10 +808,18 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>话题详情与话题下帖子列表按 topicId 请求。发布成功后刷新本页流。返回栈记录来源面板。</p>
+      </div>
     </article>
 
-    <article class="block" id="fc-cm-04">
-      <div class="id">FC-CM-04</div>
+    <article class="block pair" id="fc-cm-04">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/14-publish-modal.png" alt="发帖弹层（话题页进入时预填当前话题；点遮罩不关）" />
+          <figcaption>发帖弹层（话题页进入时预填当前话题；点遮罩不关）</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-CM-04</div>
       <h2>社区 · 发帖弹层</h2>
       <h3>功能逻辑</h3>
       <p>社区顶栏或话题信息卡的「＋ 发布」打开发帖弹层。用户可选择话题、填写标题与正文、添加图片或视频后提交。上传与发布业务逻辑沿用现网，本期沿用既有校验与媒体流程。</p>
@@ -688,10 +848,18 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>发帖与媒体上传走现网社区接口；请求可带 topicId。成功后通知当前列表刷新首屏或插入新帖。</p>
+      </div>
     </article>
 
-    <article class="block" id="fc-cm-05">
-      <div class="id">FC-CM-05</div>
+    <article class="block pair" id="fc-cm-05">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/15-post-detail.png" alt="帖子详情：左媒体右作者/正文/评论 + 社区侧栏" />
+          <figcaption>帖子详情：左媒体右作者/正文/评论 + 社区侧栏</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-CM-05</div>
       <h2>社区 · 帖子详情</h2>
       <h3>功能逻辑</h3>
       <p>帖子详情为小红书式左右分栏：左侧媒体区，右侧作者信息 / 正文 / 评论与底栏互动。壳层右侧栏保持社区侧栏（与推荐同套）。推荐流、发现流、话题二级、搜索帖子结果均进入本页。</p>
@@ -722,10 +890,18 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>详情、评论、互动走社区帖子接口。返回栈记录来源页类型与 ID（含 topicId、搜索关键词等）。</p>
+      </div>
     </article>
 
-    <article class="block" id="fc-wf-01">
-      <div class="id">FC-WF-01</div>
+    <article class="block pair" id="fc-wf-01">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/16-welfare.png" alt="福利：并排双广告 + 分类 + 一排 6 大图标" />
+          <figcaption>福利：并排双广告 + 分类 + 一排 6 大图标</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-WF-01</div>
       <h2>福利 · 双广告与图标</h2>
       <h3>功能逻辑</h3>
       <p>福利为一级模块整页。隐藏右侧栏。页面自上而下：顶栏并排双广告 → 细分推荐分类 Tab / 行 → 应用图标网格（一排 6 个，图标加大铺满）。点击广告或图标按投放 / 配置打开落地。</p>
@@ -754,13 +930,29 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>分类与应用列表走福利配置接口；广告走移动端投放。点击上报与现网一致。</p>
+      </div>
     </article>
 
-    <article class="block" id="fc-dt-01">
-      <div class="id">FC-DT-01</div>
+    <article class="block pair" id="fc-dt-01">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/17-dating-reco.png" alt="约炮推荐：店铺横滑 + 人气四列" />
+          <figcaption>约炮推荐：店铺横滑 + 人气四列</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/18-dating-baoyang.png" alt="包养面板：筛选 + 左图右文三列卡" />
+          <figcaption>包养面板：筛选 + 左图右文三列卡</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/20-dating-filter.png" alt="外围等高级筛选弹层（点遮罩不关）" />
+          <figcaption>外围等高级筛选弹层（点遮罩不关）</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-DT-01</div>
       <h2>约炮 · 栏目与列表</h2>
       <h3>功能逻辑</h3>
-      <p>包养（约炮）为一级模块整页，隐藏右侧栏。顶栏提供「申请入驻」（描边次要）与「＋ 发布」（主按钮）。栏目 Tab：推荐、包养、外围、楼凤、会所、认证专区。删除栏目「同城速约」「高端定制」。各栏目面板结构与筛选不同，见业务规则。</p>
+      <p>约炮为一级模块整页，隐藏右侧栏。顶栏提供「申请入驻」（描边次要）与「＋ 发布」（主按钮）。栏目 Tab：推荐、包养、外围、楼凤、会所、认证专区。删除栏目「同城速约」「高端定制」。各栏目面板结构与筛选不同，见业务规则。</p>
       <h3>业务规则</h3>
       <ul>
         <li>顶栏：申请入驻为描边次要按钮；＋ 发布为强调主按钮；上传 / 发布 / 入驻业务沿用现网。</li>
@@ -789,10 +981,18 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>栏目、列表、筛选、店铺摘要走约炮接口。高级筛选条件作为列表查询参数。发布 / 入驻走现网流程接口。</p>
+      </div>
     </article>
 
-    <article class="block" id="fc-dt-02">
-      <div class="id">FC-DT-02</div>
+    <article class="block pair" id="fc-dt-02">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/19-store-detail.png" alt="店铺详情：店头 + 排序分类 + 店员四列" />
+          <figcaption>店铺详情：店头 + 排序分类 + 店员四列</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-DT-02</div>
       <h2>约炮 · 店铺详情</h2>
       <h3>功能逻辑</h3>
       <p>店铺详情展示店头信息、排序与分类、店员四列卡片。可从推荐店铺横卡或更多店铺页进入。整页隐藏右侧栏。</p>
@@ -817,10 +1017,22 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>店铺详情与店员列表按店铺 ID + 排序 / 分类参数请求。返回栈记录来源页。</p>
+      </div>
     </article>
 
-    <article class="block" id="fc-ad-01">
-      <div class="id">FC-AD-01</div>
+    <article class="block pair" id="fc-ad-01">
+      <div class="shots">
+        <figure>
+          <img src="prd-screens/01-home-shell.png" alt="首页顶栏露出式 Banner / 信息流与悬浮广告控高示意" />
+          <figcaption>首页顶栏露出式 Banner / 信息流与悬浮广告控高示意</figcaption>
+        </figure>
+        <figure>
+          <img src="prd-screens/16-welfare.png" alt="福利顶栏并排双广告（一列多个）控高示意" />
+          <figcaption>福利顶栏并排双广告（一列多个）控高示意</figcaption>
+        </figure>
+      </div>
+      <div class="copy">
+<div class="id">FC-AD-01</div>
       <h2>广告与素材（跨页口径）</h2>
       <h3>功能逻辑</h3>
       <p>桌面端广告与 APP 共用移动端投放与素材。桌面职责是容器排布与控高：用「一列多个」或「中间主位 + 两侧露出」适配宽屏，避免单条创意被拉满整宽导致高度暴涨。各业务页的具体广告位形态在首页 / 搜索 / 福利 / 视频 / 社区对应功能块中落地，本块为跨页总则。</p>
@@ -836,7 +1048,8 @@ th { background: #f3f0f2; }
             <li>首页悬浮：右下竖版，可轮播可关闭。</li>
             <li>搜索：一排约 2–3 个横滑。</li>
             <li>福利顶栏：并排双广告，约 16:6。</li>
-            <li>视频 / 社区 Banner：与列表等宽扁 Banner，可左右滑。</li>
+            <li>视频列表广告：与首页顶栏同款，中间主位 + 两侧露出（FC-VD-01）。</li>
+            <li>社区推荐 Banner：与列表等宽扁 Banner，可左右滑。</li>
           </ul>
         </li>
       </ul>
@@ -855,6 +1068,7 @@ th { background: #f3f0f2; }
       </ul>
       <h3>数据流转</h3>
       <p>广告请求、曝光、点击上报沿用移动端广告能力。桌面只调整容器宽度与排布参数，不改创意拍卖与落地字段。</p>
+      </div>
     </article>
 
     <section id="sec-accept">
@@ -865,16 +1079,15 @@ th { background: #f3f0f2; }
         </thead>
         <tbody>
           <tr><td>FC-SH-01</td><td>五项导航顺序与文案正确；切换主区/高亮/回顶；二级页切模块回根页；失败回滚</td><td>☐</td></tr>
-          <tr><td>FC-SH-02</td><td>首页/社区侧栏区块正确；视频约炮福利文章搜索二级隐藏侧栏；条目可跳转</td><td>☐</td></tr>
-          <tr><td>FC-HM-01</td><td>823 口径单列卡；底栏与右对齐操作；进详情藏侧栏；分页/点赞/分享异常完整</td><td>☐</td></tr>
-          <tr><td>FC-HM-02</td><td>横滑与全部频道同步；面板点遮罩不关；切频道刷新流</td><td>☐</td></tr>
+          <tr><td>FC-SH-02</td><td>首页/搜索/社区侧栏正确；视频约炮福利隐藏侧栏；文章详情沿用现网；条目可跳转</td><td>☐</td></tr>
+          <tr><td>FC-HM-01</td><td>823 口径单列卡；底栏计数只读；整卡进详情；Demo 点卡 Toast 不跳转</td><td>☐</td></tr>
           <tr><td>FC-HM-03</td><td>顶栏露出切换、信息流纯图、悬浮可关可点；无投放不占空</td><td>☐</td></tr>
-          <tr><td>FC-HM-04</td><td>签到/榜单/历史进 PC 同款二级页；返回恢复首页侧栏</td><td>☐</td></tr>
+          <tr><td>FC-HM-04</td><td>签到/榜单进 PC 同款二级页；页内保留首页侧栏</td><td>☐</td></tr>
           <tr><td>FC-SR-01</td><td>三入口同源；历史/热搜/标签/广告齐全；空词 Toast；返回来源模块</td><td>☐</td></tr>
           <tr><td>FC-SR-02</td><td>文章/帖子 Tab；帖子默认可切贴吧；返回先回发现态</td><td>☐</td></tr>
           <tr><td>FC-SR-03</td><td>标签纯文章二级；无效标签 Toast 并回发现态</td><td>☐</td></tr>
           <tr><td>FC-VD-01</td><td>分类+广告+筛选+三列卡；角标 VIP/金币；标题时间同行</td><td>☐</td></tr>
-          <tr><td>FC-VD-02</td><td>B 站分栏；底栏控件；看完整版会员/扣币/买币分支；评论底栏</td><td>☐</td></tr>
+          <tr><td>FC-VD-02</td><td>B 站分栏；播放器框与主区窗口等高、画面 contain 自适应；底栏控件；看完整版会员/扣币/买币分支；评论底栏</td><td>☐</td></tr>
           <tr><td>FC-CM-01</td><td>Banner/公告/话题/筛选/四列与布局切换；发布无默认话题</td><td>☐</td></tr>
           <tr><td>FC-CM-02</td><td>三卡→筛选→方话题→APP 流；点关注不进详情</td><td>☐</td></tr>
           <tr><td>FC-CM-03</td><td>信息卡在上筛选在下；发布预填话题；社区侧栏在</td><td>☐</td></tr>
@@ -886,28 +1099,109 @@ th { background: #f3f0f2; }
           <tr><td>FC-AD-01</td><td>沿用移动端；各位置控高口径与页面块一致</td><td>☐</td></tr>
         </tbody>
       </table>
-      <p class="note">配图与截图将在后续版本补充；可点原型见同目录 desktop-pwa-shell-demo.html。</p>
+      <p class="note">左侧为 Demo 截图（可点击放大）；可点原型见顶栏「Demo」。现网 PC / APP 对照图可按需另补。</p>
     </section>
   </div>
 </div>
+</div>
+
+<div class="pane" id="view-demo" role="tabpanel" hidden>
+  <iframe id="demo-frame" title="桌面端壳可点原型" src="desktop-pwa-shell-demo.html" loading="lazy"></iframe>
+</div>
+
 <script>
 (function () {
+  const tabs = document.getElementById("modeTabs");
+  const viewPrd = document.getElementById("view-prd");
+  const viewDemo = document.getElementById("view-demo");
+  function setMode(mode, pushHash) {
+    const isDemo = mode === "demo";
+    tabs.querySelectorAll(".tab").forEach((t) => {
+      const on = t.dataset.mode === mode;
+      t.classList.toggle("on", on);
+      t.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    viewPrd.hidden = isDemo;
+    viewDemo.hidden = !isDemo;
+    if (pushHash !== false) {
+      if (isDemo) {
+        if (location.hash !== "#demo") history.replaceState(null, "", "#demo");
+      } else if (location.hash === "#demo" || location.hash === "#prd") {
+        history.replaceState(null, "", location.pathname + location.search);
+      }
+    }
+    document.title = isDemo
+      ? "51吃瓜 · 桌面端壳 Demo"
+      : "51吃瓜 · 桌面端壳 PRD";
+  }
+
+  tabs.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tab");
+    if (!btn) return;
+    setMode(btn.dataset.mode);
+  });
+
+  // PRD 左侧导航高亮（相对 view-prd 滚动）
   const nav = document.getElementById("prd-nav");
   const links = [...nav.querySelectorAll("a[href^='#']")];
   const map = links.map((a) => {
     const id = a.getAttribute("href").slice(1);
     return { a, el: document.getElementById(id) };
   }).filter((x) => x.el);
-  function sync() {
+
+  function syncNav() {
     let cur = map[0];
-    const y = window.scrollY + 80;
+    const y = viewPrd.scrollTop + 80;
     for (const item of map) {
       if (item.el.offsetTop <= y) cur = item;
     }
     links.forEach((a) => a.classList.toggle("on", a === cur.a));
   }
-  window.addEventListener("scroll", sync, { passive: true });
-  sync();
+  viewPrd.addEventListener("scroll", syncNav, { passive: true });
+  links.forEach((a) => {
+    a.addEventListener("click", (e) => {
+      const id = a.getAttribute("href").slice(1);
+      const el = document.getElementById(id);
+      if (!el) return;
+      e.preventDefault();
+      setMode("prd", false);
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+  syncNav();
+
+  function applyHash() {
+    const h = (location.hash || "").toLowerCase();
+    if (h === "#demo") setMode("demo", false);
+    else setMode("prd", false);
+  }
+  window.addEventListener("hashchange", applyHash);
+  applyHash();
+
+  // 文档截图灯箱（仅 PRD .shots / .pair 内图片）
+  const box = document.getElementById("lightbox");
+  const big = box.querySelector("img");
+  function openLb(src, alt) {
+    big.src = src;
+    big.alt = alt || "";
+    box.classList.add("is-open");
+  }
+  function closeLb() {
+    box.classList.remove("is-open");
+    big.removeAttribute("src");
+  }
+  document.addEventListener("click", (e) => {
+    if (e.target === box) { closeLb(); return; }
+    const t = e.target;
+    if (t.tagName !== "IMG") return;
+    if (!t.closest("#view-prd .shots, #view-prd .pair")) return;
+    if (t.closest(".lightbox")) return;
+    openLb(t.currentSrc || t.src, t.alt);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeLb();
+  });
+
 })();
 </script>
 </body>

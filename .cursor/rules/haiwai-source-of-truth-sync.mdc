@@ -64,6 +64,7 @@ alwaysApply: true
 | --- | --- |
 | `海外项目/51吃瓜/客户端/desktop-pwa-shell-demo.html` | `51chiguadesk/desktop-pwa-shell-demo.html` |
 | `海外项目/51吃瓜/客户端/desktop-pwa-shell-prd.html` | `51chiguadesk/desktop-pwa-shell-prd.html` |
+| `海外项目/51吃瓜/客户端/prd-screens/*` | `51chiguadesk/prd-screens/`（同名覆盖） |
 
 ## 产品分享 / PPT
 
