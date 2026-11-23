@@ -32,6 +32,10 @@ body {
   font: 14px/1.55 var(--font);
   padding-top: 52px;
 }
+/* 桌面壳社区 Tab 内嵌：去掉 PRD/Demo 调试条 */
+html.embed body { padding-top: 0; }
+html.embed .prd-mode-bar,
+html.embed .demo-rail { display: none !important; }
 .prd-mode-bar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 200; height: 52px;
   display: flex; align-items: center; gap: 16px;
@@ -1329,6 +1333,15 @@ textarea.afield,
 </style>
 </head>
 <body>
+<script>
+(function () {
+  try {
+    if (new URLSearchParams(location.search).get("embed") === "1") {
+      document.documentElement.classList.add("embed");
+    }
+  } catch (_) {}
+})();
+</script>
 <div class="prd-mode-bar">
   <span class="brand">求瓜心愿墙 · lite</span>
   <div class="tabs">

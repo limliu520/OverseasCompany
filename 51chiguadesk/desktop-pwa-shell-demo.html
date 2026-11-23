@@ -1161,6 +1161,33 @@
   #community-panel-stub[hidden] {
     display: none !important;
   }
+  /* 社区 · 心愿墙：内嵌 51吃瓜网求瓜心愿墙 */
+  #community-panel-wish {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+  }
+  #community-panel-wish:not([hidden]) {
+    display: flex !important;
+  }
+  .wish-embed-frame {
+    width: 100%;
+    flex: 1;
+    min-height: 640px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #191a22;
+  }
+  .wish-embed-fail {
+    padding: 28px 20px;
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    background: #fafbfc;
+  }
 
   /* ===== 社区 · 兴趣圈（原发现，APP 流样式） ===== */
   /* 顶区三卡：横向等宽并排 */
@@ -4917,7 +4944,13 @@
             </div>
 
             <div id="community-panel-wish" hidden>
-              <div class="disc-stub">心愿墙沿用现网页面与交互（占位）</div>
+              <iframe
+                class="wish-embed-frame"
+                id="wish-embed-frame"
+                title="51吃瓜网 · 求瓜心愿墙"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
             </div>
 
             <div id="community-panel-stub" hidden>
@@ -6450,6 +6483,7 @@
     let mode = "vip";
     function openVu(next) {
       mode = next;
+      const v = currentVideo;
       if (mode === "vip") {
         ico.className = "ico vip";
         ico.textContent = "V";
@@ -6457,11 +6491,18 @@
         desc.textContent = "本片需会员解锁。开通会员后可观看完整内容。";
         ok.className = "ok";
         ok.textContent = "去开通会员";
+      } else if (mode === "confirm") {
+        ico.className = "ico coin";
+        ico.textContent = "币";
+        title.textContent = "确认解锁完整版";
+        desc.textContent = `将消耗 ${v.coinCost} 金币解锁本片完整版（当前余额 ${userCoins} 金币）。`;
+        ok.className = "ok coin";
+        ok.textContent = "确认解锁";
       } else if (mode === "buy") {
         ico.className = "ico coin";
         ico.textContent = "币";
         title.textContent = "金币不足";
-        desc.textContent = `当前余额 ${userCoins} 金币，解锁还需 ${currentVideo.coinCost} 金币。请先购买金币。`;
+        desc.textContent = `当前余额 ${userCoins} 金币，解锁还需 ${v.coinCost} 金币。请先购买金币。`;
         ok.className = "ok coin";
         ok.textContent = "去购买金币";
       }
@@ -6472,6 +6513,21 @@
       mask.classList.remove("open");
       mask.setAttribute("aria-hidden", "true");
     }
+    function unlockByCoin() {
+      const v = currentVideo;
+      if (!v || v.unlocked) return;
+      if (userCoins < v.coinCost) {
+        closeVu();
+        showToast("金币不足，请先购买");
+        openVu("buy");
+        return;
+      }
+      userCoins -= v.coinCost;
+      v.unlocked = true;
+      paintFullBtn(v);
+      closeVu();
+      showToast(`已消耗 ${v.coinCost} 金币，完整版已解锁`);
+    }
     document.getElementById("vd-bili-full").addEventListener("click", (e) => {
       e.stopPropagation();
       const v = currentVideo;
@@ -6480,17 +6536,18 @@
         openVu("vip");
         return;
       }
-      if (userCoins >= v.coinCost) {
-        userCoins -= v.coinCost;
-        v.unlocked = true;
-        paintFullBtn(v);
-        showToast(`已消耗 ${v.coinCost} 金币，完整版已解锁（余额 ${userCoins}）`);
-        return;
-      }
-      openVu("buy");
+      if (userCoins >= v.coinCost) openVu("confirm");
+      else openVu("buy");
     });
     document.getElementById("vu-cancel").addEventListener("click", closeVu);
+    mask.addEventListener("click", (e) => {
+      if (e.target === mask) return; /* 编辑类：点遮罩不关 */
+    });
     ok.addEventListener("click", () => {
+      if (mode === "confirm") {
+        unlockByCoin();
+        return;
+      }
       if (mode === "vip") showToast("跳转开通会员（占位）");
       else showToast("跳转购买金币（占位）");
       closeVu();
@@ -6564,11 +6621,31 @@
   const panelInterest = document.getElementById("community-panel-interest");
   const panelWish = document.getElementById("community-panel-wish");
   const panelStub = document.getElementById("community-panel-stub");
+  const wishFrame = document.getElementById("wish-embed-frame");
+  let wishEmbedLoaded = false;
+  function wishWallEmbedSrc() {
+    const p = decodeURIComponent(location.pathname || "");
+    const base = (p.includes("/51chiguadesk/") || /\/51chiguadesk\.html$/.test(p))
+      ? "../51chigua/wish-wall-lite-demo.html"
+      : (p.includes("/海外项目/") || p.includes("/客户端/"))
+        ? "../../../51chigua/wish-wall-lite-demo.html"
+        : "../51chigua/wish-wall-lite-demo.html";
+    return `${base}?embed=1#wall`;
+  }
+  function ensureWishEmbed() {
+    if (!wishFrame || wishEmbedLoaded) return;
+    wishFrame.src = wishWallEmbedSrc();
+    wishEmbedLoaded = true;
+    wishFrame.addEventListener("error", () => {
+      showToast("求瓜心愿墙暂时不可用");
+    });
+  }
   function switchCommunityPanel(name) {
     panelReco.hidden = name !== "reco";
     panelInterest.hidden = name !== "interest";
     panelWish.hidden = name !== "wish";
     panelStub.hidden = name !== "stub";
+    if (name === "wish") ensureWishEmbed();
   }
   document.getElementById("community-subtabs").addEventListener("click", (e) => {
     const st = e.target.closest(".st[data-cpanel]");
