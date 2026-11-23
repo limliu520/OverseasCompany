@@ -1152,6 +1152,7 @@
   .sr-article-list[hidden],
   #search-post-masonry[hidden],
   #search-post-list[hidden],
+  #search-video-grid[hidden],
   #search-discover[hidden],
   #search-results[hidden],
   #search-post-layout[hidden],
@@ -1628,31 +1629,39 @@
     aspect-ratio: 823 / 413;
   }
   .banner .ph-block { width: 100%; height: 100%; font-size: 14px; }
-  /* 福利顶栏：样式 C 一排约 2.3 横滑递进（与搜索同交互） */
-  #page-welfare .welfare-banner-strip {
-    margin: 0 0 16px;
-    max-width: none;
-  }
-  #page-welfare .welfare-banner-strip .sp-banner-item {
-    flex-basis: calc((100% - 20px) / 2.3);
-    aspect-ratio: 16 / 6;
-  }
-  #page-welfare .welfare-banner-strip .sp-banner-item .ph-block {
-    font-size: 13px;
-    color: #1a5c3a;
-  }
-  /* 样式 B 预留：窄列独立卡片横滑（侧栏等；本期业务页未挂） */
+  /* 样式 B：窄列独立卡片横滑（视频详情简介侧栏等） */
   .ad-card-swipe {
     width: 100%;
-    max-width: 280px;
+    position: relative;
+  }
+  .ad-card-swipe-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .ad-card-swipe-label .ad-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #f0f2f5;
+    color: #667;
+    font-size: 10px;
   }
   .ad-card-swipe-rail {
     display: flex;
-    gap: 8px;
+    gap: 0;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    scrollbar-width: thin;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
+  .ad-card-swipe-rail::-webkit-scrollbar { display: none; }
   .ad-card-swipe-item {
     flex: 0 0 100%;
     scroll-snap-align: start;
@@ -1661,24 +1670,53 @@
     overflow: hidden;
     border: 1px solid var(--line);
     background: var(--green-soft);
+    cursor: pointer;
+    position: relative;
   }
   .ad-card-swipe-item .ph-block {
     width: 100%;
     height: 100%;
-    font-size: 12px;
+    font-size: 13px;
+    color: #1a5c3a;
   }
-  /* 视频列表 / 社区推荐广告：与首页同款 peek；限宽控高，避免宽屏拉满整屏高 */
+  .ad-card-swipe-dots {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 8px;
+  }
+  .ad-card-swipe-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #c9d4cc;
+  }
+  .ad-card-swipe-dots span.on {
+    background: var(--accent);
+    width: 14px;
+    border-radius: 4px;
+  }
+  /* 视频 / 社区 / 福利露出广告：一级页条带与下方内容区同宽；主位 max 823 控高，两侧外移贴齐 */
   #page-video .video-peek,
-  #page-community .community-peek {
+  #page-community .community-peek,
+  #page-welfare .welfare-peek {
     width: 100%;
-    margin: 0 auto 16px;
+    max-width: none;
+    margin: 0 0 16px;
+    padding-inline: 0;
+    box-sizing: border-box;
   }
-  #page-video .video-peek {
-    max-width: 823px;
+  #page-video .video-peek .home-peek-rail > .home-peek-side:first-of-type,
+  #page-community .community-peek .home-peek-rail > .home-peek-side:first-of-type,
+  #page-welfare .welfare-peek .home-peek-rail > .home-peek-side:first-of-type {
+    left: 0;
+    right: calc((100% + var(--peek-main-w)) / 2 - 20px);
   }
-  /* 社区推荐内容更密，广告再矮一档 */
-  #page-community .community-peek {
-    max-width: 640px;
+  #page-video .video-peek .home-peek-rail > .home-peek-side:last-of-type,
+  #page-community .community-peek .home-peek-rail > .home-peek-side:last-of-type,
+  #page-welfare .welfare-peek .home-peek-rail > .home-peek-side:last-of-type {
+    right: 0;
+    left: calc((100% + var(--peek-main-w)) / 2 - 20px);
   }
 
   .section-hd {
@@ -1747,10 +1785,22 @@
     font-size: 0;
     color: transparent;
   }
-  /* 主 Banner：固定 823×413；宽度≈73% 与下方卡片（823×303）等高，两侧多被遮挡 */
+  /* 主 Banner：中间主位 + 两侧露出；默认与内容卡同宽（首页） */
   .home-peek {
     position: relative;
     overflow: visible;
+  }
+  #page-home .feed-single {
+    max-width: none;
+    padding-inline: 0;
+    align-items: center;
+  }
+  #page-home .feed-single > .web-card,
+  #page-home .feed-single > .home-ad,
+  #page-home .feed-single > .home-peek {
+    width: min(100% - 48px, 823px);
+    max-width: 823px;
+    margin-inline: auto;
   }
   .home-peek-rail {
     --peek-main-w: calc(100% * 303 / 413);
@@ -1761,13 +1811,14 @@
     position: relative;
     z-index: 2;
     width: var(--peek-main-w);
+    max-width: 823px;
     margin: 0 auto;
     aspect-ratio: 823 / 413;
     border-radius: var(--radius);
     overflow: hidden;
     box-shadow: 0 8px 24px rgba(0,0,0,0.14);
   }
-  /* 两侧外缘与下方卡片同宽；内缘多叠进中间 */
+  /* 首页：两侧落在内容卡宽度内 */
   .home-peek-side {
     position: absolute;
     top: 10%;
@@ -3681,6 +3732,18 @@
     min-width: 88px;
   }
   .vd-bili-bar .spacer { flex: 1; min-width: 8px; }
+
+  .vd-bili-player.is-fs {
+    position: fixed;
+    inset: 0;
+    z-index: 12000;
+    border-radius: 0;
+    max-height: none;
+    height: 100vh;
+    width: 100vw;
+  }
+  .vd-bili-player.is-fs .vd-bili-bar { padding-bottom: 18px; }
+
   .vd-bili-side {
     position: absolute;
     top: 0;
@@ -3795,17 +3858,12 @@
   }
   .vd-bili-tags button:hover { background: var(--accent-soft); }
   .vd-bili-ad {
-    border-radius: 10px;
-    overflow: hidden;
-    aspect-ratio: 823 / 413;
-    margin-bottom: 14px;
-    border: 1px solid var(--line);
-  }
-  .vd-bili-ad .ph-block {
+    margin: 0 0 14px;
     width: 100%;
-    height: 100%;
-    font-size: 0;
-    color: transparent;
+    max-width: none;
+  }
+  .vd-bili-ad.ad-card-swipe {
+    max-width: none;
   }
   .vd-bili-side .sec-tit {
     font-size: 14px;
@@ -4749,10 +4807,12 @@
               <div class="sr-tabs" id="search-result-tabs">
                 <button type="button" class="tab active" data-srtab="article">文章</button>
                 <button type="button" class="tab" data-srtab="post">帖子</button>
+                <button type="button" class="tab" data-srtab="video">视频</button>
                 <button type="button" class="icon-btn layout" id="search-post-layout" data-mode="card" title="当前卡片模式，点击切回帖子模式" aria-label="切换展示形式" hidden>▥</button>
               </div>
               <div class="sr-article-list" id="search-article-list"></div>
               <div class="masonry-4" id="search-post-masonry" hidden></div>
+              <div class="grid-3" id="search-video-grid" hidden></div>
               <div class="topic-feed-post" id="search-post-list" hidden></div>
             </div>
           </div>
@@ -4830,6 +4890,7 @@
                       <button type="button" id="vd-bili-quality">清晰度 高清</button>
                       <button type="button" id="vd-bili-speed">倍速 1.0x</button>
                       <button type="button" id="vd-bili-feedback">反馈</button>
+                      <button type="button" id="vd-bili-fs" aria-label="全屏">全屏</button>
                     </div>
                   </div>
                 </div>
@@ -4850,8 +4911,13 @@
                       </div>
                     </div>
                     <div class="vd-bili-tags" id="vd-bili-tags"></div>
-                    <div class="vd-bili-ad" aria-label="广告">
-                      <div class="ph-block" aria-label="广告"></div>
+                    <div class="vd-bili-ad ad-card-swipe" id="vd-bili-ad" data-type="ad" aria-label="广告位 · 样式 B">
+                      <div class="ad-card-swipe-label">
+                        <span>广告位</span>
+                        <span class="ad-tag">样式 B · 自动滑动</span>
+                      </div>
+                      <div class="ad-card-swipe-rail" id="vd-bili-ad-rail"></div>
+                      <div class="ad-card-swipe-dots" id="vd-bili-ad-dots" aria-hidden="true"></div>
                     </div>
                     <div class="sec-tit">推荐内容</div>
                     <div id="vd-bili-recs"></div>
@@ -4908,7 +4974,6 @@
                 <span class="ph">社区公告占位：新用户规范说明（可关闭）</span>
                 <button class="x">✕</button>
               </div>
-              <div class="h-scroll" id="community-topics" title="左右滑动栏目"></div>
               <div class="filters" style="align-items:center">
                 <button class="pill active">最热</button>
                 <button class="pill">最新</button>
@@ -5038,8 +5103,18 @@
             <div class="top-row">
               <div class="brand-mini ph">福利APP免费下载（占位）</div>
             </div>
-            <div class="sp-banner welfare-banner-strip" id="welfare-banner-strip">
-              <div class="sp-banner-rail" id="welfare-banner-rail"></div>
+            <div class="home-peek welfare-peek" id="welfare-peek" data-type="ad">
+              <div class="home-peek-rail">
+                <div class="home-peek-side" id="welfare-peek-left"><div class="ph-block" aria-label="广告"></div></div>
+                <div class="home-peek-main" id="welfare-peek-main"><div class="ph-block" aria-label="广告"></div></div>
+                <div class="home-peek-side" id="welfare-peek-right"><div class="ph-block" aria-label="广告"></div></div>
+              </div>
+              <div class="home-peek-dots" id="welfare-peek-dots">
+                <button type="button" class="active" data-dot="0" aria-label="第1张"></button>
+                <button type="button" data-dot="1" aria-label="第2张"></button>
+                <button type="button" data-dot="2" aria-label="第3张"></button>
+                <button type="button" data-dot="3" aria-label="第4张"></button>
+              </div>
             </div>
             <div class="h-scroll" id="welfare-cats">
               <button class="city active">推荐</button>
@@ -5440,7 +5515,7 @@
                 <ol>
                   <li>
                     <strong>1. 广告位置与交互</strong>
-                    <div class="sub">顶栏 Banner：中间主位 + 两侧露出重叠，固定 823×413，可点两侧切换；信息流穿插广告：纯图、与文字卡同尺寸 823×303；搜索页广告：一排约 2–3 个横滑。右侧栏（联系我们 / 24H热瓜）保留现网 PC。</div>
+                    <div class="sub">顶栏 Banner：中间主位 + 两侧露出；首页整条与内容卡同宽；视频 / 社区整条与下方内容区同宽（两侧外移）。信息流穿插广告：纯图、与文字卡同尺寸 823×303；搜索页广告：一排约 2–3 个横滑。右侧栏保留现网 PC。</div>
                   </li>
                   <li>
                     <strong>2. 内容卡片样式</strong>
@@ -5490,7 +5565,7 @@
                   </li>
                   <li>
                     <strong>福利页铺法</strong>
-                    <div class="sub">顶栏改为样式 C（一排约 2.3 横滑递进，单卡约 16:6）。图标区：不要细分推荐分类，直接全部铺出，避免显得空——待落地确认。</div>
+                    <div class="sub">顶栏与一级页统一样式 A（露出主位）；图标区是否去掉细分分类、直接全部铺出——待落地确认。</div>
                   </li>
                 </ul>
               </section>
@@ -5753,6 +5828,10 @@
     { main: "community-peek-main", left: "community-peek-left", right: "community-peek-right", dots: "community-peek-dots" },
     adSlideCount
   );
+  bindPeekBanner(
+    { main: "welfare-peek-main", left: "welfare-peek-left", right: "welfare-peek-right", dots: "welfare-peek-dots" },
+    adSlideCount
+  );
 
   (function initHomeFloat() {
     const box = document.getElementById("home-float");
@@ -5881,6 +5960,7 @@
     const postMasonry = document.getElementById("search-post-masonry");
     const postList = document.getElementById("search-post-list");
     const postLayoutBtn = document.getElementById("search-post-layout");
+    const videoGrid = document.getElementById("search-video-grid");
     let hist = [];
     let searchPostMode = "card";
     let searchResultTab = "article";
@@ -6009,6 +6089,23 @@
       postMasonry.hidden = !(onPost && mode === "card");
       postList.hidden = !(onPost && mode === "post");
       postLayoutBtn.hidden = !onPost;
+      if (videoGrid) videoGrid.hidden = searchResultTab !== "video";
+    }
+
+    function videoGridHTML(q) {
+      return (typeof videos !== "undefined" ? videos : []).slice(0, 9).map((v) => `
+        <article class="card v-card" data-vid="${v.id}">
+          <div class="card-cover">
+            ${v.unlock === "vip" ? '<span class="badge vip">VIP</span>' : `<span class="badge coin">${v.coinCost} 金币</span>`}
+            <span class="badge plays">▶ ${v.plays}</span>
+            <span class="badge dur">${v.dur}</span>
+            <div class="ph-block">视频封面 ${v.id}</div>
+          </div>
+          <div class="card-body">
+            <div class="card-title">${q ? v.title + " · 「" + q + "」" : v.title}</div>
+            <div class="card-meta"><span>${v.date}</span></div>
+          </div>
+        </article>`).join("");
     }
 
     function setSearchResultTab(tab) {
@@ -6017,6 +6114,7 @@
         b.classList.toggle("active", b.dataset.srtab === tab);
       });
       articleList.hidden = tab !== "article";
+      if (videoGrid) videoGrid.hidden = tab !== "video";
       applySearchPostLayout(searchPostMode);
     }
 
@@ -6024,10 +6122,19 @@
       articleList.innerHTML = articleCardsHTML(q);
       postMasonry.innerHTML = postMasonryHTML();
       postList.innerHTML = postListHTML();
+      if (videoGrid) videoGrid.innerHTML = videoGridHTML(q);
       discover.hidden = true;
       results.hidden = false;
       setSearchResultTab("article");
       applySearchPostLayout("card");
+    }
+
+    if (videoGrid) {
+      videoGrid.addEventListener("click", (e) => {
+        const card = e.target.closest(".v-card");
+        if (!card) return;
+        openVideoDetail(card.dataset.vid);
+      });
     }
 
     function openSearch(preset) {
@@ -6456,6 +6563,49 @@
     openVideoDetail(card.dataset.vid);
   });
   document.getElementById("video-detail-back").addEventListener("click", closeVideoDetail);
+
+  (function initVdStyleBAd() {
+    const rail = document.getElementById("vd-bili-ad-rail");
+    const dots = document.getElementById("vd-bili-ad-dots");
+    const box = document.getElementById("vd-bili-ad");
+    if (!rail || !dots || !box) return;
+    const n = 4;
+    let index = 0;
+    let timer = null;
+    rail.innerHTML = Array.from({ length: n }, (_, i) => `
+      <button type="button" class="ad-card-swipe-item" data-vad="${i + 1}" aria-label="广告 ${i + 1}">
+        <div class="ph-block">广告 ${i + 1}</div>
+      </button>`).join("");
+    function paintDots() {
+      dots.innerHTML = Array.from({ length: n }, (_, i) =>
+        `<span class="${i === index ? "on" : ""}"></span>`
+      ).join("");
+    }
+    function go(to, smooth) {
+      index = ((to % n) + n) % n;
+      const item = rail.children[index];
+      if (item) item.scrollIntoView({ behavior: smooth ? "smooth" : "auto", inline: "start", block: "nearest" });
+      paintDots();
+    }
+    function start() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        if (!document.getElementById("page-video-detail")?.classList.contains("active")) return;
+        if (document.getElementById("vd-bili-pane-intro") && !document.getElementById("vd-bili-pane-intro").classList.contains("active")) return;
+        go(index + 1, true);
+      }, 2800);
+    }
+    rail.addEventListener("click", (e) => {
+      const item = e.target.closest(".ad-card-swipe-item");
+      if (!item) return;
+      showToast(`广告位（样式 B）· 第 ${item.dataset.vad} 帧`);
+    });
+    box.addEventListener("mouseenter", () => clearInterval(timer));
+    box.addEventListener("mouseleave", start);
+    paintDots();
+    go(0, false);
+    start();
+  })();
   document.getElementById("vd-bili-tabs").addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-bili-tab]");
     if (!btn) return;
@@ -6587,6 +6737,25 @@
     document.getElementById("vd-bili-feedback").addEventListener("click", () => {
       showToast("反馈（占位）");
     });
+    const fsBtn = document.getElementById("vd-bili-fs");
+    const player = document.querySelector(".vd-bili-player");
+    let isFs = false;
+    function setFs(on) {
+      isFs = on;
+      if (!player || !fsBtn) return;
+      player.classList.toggle("is-fs", on);
+      fsBtn.textContent = on ? "退出全屏" : "全屏";
+      showToast(on ? "已进入全屏" : "已退出全屏");
+    }
+    if (fsBtn && player) {
+      fsBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setFs(!isFs);
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && isFs) setFs(false);
+      });
+    }
   })();
   document.getElementById("vd-bili-share").addEventListener("click", () => {
     showToast("分享链接已复制（占位）");
@@ -6602,19 +6771,12 @@
     openVideoDetail(rec.dataset.vid);
   });
 
-  // community topics horizontal → 话题二级页
+  // 推荐页无话题栏；话题仅兴趣圈 / 话题二级
   const topics = ["#今日吃瓜", "#今日大瓜", "#原创精选", "#热议话题", "#短剧安利", "#同城爆料", "#周末特辑", "#编辑推荐"];
   const topicMeta = {
     "#今日吃瓜": { desc: "热门吃瓜 常看不厌", posts: "80876 帖子", views: "32296.7w 浏览" },
     "#今日大瓜": { desc: "热门大瓜 常看不厌", posts: "65210 帖子", views: "28104.2w 浏览" }
   };
-  document.getElementById("community-topics").innerHTML = topics.map((t, i) => `
-    <button type="button" class="topic-card" data-topic="${t}">
-      <div class="ph-block">
-        <strong>${t}</strong>
-        <span>${100 + i * 37} 动态</span>
-      </div>
-    </button>`).join("");
 
   // 社区子 Tab：推荐 / 兴趣圈 / 心愿墙；订阅·关注沿用现网
   const panelReco = document.getElementById("community-panel-reco");
@@ -6870,11 +7032,6 @@
     document.querySelector(".main-scroll").scrollTop = 0;
   }
 
-  document.getElementById("community-topics").addEventListener("click", (e) => {
-    const card = e.target.closest(".topic-card");
-    if (!card) return;
-    openTopicDetail(card.dataset.topic);
-  });
   document.getElementById("topic-detail-back").addEventListener("click", closeTopicDetail);
 
   // 发帖沿用现网：Demo 不改版发帖页，入口 Toast 说明
@@ -6900,6 +7057,9 @@
   let postDetailReturnPage = "page-community";
 
   function openPostDetail(id) {
+    // 帖子详情本期不改版，沿用现网
+    showToast("帖子详情沿用现网，本期不改版");
+    return;
     const p = posts.find((x) => x.id === Number(id));
     if (!p) return;
     const activePage = document.querySelector(".page.active");
@@ -6992,19 +7152,6 @@
       <div class="ico ph-block">${i + 1}</div>
       <span class="ph">${name}</span>
     </button>`).join("");
-  (function initWelfareBannerStrip() {
-    const rail = document.getElementById("welfare-banner-rail");
-    if (!rail) return;
-    rail.innerHTML = Array.from({ length: 5 }, (_, i) =>
-      `<button type="button" class="sp-banner-item welfare-ad" data-wad="${i + 1}"><div class="ph-block">福利广告 ${i + 1}</div></button>`
-    ).join("");
-    rail.addEventListener("click", (e) => {
-      const ad = e.target.closest(".welfare-ad");
-      if (!ad) return;
-      showToast(`福利广告 ${ad.dataset.wad}（占位）`);
-    });
-  })();
-
   // dating stores + people（店铺横滑 + 更多跳转占位）
   let datingReturnPage = "page-dating";
   document.getElementById("dating-publish-btn").addEventListener("click", () => {
