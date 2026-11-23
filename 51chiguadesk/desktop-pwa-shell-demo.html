@@ -107,10 +107,11 @@
     display: grid;
     grid-template-columns: 76px minmax(0, 1fr) 268px;
   }
-  /* 视频 / 约炮 / 福利 / 我的 / 文章详情：隐藏右侧栏；社区帖子详情与社区页同侧栏 */
+  /* 视频 / 约炮 / 福利 / 我的 / 文章详情 / 社区帖子详情：隐藏右侧栏 */
   .desk:has(#page-video.active) .shell,
   .desk:has(#page-video-detail.active) .shell,
   .desk:has(#page-article-detail.active) .shell,
+  .desk:has(#page-post-detail.active) .shell,
   .desk:has(#page-dating.active) .shell,
   .desk:has(#page-dating-post.active) .shell,
   .desk:has(#page-store-detail.active) .shell,
@@ -122,6 +123,7 @@
   .desk:has(#page-video.active) .rail,
   .desk:has(#page-video-detail.active) .rail,
   .desk:has(#page-article-detail.active) .rail,
+  .desk:has(#page-post-detail.active) .rail,
   .desk:has(#page-dating.active) .rail,
   .desk:has(#page-dating-post.active) .rail,
   .desk:has(#page-store-detail.active) .rail,
@@ -1154,43 +1156,44 @@
   #search-results[hidden],
   #search-post-layout[hidden],
   #community-panel-reco[hidden],
-  #community-panel-discover[hidden],
+  #community-panel-interest[hidden],
+  #community-panel-wish[hidden],
   #community-panel-stub[hidden] {
     display: none !important;
   }
 
-  /* ===== 社区 · 发现页（APP 流样式） ===== */
+  /* ===== 社区 · 兴趣圈（原发现，APP 流样式） ===== */
+  /* 顶区三卡：横向等宽并排 */
   .disc-hero {
     display: grid;
-    grid-template-columns: 1.15fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     margin-bottom: 14px;
-    height: 168px;
   }
-  .disc-hero-main,
-  .disc-hero-side .cell {
+  .disc-hero-card {
     position: relative;
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid var(--line);
     cursor: pointer;
     min-height: 0;
+    aspect-ratio: 16 / 9;
+    padding: 0;
+    background: none;
   }
-  .disc-hero-main {
-    height: 100%;
-  }
-  .disc-hero-side {
-    display: grid;
-    grid-template-rows: 1fr 1fr;
-    gap: 10px;
-    min-height: 0;
-    height: 100%;
-  }
-  .disc-hero-main .ph-block,
-  .disc-hero-side .cell .ph-block {
+  .disc-hero-card .ph-block {
     width: 100%;
     height: 100%;
-    font-size: 13px;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.35;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .disc-hero-card .ph-block small {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.85;
   }
   .disc-hero-tag {
     position: absolute;
@@ -1598,103 +1601,57 @@
     aspect-ratio: 823 / 413;
   }
   .banner .ph-block { width: 100%; height: 100%; font-size: 14px; }
-  /* 福利：并排双广告，高度压低 */
-  #page-welfare .banner.welfare-banner-duo {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    max-width: none;
+  /* 福利顶栏：样式 C 一排约 2.3 横滑递进（与搜索同交互） */
+  #page-welfare .welfare-banner-strip {
     margin: 0 0 16px;
-    aspect-ratio: auto;
-    overflow: visible;
-    background: transparent;
-    border-radius: 0;
+    max-width: none;
   }
-  #page-welfare .welfare-banner-duo .welfare-ad {
-    display: block;
-    width: 100%;
-    padding: 0;
+  #page-welfare .welfare-banner-strip .sp-banner-item {
+    flex-basis: calc((100% - 20px) / 2.3);
     aspect-ratio: 16 / 6;
-    border-radius: var(--radius);
+  }
+  #page-welfare .welfare-banner-strip .sp-banner-item .ph-block {
+    font-size: 13px;
+    color: #1a5c3a;
+  }
+  /* 样式 B 预留：窄列独立卡片横滑（侧栏等；本期业务页未挂） */
+  .ad-card-swipe {
+    width: 100%;
+    max-width: 280px;
+  }
+  .ad-card-swipe-rail {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+  }
+  .ad-card-swipe-item {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    aspect-ratio: 16 / 9;
+    border-radius: 10px;
     overflow: hidden;
     border: 1px solid var(--line);
-    cursor: pointer;
-    text-align: left;
+    background: var(--green-soft);
   }
-  #page-welfare .welfare-banner-duo .welfare-ad .ph-block {
+  .ad-card-swipe-item .ph-block {
     width: 100%;
     height: 100%;
-    font-size: 13px;
+    font-size: 12px;
   }
-  /* 视频列表广告：与首页同款 peek（中间主位 + 两侧露出） */
+  /* 视频列表 / 社区推荐广告：与首页同款 peek；限宽控高，避免宽屏拉满整屏高 */
+  #page-video .video-peek,
+  #page-community .community-peek {
+    width: 100%;
+    margin: 0 auto 16px;
+  }
   #page-video .video-peek {
-    max-width: none;
-    margin: 0 0 16px;
+    max-width: 823px;
   }
-  /* 社区：与列表等宽扁 Banner，可左右滑动 */
-  #page-community .banner {
-    max-width: none;
-    margin: 0 0 16px;
-    aspect-ratio: auto;
-    position: relative;
-  }
-  .page-banner {
-    position: relative;
-    width: 100%;
-    border-radius: var(--radius);
-  }
-  .page-banner-viewport {
-    width: 100%;
-    overflow: hidden;
-    aspect-ratio: 48 / 9;
-    border-radius: var(--radius);
-  }
-  .page-banner-track {
-    display: flex;
-    height: 100%;
-    transition: transform 0.35s ease;
-    will-change: transform;
-  }
-  .page-banner-slide {
-    flex: 0 0 100%;
-    width: 100%;
-    height: 100%;
-  }
-  .page-banner-slide .ph-block {
-    width: 100%;
-    height: 100%;
-    font-size: 14px;
-  }
-  .page-banner-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 2;
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.92);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-    color: var(--green);
-    font-weight: 700;
-    display: grid; place-items: center;
-  }
-  .page-banner-prev { left: 8px; }
-  .page-banner-next { right: 8px; }
-  .page-banner-dots {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    margin-top: 8px;
-  }
-  .page-banner-dots button {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: #c9d4cc;
-  }
-  .page-banner-dots button.active {
-    background: var(--accent);
-    width: 16px;
-    border-radius: 4px;
+  /* 社区推荐内容更密，广告再矮一档 */
+  #page-community .community-peek {
+    max-width: 640px;
   }
 
   .section-hd {
@@ -1794,11 +1751,11 @@
     opacity: 0.78;
     cursor: pointer;
   }
-  .home-peek-side#home-peek-left {
+  .home-peek-rail > .home-peek-side:first-of-type {
     left: 0;
     right: calc((100% + var(--peek-main-w)) / 2 - 72px);
   }
-  .home-peek-side#home-peek-right {
+  .home-peek-rail > .home-peek-side:last-of-type {
     right: 0;
     left: calc((100% + var(--peek-main-w)) / 2 - 72px);
   }
@@ -2813,262 +2770,6 @@
     margin-top: 4px;
     font-size: 12px;
   }
-  /* 高级筛选（编辑类：点遮罩不关） */
-  .df-mask {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 230;
-    background: rgba(0,0,0,0.45);
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }
-  .df-mask.open { display: flex; }
-  .df-modal {
-    width: min(420px, 100%);
-    max-height: min(720px, calc(100vh - 48px));
-    background: #fff;
-    border-radius: 16px;
-    border: 1px solid var(--line);
-    box-shadow: 0 24px 64px rgba(0,0,0,0.22);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  .df-hd {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 18px;
-    border-bottom: 1px solid var(--line);
-    flex-shrink: 0;
-  }
-  .df-hd h3 { font-size: 17px; font-weight: 800; }
-  .df-hd .x {
-    width: 32px; height: 32px;
-    border-radius: 8px;
-    background: #f2f3f5;
-    font-size: 16px;
-    color: #666;
-  }
-  .df-scroll {
-    padding: 16px 18px 8px;
-    overflow: auto;
-    flex: 1;
-    min-height: 0;
-  }
-  .df-sec { margin-bottom: 18px; }
-  .df-sec h4 {
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 10px;
-  }
-  .df-sec h4 .hint {
-    font-weight: 500;
-    color: var(--muted);
-    font-size: 12px;
-  }
-  .df-tags {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
-  .df-tags button {
-    padding: 10px 6px;
-    border-radius: 10px;
-    background: #f2f3f5;
-    font-size: 13px;
-    color: #444;
-    border: 1px solid transparent;
-  }
-  .df-tags button.on {
-    background: #fff;
-    color: var(--accent);
-    border-color: var(--accent);
-    font-weight: 700;
-  }
-  .df-ft {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    padding: 14px 18px 18px;
-    border-top: 1px solid var(--line);
-    flex-shrink: 0;
-  }
-  .df-ft .reset {
-    padding: 12px;
-    border-radius: 999px;
-    background: #f2f3f5;
-    font-weight: 700;
-  }
-  .df-ft .ok {
-    padding: 12px;
-    border-radius: 999px;
-    background: var(--accent);
-    color: #fff;
-    font-weight: 700;
-  }
-
-  /* ===== 社区发帖（编辑类：点遮罩不关） ===== */
-  .pub-mask {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 235;
-    background: rgba(0,0,0,0.45);
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }
-  .pub-mask.open { display: flex; }
-  .pub-modal {
-    width: min(520px, 100%);
-    max-height: min(720px, calc(100vh - 48px));
-    background: #fff;
-    border-radius: 16px;
-    border: 1px solid var(--line);
-    box-shadow: 0 24px 64px rgba(0,0,0,0.22);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  .pub-hd {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 18px;
-    border-bottom: 1px solid var(--line);
-    flex-shrink: 0;
-  }
-  .pub-hd h3 { font-size: 17px; font-weight: 800; }
-  .pub-hd .x {
-    width: 32px; height: 32px;
-    border-radius: 8px;
-    background: #f2f3f5;
-    font-size: 16px;
-    color: #666;
-  }
-  .pub-body {
-    padding: 16px 18px;
-    overflow: auto;
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .pub-field label {
-    display: block;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--green);
-    margin-bottom: 8px;
-  }
-  .pub-topic-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-  }
-  .pub-topic-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: var(--accent-soft);
-    color: var(--accent);
-    font-size: 13px;
-    font-weight: 700;
-  }
-  .pub-topic-chip .rm {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.08);
-    font-size: 12px;
-    line-height: 1;
-    color: #666;
-  }
-  .pub-topic-empty {
-    font-size: 12px;
-    color: #7a9e88;
-  }
-  .pub-topic-pick {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .pub-topic-pick button {
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: #f7f8f7;
-    font-size: 12px;
-    color: var(--green);
-  }
-  .pub-topic-pick button.on {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-soft);
-    font-weight: 700;
-  }
-  .pub-body input[type="text"],
-  .pub-body textarea {
-    width: 100%;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 14px;
-    color: var(--green);
-    background: #fff;
-    outline: none;
-  }
-  .pub-body input[type="text"]:focus,
-  .pub-body textarea:focus {
-    border-color: var(--accent);
-  }
-  .pub-body textarea {
-    min-height: 120px;
-    resize: vertical;
-    line-height: 1.6;
-  }
-  .pub-media {
-    display: flex;
-    gap: 10px;
-  }
-  .pub-media button {
-    padding: 8px 14px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: #f7f8f7;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--green);
-  }
-  .pub-ft {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    padding: 14px 18px 18px;
-    border-top: 1px solid var(--line);
-    flex-shrink: 0;
-  }
-  .pub-ft .cancel {
-    padding: 12px;
-    border-radius: 999px;
-    background: #f2f3f5;
-    font-weight: 700;
-  }
-  .pub-ft .ok {
-    padding: 12px;
-    border-radius: 999px;
-    background: var(--accent);
-    color: #fff;
-    font-weight: 700;
-  }
-
   .store-scroll-wrap {
     position: relative;
     margin-bottom: 18px;
@@ -4686,11 +4387,9 @@
   .rail-home-extra { display: block; }
   .rail-community-extra { display: none; }
   .desk:has(#page-community.active) .rail-home-extra,
-  .desk:has(#page-topic-detail.active) .rail-home-extra,
-  .desk:has(#page-post-detail.active) .rail-home-extra { display: none; }
+  .desk:has(#page-topic-detail.active) .rail-home-extra { display: none; }
   .desk:has(#page-community.active) .rail-community-extra,
-  .desk:has(#page-topic-detail.active) .rail-community-extra,
-  .desk:has(#page-post-detail.active) .rail-community-extra { display: block; }
+  .desk:has(#page-topic-detail.active) .rail-community-extra { display: block; }
   .hot-list {
     background: #fff;
     border: 1px solid var(--line);
@@ -5150,8 +4849,9 @@
             <div class="subtabs" id="community-subtabs">
               <button type="button" class="st" data-cpanel="stub">订阅</button>
               <button type="button" class="st active" data-cpanel="reco">推荐</button>
-              <button type="button" class="st" data-cpanel="discover">发现</button>
+              <button type="button" class="st" data-cpanel="interest">兴趣圈</button>
               <button type="button" class="st" data-cpanel="stub">关注</button>
+              <button type="button" class="st" data-cpanel="wish">心愿墙</button>
               <div class="right-actions">
                 <div class="search-wrap" id="community-search-wrap" title="进入搜索">
                   <span class="ph">⌕</span>
@@ -5163,24 +4863,17 @@
             </div>
 
             <div id="community-panel-reco">
-              <div class="banner">
-                <div class="page-banner" id="community-banner">
-                  <button type="button" class="page-banner-nav page-banner-prev" aria-label="上一张">‹</button>
-                  <button type="button" class="page-banner-nav page-banner-next" aria-label="下一张">›</button>
-                  <div class="page-banner-viewport">
-                    <div class="page-banner-track" id="community-banner-track">
-                      <div class="page-banner-slide"><div class="ph-block">社区 Banner 1 · 与列表等宽 · 可左右滑</div></div>
-                      <div class="page-banner-slide"><div class="ph-block">社区 Banner 2 · 话题运营位</div></div>
-                      <div class="page-banner-slide"><div class="ph-block">社区 Banner 3 · 活动推荐位</div></div>
-                      <div class="page-banner-slide"><div class="ph-block">社区 Banner 4 · 精选入口位</div></div>
-                    </div>
-                  </div>
-                  <div class="page-banner-dots" id="community-banner-dots">
-                    <button type="button" class="active" data-dot="0" aria-label="第1帧"></button>
-                    <button type="button" data-dot="1" aria-label="第2帧"></button>
-                    <button type="button" data-dot="2" aria-label="第3帧"></button>
-                    <button type="button" data-dot="3" aria-label="第4帧"></button>
-                  </div>
+              <div class="home-peek community-peek" id="community-peek" data-type="ad">
+                <div class="home-peek-rail">
+                  <div class="home-peek-side" id="community-peek-left"><div class="ph-block" aria-label="广告"></div></div>
+                  <div class="home-peek-main" id="community-peek-main"><div class="ph-block" aria-label="广告"></div></div>
+                  <div class="home-peek-side" id="community-peek-right"><div class="ph-block" aria-label="广告"></div></div>
+                </div>
+                <div class="home-peek-dots" id="community-peek-dots">
+                  <button type="button" class="active" data-dot="0" aria-label="第1帧"></button>
+                  <button type="button" data-dot="1" aria-label="第2帧"></button>
+                  <button type="button" data-dot="2" aria-label="第3帧"></button>
+                  <button type="button" data-dot="3" aria-label="第4帧"></button>
                 </div>
               </div>
               <div class="announce">
@@ -5200,22 +4893,17 @@
               <div class="topic-feed-post" id="community-post-list" hidden></div>
             </div>
 
-            <div id="community-panel-discover" hidden>
+            <div id="community-panel-interest" hidden>
               <div class="disc-hero" id="disc-hero">
-                <button type="button" class="disc-hero-main" data-disc-card="wish">
-                  <span class="disc-hero-tag">社区发现页</span>
-                  <div class="ph-block">心愿墙</div>
+                <button type="button" class="disc-hero-card" data-disc-card="welfare">
+                  <div class="ph-block">福利导航<br /><small>精选福利</small></div>
                 </button>
-                <div class="disc-hero-side">
-                  <button type="button" class="cell" data-disc-card="welfare">
-                    <span class="disc-hero-tag">社区发现页</span>
-                    <div class="ph-block">福利</div>
-                  </button>
-                  <button type="button" class="cell" data-disc-card="adult">
-                    <span class="disc-hero-tag">社区发现页</span>
-                    <div class="ph-block">成人</div>
-                  </button>
-                </div>
+                <button type="button" class="disc-hero-card" data-disc-card="adult">
+                  <div class="ph-block">成人导航<br /><small>发现更多好去处</small></div>
+                </button>
+                <button type="button" class="disc-hero-card" data-disc-card="home">
+                  <div class="ph-block">51吃瓜<br /><small>图片入口</small></div>
+                </button>
               </div>
               <div class="disc-filters" id="disc-filters">
                 <button type="button" class="active">热门大瓜</button>
@@ -5228,8 +4916,12 @@
               <div class="disc-feed" id="disc-feed"></div>
             </div>
 
+            <div id="community-panel-wish" hidden>
+              <div class="disc-stub">心愿墙沿用现网页面与交互（占位）</div>
+            </div>
+
             <div id="community-panel-stub" hidden>
-              <div class="disc-stub">订阅 / 关注本期先不改，维持现网（占位）</div>
+              <div class="disc-stub">订阅 / 关注沿用现网（占位）</div>
             </div>
           </div>
 
@@ -5313,9 +5005,8 @@
             <div class="top-row">
               <div class="brand-mini ph">福利APP免费下载（占位）</div>
             </div>
-            <div class="banner welfare-banner-duo" id="welfare-banner-duo">
-              <button type="button" class="welfare-ad" data-wad="1"><div class="ph-block">福利广告 1</div></button>
-              <button type="button" class="welfare-ad" data-wad="2"><div class="ph-block">福利广告 2</div></button>
+            <div class="sp-banner welfare-banner-strip" id="welfare-banner-strip">
+              <div class="sp-banner-rail" id="welfare-banner-rail"></div>
             </div>
             <div class="h-scroll" id="welfare-cats">
               <button class="city active">推荐</button>
@@ -5668,7 +5359,7 @@
                   </li>
                   <li>
                     <strong>右侧栏</strong>
-                    <div class="sub">首页：联系我们 + 24H热瓜。社区 / 话题二级 / 帖子详情：联系我们 + 人气作者Top5 + 官方发布。视频整页、约炮整页（含店铺详情 / 更多店铺）、福利页隐藏右侧栏。文章详情沿用现网（含侧栏），Demo 点入口 Toast「文章详情和现网一致」。</div>
+                    <div class="sub">首页：联系我们 + 24H热瓜。社区 / 话题二级：联系我们 + 人气作者Top5 + 官方发布。视频整页、约炮整页、福利页、社区帖子详情隐藏右侧栏。文章详情沿用现网（含侧栏），Demo 点入口 Toast「文章详情和现网一致」。</div>
                   </li>
                   <li>
                     <strong>我的</strong>
@@ -5702,11 +5393,11 @@
                   </li>
                   <li>
                     <strong>话题二级页</strong>
-                    <div class="sub">点横向话题卡（如 #今日吃瓜）进入：返回 + 标题、筛选（最新/热门/文字/图片/视频）、话题信息卡（含「＋ 发布」）、帖子流。默认卡片，可切帖子模式。帖子点进现有小红书式详情。从话题卡「＋ 发布」进入发帖时，当前话题作为默认话题；可改选其它话题。社区首页「＋ 发布」无默认话题。</div>
+                    <div class="sub">点横向话题卡（如 #今日吃瓜）进入：返回 + 标题、筛选（最新/热门/文字/图片/视频）、话题信息卡（含「＋ 发布」）、帖子流。默认卡片，可切帖子模式。帖子点进现有小红书式详情。「＋ 发布」进入现网发帖流程。</div>
                   </li>
                   <li>
                     <strong>帖子详情页</strong>
-                    <div class="sub">沿用现有小红书式左右分栏。壳层右侧栏与社区页一致：联系我们 + 人气作者Top5 + 官方发布（话题二级页同此套）。</div>
+                    <div class="sub">沿用现有小红书式左右分栏。壳层右侧栏隐藏，主区拉满（话题二级仍用社区侧栏）。</div>
                   </li>
                 </ul>
               </section>
@@ -5766,7 +5457,7 @@
                   </li>
                   <li>
                     <strong>福利页铺法</strong>
-                    <div class="sub">顶栏改为并排双广告（比例约 16:6，高度压低）。图标区：不要细分推荐分类，直接全部铺出，避免显得空——待落地确认。</div>
+                    <div class="sub">顶栏改为样式 C（一排约 2.3 横滑递进，单卡约 16:6）。图标区：不要细分推荐分类，直接全部铺出，避免显得空——待落地确认。</div>
                   </li>
                 </ul>
               </section>
@@ -5811,70 +5502,6 @@
           </div>
         </div>
       </aside>
-    </div>
-  </div>
-
-  <!-- 社区发帖（编辑类：点遮罩不关） -->
-  <div class="pub-mask" id="publish-mask" aria-hidden="true">
-    <div class="pub-modal" role="dialog" aria-modal="true" aria-labelledby="pub-title">
-      <div class="pub-hd">
-        <h3 id="pub-title">发帖</h3>
-        <button type="button" class="x" id="pub-close" aria-label="关闭">✕</button>
-      </div>
-      <div class="pub-body">
-        <div class="pub-field">
-          <label>话题</label>
-          <div class="pub-topic-row" id="pub-topic-selected"></div>
-          <div class="pub-topic-pick" id="pub-topic-pick" style="margin-top:10px"></div>
-        </div>
-        <div class="pub-field">
-          <label for="pub-title-input">标题</label>
-          <input type="text" id="pub-title-input" placeholder="写一个标题（占位）" />
-        </div>
-        <div class="pub-field">
-          <label for="pub-content-input">正文</label>
-          <textarea id="pub-content-input" placeholder="说点什么，发布你的最新内容…（占位）"></textarea>
-        </div>
-        <div class="pub-media">
-          <button type="button" id="pub-add-image">图片</button>
-          <button type="button" id="pub-add-video">视频</button>
-        </div>
-      </div>
-      <div class="pub-ft">
-        <button type="button" class="cancel" id="pub-cancel">取消</button>
-        <button type="button" class="ok" id="pub-submit">发布</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 约炮 · 高级筛选（编辑类：点遮罩不关） -->
-  <div class="df-mask" id="dating-filter-mask" aria-hidden="true">
-    <div class="df-modal" role="dialog" aria-modal="true" aria-labelledby="df-title">
-      <div class="df-hd">
-        <h3 id="df-title">高级筛选</h3>
-        <button type="button" class="x" id="df-close" aria-label="关闭">✕</button>
-      </div>
-      <div class="df-scroll">
-        <div class="df-sec" data-df-group="age" data-multi="0">
-          <h4>年龄</h4>
-          <div class="df-tags">
-            <button type="button" class="on" data-v="不限">不限</button>
-            <button type="button" data-v="全部">全部</button>
-            <button type="button" data-v="18-21岁">18-21岁</button>
-            <button type="button" data-v="21-24岁">21-24岁</button>
-            <button type="button" data-v="24-28岁">24-28岁</button>
-            <button type="button" data-v="28以上">28以上</button>
-          </div>
-        </div>
-        <div class="df-sec" data-df-group="service" data-multi="1">
-          <h4>服务类型 <span class="hint">可多选</span></h4>
-          <div class="df-tags" id="df-service-tags"></div>
-        </div>
-      </div>
-      <div class="df-ft">
-        <button type="button" class="reset" id="df-reset">重置</button>
-        <button type="button" class="ok" id="df-ok">确定</button>
-      </div>
     </div>
   </div>
 
@@ -6087,6 +5714,10 @@
   );
   bindPeekBanner(
     { main: "video-peek-main", left: "video-peek-left", right: "video-peek-right", dots: "video-peek-dots" },
+    adSlideCount
+  );
+  bindPeekBanner(
+    { main: "community-peek-main", left: "community-peek-left", right: "community-peek-right", dots: "community-peek-dots" },
     adSlideCount
   );
 
@@ -6672,66 +6303,6 @@
     }
   });
 
-  // 视频 / 社区 Banner 左右滑动（同款）
-  function initPageBanner(rootId, trackId, dotsId) {
-    const root = document.getElementById(rootId);
-    if (!root) return;
-    const track = document.getElementById(trackId);
-    const dotsWrap = document.getElementById(dotsId);
-    const vp = root.querySelector(".page-banner-viewport");
-    const n = track.querySelectorAll(".page-banner-slide").length;
-    let index = 0;
-    let lock = false;
-
-    function paint(animate) {
-      const w = vp.offsetWidth;
-      track.style.transition = animate ? "transform 0.35s ease" : "none";
-      track.style.transform = `translateX(${-index * w}px)`;
-      dotsWrap.querySelectorAll("button").forEach((b, i) => {
-        b.classList.toggle("active", i === index);
-      });
-    }
-
-    function go(to) {
-      if (lock) return;
-      lock = true;
-      index = ((to % n) + n) % n;
-      paint(true);
-      const onEnd = () => {
-        track.removeEventListener("transitionend", onEnd);
-        lock = false;
-      };
-      track.addEventListener("transitionend", onEnd);
-    }
-
-    root.querySelector(".page-banner-next").addEventListener("click", () => go(index + 1));
-    root.querySelector(".page-banner-prev").addEventListener("click", () => go(index - 1));
-    dotsWrap.addEventListener("click", (e) => {
-      const btn = e.target.closest("button[data-dot]");
-      if (!btn) return;
-      go(Number(btn.dataset.dot));
-    });
-
-    let startX = 0;
-    let dragging = false;
-    vp.addEventListener("pointerdown", (e) => {
-      dragging = true;
-      startX = e.clientX;
-      vp.setPointerCapture(e.pointerId);
-    });
-    vp.addEventListener("pointerup", (e) => {
-      if (!dragging) return;
-      dragging = false;
-      const dx = e.clientX - startX;
-      if (dx < -40) go(index + 1);
-      else if (dx > 40) go(index - 1);
-    });
-    vp.addEventListener("pointercancel", () => { dragging = false; });
-    window.addEventListener("resize", () => paint(false));
-    paint(false);
-  }
-  initPageBanner("community-banner", "community-banner-track", "community-banner-dots");
-
   // video grid 3 col · unlock: vip | coin
   let userCoins = 50;
   let currentVideo = null;
@@ -6988,13 +6559,15 @@
       </div>
     </button>`).join("");
 
-  // 社区子 Tab：推荐 / 发现；订阅·关注本期不改
+  // 社区子 Tab：推荐 / 兴趣圈 / 心愿墙；订阅·关注沿用现网
   const panelReco = document.getElementById("community-panel-reco");
-  const panelDiscover = document.getElementById("community-panel-discover");
+  const panelInterest = document.getElementById("community-panel-interest");
+  const panelWish = document.getElementById("community-panel-wish");
   const panelStub = document.getElementById("community-panel-stub");
   function switchCommunityPanel(name) {
     panelReco.hidden = name !== "reco";
-    panelDiscover.hidden = name !== "discover";
+    panelInterest.hidden = name !== "interest";
+    panelWish.hidden = name !== "wish";
     panelStub.hidden = name !== "stub";
   }
   document.getElementById("community-subtabs").addEventListener("click", (e) => {
@@ -7015,9 +6588,9 @@
     </button>`;
 
   const discFeed = [
-    { id: 1, author: "诚心蓝天", lv: "LV.1", date: "8月15日", title: "51吃瓜网，最新首发", text: "瓜田里又有新动态，先看为敬（发现流占位）。", video: true, more: 2 },
+    { id: 1, author: "诚心蓝天", lv: "LV.1", date: "8月15日", title: "51吃瓜网，最新首发", text: "瓜田里又有新动态，先看为敬（兴趣圈流占位）。", video: true, more: 2 },
     { id: 2, author: "吃瓜小分队", lv: "LV.3", date: "8月14日", title: "今日热瓜精选合集", text: "三条都值得点开，评论区已吵起来了。", video: false, more: 0 },
-    { id: 3, author: "蓝莓气泡水", lv: "LV.2", date: "8月13日", title: "原创专区投稿看看", text: "发现页先用 APP 流样式示意，不做首页文章卡。", video: true, more: 5 }
+    { id: 3, author: "蓝莓气泡水", lv: "LV.2", date: "8月13日", title: "原创专区投稿看看", text: "兴趣圈用 APP 流样式示意。", video: true, more: 5 }
   ];
   document.getElementById("disc-feed").innerHTML = discFeed.map((p) => `
     <article class="disc-post" data-pid="${p.id}">
@@ -7043,13 +6616,13 @@
     if (!btn) return;
     document.querySelectorAll("#disc-filters button").forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
-    showToast(`发现筛选「${btn.textContent}」（占位）`);
+    showToast(`兴趣圈筛选「${btn.textContent}」（占位）`);
   });
   document.getElementById("disc-hero").addEventListener("click", (e) => {
     const card = e.target.closest("[data-disc-card]");
     if (!card) return;
-    const map = { wish: "心愿墙", welfare: "福利", adult: "成人" };
-    showToast(`${map[card.dataset.discCard] || "发现入口"}（占位）`);
+    const map = { welfare: "福利导航", adult: "成人导航", home: "51吃瓜" };
+    showToast(`${map[card.dataset.discCard] || "图片入口"}（占位）`);
   });
   document.getElementById("disc-topics").addEventListener("click", (e) => {
     const more = e.target.closest(".disc-topic.more");
@@ -7227,69 +6800,12 @@
   });
   document.getElementById("topic-detail-back").addEventListener("click", closeTopicDetail);
 
-  // 社区发帖：话题页带入当前话题为默认值
-  let pubSelectedTopic = "";
-  const pubMask = document.getElementById("publish-mask");
-  const pubTopicSelected = document.getElementById("pub-topic-selected");
-  const pubTopicPick = document.getElementById("pub-topic-pick");
-
-  function renderPubTopicUI() {
-    if (pubSelectedTopic) {
-      pubTopicSelected.innerHTML = `
-        <span class="pub-topic-chip">
-          ${pubSelectedTopic}
-          <button type="button" class="rm" id="pub-topic-clear" aria-label="移除话题">×</button>
-        </span>`;
-    } else {
-      pubTopicSelected.innerHTML = `<span class="pub-topic-empty">未选择话题，可点下方标签添加</span>`;
-    }
-    pubTopicPick.innerHTML = topics.map((t) => `
-      <button type="button" data-topic="${t}" class="${t === pubSelectedTopic ? "on" : ""}">${t}</button>
-    `).join("");
+  // 发帖沿用现网：Demo 不改版发帖页，入口 Toast 说明
+  function openExistingPublish() {
+    showToast("发帖沿用现网页面与交互");
   }
-
-  function openPublishCompose(opts) {
-    const defaults = opts || {};
-    pubSelectedTopic = defaults.topic || "";
-    document.getElementById("pub-title-input").value = "";
-    document.getElementById("pub-content-input").value = "";
-    renderPubTopicUI();
-    pubMask.classList.add("open");
-    pubMask.setAttribute("aria-hidden", "false");
-  }
-
-  function closePublishCompose() {
-    pubMask.classList.remove("open");
-    pubMask.setAttribute("aria-hidden", "true");
-  }
-
-  pubTopicPick.addEventListener("click", (e) => {
-    const btn = e.target.closest("button[data-topic]");
-    if (!btn) return;
-    pubSelectedTopic = btn.dataset.topic;
-    renderPubTopicUI();
-  });
-  pubTopicSelected.addEventListener("click", (e) => {
-    if (!e.target.closest("#pub-topic-clear")) return;
-    pubSelectedTopic = "";
-    renderPubTopicUI();
-  });
-  document.getElementById("pub-close").addEventListener("click", closePublishCompose);
-  document.getElementById("pub-cancel").addEventListener("click", closePublishCompose);
-  document.getElementById("pub-submit").addEventListener("click", () => {
-    const title = document.getElementById("pub-title-input").value.trim();
-    const topicTip = pubSelectedTopic ? `到「${pubSelectedTopic}」` : "（未选话题）";
-    showToast(title ? `已发布${topicTip}（占位）` : `已发布${topicTip}（占位）`);
-    closePublishCompose();
-  });
-  document.getElementById("pub-add-image").addEventListener("click", () => showToast("添加图片（占位）"));
-  document.getElementById("pub-add-video").addEventListener("click", () => showToast("添加视频（占位）"));
-  document.getElementById("community-publish-btn").addEventListener("click", () => {
-    openPublishCompose({});
-  });
-  document.getElementById("topic-publish-btn").addEventListener("click", () => {
-    openPublishCompose({ topic: currentTopic });
-  });
+  document.getElementById("community-publish-btn").addEventListener("click", openExistingPublish);
+  document.getElementById("topic-publish-btn").addEventListener("click", openExistingPublish);
 
   document.getElementById("topic-layout-btn").addEventListener("click", () => {
     const next = topicLayoutMode === "card" ? "post" : "card";
@@ -7399,11 +6915,18 @@
       <div class="ico ph-block">${i + 1}</div>
       <span class="ph">${name}</span>
     </button>`).join("");
-  document.getElementById("welfare-banner-duo").addEventListener("click", (e) => {
-    const ad = e.target.closest(".welfare-ad");
-    if (!ad) return;
-    showToast(`福利广告 ${ad.dataset.wad}（占位）`);
-  });
+  (function initWelfareBannerStrip() {
+    const rail = document.getElementById("welfare-banner-rail");
+    if (!rail) return;
+    rail.innerHTML = Array.from({ length: 5 }, (_, i) =>
+      `<button type="button" class="sp-banner-item welfare-ad" data-wad="${i + 1}"><div class="ph-block">福利广告 ${i + 1}</div></button>`
+    ).join("");
+    rail.addEventListener("click", (e) => {
+      const ad = e.target.closest(".welfare-ad");
+      if (!ad) return;
+      showToast(`福利广告 ${ad.dataset.wad}（占位）`);
+    });
+  })();
 
   // dating stores + people（店铺横滑 + 更多跳转占位）
   let datingReturnPage = "page-dating";
@@ -7678,71 +7201,10 @@
     openDatingPost(card.dataset.pid);
   });
 
-  (function initDatingFilterModal() {
-    const mask = document.getElementById("dating-filter-mask");
-    const services = ["不限", "69", "cosplay", "jk", "SM", "三通", "丝袜", "乳交", "冰火", "制服诱惑", "口交", "口爆", "口爱", "多P", "情趣内衣", "指滑", "毒龙", "水磨"];
-    const svcBox = document.getElementById("df-service-tags");
-    svcBox.innerHTML = services.map((s, i) =>
-      `<button type="button" class="${i === 0 ? "on" : ""}" data-v="${s}">${s}</button>`
-    ).join("");
-
-    function openDf() {
-      mask.classList.add("open");
-      mask.setAttribute("aria-hidden", "false");
-    }
-    function closeDf() {
-      mask.classList.remove("open");
-      mask.setAttribute("aria-hidden", "true");
-    }
-    function resetDf() {
-      mask.querySelectorAll(".df-sec").forEach((sec) => {
-        const btns = [...sec.querySelectorAll(".df-tags button")];
-        btns.forEach((b) => b.classList.remove("on"));
-        const unlimited = btns.find((b) => b.dataset.v === "不限") || btns[0];
-        if (unlimited) unlimited.classList.add("on");
-      });
-    }
-
-    document.querySelectorAll("[data-dating-filter]").forEach((btn) => {
-      btn.addEventListener("click", openDf);
-    });
-    document.getElementById("df-close").addEventListener("click", closeDf);
-    document.getElementById("df-reset").addEventListener("click", () => {
-      resetDf();
-      showToast("已重置筛选");
-    });
-    document.getElementById("df-ok").addEventListener("click", () => {
-      closeDf();
-      showToast("已应用筛选（占位）");
-    });
-    mask.addEventListener("click", (e) => {
-      if (e.target === mask) return; /* 编辑类：点遮罩不关 */
-    });
-    mask.querySelectorAll(".df-sec").forEach((sec) => {
-      sec.addEventListener("click", (e) => {
-        const btn = e.target.closest(".df-tags button");
-        if (!btn) return;
-        const multi = sec.dataset.multi === "1";
-        const btns = [...sec.querySelectorAll(".df-tags button")];
-        if (btn.dataset.v === "不限") {
-          btns.forEach((b) => b.classList.remove("on"));
-          btn.classList.add("on");
-          return;
-        }
-        const unlimited = btns.find((b) => b.dataset.v === "不限");
-        if (unlimited) unlimited.classList.remove("on");
-        if (multi) {
-          btn.classList.toggle("on");
-          if (!btns.some((b) => b.classList.contains("on") && b.dataset.v !== "不限")) {
-            if (unlimited) unlimited.classList.add("on");
-          }
-        } else {
-          btns.forEach((b) => b.classList.remove("on"));
-          btn.classList.add("on");
-        }
-      });
-    });
-  })();
+  // 筛选沿用现网：Demo 不改版筛选弹层
+  document.querySelectorAll("[data-dating-filter]").forEach((btn) => {
+    btn.addEventListener("click", () => showToast("筛选沿用现网交互"));
+  });
 
   // mine tools
   const tools = [
