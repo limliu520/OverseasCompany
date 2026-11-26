@@ -408,15 +408,12 @@ function coverBg(id) {
 function pager(total) {
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   if (total <= PAGE_SIZE) return "";
-  const start = (state.page - 1) * PAGE_SIZE + 1;
-  const end = Math.min(total, state.page * PAGE_SIZE);
   let btns = "";
   for (let i = 1; i <= pages; i++) {
     btns += '<button type="button" data-page="' + i + '"' + (i === state.page ? ' class="on"' : "") + ">" + i + "</button>";
   }
   return '<div class="pager"><button type="button" data-page="' + (state.page - 1) + '"' + (state.page === 1 ? " disabled" : "") + '>上一页</button>' +
-    btns + '<button type="button" data-page="' + (state.page + 1) + '"' + (state.page === pages ? " disabled" : "") + '>下一页</button><span>第 ' +
-    start + "–" + end + " 条，共 " + total + " 条</span></div>";
+    btns + '<button type="button" data-page="' + (state.page + 1) + '"' + (state.page === pages ? " disabled" : "") + '>下一页</button></div>';
 }
 function addrHtml() {
   return '<aside class="addr"><h2>最新地址</h2><ul>' +

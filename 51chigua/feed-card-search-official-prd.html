@@ -76,6 +76,8 @@
   p { margin: 0 0 10px; }
   ul, ol { margin: 0 0 10px; padding-left: 18px; }
   li { margin: 4px 0; }
+  .prd-add { color: #c62828; }
+  .prd-del { text-decoration: line-through; color: #9a9aa2; }
   table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; margin: 8px 0 16px; }
   th, td { border: 1px solid #e4e2de; padding: 8px 10px; text-align: left; vertical-align: top; }
   th { background: #f3f0f2; }
@@ -216,7 +218,7 @@
         <ul>
           <li>有结果页头文案：「找到 N 条与「关键词」相关的内容」。N 为全部命中条数，不是当前页条数。</li>
           <li>无结果页头文案：「没有找到与「关键词」相关的内容」。</li>
-          <li>有分页时，页码条另写「第 A–B 条，共 N 条」。</li>
+          <li><span class="prd-del">有分页时，页码条另写「第 A–B 条，共 N 条」。</span></li>
           <li>命中范围：标题、正文、标签、已对读者可见的评论。关键词要在该字段里连续出现，不区分大小写。标题、正文、标签、评论任一处命中，文章就进入结果。</li>
           <li>相关度按位置加分，同一位置无论出现几次只加一次。多个位置同时命中，分值相加。</li>
           <li>标题命中加 100。正文命中加 50。已可见评论命中加 20。标签命中加 10。标签就是卡片上的分类。</li>
