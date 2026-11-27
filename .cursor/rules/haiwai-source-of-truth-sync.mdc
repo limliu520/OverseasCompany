@@ -51,12 +51,22 @@ alwaysApply: true
 | `海外项目/千幕/2.1.0/qianmu-2.1.0-prd-demo.html` | `qianmu/qianmu-2.1.0-prd-demo.html`（同步时把 `prd-screens/` 路径改为 `../assets/qianmu-2.1.0/`） |
 | `海外项目/千幕/2.1.0/prd-screens/*` | `assets/qianmu-2.1.0/*` |
 
-## 51VIDEO
+## 51VIDEO（限购等，与短视频 Web 分开）
 
 | 编辑源（只改这里） | 同步目标 |
 | --- | --- |
 | `海外项目/51视频/product-purchase-limit-prerequisite-prd.html` | `51VIDEO/product-purchase-limit-prerequisite-prd.html` |
 | `海外项目/51视频/prd-screens/*` | `51VIDEO/prd-screens/`（同名文件覆盖） |
+
+## 51 短视频 · Web
+
+> 对外目录用 `51shortvideo/`：根目录已有 `51VIDEO/`，macOS 大小写不敏感时 `51video` 会与之冲突。
+
+| 编辑源（只改这里） | 同步目标 |
+| --- | --- |
+| `海外项目/51短视频/web-shell-demo.html` | `51shortvideo/web-shell-demo.html` |
+
+> MD / README 只留在 `海外项目/51短视频/`，不同步到 `51shortvideo/`。
 
 ## 51吃瓜 · 桌面壳 Demo / PRD
 
