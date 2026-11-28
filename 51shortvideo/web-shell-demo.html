@@ -6,23 +6,25 @@
 <title>51 短视频 · Web Shell Demo</title>
 <style>
 :root {
-  --bg: #0b0b0f;
-  --bg2: #14141a;
-  --bg3: #1c1c24;
-  --line: #2a2a35;
-  --text: #f2f2f5;
-  --muted: #9a9aad;
-  --accent: #ff5a36;
-  --accent2: #ff8a3d;
-  --ok: #3dd68c;
-  --vip: #e8c07a;
-  --ph-hero: #2a1a14;
-  --ph-cover: #243044;
-  --ph-player: #1a2030;
-  --ph-avatar: #3a3050;
+  /* 对齐 APP PWA：浅底 + 炭黑主操作 + 淡紫灰点缀 */
+  --bg: #f5f6f8;
+  --bg2: #ffffff;
+  --bg3: #eef0f3;
+  --line: #e6e8ec;
+  --text: #1a1a1e;
+  --muted: #8b8b93;
+  --accent: #303034;
+  --accent2: #5c5c64;
+  --brand: #8b84a8;
+  --ok: #2bb673;
+  --vip: #c4a574;
+  --ph-hero: #e8ecf2;
+  --ph-cover: #dfe3ea;
+  --ph-player: #1a1a1e;
+  --ph-avatar: #c8c4d0;
   --top-h: 56px;
   --max: 1280px;
-  --radius: 10px;
+  --radius: 12px;
   --font: "PingFang SC", "Helvetica Neue", sans-serif;
 }
 * { box-sizing: border-box; }
@@ -30,36 +32,72 @@ html, body { margin: 0; background: var(--bg); color: var(--text); font-family: 
 a { color: inherit; text-decoration: none; }
 button, input { font: inherit; }
 img { display: block; max-width: 100%; }
+.hidden { display: none !important; }
 
 .ph {
   display: flex; align-items: center; justify-content: center; text-align: center;
-  border-radius: var(--radius); color: #c8d0e0; font-size: 12px; line-height: 1.4;
-  padding: 8px; border: 1px dashed rgba(255,255,255,.15);
+  border-radius: var(--radius); color: var(--muted); font-size: 12px; line-height: 1.4;
+  padding: 8px; border: 1px dashed rgba(48,48,52,.18);
 }
-.ph-hero { background: linear-gradient(160deg, #3a2218, #1a1210 60%); min-height: 72vh; }
+.ph-hero { background: linear-gradient(160deg, #e9edf4, #dfe4ec 55%, #d5dae4); min-height: 72vh; color: var(--text); }
 .ph-cover { background: var(--ph-cover); aspect-ratio: 3/4; width: 100%; }
-.ph-player { background: var(--ph-player); width: 100%; height: 100%; min-height: 280px; }
-.ph-avatar { background: var(--ph-avatar); width: 44px; height: 44px; border-radius: 50%; border-style: solid; }
-.ph-banner { background: #203028; height: 120px; }
-.ph-qr { background: #222; width: 120px; height: 120px; }
+.ph-player { background: var(--ph-player); width: 100%; height: 100%; min-height: 280px; color: #c8d0e0; border-color: rgba(255,255,255,.12); }
+.ph-avatar { background: var(--ph-avatar); width: 44px; height: 44px; border-radius: 50%; border-style: solid; color: #fff; }
+.ph-banner { background: linear-gradient(90deg, #e8e4f0, #e4eaf2); height: 120px; }
+.ph-qr { background: #eef0f3; width: 120px; height: 120px; }
 
 #topbar {
   position: sticky; top: 0; z-index: 50; height: var(--top-h);
   display: flex; align-items: center; gap: 8px; padding: 0 20px;
-  background: rgba(11,11,15,.92); backdrop-filter: blur(10px);
+  background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
 #topbar .logo {
   font-weight: 700; letter-spacing: .02em; margin-right: 8px; white-space: nowrap; cursor: pointer;
 }
-#topbar .logo span { color: var(--accent); }
+#topbar .logo span { color: var(--brand); }
 .nav-primary, .nav-secondary { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; }
-.nav-primary.hidden, .nav-secondary.hidden { display: none; }
 .nav-link {
   padding: 8px 12px; border-radius: 8px; color: var(--muted); white-space: nowrap; cursor: pointer; border: 0; background: transparent;
 }
 .nav-link:hover { color: var(--text); background: var(--bg3); }
 .nav-link.active { color: var(--text); background: var(--bg3); font-weight: 600; }
+.nav-dl { position: relative; }
+.nav-dl > .nav-link { display: block; }
+.dl-pop {
+  display: none; position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  width: 220px; padding: 18px 16px 16px; z-index: 70;
+  background: #2a2a32; border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: 0 12px 36px rgba(0,0,0,.45); text-align: center;
+}
+.dl-pop::before {
+  content: ""; position: absolute; top: -10px; left: 0; right: 0; height: 12px;
+}
+.nav-dl:hover .dl-pop, .nav-dl:focus-within .dl-pop { display: block; }
+.dl-pop-brand {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-bottom: 12px; font-weight: 700; color: #fff; font-size: 14px;
+}
+.dl-pop-brand .mark {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--brand);
+  display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #fff;
+}
+.dl-pop-qr {
+  width: 148px; height: 148px; margin: 0 auto 12px; border-radius: 10px;
+  background:
+    linear-gradient(#fff,#fff) center/72% 72% no-repeat,
+    repeating-conic-gradient(#111 0% 25%, #eee 0% 50%) 0 0 / 12px 12px;
+  border: 6px solid #fff; position: relative;
+}
+.dl-pop-qr::after {
+  content: "51"; position: absolute; inset: 42%; border-radius: 6px;
+  background: var(--brand);
+  color: #fff; font-size: 11px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.dl-pop p { margin: 0; color: #c8c8d0; font-size: 12px; line-height: 1.45; }
+.dl-pop p.sub { margin-top: 4px; color: #8e8e9a; font-size: 11px; }
 .crumb { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; min-width: 0; }
 .crumb .back {
   border: 1px solid var(--line); background: var(--bg2); color: var(--text);
@@ -79,23 +117,27 @@ img { display: block; max-width: 100%; }
 }
 .icon-btn, .avatar-btn {
   border: 1px solid var(--line); background: var(--bg2); color: var(--text);
-  border-radius: 999px; height: 36px; padding: 0 12px; cursor: pointer; position: relative;
+  width: 36px; height: 36px; padding: 0; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; position: relative; flex-shrink: 0;
 }
-.avatar-btn { width: 36px; padding: 0; border-radius: 50%; overflow: hidden; }
-.avatar-btn .ph-avatar { width: 100%; height: 100%; border: 0; }
+.icon-btn svg { width: 18px; height: 18px; display: block; }
+.avatar-btn { overflow: hidden; }
+.avatar-btn .ph-avatar { width: 100%; height: 100%; border: 0; border-radius: 50%; }
 .badge {
   position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px; padding: 0 4px;
   background: var(--accent); color: #fff; border-radius: 999px; font-size: 10px; line-height: 16px;
+  display: grid; place-items: center;
 }
 .login-btn {
-  border: 0; background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border: 0; background: var(--accent);
   color: #fff; border-radius: 999px; height: 36px; padding: 0 16px; cursor: pointer; font-weight: 600;
 }
 
 .demo-flag {
   position: fixed; right: 12px; bottom: 12px; z-index: 80;
-  background: #222833; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
-  font-size: 12px; color: var(--muted); box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+  font-size: 12px; color: var(--muted); box-shadow: 0 8px 24px rgba(0,0,0,.12);
 }
 .demo-flag label { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text); }
 
@@ -107,22 +149,48 @@ img { display: block; max-width: 100%; }
   margin: 28px 0 14px; font-size: 18px; font-weight: 700;
 }
 .section-title .more { color: var(--muted); font-size: 13px; font-weight: 400; cursor: pointer; }
-.section-title .more:hover { color: var(--accent2); }
+.section-title .more:hover { color: var(--brand); }
 
 .hero {
-  position: relative; border-radius: 16px; overflow: hidden; margin-top: 8px;
+  position: relative; border-radius: 0; overflow: visible; margin-top: 8px;
+  min-height: 56vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; padding: 44px 24px; text-align: center;
+  background: transparent; border: 0;
 }
-.hero .ph-hero { min-height: 68vh; flex-direction: column; gap: 14px; }
-.hero h1 { margin: 0; font-size: 40px; font-weight: 800; }
-.hero p { margin: 0; color: #d7c4b8; max-width: 420px; }
+.hero .hero-logo {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  margin: 0 0 4px;
+}
+.hero .hero-logo img {
+  display: block; height: 48px; width: auto; object-fit: contain;
+}
+.hero .hero-logo .logo-mark { height: 52px; }
+.hero .hero-logo .logo-word { height: 28px; }
+.hero .hero-slogan {
+  margin: 0; font-size: 40px; font-weight: 800; color: var(--text); letter-spacing: .02em; line-height: 1.25;
+}
+.hero .hero-sub {
+  margin: 0; font-size: 15px; color: var(--muted); max-width: 420px;
+}
 .hero .cta {
-  margin-top: 8px; border: 0; background: linear-gradient(90deg, var(--accent), var(--accent2));
-  color: #fff; border-radius: 999px; padding: 12px 28px; font-weight: 700; cursor: pointer;
+  margin-top: 8px; border: 0; background: #E9EAED;
+  color: #1a1a1e; border-radius: 999px; padding: 12px 28px; font-weight: 700; cursor: pointer;
 }
-.hero .hint { color: var(--muted); font-size: 13px; }
+.hero .hint {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  color: var(--muted); font-size: 13px; margin-top: 48px;
+}
+.hero .hint svg { width: 16px; height: 16px; opacity: .75; display: block; }
 
 .row-scroll { display: grid; grid-auto-flow: column; grid-auto-columns: 140px; gap: 12px; overflow-x: auto; padding-bottom: 6px; }
 .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.home-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+/* 短剧 / 片库：固定列数，页长取 24（8×3 / 6×4），末行铺满 */
+.drama-main .grid-cards,
+#dramaLibGrid,
+#searchDrama {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
 .card { cursor: pointer; }
 .card .meta { margin-top: 8px; }
 .card .title { font-size: 14px; font-weight: 600; line-height: 1.35; }
@@ -134,66 +202,399 @@ img { display: block; max-width: 100%; }
 .card-cover { position: relative; }
 .tag {
   display: inline-block; margin-right: 4px; padding: 1px 6px; border-radius: 4px;
-  background: rgba(255,255,255,.08); color: var(--muted); font-size: 11px;
+  background: var(--bg3); color: var(--muted); font-size: 11px;
 }
-.tag.vip { color: var(--vip); background: rgba(232,192,122,.12); }
-.tag.coin { color: #ffd27a; background: rgba(255,210,122,.1); }
+.tag.vip { color: #9a7a3e; background: rgba(196,165,116,.16); }
+.tag.coin { color: #9a7a3e; background: rgba(196,165,116,.12); }
 
-/* video player shell */
+/* video / 推荐 · 左右顶满浏览器 */
+#view-feed,
+#view-video {
+  background: #0c0c10;
+}
 .player-video {
-  height: calc(100vh - var(--top-h)); display: grid;
-  grid-template-columns: 1fr 72px; gap: 0; background: #000;
+  position: relative; height: calc(100vh - var(--top-h));
+  width: 100%; margin: 0; border-radius: 0;
+  background: #0c0c10; overflow: hidden;
+}
+.feed-swipe {
+  height: 100%; overflow-y: auto; scroll-snap-type: y mandatory;
+  scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none;
+}
+.feed-swipe::-webkit-scrollbar { display: none; }
+.feed-slide {
+  position: relative; height: 100%; min-height: 100%;
+  scroll-snap-align: start; scroll-snap-stop: always;
+  box-sizing: border-box;
 }
 .player-video .stage {
-  position: relative; display: flex; align-items: center; justify-content: center; min-width: 0;
+  position: relative; height: 100%; display: flex; align-items: center; justify-content: center;
+  min-width: 0; overflow: hidden; background: #101014;
+}
+/* 首帧高速模糊垫底：竖屏补左右 / 横屏补上下 */
+.player-video .stage-blur {
+  position: absolute; inset: -48px; z-index: 0; pointer-events: none;
+  background-size: cover; background-position: center;
+  filter: blur(36px) saturate(1.25) brightness(.72);
+  transform: scale(1.2);
 }
 .player-video .stage-inner {
-  width: min(420px, 46vh); aspect-ratio: 9/16; border-radius: 12px; overflow: hidden; position: relative;
+  position: relative; z-index: 1; overflow: hidden; border-radius: 0;
+}
+/* 竖屏：上下顶满，左右留白 + 模糊 */
+.player-video .stage-inner.portrait {
+  height: 100%; width: auto; aspect-ratio: 9/16; max-width: 100%;
+}
+/* 横屏：左右顶满，上下留白 + 模糊 */
+.player-video .stage-inner.landscape {
+  width: 100%; height: auto; aspect-ratio: 16/9; max-height: 100%;
+}
+.player-video .stage-inner .ph-player {
+  width: 100%; height: 100%; border: 0; border-radius: 0;
 }
 .player-video .info {
-  position: absolute; left: 18px; bottom: 28px; max-width: min(420px, 40vw); z-index: 2;
+  position: absolute; left: 24px; bottom: 64px; max-width: min(480px, calc(100% - 120px)); z-index: 3;
+  pointer-events: none; color: #fff;
 }
-.player-video .info .author { font-weight: 700; margin-bottom: 6px; }
-.player-video .info .desc { color: #ddd; font-size: 14px; line-height: 1.45; }
+.player-video .info .author { font-weight: 700; margin-bottom: 6px; text-shadow: 0 1px 4px rgba(0,0,0,.55); }
+.player-video .info .desc { color: #ddd; font-size: 14px; line-height: 1.45; text-shadow: 0 1px 4px rgba(0,0,0,.55); }
 .player-video .actions {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-  padding: 20px 8px; border-left: 1px solid #1a1a1a; background: #0a0a0c;
+  position: absolute; right: 28px; bottom: 100px; z-index: 4;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  padding: 0; border: 0; background: transparent;
 }
-.player-video .act { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; cursor: pointer; }
+.player-video .act {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  color: #fff; font-size: 12px; cursor: pointer; text-shadow: 0 1px 4px rgba(0,0,0,.5);
+  user-select: none;
+}
+.player-video .act .ico { font-size: 22px; line-height: 1; transition: transform .15s, color .15s; }
+.player-video .act .num { font-size: 12px; }
+.player-video .act.on .ico { color: #ff4d6d; transform: scale(1.12); }
+.player-video .act.on[data-act="fav"] .ico { color: #f5c542; }
+.player-video .act.on[data-act="avatar"] { color: #fff; }
+.player-video .act .follow-lab { font-size: 11px; }
+.player-video .act.on .follow-lab { color: #9a9aad; }
+.player-video .act .ph-avatar { width: 48px; height: 48px; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
 .player-video .feed-tabs {
   position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-  display: flex; gap: 4px; background: rgba(0,0,0,.45); border-radius: 999px; padding: 4px; z-index: 3;
+  display: flex; gap: 4px; background: rgba(0,0,0,.45); border-radius: 999px; padding: 4px;
+  /* 固定：不随内容滑动 */
+  z-index: 8;
 }
 .player-video .feed-tabs button {
   border: 0; background: transparent; color: var(--muted); padding: 6px 16px; border-radius: 999px; cursor: pointer;
 }
 .player-video .feed-tabs button.active { background: rgba(255,255,255,.12); color: #fff; }
 .player-controls {
-  position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 12px;
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 8;
+  padding: 12px 16px;
   background: linear-gradient(transparent, rgba(0,0,0,.75)); font-size: 12px; color: #ccc;
+  /* 固定：不随内容滑动 */
+  pointer-events: none;
 }
+.modal-mask {
+  position: fixed; inset: 0; z-index: 100;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.62); padding: 20px;
+}
+.modal-mask.open { display: flex; }
+.modal-panel {
+  width: min(400px, 100%); background: var(--bg2); border: 1px solid var(--line);
+  border-radius: 16px; padding: 24px 24px 20px; position: relative;
+  box-shadow: 0 16px 48px rgba(0,0,0,.45);
+}
+.modal-panel h2 { margin: 0 0 6px; font-size: 20px; }
+.modal-panel .sub { margin: 0 0 16px; color: var(--muted); font-size: 13px; }
+.modal-panel label { display: block; margin: 12px 0 6px; font-size: 13px; color: var(--muted); }
+.modal-panel input {
+  width: 100%; border: 1px solid var(--line); background: var(--bg); color: var(--text);
+  border-radius: 10px; padding: 10px 12px;
+}
+.modal-panel .modal-actions {
+  display: flex; gap: 10px; margin-top: 18px;
+}
+.modal-panel .modal-actions .submit {
+  flex: 1; border: 0; background: var(--accent); color: #fff;
+  border-radius: 10px; padding: 12px; cursor: pointer; font-weight: 700;
+}
+.modal-panel .modal-actions .cancel {
+  flex: 1; border: 1px solid var(--line); background: transparent; color: var(--text);
+  border-radius: 10px; padding: 12px; cursor: pointer;
+}
+.modal-close {
+  position: absolute; top: 12px; right: 12px; width: 32px; height: 32px;
+  border: 0; border-radius: 8px; background: transparent; color: var(--muted);
+  cursor: pointer; font-size: 18px; line-height: 1;
+}
+.dl-modal-panel {
+  width: min(300px, 100%); background: #2a2a32; border: 1px solid var(--line);
+  border-radius: 18px; padding: 28px 22px 22px; position: relative;
+  box-shadow: 0 16px 48px rgba(0,0,0,.5); text-align: center;
+}
+.dl-modal-panel .dl-pop-brand { margin-bottom: 14px; }
+.dl-modal-panel .dl-pop-qr { width: 168px; height: 168px; margin-bottom: 14px; }
+.dl-modal-panel p { margin: 0; color: #c8c8d0; font-size: 13px; line-height: 1.45; }
+.dl-modal-panel p.sub { margin-top: 6px; color: #8e8e9a; font-size: 12px; }
+.modal-close:hover { background: var(--bg3); color: var(--text); }
 
-/* drama player */
+/* 短视频评论：Web 大屏右侧抽屉 */
+.drawer-mask {
+  position: fixed; inset: 0; z-index: 95;
+  display: none; background: rgba(0,0,0,.35);
+}
+.drawer-mask.open { display: block; }
+.drawer-panel {
+  position: absolute; top: 0; right: 0; bottom: 0; width: min(400px, 92vw);
+  background: var(--bg2); border-left: 1px solid var(--line);
+  display: flex; flex-direction: column; box-shadow: -12px 0 40px rgba(0,0,0,.18);
+  animation: drawerIn .2s ease;
+}
+@keyframes drawerIn {
+  from { transform: translateX(24px); opacity: .6; }
+  to { transform: none; opacity: 1; }
+}
+.drawer-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--line); font-weight: 700;
+}
+.drawer-head .muted { font-weight: 400; margin-left: 6px; }
+.drawer-body { flex: 1; overflow: auto; padding: 12px 16px; min-height: 0; }
+
+/* 分享卡片弹窗 */
+.share-panel {
+  width: min(380px, 100%); background: var(--bg2); border: 1px solid var(--line);
+  border-radius: 18px; padding: 20px 18px 16px; position: relative;
+  box-shadow: 0 16px 48px rgba(0,0,0,.35);
+}
+.share-panel h2 { margin: 0 0 4px; font-size: 18px; }
+.share-panel .sub { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
+.share-card {
+  background: var(--bg3); border-radius: 14px; padding: 12px; margin-bottom: 14px;
+}
+.share-card .poster {
+  width: 100%; aspect-ratio: 3/4; max-height: 220px; margin: 0 auto 10px;
+  border-radius: 10px; object-fit: cover;
+}
+.share-card .title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+.share-card .desc { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+.share-card .foot {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 10px;
+}
+.share-card .brand { font-size: 12px; line-height: 1.45; }
+.share-card .brand .code { font-weight: 600; }
+.share-card .qr-wrap { text-align: center; }
+.share-card .qr-wrap .ph-qr { width: 72px; height: 72px; margin: 0 auto 4px; font-size: 10px; }
+.share-card .qr-wrap span { font-size: 11px; color: var(--muted); }
+.share-actions { display: flex; gap: 10px; }
+.share-actions button {
+  flex: 1; border-radius: 999px; padding: 12px; cursor: pointer; font-weight: 600; border: 0;
+}
+.share-actions .primary { background: var(--accent); color: #fff; }
+.share-actions .ghost { background: var(--bg3); color: var(--text); border: 1px solid var(--line); }
+
+/* drama player · 左播放可上下滑 · 右栏常驻详情 */
+#view-drama-play {
+  background: #000;
+}
 .player-drama {
-  display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, 420px);
-  gap: 16px; width: min(1400px, calc(100% - 32px)); margin: 16px auto 32px;
-  min-height: calc(100vh - var(--top-h) - 32px);
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+  width: 100%; margin: 0;
+  height: calc(100vh - var(--top-h)); min-height: calc(100vh - var(--top-h));
+  overflow: hidden; background: #000;
 }
 .drama-left {
-  background: #000; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+  position: relative; min-width: 0; min-height: 0; background: #000; overflow: hidden;
 }
-.drama-left .ph-player { flex: 1; min-height: 420px; border-radius: 0; border: 0; }
-.drama-tools {
-  display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; background: #111; border-top: 1px solid #222;
+.drama-swipe {
+  height: 100%; overflow-y: auto; scroll-snap-type: y mandatory;
+  scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none;
 }
-.drama-tools button, .chip {
+.drama-swipe::-webkit-scrollbar { display: none; }
+.drama-slide {
+  position: relative; height: 100%; min-height: 100%;
+  scroll-snap-align: start; scroll-snap-stop: always;
+  box-sizing: border-box; background: #000;
+}
+.dp-stage {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  overflow: hidden; background: #000;
+}
+.dp-frame {
+  height: 100%; width: auto; aspect-ratio: 9/16; max-width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,.55); font-size: 13px; text-align: center; line-height: 1.45;
+  text-shadow: 0 1px 3px rgba(0,0,0,.4);
+}
+.dp-info {
+  position: absolute; left: 24px; bottom: 72px; z-index: 4;
+  max-width: min(420px, calc(100% - 120px)); color: #fff;
+  pointer-events: none;
+}
+.dp-info .dp-title {
+  font-size: 20px; font-weight: 700; line-height: 1.35;
+  text-shadow: 0 1px 4px rgba(0,0,0,.55); margin-bottom: 10px;
+}
+.dp-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.dp-tags span {
+  pointer-events: none;
+  border: 1px solid rgba(255,255,255,.35); border-radius: 999px;
+  padding: 3px 10px; font-size: 12px; color: rgba(255,255,255,.88);
+  background: rgba(0,0,0,.25);
+}
+.dp-ep {
+  font-size: 13px; color: rgba(255,255,255,.82); line-height: 1.45;
+  margin-bottom: 12px; text-shadow: 0 1px 3px rgba(0,0,0,.5);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.dp-ep .chev { opacity: .7; margin-left: 2px; }
+.dp-more {
+  pointer-events: auto;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 0; cursor: pointer; color: #fff; font-weight: 600; font-size: 13px;
+  background: rgba(255,255,255,.18); backdrop-filter: blur(8px);
+  border-radius: 10px; padding: 10px 16px; min-width: 200px;
+}
+.dp-more:hover { background: rgba(255,255,255,.28); }
+.dp-acts {
+  position: absolute; right: 28px; bottom: 110px; z-index: 4;
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+}
+.dp-acts .act {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  color: #fff; font-size: 12px; cursor: pointer; user-select: none;
+  text-shadow: 0 1px 4px rgba(0,0,0,.5);
+}
+.dp-acts .act .ico { font-size: 22px; line-height: 1; }
+.dp-acts .act.on .ico { color: #ff4d6d; }
+.dp-acts .act.on[data-act="fav"] .ico { color: #f5c542; }
+.dp-bar {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 5;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 16px 14px;
+  background: linear-gradient(transparent, rgba(0,0,0,.78));
+  color: #ddd; font-size: 12px;
+}
+.dp-bar button {
+  border: 0; background: transparent; color: #fff; cursor: pointer;
+  padding: 4px 6px; font-size: 13px; white-space: nowrap;
+}
+.dp-bar .dp-time { color: #bbb; white-space: nowrap; }
+.dp-bar .dp-progress {
+  flex: 1; min-width: 80px; height: 3px; border-radius: 999px;
+  background: rgba(255,255,255,.22); position: relative; overflow: hidden;
+}
+.dp-bar .dp-progress i {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 28%;
+  background: #fff; border-radius: 999px;
+}
+.dp-bar .dp-tools { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.dp-nudge {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  z-index: 6; display: flex; flex-direction: column; gap: 4px;
+  color: rgba(255,255,255,.45); font-size: 11px; pointer-events: none;
+  text-align: center; line-height: 1.2;
+}
+.chip {
   border: 1px solid var(--line); background: var(--bg2); color: var(--text);
   border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 12px;
 }
 .drama-right {
-  background: var(--bg2); border: 1px solid var(--line); border-radius: 14px;
-  display: flex; flex-direction: column; min-height: 520px; overflow: hidden;
+  background: var(--bg2); border: 0; border-left: 1px solid var(--line); border-radius: 0;
+  display: flex; flex-direction: column; min-height: 0; height: 100%; overflow: hidden;
+  color: var(--text);
 }
+.drama-right .side-tabs {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 12px 0; border-bottom: 1px solid var(--line); flex-shrink: 0;
+}
+.drama-right .side-tabs button {
+  flex: 0 0 auto; border: 0; background: transparent; color: var(--muted);
+  padding: 12px 14px; cursor: pointer; border-bottom: 2px solid transparent; font-size: 15px;
+}
+.drama-right .side-tabs button.active {
+  color: var(--text); border-bottom-color: var(--accent); font-weight: 700;
+}
+.drama-right .side-panel { display: none; padding: 14px 16px 20px; overflow: auto; flex: 1; min-height: 0; }
+.drama-right .side-panel.active { display: block; }
+.drama-right .side-panel.comment-panel.active {
+  display: flex; flex-direction: column; padding: 0; overflow: hidden;
+}
+.dp-side-head {
+  display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px;
+}
+.dp-side-cover {
+  width: 84px; flex-shrink: 0; aspect-ratio: 3/4; border-radius: 8px;
+  background: var(--ph-cover); color: var(--muted); font-size: 11px;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  border: 1px dashed rgba(48,48,52,.18);
+}
+.dp-side-meta { flex: 1; min-width: 0; }
+.dp-side-meta #dramaTitle {
+  font-size: 16px; font-weight: 700; line-height: 1.35; color: var(--text); margin-bottom: 8px;
+}
+.dp-side-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.dp-side-tags span {
+  border-radius: 999px; padding: 3px 8px; font-size: 11px;
+  background: var(--bg3); color: var(--accent2);
+}
+.dp-sec-title {
+  font-size: 14px; font-weight: 700; color: var(--text); margin: 16px 0 8px;
+}
+.dp-intro {
+  display: flex; gap: 8px; align-items: flex-start;
+  font-size: 13px; line-height: 1.55; color: var(--muted);
+}
+.dp-intro p { margin: 0; flex: 1; min-width: 0; }
+.dp-intro .expand {
+  flex-shrink: 0; border: 0; background: transparent; color: var(--brand);
+  cursor: pointer; font-size: 12px; padding: 0;
+}
+.ep-ranges {
+  display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px;
+}
+.ep-ranges button {
+  border: 0; background: transparent; color: var(--muted);
+  padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 13px;
+}
+.ep-ranges button.on { background: var(--bg3); color: var(--text); font-weight: 600; }
+.ep-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 0 0 8px; }
+.ep-grid button {
+  position: relative; border: 1px solid var(--line); background: var(--bg3); color: var(--text);
+  border-radius: 8px; padding: 12px 0; cursor: pointer; font-size: 14px;
+}
+.ep-grid button.on { border-color: var(--accent); background: var(--accent); color: #fff; font-weight: 700; }
+.ep-grid button .lock {
+  position: absolute; top: 4px; left: 5px; font-size: 10px; opacity: .75;
+}
+.rec-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; }
+.rec-row .card { cursor: pointer; }
+.rec-row .ph-cover {
+  aspect-ratio: 3/4; border-radius: 8px; border: 0;
+  background: var(--ph-cover); color: var(--muted); font-size: 11px;
+}
+.rec-row .title { color: var(--text); font-size: 12px; margin-top: 6px; font-weight: 600;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.rec-row .sub { color: var(--muted); font-size: 11px; margin-top: 2px; }
+.drama-right .comment-scroll { flex: 1; overflow: auto; padding: 14px 14px 8px; min-height: 0; }
+.drama-right .comment-composer {
+  flex-shrink: 0; display: flex; gap: 8px; align-items: center;
+  padding: 10px 12px; border-top: 1px solid var(--line); background: var(--bg2);
+}
+.drama-right .comment-composer input {
+  flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--bg3);
+  color: var(--text); border-radius: 999px; padding: 10px 14px; outline: 0;
+}
+.drama-right .comment-composer input::placeholder { color: var(--muted); }
+.drama-right .comment-composer .send {
+  flex-shrink: 0; border: 0; background: var(--accent); color: #fff;
+  border-radius: 999px; padding: 10px 16px; cursor: pointer; font-weight: 600; white-space: nowrap;
+}
+.drama-right .comment { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.drama-right .comment .body { flex: 1; font-size: 13px; color: var(--text); }
+.drama-right .comment .name { font-weight: 600; margin-bottom: 4px; color: var(--text); }
+.drama-right .comment .time { color: var(--muted); font-size: 12px; margin-top: 4px; }
 .side-tabs { display: flex; border-bottom: 1px solid var(--line); }
 .side-tabs button {
   flex: 1; border: 0; background: transparent; color: var(--muted); padding: 12px;
@@ -202,13 +603,24 @@ img { display: block; max-width: 100%; }
 .side-tabs button.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
 .side-panel { display: none; padding: 14px; overflow: auto; flex: 1; }
 .side-panel.active { display: block; }
-.ep-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
-.ep-grid button {
-  border: 1px solid var(--line); background: var(--bg3); color: var(--text);
-  border-radius: 8px; padding: 8px 0; cursor: pointer;
+.side-panel.comment-panel.active {
+  display: flex; flex-direction: column; padding: 0; overflow: hidden;
 }
-.ep-grid button.on { border-color: var(--accent); color: var(--accent2); }
-.rec-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px; }
+.comment-scroll { flex: 1; overflow: auto; padding: 14px 14px 8px; min-height: 0; }
+.comment-composer {
+  flex-shrink: 0; display: flex; gap: 8px; align-items: center;
+  padding: 10px 12px; border-top: 1px solid var(--line); background: var(--bg2);
+}
+.comment-composer input {
+  flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--bg3);
+  color: var(--text); border-radius: 999px; padding: 10px 14px; outline: 0;
+}
+.comment-composer input::placeholder { color: var(--muted); }
+.comment-composer .send {
+  flex-shrink: 0; border: 0; background: var(--accent); color: #fff;
+  border-radius: 999px; padding: 10px 16px; cursor: pointer; font-weight: 600; white-space: nowrap;
+}
+.comment-composer .send:disabled { opacity: .45; cursor: not-allowed; }
 .comment { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .comment .body { flex: 1; font-size: 13px; }
 .comment .name { font-weight: 600; margin-bottom: 4px; }
@@ -217,33 +629,125 @@ img { display: block; max-width: 100%; }
 .filters { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
 .filter-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .filter-row .lab { color: var(--muted); font-size: 13px; width: 64px; }
-.filter-row .chip.active { border-color: var(--accent); color: var(--accent2); }
+.filter-row .chip.active { border-color: var(--accent); background: var(--accent); color: #fff; }
 
+/* 短剧 · 顶栏二级分类 + 下方内容 · 宽度对齐首页 / 伴侣 / 心愿墙 */
+.drama-shell {
+  width: min(var(--max), calc(100% - 40px)); margin: 16px auto 32px;
+  min-height: calc(100vh - var(--top-h) - 32px);
+}
+.drama-nav {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 14px; padding: 4px 0 8px;
+  border-bottom: 1px solid var(--line);
+}
+.drama-l2 {
+  display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: center; flex: 1; min-width: 0;
+}
+.drama-l2 .nav-item {
+  border: 0; background: transparent; color: var(--muted);
+  padding: 8px 2px 10px; cursor: pointer; font-size: 15px;
+  border-bottom: 2px solid transparent; margin-bottom: -9px;
+}
+.drama-l2 .nav-item:hover { color: var(--text); }
+.drama-l2 .nav-item.active {
+  color: var(--text); font-weight: 700; border-bottom-color: var(--accent);
+}
+.drama-lib-entry {
+  margin-left: auto; border: 0; background: #1a1a1a; color: #fff;
+  font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 8px;
+  cursor: pointer; white-space: nowrap;
+}
+.drama-lib-entry:hover { background: #000; color: #fff; }
+.drama-main {
+  background: transparent; border: 0; border-radius: 0;
+  padding: 4px 0 24px; min-height: 560px;
+}
+.drama-main .drama-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  margin-bottom: 14px; flex-wrap: wrap;
+}
+.drama-main .drama-head h2 { margin: 0; font-size: 20px; }
+.drama-main .drama-head .hint { color: var(--muted); font-size: 13px; }
+.drama-panel.hidden { display: none; }
+.drama-sec { margin-bottom: 22px; }
+.drama-sec-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 12px;
+}
+.drama-sec-title {
+  margin: 0; font-size: 18px; font-weight: 700; color: var(--text);
+}
+/* 上下多模块：各模块标题 + 左右箭头整页翻（每页最多 4 排） */
+.pager-arrows { display: flex; gap: 6px; flex-shrink: 0; }
+.pager-arrows button {
+  width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--bg2); color: var(--text); cursor: pointer; font-size: 18px; line-height: 1;
+}
+.pager-arrows button:hover:not(:disabled) { border-color: var(--accent); background: var(--bg3); }
+.pager-arrows button:disabled { opacity: .35; cursor: not-allowed; }
+.drama-page-viewport { overflow: hidden; width: 100%; }
+.drama-page-track {
+  display: flex; width: 100%;
+  transition: transform .35s ease;
+  will-change: transform;
+}
+.drama-page-track .drama-page-grid {
+  flex: 0 0 100%; width: 100%; min-width: 100%;
+  box-sizing: border-box;
+}
+.drama-sheets {
+  display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.drama-sheets button {
+  border: 0; background: transparent; color: var(--muted);
+  padding: 8px 2px 10px; cursor: pointer; font-size: 14px;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.drama-sheets button.active {
+  color: var(--text); font-weight: 700; border-bottom-color: var(--accent);
+}
 .companion-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
 .companion-card {
   background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; cursor: pointer;
 }
 .companion-card .ph-cover { aspect-ratio: 3/4; border-radius: 0; border: 0; }
 .companion-card .body { padding: 12px; }
-.companion-card .btn {
-  margin-top: 10px; width: 100%; border: 0; background: var(--accent); color: #fff;
-  border-radius: 8px; padding: 8px; cursor: pointer;
-}
 .subnav { display: flex; gap: 8px; margin-bottom: 16px; }
 .subnav button {
   border: 1px solid var(--line); background: var(--bg2); color: var(--muted);
   border-radius: 999px; padding: 8px 14px; cursor: pointer;
 }
-.subnav button.active { color: #fff; border-color: var(--accent); background: rgba(255,90,54,.15); }
+.subnav button.active { color: #fff; border-color: var(--accent); background: var(--accent); }
+.companion-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 16px;
+}
+.companion-bar .comp-title {
+  margin: 0; font-size: 20px; font-weight: 700; color: var(--text);
+}
+.companion-bar .comp-mine-btn {
+  border: 0; background: var(--accent); color: #fff; border-radius: 8px;
+  padding: 8px 16px; cursor: pointer; font-size: 13px; font-weight: 700; white-space: nowrap;
+}
+.companion-bar .comp-mine-btn:hover { background: #1a1a1e; }
+.companion-bar .comp-mine-btn.ghost {
+  background: var(--bg2); color: var(--text); border: 1px solid var(--line); font-weight: 600;
+}
+.companion-bar .comp-mine-btn.ghost:hover { background: var(--bg3); }
 
 .profile-layout {
   display: grid; grid-template-columns: 280px 1fr; gap: 20px;
 }
 .profile-cover .ph-cover { aspect-ratio: 3/4; }
 .chat-layout {
-  display: grid; grid-template-columns: 280px 1fr; height: calc(100vh - var(--top-h));
-  border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: 280px 1fr;
+  height: calc(100vh - var(--top-h) - 88px);
+  border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+  background: var(--bg);
 }
+#view-companion .wrap.companion-wide { width: min(1280px, calc(100% - 40px)); }
 .chat-list { border-right: 1px solid var(--line); background: var(--bg2); overflow: auto; }
 .chat-item {
   display: flex; gap: 10px; padding: 12px; border-bottom: 1px solid var(--line); cursor: pointer;
@@ -255,10 +759,10 @@ img { display: block; max-width: 100%; }
 .chat-head {
   padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;
 }
-.chat-msgs { flex: 1; padding: 16px; overflow: auto; background: #0e0e12; }
+.chat-msgs { flex: 1; padding: 16px; overflow: auto; background: #f3f4f7; }
 .bubble { max-width: 70%; padding: 10px 12px; border-radius: 12px; margin-bottom: 10px; font-size: 14px; line-height: 1.45; }
-.bubble.ai { background: var(--bg3); }
-.bubble.me { background: rgba(255,90,54,.2); margin-left: auto; }
+.bubble.ai { background: var(--bg2); border: 1px solid var(--line); }
+.bubble.me { background: var(--accent); color: #fff; margin-left: auto; }
 .chat-input {
   display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); background: var(--bg2);
 }
@@ -271,36 +775,214 @@ img { display: block; max-width: 100%; }
 }
 
 .wish-banner { margin-bottom: 16px; }
-.wish-actions { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-.wish-actions .primary {
-  border: 0; background: var(--accent); color: #fff; border-radius: 999px; padding: 10px 18px; cursor: pointer;
+.wish-toolbar {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap;
 }
+.wish-toolbar .subnav { margin-bottom: 0; flex: 1; min-width: 0; }
+.wish-toolbar #wishSearch {
+  width: min(320px, 100%); border: 1px solid var(--line); background: var(--bg2); color: var(--text);
+  border-radius: 999px; padding: 10px 14px;
+}
+.wish-fab {
+  position: fixed; right: 24px; bottom: 88px; z-index: 70;
+  border: 0; background: var(--accent);
+  color: #fff; border-radius: 999px; padding: 14px 22px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 10px 28px rgba(48,48,52,.22);
+}
+#view-wishes:not(.active) .wish-fab { display: none; }
 .wish-card {
   background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; cursor: pointer;
 }
-.wish-card .st { color: var(--accent2); font-size: 12px; margin-bottom: 6px; }
-.wish-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-
-.me-layout { display: grid; grid-template-columns: 220px 1fr; gap: 20px; }
-.me-nav { background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 8px; height: fit-content; position: sticky; top: 72px; }
-.me-nav button {
-  display: block; width: 100%; text-align: left; border: 0; background: transparent; color: var(--muted);
-  padding: 10px 12px; border-radius: 8px; cursor: pointer;
+.wish-card:hover { border-color: #d0d2d8; background: #fafbfc; }
+.wish-card .st { color: var(--brand); font-size: 12px; margin-bottom: 6px; }
+.wish-card .wish-title {
+  font-weight: 700; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.me-nav button.active, .me-nav button:hover { background: var(--bg3); color: var(--text); }
-.me-panel { background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 18px; min-height: 420px; }
-.me-panel h2 { margin: 0 0 12px; font-size: 18px; }
+.wish-card .wish-desc {
+  color: var(--muted); font-size: 13px; margin-top: 6px; line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.wish-detail-meta { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+.wish-detail-body {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px 16px; font-size: 14px; line-height: 1.7; color: var(--text); white-space: pre-wrap;
+}
+.wish-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+#pager-wishes { padding-bottom: 88px; }
+
+.me-layout {
+  display: grid; grid-template-columns: minmax(300px, 360px) 1fr; gap: 0; align-items: stretch;
+  height: calc(100vh - var(--top-h) - 68px); max-height: calc(100vh - var(--top-h) - 68px);
+}
+.me-home {
+  background: transparent; border: 0; border-right: 1px solid var(--line); border-radius: 0;
+  padding: 12px 28px 20px 0; height: 100%; min-height: 0; overflow: auto;
+}
+.me-home-foot {
+  margin-top: 16px; padding-top: 4px;
+}
+.me-ico-btn {
+  border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+  color: var(--text); cursor: pointer; font-size: 13px; height: 32px; padding: 0 12px;
+}
+.me-ico-btn:hover { background: var(--bg3); border-color: #d0d2d8; }
+.me-profile {
+  display: flex; gap: 14px; align-items: flex-start; margin-bottom: 16px; cursor: pointer;
+  padding: 4px; border-radius: 10px; margin-left: -4px; margin-right: -4px;
+}
+.me-profile:hover { background: var(--bg3); }
+.me-profile .av {
+  width: 56px; height: 56px; border-radius: 50%; background: var(--ph-avatar);
+  display: grid; place-items: center; color: #fff; font-size: 20px; font-weight: 700; flex-shrink: 0;
+}
+.me-profile .nm {
+  display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; margin-bottom: 4px;
+}
+.me-profile .uid { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+.me-profile .bio {
+  color: var(--accent2); font-size: 12px; line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.me-profile .edit {
+  margin-top: 6px; font-size: 12px; color: var(--brand); font-weight: 600;
+}
+.me-stats {
+  display: flex; gap: 0; margin-bottom: 16px;
+  border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+}
+.me-stats button {
+  flex: 1; border: 0; background: var(--bg); cursor: pointer; padding: 12px 8px;
+  text-align: center; border-right: 1px solid var(--line);
+}
+.me-stats button:last-child { border-right: 0; }
+.me-stats button:hover { background: var(--bg3); }
+.me-stats button.active { background: var(--bg3); box-shadow: inset 0 -2px 0 var(--accent); }
+.me-stats .n { font-size: 18px; font-weight: 700; line-height: 1.2; }
+.me-stats .l { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.me-vip {
+  width: 100%; display: flex; align-items: center; gap: 12px; text-align: left;
+  border: 1px solid #2a2a30; border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer;
+  background: #1e1e24; color: #f0ebe3;
+}
+.me-vip:hover, .me-vip.active { background: #27272e; }
+.me-vip .crown {
+  width: 32px; height: 32px; border-radius: 8px; background: rgba(196,165,116,.18);
+  display: grid; place-items: center; font-size: 14px; color: var(--vip); flex-shrink: 0; font-weight: 700;
+}
+.me-vip .t { font-weight: 700; font-size: 14px; }
+.me-vip .s { font-size: 12px; opacity: .7; margin-top: 2px; }
+.me-vip .cta {
+  margin-left: auto; background: transparent; color: #e8d5b0; border: 1px solid rgba(232,213,176,.45);
+  border-radius: 6px; padding: 5px 10px; font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.me-vip:hover .cta { background: rgba(255,255,255,.06); }
+.me-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.me-duo button {
+  border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 12px 12px;
+  text-align: left; cursor: pointer;
+}
+.me-duo button:hover { background: var(--bg3); border-color: #d0d2d8; }
+.me-duo button.active { border-color: var(--accent); background: #f3f3f5; }
+.me-duo .t { font-weight: 650; font-size: 13px; }
+.me-duo .s { color: var(--muted); font-size: 12px; margin-top: 4px; }
+.me-quick {
+  display: flex; flex-direction: column; gap: 2px; margin-bottom: 16px;
+  border: 1px solid var(--line); border-radius: 10px; padding: 4px; background: var(--bg);
+}
+.me-quick button {
+  border: 0; background: transparent; cursor: pointer; padding: 10px 12px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: space-between; color: var(--text); font-size: 13px; text-align: left;
+}
+.me-quick button:hover { background: var(--bg3); }
+.me-quick button.active { background: var(--bg3); font-weight: 650; }
+.me-quick .lab { font-weight: 600; }
+.me-quick .hint { color: var(--muted); font-size: 12px; }
+.me-svc-title {
+  margin: 0 0 8px; font-size: 12px; font-weight: 650; color: var(--muted);
+  letter-spacing: .04em; text-transform: none;
+}
+.me-svc {
+  border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--bg);
+}
+.me-svc button {
+  width: 100%; display: flex; align-items: center; gap: 10px; text-align: left;
+  border: 0; border-bottom: 1px solid var(--line); background: transparent; padding: 11px 12px; cursor: pointer;
+}
+.me-svc button:last-child { border-bottom: 0; }
+.me-svc button:hover { background: var(--bg3); }
+.me-svc button.active { background: var(--bg3); box-shadow: inset 3px 0 0 var(--accent); }
+.me-svc .t { font-size: 13px; font-weight: 600; }
+.me-svc .s { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.me-svc .arrow { margin-left: auto; color: #b8b8c0; font-size: 14px; }
+
+.me-panel {
+  background: transparent; border: 0; border-radius: 0;
+  padding: 12px 0 20px 32px; height: 100%; min-height: 0; overflow: auto;
+  display: flex; flex-direction: column;
+}
+.me-panel h2 { margin: 0 0 6px; font-size: 20px; flex-shrink: 0; }
+.me-panel .panel-sub { color: var(--muted); font-size: 13px; margin: 0 0 18px; flex-shrink: 0; }
 .me-panel .list-row {
-  display: flex; justify-content: space-between; gap: 12px; padding: 12px 0;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0;
   border-bottom: 1px solid var(--line); font-size: 14px;
 }
+.me-empty {
+  flex: 1; display: grid; place-items: center; text-align: center; color: var(--muted);
+}
+.me-empty .big { font-size: 40px; margin-bottom: 12px; opacity: .5; }
+.me-pkg {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin: 16px 0;
+}
+.me-pkg .pkg {
+  border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--bg);
+  cursor: pointer;
+}
+.me-pkg .pkg:hover, .me-pkg .pkg.on { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 1px var(--accent); }
+.me-pkg .price { font-size: 22px; font-weight: 700; margin: 8px 0 4px; }
 .stat-row { display: flex; gap: 24px; margin: 12px 0 20px; }
 .stat-row .n { font-size: 22px; font-weight: 700; }
 .stat-row .l { color: var(--muted); font-size: 12px; }
 
+.pager {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px;
+  margin: 20px 0 4px; padding: 4px 0;
+}
+.pager button {
+  min-width: 36px; height: 36px; padding: 0 12px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--bg2); color: var(--text); font-size: 13px;
+}
+.pager button:hover:not(:disabled) { border-color: var(--accent); }
+.pager button.on {
+  background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700;
+}
+.pager button:disabled { opacity: .4; cursor: not-allowed; }
+.pager-ellipsis { color: var(--muted); padding: 0 4px; font-size: 13px; }
+.pager-info { color: var(--muted); font-size: 12px; margin-left: 8px; white-space: nowrap; }
+
 .search-page .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.search-page-form {
+  display: flex; align-items: center; gap: 8px; max-width: 560px; margin: 12px 0 18px;
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px 6px 14px;
+}
+.search-page-form input {
+  flex: 1; border: 0; outline: 0; background: transparent; color: var(--text); min-width: 0;
+  font-size: 15px; height: 36px;
+}
+.search-page-form button {
+  border: 0; background: var(--accent); color: #fff; border-radius: 8px;
+  padding: 0 18px; height: 36px; cursor: pointer; font-weight: 600; white-space: nowrap;
+}
 .msg-item {
   display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); cursor: pointer;
+}
+.msg-item:hover { background: var(--bg3); margin: 0 -12px; padding-left: 12px; padding-right: 12px; border-radius: 10px; }
+.msg-detail-meta {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px; color: var(--muted); font-size: 13px;
+}
+.msg-detail-meta .ph-avatar { width: 40px; height: 40px; font-size: 14px; }
+.msg-detail-body {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px 16px; font-size: 14px; line-height: 1.7; color: var(--text); white-space: pre-wrap;
 }
 .download-page {
   display: grid; grid-template-columns: 1.2fr .8fr; gap: 24px; align-items: center;
@@ -323,16 +1005,40 @@ img { display: block; max-width: 100%; }
 }
 .muted { color: var(--muted); }
 .note {
-  margin: 8px 0 0; padding: 10px 12px; background: rgba(255,255,255,.04);
+  margin: 8px 0 0; padding: 10px 12px; background: var(--bg3);
   border-radius: 8px; color: var(--muted); font-size: 12px; line-height: 1.5;
 }
+@media (max-width: 1200px) {
+  .drama-main .grid-cards,
+  #dramaLibGrid,
+  #searchDrama { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+@media (max-width: 1100px) {
+  .home-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 @media (max-width: 960px) {
-  .player-drama, .profile-layout, .chat-layout, .me-layout, .download-page { grid-template-columns: 1fr; }
+  .profile-layout, .chat-layout, .me-layout, .download-page { grid-template-columns: 1fr; }
+  .player-drama { grid-template-columns: 1fr; height: auto; min-height: calc(100vh - var(--top-h)); }
+  .drama-left { height: min(72vh, 720px); }
+  .drama-right { border-left: 0; border-top: 1px solid var(--line); min-height: 480px; }
+  .dp-info { left: 16px; bottom: 88px; max-width: calc(100% - 96px); }
+  .dp-acts { right: 14px; bottom: 120px; gap: 14px; }
+  .me-layout { height: auto; max-height: none; }
+  .me-home {
+    border-right: 0; border-bottom: 1px solid var(--line);
+    padding: 12px 0 24px;
+  }
+  .me-home, .me-panel { height: auto; max-height: none; }
+  .me-panel { padding: 24px 0 20px; }
+  .me-empty { min-height: 280px; }
   .chat-layout { height: auto; }
-  .player-video { grid-template-columns: 1fr; }
-  .player-video .actions { flex-direction: row; justify-content: center; border-left: 0; border-top: 1px solid #1a1a1a; }
+  .player-video .actions { right: 16px; bottom: 88px; gap: 16px; }
   .search-box { min-width: 140px; width: 160px; }
   .nav-link { padding: 8px; font-size: 13px; }
+  .home-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .drama-main .grid-cards,
+  #dramaLibGrid,
+  #searchDrama { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 </style>
 </head>
@@ -342,10 +1048,18 @@ img { display: block; max-width: 100%; }
   <nav class="nav-primary" id="navPrimary">
     <button class="nav-link" data-go="feed">推荐</button>
     <button class="nav-link" data-go="home">首页</button>
-    <button class="nav-link" data-go="drama">找剧</button>
+    <button class="nav-link" data-go="drama">短剧</button>
     <button class="nav-link" data-go="companion">AI伴侣</button>
     <button class="nav-link" data-go="wishes">心愿墙</button>
-    <button class="nav-link" data-go="download">下载</button>
+    <div class="nav-dl" id="navDownload">
+      <button type="button" class="nav-link" aria-haspopup="true" aria-expanded="false">下载</button>
+      <div class="dl-pop" role="tooltip">
+        <div class="dl-pop-brand"><span class="mark">51</span>51短视频</div>
+        <div class="dl-pop-qr" aria-hidden="true"></div>
+        <p>扫码下载安装「51短视频 App」</p>
+        <p class="sub">短视频 · 短剧 · AI 伴侣，手机免费看</p>
+      </div>
+    </div>
   </nav>
   <nav class="nav-secondary hidden" id="navSecondary">
     <div class="crumb">
@@ -358,9 +1072,14 @@ img { display: block; max-width: 100%; }
       <input id="searchInput" placeholder="搜索视频、短剧、博主或关键词" />
       <button type="submit">搜索</button>
     </form>
-    <button type="button" class="icon-btn" id="btnMsg" title="消息">消息<span class="badge" id="msgBadge">3</span></button>
-    <button type="button" class="login-btn" id="btnAuth">登录</button>
-    <button type="button" class="avatar-btn hidden" id="btnAvatar" title="我的"><div class="ph ph-avatar">头</div></button>
+    <button type="button" class="icon-btn" id="btnMsg" title="消息" aria-label="消息">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7A2.5 2.5 0 0 1 17.5 16H9l-4 3.2V6.5z"/></svg>
+      <span class="badge" id="msgBadge">3</span>
+    </button>
+    <button type="button" class="icon-btn" id="btnAuth" title="登录" aria-label="登录">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 19.2c1.4-3 3.6-4.5 6.5-4.5s5.1 1.5 6.5 4.5"/></svg>
+    </button>
+    <button type="button" class="avatar-btn hidden" id="btnAvatar" title="我的" aria-label="我的"><div class="ph ph-avatar">柑</div></button>
   </div>
 </header>
 
@@ -368,160 +1087,186 @@ img { display: block; max-width: 100%; }
 <section class="view" id="view-home">
   <div class="wrap">
     <div class="hero">
-      <div class="ph ph-hero">
-        <div class="muted" style="font-size:12px">色块 · Hero 下载引导区（运营主视觉）</div>
-        <h1>51 短视频</h1>
-        <p>短视频 · AI 短剧 · AI 伴侣 · 心愿墙，Web / Pad 一站观看</p>
-        <button type="button" class="cta" data-go="download">下载 51 短视频 App</button>
-        <div class="hint">下滑查看精选内容</div>
+      <div class="hero-logo">
+        <img class="logo-mark" src="assets/logo-mark.png" alt="51" width="52" height="52" />
+        <img class="logo-word" src="assets/logo-wordmark.png" alt="51短视频" width="88" height="28" />
       </div>
+      <h1 class="hero-slogan">不止好看，还有点撩</h1>
+      <p class="hero-sub">AI憋大招，精彩马上到</p>
+      <button type="button" class="cta" id="btnHeroDownload">下载 51 短视频 App</button>
+      <div class="hint">滑动查看更多视频<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/><path d="M6 14l6 6 6-6"/></svg></div>
     </div>
 
     <div class="section-title">短剧排行 <span class="more" data-go="drama">查看更多</span></div>
     <div class="row-scroll" id="homeRank"></div>
 
-    <div class="section-title">推荐短剧 <span class="more" data-go="drama">去找剧</span></div>
-    <div class="grid-cards" id="homeDramas"></div>
+    <div class="section-title">推荐短视频 <span class="more" data-go="feed">查看更多</span></div>
+    <div class="grid-cards home-grid" id="homeVideos"></div>
 
-    <div class="section-title">推荐短视频</div>
-    <div class="grid-cards" id="homeVideos"></div>
+    <div class="section-title">推荐短剧 <span class="more" data-go="drama">查看更多</span></div>
+    <div class="grid-cards home-grid" id="homeDramas"></div>
   </div>
 </section>
 
 <!-- FEED video -->
 <section class="view" id="view-feed">
   <div class="player-video">
-    <div class="stage">
-      <div class="feed-tabs">
-        <button type="button" class="active" data-feed-tab="rec">推荐</button>
-        <button type="button" data-feed-tab="follow">关注</button>
-      </div>
-      <div class="stage-inner">
-        <div class="ph ph-player">色块 · 竖屏短视频播放区<br/>（推荐流演示，控件示意）</div>
-        <div class="player-controls">▶ 00:12 / 01:05 · 音量 · 全屏 · Demo 不接真播</div>
-      </div>
-      <div class="info">
-        <div class="author">@厨房里的阿杰</div>
-        <div class="desc">番茄炒蛋的正确做法 · 测试造数 #美食 #教程</div>
-      </div>
+    <div class="feed-tabs">
+      <button type="button" class="active" data-feed-tab="rec">推荐</button>
+      <button type="button" data-feed-tab="follow">关注</button>
     </div>
-    <div class="actions">
-      <div class="act"><div class="ph ph-avatar">头像</div>+关注</div>
-      <div class="act">♡<br/>5</div>
-      <div class="act">💬<br/>34</div>
-      <div class="act">☆<br/>7</div>
-      <div class="act">分享</div>
-    </div>
+    <div class="feed-swipe" id="feedSwipe" aria-label="短视频上下滑动"></div>
+    <div class="player-controls" id="feedControls">▶ 00:12 / 01:05 · 音量 · 全屏 · Demo 不接真播</div>
   </div>
-  <div class="note" style="max-width:800px;margin:12px auto" id="feedNote">当前：推荐流（A01）。关注流切换仅改文案示意，滑切未做。</div>
+  <div class="note" style="max-width:800px;margin:12px auto" id="feedNote">当前：推荐流。上下滑切换 3 条内容；顶 Tab / 底播放栏固定。</div>
 </section>
 
 <!-- VIDEO secondary from home -->
 <section class="view" id="view-video">
   <div class="player-video">
     <div class="stage">
-      <div class="stage-inner">
-        <div class="ph ph-player">色块 · 二级短视频播放壳<br/>从首页点进，队列规则后定</div>
-        <div class="player-controls">▶ 播放控件示意</div>
+      <div class="stage-blur" style="background:#5a6578" aria-hidden="true"></div>
+      <div class="stage-inner portrait" style="background:#7a8498">
+        <div class="ph ph-player" style="background:transparent;border:0;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45)">色块 · 二级短视频播放壳<br/>从首页点进，队列规则后定<br/><span style="opacity:.75;font-size:11px">竖屏 9:16</span></div>
       </div>
-      <div class="info">
-        <div class="author" id="videoAuthor">@博主昵称</div>
-        <div class="desc" id="videoDesc">视频标题 / 简介占位</div>
-      </div>
+    </div>
+    <div class="info">
+      <div class="author" id="videoAuthor">@博主昵称</div>
+      <div class="desc" id="videoDesc">视频标题 / 简介占位</div>
     </div>
     <div class="actions">
-      <div class="act"><div class="ph ph-avatar">头</div>+关</div>
-      <div class="act">♡</div>
-      <div class="act">💬</div>
-      <div class="act">☆</div>
-      <div class="act">享</div>
+      <div class="act" data-need-login data-act="avatar"><div class="ph ph-avatar">头</div><span class="follow-lab">+关注</span></div>
+      <div class="act" data-need-login data-act="like"><span class="ico">♡</span><span class="num">—</span></div>
+      <div class="act" data-need-login data-act="comment"><span class="ico">💬</span><span class="num">—</span></div>
+      <div class="act" data-need-login data-act="fav"><span class="ico">☆</span><span class="num">—</span></div>
+      <div class="act" data-need-login data-act="share"><span class="ico">↗</span><span class="num">分享</span></div>
     </div>
+    <div class="player-controls">▶ 播放控件示意 · 音量 · 全屏</div>
   </div>
 </section>
 
-<!-- DRAMA catalog -->
+<!-- DRAMA catalog · 运营分类横滑 + 右侧进片库二级页 -->
 <section class="view" id="view-drama">
-  <div class="wrap">
-    <h2 style="margin:0 0 12px">找剧</h2>
-    <div class="filters">
-      <div class="filter-row">
-        <span class="lab">类型</span>
-        <button type="button" class="chip active" data-filter-demo>短剧</button>
-        <button type="button" class="chip" data-filter-demo>漫剧</button>
+  <div class="drama-shell">
+    <div class="drama-nav" id="dramaNav">
+      <div class="drama-l2" id="dramaL2Ops">
+        <button type="button" class="nav-item active" data-drama-cat="ops" data-drama-id="featured">精选推荐</button>
+        <button type="button" class="nav-item" data-drama-cat="ops" data-drama-id="origin">51原创</button>
+        <button type="button" class="nav-item" data-drama-cat="ops" data-drama-id="aiman">AI漫剧</button>
+        <button type="button" class="nav-item" data-drama-cat="ops" data-drama-id="acg">二次元</button>
+        <button type="button" class="nav-item" data-drama-cat="ops" data-drama-id="horror">擦边短剧</button>
+        <button type="button" class="nav-item" data-drama-cat="ops" data-drama-id="live">真人短剧</button>
       </div>
-      <div class="filter-row">
-        <span class="lab">题材</span>
-        <button type="button" class="chip active" data-filter-demo>全部</button>
-        <button type="button" class="chip" data-filter-demo>都市</button>
-        <button type="button" class="chip" data-filter-demo>古风</button>
-        <button type="button" class="chip" data-filter-demo>玄幻</button>
-      </div>
-      <div class="filter-row">
-        <span class="lab">更新</span>
-        <button type="button" class="chip active" data-filter-demo>全部</button>
-        <button type="button" class="chip" data-filter-demo>连载中</button>
-        <button type="button" class="chip" data-filter-demo>已完结</button>
-      </div>
-      <div class="filter-row">
-        <span class="lab">观看</span>
-        <button type="button" class="chip active" data-filter-demo>全部</button>
-        <button type="button" class="chip" data-filter-demo>免费</button>
-        <button type="button" class="chip" data-filter-demo>VIP</button>
-        <button type="button" class="chip" data-filter-demo>金币</button>
-      </div>
-      <div class="filter-row">
-        <span class="lab">排序</span>
-        <button type="button" class="chip active" data-filter-demo>推荐</button>
-        <button type="button" class="chip" data-filter-demo>热播</button>
-        <button type="button" class="chip" data-filter-demo>最新</button>
+      <button type="button" class="drama-lib-entry" data-go="drama-lib">全部短剧</button>
+    </div>
+
+    <div class="drama-main">
+      <div class="drama-panel" id="dramaOpsPanel">
+        <div id="dramaOpsBody"></div>
       </div>
     </div>
-    <p class="note">筛选仅做选中样式切换，列表不重算（Demo）。</p>
-    <div class="grid-cards" id="dramaGrid" style="margin-top:16px"></div>
   </div>
 </section>
 
-<!-- DRAMA player -->
+<!-- DRAMA library · 二级页 -->
+<section class="view" id="view-drama-lib">
+  <div class="drama-shell">
+    <div class="drama-main">
+      <div class="drama-head">
+        <h2>片库筛选</h2>
+        <span class="hint">用户自助筛选 · 二级页 · 对标 APP 片库</span>
+      </div>
+      <div class="filters" id="dramaLibFilters">
+        <div class="filter-row">
+          <span class="lab">类型</span>
+          <button type="button" class="chip active" data-filter-demo>全部</button>
+          <button type="button" class="chip" data-filter-demo>短剧</button>
+          <button type="button" class="chip" data-filter-demo>漫剧</button>
+        </div>
+        <div class="filter-row">
+          <span class="lab">题材</span>
+          <button type="button" class="chip active" data-filter-demo>全部</button>
+          <button type="button" class="chip" data-filter-demo>都市</button>
+          <button type="button" class="chip" data-filter-demo>古风</button>
+          <button type="button" class="chip" data-filter-demo>玄幻</button>
+          <button type="button" class="chip" data-filter-demo>爱情</button>
+        </div>
+        <div class="filter-row">
+          <span class="lab">更新</span>
+          <button type="button" class="chip active" data-filter-demo>全部</button>
+          <button type="button" class="chip" data-filter-demo>连载中</button>
+          <button type="button" class="chip" data-filter-demo>已完结</button>
+        </div>
+        <div class="filter-row">
+          <span class="lab">观看</span>
+          <button type="button" class="chip active" data-filter-demo>全部</button>
+          <button type="button" class="chip" data-filter-demo>免费</button>
+          <button type="button" class="chip" data-filter-demo>VIP</button>
+          <button type="button" class="chip" data-filter-demo>金币</button>
+        </div>
+        <div class="filter-row">
+          <span class="lab">排序</span>
+          <button type="button" class="chip active" data-filter-demo>推荐</button>
+          <button type="button" class="chip" data-filter-demo>热播</button>
+          <button type="button" class="chip" data-filter-demo>最新</button>
+        </div>
+      </div>
+      <p class="note">筛选仅做选中样式切换，列表不重算（Demo）。</p>
+      <div class="grid-cards" id="dramaLibGrid" style="margin-top:16px"></div>
+      <div id="pager-dramaLib"></div>
+    </div>
+  </div>
+</section>
+
+<!-- DRAMA player · 左竖屏可上下滑 · 右栏常驻详情/评论 -->
 <section class="view" id="view-drama-play">
   <div class="player-drama">
     <div class="drama-left">
-      <div class="ph ph-player">色块 · 短剧播放器主画面<br/>倍速 / 弹幕 / 连播 控件见下方</div>
-      <div class="drama-tools">
-        <button type="button">倍速 1.0x</button>
-        <button type="button">连续播放</button>
-        <button type="button">弹幕 开</button>
-        <button type="button">清屏</button>
-        <button type="button">全屏</button>
-        <span class="muted" style="align-self:center;font-size:12px">进度 12:03 / 18:40 · Demo</span>
-      </div>
+      <div class="drama-swipe" id="dramaSwipe"></div>
+      <div class="dp-nudge" aria-hidden="true">▲<br/>滑<br/>▼</div>
     </div>
-    <aside class="drama-right">
+    <aside class="drama-right" id="dramaSideDrawer">
       <div class="side-tabs">
-        <button type="button" class="active" data-drama-tab="detail">详情</button>
+        <button type="button" class="active" data-drama-tab="detail">视频</button>
         <button type="button" data-drama-tab="comment">评论</button>
       </div>
       <div class="side-panel active" id="dramaDetail">
-        <div style="font-size:18px;font-weight:700" id="dramaTitle">剧名占位</div>
-        <div style="margin:8px 0">
-          <span class="tag">都市</span><span class="tag vip">VIP</span><span class="tag">连载中</span>
-          <span class="muted" style="font-size:12px;margin-left:6px">共 80 集</span>
+        <div class="dp-side-head">
+          <div class="dp-side-cover" id="dramaSideCover">色块<br/>封面</div>
+          <div class="dp-side-meta">
+            <div id="dramaTitle">剧名占位</div>
+            <div class="dp-side-tags" id="dramaSideTags">
+              <span>都市</span><span>逆袭</span><span>连载中</span>
+            </div>
+          </div>
         </div>
-        <p class="muted" style="font-size:13px;line-height:1.5">简介色块说明：这里展示剧情简介，可展开收起。数据对齐 APP C03-08。</p>
-        <div style="display:flex;gap:8px;margin:10px 0">
-          <button type="button" class="chip">☆ 收藏</button>
-          <button type="button" class="chip">♡ 点赞</button>
+        <div class="dp-sec-title">简介</div>
+        <div class="dp-intro">
+          <p id="dramaIntro">重生回到婚礼当天，她决定亲手改写命运。上一世被背叛后，这一次她选择先发制人……</p>
+          <button type="button" class="expand">展开</button>
         </div>
-        <div style="font-weight:600;margin-top:8px">选集</div>
+        <div class="dp-sec-title">选集</div>
+        <div class="ep-ranges" id="epRanges">
+          <button type="button" class="on">1—15</button>
+          <button type="button">16—30</button>
+          <button type="button">31—45</button>
+          <button type="button">46—60</button>
+        </div>
         <div class="ep-grid" id="epGrid"></div>
-        <div style="font-weight:600;margin-top:16px">推荐短剧</div>
-        <p class="muted" style="font-size:12px;margin:4px 0 8px">在详情下方，不是独立 Tab（对标红果）</p>
+        <div class="dp-sec-title">推荐短剧</div>
         <div class="rec-row" id="dramaRec"></div>
       </div>
-      <div class="side-panel" id="dramaComment">
-        <div class="muted" style="font-size:13px;margin-bottom:8px">全部评论 · 128（整剧公共 + 本集）</div>
-        <div class="comment"><div class="ph ph-avatar">U</div><div class="body"><div class="name">用户甲</div>这一集太爽了<div class="time">2 小时前 · 回复</div></div></div>
-        <div class="comment"><div class="ph ph-avatar">U</div><div class="body"><div class="name">用户乙 <span class="tag vip">VIP</span></div>求更新<div class="time">昨天 · 回复</div></div></div>
-        <div class="note">发表评论 Demo 未接；布局对齐 C03-07。</div>
+      <div class="side-panel comment-panel" id="dramaComment">
+        <div class="comment-scroll">
+          <div class="muted" style="font-size:13px;margin-bottom:8px">全部评论 · 128（整剧公共 + 本集）</div>
+          <div class="comment"><div class="ph ph-avatar">U</div><div class="body"><div class="name">用户甲</div>这一集太爽了<div class="time">2 小时前 · 回复</div></div></div>
+          <div class="comment"><div class="ph ph-avatar">U</div><div class="body"><div class="name">用户乙</div>求更新<div class="time">昨天 · 回复</div></div></div>
+          <div class="comment"><div class="ph ph-avatar">U</div><div class="body"><div class="name">用户丙</div>男主这一段演技在线<div class="time">3 天前 · 回复</div></div></div>
+        </div>
+        <div class="comment-composer">
+          <input id="dramaCommentInput" type="text" placeholder="说点什么…" maxlength="200" />
+          <button type="button" class="send" id="dramaCommentSend">发布</button>
+        </div>
       </div>
     </aside>
   </div>
@@ -529,10 +1274,10 @@ img { display: block; max-width: 100%; }
 
 <!-- COMPANION -->
 <section class="view" id="view-companion">
-  <div class="wrap">
-    <div class="subnav" id="companionSub">
-      <button type="button" class="active" data-comp-tab="discover">发现</button>
-      <button type="button" data-comp-tab="mine" id="compMineTab" class="hidden">我的女友</button>
+  <div class="wrap companion-wide">
+    <div class="companion-bar" id="companionSub">
+      <h2 class="comp-title" id="compTitle">发现</h2>
+      <button type="button" class="comp-mine-btn" data-comp-tab="mine" id="compMineTab">我的女友</button>
     </div>
     <div id="compDiscover">
       <div class="filter-row" style="margin-bottom:14px">
@@ -542,10 +1287,28 @@ img { display: block; max-width: 100%; }
         <button type="button" class="chip" data-filter-demo>知性</button>
       </div>
       <div class="companion-grid" id="roleGrid"></div>
+      <div id="pager-roles"></div>
     </div>
     <div id="compMine" class="hidden">
-      <div class="chat-list" style="border:1px solid var(--line);border-radius:12px;max-width:480px" id="sessionListPage"></div>
-      <p class="note">无会话时可显示空态「去发现」。点会话进对话页。</p>
+      <div class="chat-layout">
+        <div class="chat-list" id="chatSideList"></div>
+        <div class="chat-main">
+          <div class="chat-head">
+            <div><strong id="chatTitle">角色</strong> <span class="muted" style="font-size:12px;margin-left:8px">免费体验中 · 今日剩余 8/10</span></div>
+            <button type="button" class="chip" data-go="role">角色资料</button>
+          </div>
+          <div class="chat-msgs" id="chatMsgs">
+            <div class="bubble ai">你好，我是你的 AI 伴侣。今天想聊点什么？</div>
+            <div class="bubble me">先随便聊聊吧</div>
+            <div class="bubble ai">好呀。你更想听故事，还是想倾诉今天发生的事？</div>
+          </div>
+          <div class="chat-input">
+            <input placeholder="输入消息（Demo 不发送）" />
+            <button type="button">发送</button>
+          </div>
+        </div>
+      </div>
+      <p class="note">「我的女友」直接进入对话界面：左会话列表 · 右消息区。无会话时可空态 +「去发现」。</p>
     </div>
   </div>
 </section>
@@ -556,30 +1319,9 @@ img { display: block; max-width: 100%; }
     <div>
       <h2 id="roleName" style="margin:0 0 8px">角色名</h2>
       <div class="muted" id="roleSlogan">slogan / 分类标签</div>
-      <p style="line-height:1.6;margin:14px 0;color:#ccc" id="roleBio">性格特点、兴趣爱好、擅长话题等资料区（B02-02）。</p>
+      <p style="line-height:1.6;margin:14px 0;color:var(--muted)" id="roleBio">性格特点、兴趣爱好、擅长话题等资料区（B02-02）。</p>
       <button type="button" class="login-btn" id="btnStartChat" style="height:42px">开始聊天</button>
       <p class="note">未登录点此会先去登录页（Demo 用登录开关模拟）。</p>
-    </div>
-  </div>
-</section>
-
-<section class="view" id="view-chat">
-  <div class="chat-layout">
-    <div class="chat-list" id="chatSideList"></div>
-    <div class="chat-main">
-      <div class="chat-head">
-        <div><strong id="chatTitle">角色</strong> <span class="muted" style="font-size:12px;margin-left:8px">免费体验中 · 今日剩余 8/10</span></div>
-        <button type="button" class="chip" data-go="role">角色资料</button>
-      </div>
-      <div class="chat-msgs">
-        <div class="bubble ai">你好，我是你的 AI 伴侣。今天想聊点什么？</div>
-        <div class="bubble me">先随便聊聊吧</div>
-        <div class="bubble ai">好呀。你更想听故事，还是想倾诉今天发生的事？</div>
-      </div>
-      <div class="chat-input">
-        <input placeholder="输入消息（Demo 不发送）" />
-        <button type="button">发送</button>
-      </div>
     </div>
   </div>
 </section>
@@ -588,17 +1330,18 @@ img { display: block; max-width: 100%; }
 <section class="view" id="view-wishes">
   <div class="wrap">
     <div class="ph ph-banner wish-banner">色块 · 心愿墙精彩推荐 Banner（运营位）</div>
-    <div class="wish-actions">
-      <button type="button" class="primary" data-go="wish-new">立即许个愿</button>
-      <input id="wishSearch" placeholder="搜索心愿标题、内容或分类" style="flex:1;min-width:200px;border:1px solid var(--line);background:var(--bg2);color:var(--text);border-radius:999px;padding:10px 14px" />
-    </div>
-    <div class="subnav">
-      <button type="button" class="active" data-wish-tab="ing">许愿中</button>
-      <button type="button" data-wish-tab="making">制作中</button>
-      <button type="button" data-wish-tab="done">已实现</button>
+    <div class="wish-toolbar">
+      <div class="subnav">
+        <button type="button" class="active" data-wish-tab="ing">许愿中</button>
+        <button type="button" data-wish-tab="making">制作中</button>
+        <button type="button" data-wish-tab="done">已实现</button>
+      </div>
+      <input id="wishSearch" placeholder="搜索心愿标题、内容或分类" />
     </div>
     <div class="wish-grid" id="wishGrid"></div>
+    <div id="pager-wishes"></div>
   </div>
+  <button type="button" class="wish-fab" data-go="wish-new">立即许个愿</button>
 </section>
 
 <section class="view" id="view-wish-new">
@@ -621,24 +1364,30 @@ img { display: block; max-width: 100%; }
 <section class="view" id="view-search">
   <div class="wrap search-page">
     <h2 style="margin-top:0">搜索「<span id="searchQ">关键词</span>」</h2>
+    <form class="search-page-form" id="searchPageForm">
+      <input id="searchPageInput" type="search" placeholder="修改关键词，回车或点搜索继续找" autocomplete="off" />
+      <button type="submit">搜索</button>
+    </form>
     <div class="tabs subnav">
       <button type="button" class="active" data-search-tab="video">视频 12</button>
       <button type="button" data-search-tab="drama">短剧/漫剧 8</button>
       <button type="button" data-search-tab="user">博主 3</button>
     </div>
     <div id="searchVideo" class="grid-cards"></div>
+    <div id="pager-searchVideo"></div>
     <div id="searchDrama" class="grid-cards hidden"></div>
+    <div id="pager-searchDrama" class="hidden"></div>
     <div id="searchUser" class="hidden"></div>
+    <div id="pager-searchUser" class="hidden"></div>
   </div>
 </section>
 
 <!-- MSG -->
 <section class="view" id="view-messages">
-  <div class="wrap" style="max-width:720px">
+  <div class="wrap">
     <h2>消息中心</h2>
-    <div class="msg-item"><div class="ph ph-avatar">通</div><div><div style="font-weight:600">心愿审核通过</div><div class="muted" style="font-size:13px">你提交的心愿已通过审核</div></div><div class="muted" style="margin-left:auto;font-size:12px">昨天</div></div>
-    <div class="msg-item"><div class="ph ph-avatar">更</div><div><div style="font-weight:600">内容更新</div><div class="muted" style="font-size:13px">你关注的博主发布了新视频</div></div><div class="muted" style="margin-left:auto;font-size:12px">周一</div></div>
-    <div class="msg-item"><div class="ph ph-avatar">告</div><div><div style="font-weight:600">平台公告</div><div class="muted" style="font-size:13px">Web 版体验征集中</div></div><div class="muted" style="margin-left:auto;font-size:12px">上月</div></div>
+    <div id="msgList"></div>
+    <div id="pager-messages"></div>
     <p class="note">类型对齐 D01-01；详情页 Demo 未展开。</p>
   </div>
 </section>
@@ -679,59 +1428,273 @@ img { display: block; max-width: 100%; }
 <!-- ME -->
 <section class="view" id="view-me">
   <div class="wrap me-layout">
-    <nav class="me-nav" id="meNav">
-      <button type="button" data-me="home" class="active">概览</button>
-      <button type="button" data-me="likes">我的点赞</button>
-      <button type="button" data-me="following">我的关注</button>
-      <button type="button" data-me="fav">我的收藏</button>
-      <button type="button" data-me="vip">VIP 会员</button>
-      <button type="button" data-me="wallet">金币钱包</button>
-      <button type="button" data-me="invite">好友福利</button>
-      <button type="button" data-me="history">观看历史</button>
-      <button type="button" data-me="bought">我的购买</button>
-      <button type="button" data-me="mywishes">我的心愿</button>
-      <button type="button" data-me="faq">联系客服 FAQ</button>
-      <button type="button" data-me="group">加入官方群</button>
-      <button type="button" data-me="road">回家的路</button>
-      <button type="button" data-me="bind">绑定邀请码</button>
-      <button type="button" data-me="credential">账号凭证</button>
-      <button type="button" data-me="creator">创作者中心</button>
-      <button type="button" data-me="security">账号与安全</button>
-    </nav>
+    <aside class="me-home" id="meHome">
+      <div class="me-profile" data-me="security" role="button" tabindex="0">
+        <div class="av">柑</div>
+        <div>
+          <div class="nm">开心柑橘 <span class="tag vip">VIP</span></div>
+          <div class="uid">用户号 U-1024</div>
+          <div class="bio">Hi，我是开心柑橘！正式入驻 51 短视频，会持续分享喜欢的短剧与追剧心得。</div>
+          <div class="edit">编辑资料</div>
+        </div>
+      </div>
+      <div class="me-stats">
+        <button type="button" data-me="likes"><div class="n">128</div><div class="l">点赞</div></button>
+        <button type="button" data-me="following"><div class="n">36</div><div class="l">关注</div></button>
+        <button type="button" data-me="fav"><div class="n">52</div><div class="l">收藏</div></button>
+      </div>
+      <button type="button" class="me-vip" data-me="vip">
+        <span class="crown">VIP</span>
+        <span>
+          <div class="t">会员中心</div>
+          <div class="s">黑金卡 · 剩余 12 天</div>
+        </span>
+        <span class="cta">续费</span>
+      </button>
+      <div class="me-duo">
+        <button type="button" data-me="wallet">
+          <div class="t">金币钱包</div>
+          <div class="s">余额 1280</div>
+        </button>
+        <button type="button" data-me="invite">
+          <div class="t">邀请好友</div>
+          <div class="s">获 VIP 天数</div>
+        </button>
+      </div>
+      <div class="me-quick">
+        <button type="button" data-me="history"><span class="lab">观看历史</span><span class="hint">最近看过 ›</span></button>
+        <button type="button" data-me="bought"><span class="lab">我的购买</span><span class="hint">已解锁 ›</span></button>
+        <button type="button" data-me="mywishes"><span class="lab">我的心愿</span><span class="hint">提交与支持 ›</span></button>
+      </div>
+      <h3 class="me-svc-title">官方与账号服务</h3>
+      <div class="me-svc">
+        <button type="button" data-me="faq"><span><div class="t">在线客服</div><div class="s">订单与使用帮助</div></span><span class="arrow">›</span></button>
+        <button type="button" data-me="credential"><span><div class="t">账号凭证</div><div class="s">查看账号相关凭证</div></span><span class="arrow">›</span></button>
+        <button type="button" data-me="group"><span><div class="t">加入官方群</div><div class="s">官方群交流、商务咨询</div></span><span class="arrow">›</span></button>
+        <button type="button" data-me="road"><span><div class="t">回家的路</div><div class="s">查看最新可用访问入口</div></span><span class="arrow">›</span></button>
+        <button type="button" data-me="bind"><span><div class="t">填写邀请码</div><div class="s">绑定好友的邀请码</div></span><span class="arrow">›</span></button>
+        <button type="button" data-me="creator"><span><div class="t">创作者中心</div><div class="s">合作与权益介绍</div></span><span class="arrow">›</span></button>
+      </div>
+      <div class="me-home-foot">
+        <button type="button" class="me-ico-btn" data-me="security" title="设置">设置</button>
+      </div>
+    </aside>
     <div class="me-panel" id="mePanel"></div>
   </div>
 </section>
 
+<div class="modal-mask" id="loginModal" aria-hidden="true">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
+    <button type="button" class="modal-close" id="loginModalClose" aria-label="关闭">×</button>
+    <h2 id="loginModalTitle">登录后继续</h2>
+    <p class="sub" id="loginModalSub">登录后可使用关注、点赞等互动 · Demo 表单</p>
+    <label>用户名</label>
+    <input id="loginModalUser" placeholder="请输入账号" />
+    <label>密码</label>
+    <input id="loginModalPass" type="password" placeholder="请输入密码" />
+    <div class="modal-actions">
+      <button type="button" class="cancel" id="loginModalCancel">取消</button>
+      <button type="button" class="submit" id="loginModalSubmit">登录</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="downloadModal" aria-hidden="true">
+  <div class="dl-modal-panel" role="dialog" aria-modal="true" aria-labelledby="downloadModalTitle">
+    <button type="button" class="modal-close" id="downloadModalClose" aria-label="关闭">×</button>
+    <div class="dl-pop-brand" id="downloadModalTitle"><span class="mark">51</span>51短视频</div>
+    <div class="dl-pop-qr" aria-hidden="true"></div>
+    <p>扫码下载安装「51短视频 App」</p>
+    <p class="sub">短视频 · 短剧 · AI 伴侣，手机免费看</p>
+  </div>
+</div>
+
+<div class="drawer-mask" id="videoCommentDrawer" aria-hidden="true">
+  <aside class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="videoCommentTitle">
+    <div class="drawer-head">
+      <div id="videoCommentTitle">评论 <span class="muted" id="videoCommentCount">34</span></div>
+      <button type="button" class="modal-close" id="videoCommentClose" aria-label="关闭">×</button>
+    </div>
+    <div class="drawer-body" id="videoCommentList">
+      <div class="comment"><div class="ph ph-avatar">U</div><div class="body"><div class="name">用户甲</div>这做法太实用了<div class="time">2 小时前 · 回复</div></div></div>
+      <div class="comment"><div class="ph ph-avatar">U</div><div class="body"><div class="name">用户乙</div>收藏了，晚上试<div class="time">昨天 · 回复</div></div></div>
+    </div>
+    <div class="comment-composer">
+      <input id="videoCommentInput" type="text" placeholder="说点什么…" maxlength="200" />
+      <button type="button" class="send" id="videoCommentSend">发布</button>
+    </div>
+  </aside>
+</div>
+
+<div class="modal-mask" id="shareModal" aria-hidden="true">
+  <div class="share-panel" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
+    <button type="button" class="modal-close" id="shareModalClose" aria-label="关闭">×</button>
+    <h2 id="shareModalTitle">分享</h2>
+    <p class="sub">分享视频给好友，一起观看精彩内容</p>
+    <div class="share-card">
+      <div class="ph ph-cover poster">色块 · 分享封面</div>
+      <div class="title" id="shareCardTitle">番茄炒蛋的正确做法</div>
+      <div class="desc" id="shareCardDesc">番茄炒蛋的正确做法 · 测试环境造数</div>
+      <div class="foot">
+        <div class="brand">
+          <div>51短视频</div>
+          <div class="code">邀请码：WXLL</div>
+          <div class="muted" style="font-size:11px">注册自动绑定</div>
+        </div>
+        <div class="qr-wrap">
+          <div class="ph ph-qr">二维码</div>
+          <span>扫码观看</span>
+        </div>
+      </div>
+    </div>
+    <div class="share-actions">
+      <button type="button" class="primary" id="shareSave">保存分享卡片</button>
+      <button type="button" class="ghost" id="shareCopy">复制链接</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="msgDetailModal" aria-hidden="true">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="msgDetailTitle" style="width:min(480px,100%)">
+    <button type="button" class="modal-close" id="msgDetailClose" aria-label="关闭">×</button>
+    <h2 id="msgDetailTitle">消息详情</h2>
+    <div class="msg-detail-meta">
+      <div class="ph ph-avatar" id="msgDetailAv">通</div>
+      <div>
+        <div id="msgDetailTime">刚刚</div>
+        <div style="font-size:12px;margin-top:2px" id="msgDetailType">系统通知</div>
+      </div>
+    </div>
+    <div class="msg-detail-body" id="msgDetailBody"></div>
+    <div class="modal-actions">
+      <button type="button" class="submit" id="msgDetailOk">我知道了</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="wishDetailModal" aria-hidden="true">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="wishDetailTitle" style="width:min(520px,100%)">
+    <button type="button" class="modal-close" id="wishDetailClose" aria-label="关闭">×</button>
+    <h2 id="wishDetailTitle">心愿详情</h2>
+    <div class="wish-detail-meta" id="wishDetailMeta"></div>
+    <div class="wish-detail-body" id="wishDetailBody"></div>
+    <div class="modal-actions">
+      <button type="button" class="cancel" id="wishDetailBoost">顶一下</button>
+      <button type="button" class="submit" id="wishDetailOk">关闭</button>
+    </div>
+  </div>
+</div>
+
 <div class="demo-flag">
-  <div style="margin-bottom:6px;font-weight:600;color:#fff">Demo 开关</div>
+  <div style="margin-bottom:6px;font-weight:600;color:var(--text)">Demo 开关</div>
   <label><input type="checkbox" id="toggleLogin" /> 模拟已登录</label>
   <div style="margin-top:6px">静态壳 · 无真接口</div>
 </div>
 
 <script>
 (function () {
-  const dramas = [
-    { id: 'd1', title: '重生之职场逆袭', tags: '都市 · 80集', pay: 'vip' },
-    { id: 'd2', title: '古风探案手册', tags: '古风 · 60集', pay: 'free' },
-    { id: 'd3', title: '玄幻问天录', tags: '玄幻 · 120集', pay: 'coin' },
-    { id: 'd4', title: '闪婚后宠上天', tags: '爱情 · 70集', pay: 'vip' },
-    { id: 'd5', title: '末世黑作坊', tags: '奇幻 · 90集', pay: 'free' },
-    { id: 'd6', title: '年代创业记', tags: '年代 · 100集', pay: 'vip' }
+  const PAGE_SIZE = 30;
+  /* 封面网格页长：8/6/4 列都能整除，末行铺满 */
+  const GRID_PAGE_SIZE = 24;
+  /* 分区 Tab 内：固定 8 列 × 最多 4 排 = 32 / 页，整页左右翻 */
+  const SECTION_PAGE_SIZE = 32;
+
+  function pageSizeFor(key) {
+    if (
+      key === 'dramaLib' ||
+      key === 'searchDrama' ||
+      key === 'me-fav' ||
+      (typeof key === 'string' && key.startsWith('ops-'))
+    ) return GRID_PAGE_SIZE;
+    return PAGE_SIZE;
+  }
+  const dramaSeeds = [
+    ['重生之职场逆袭', '都市'], ['古风探案手册', '古风'], ['玄幻问天录', '玄幻'],
+    ['闪婚后宠上天', '爱情'], ['末世黑作坊', '奇幻'], ['年代创业记', '年代'],
+    ['替身娇妻不好惹', '爱情'], ['修仙从杂役开始', '玄幻'], ['都市神医归来', '都市'],
+    ['冷宫弃妃翻身记', '古风'], ['校园风云录', '青春'], ['战神归来护全家', '都市'],
+    ['穿越成炮灰女配', '古风'], ['直播间里的秘密', '都市'], ['星际流浪日记', '科幻'],
+    ['外卖小哥捡到宝', '都市'], ['吸血鬼的契约', '奇幻'], ['律政佳人', '都市']
   ];
-  const videos = [
-    { id: 'v1', title: '番茄炒蛋教程', author: '@厨房里的阿杰' },
-    { id: 'v2', title: '雨后采蘑菇 ASMR', author: '@山林记' },
-    { id: 'v3', title: '办公桌收纳', author: '@整理派' },
-    { id: 'v4', title: '三分钟拉伸', author: '@运动小课' },
-    { id: 'v5', title: '城市夜景延时', author: '@镜头里' },
-    { id: 'v6', title: '猫咪起床气', author: '@毛孩日记' }
+  const videoSeeds = [
+    ['番茄炒蛋教程', '@厨房里的阿杰'], ['雨后采蘑菇 ASMR', '@山林记'], ['办公桌收纳', '@整理派'],
+    ['三分钟拉伸', '@运动小课'], ['城市夜景延时', '@镜头里'], ['猫咪起床气', '@毛孩日记'],
+    ['周末露营指南', '@山野派'], ['手冲咖啡入门', '@豆子实验室'], ['琴房随手弹', '@练习曲'],
+    ['街头滑板花絮', '@轮子上'], ['阳台种菜日记', '@绿手指'], ['深夜便利店', '@夜班人'],
+    ['博物馆逛逛', '@看展去'], ['海边日落延时', '@潮汐'], ['宿舍改造前后', '@租房日记'],
+    ['乐队排练花絮', '@车库乐队'], ['徒步看云海', '@云上人'], ['烘焙失败合集', '@烤箱事故']
   ];
-  const roles = [
-    { id: 'r1', name: '兰若', slogan: '御姐 · 直接 · 擅长倾听' },
-    { id: 'r2', name: '桃奈', slogan: '少女 · 元气 · 爱讲故事' },
-    { id: 'r3', name: '知夏', slogan: '知性 · 冷静 · 聊书影' },
-    { id: 'r4', name: '清欢', slogan: '温柔 · 治愈 · 深夜陪聊' }
+  const roleSeeds = [
+    ['兰若', '御姐 · 直接 · 擅长倾听'], ['桃奈', '少女 · 元气 · 爱讲故事'],
+    ['知夏', '知性 · 冷静 · 聊书影'], ['清欢', '温柔 · 治愈 · 深夜陪聊'],
+    ['晚星', '神秘 · 低语 · 适合谈心'], ['阿柚', '活泼 · 吐槽 · 日常陪伴'],
+    ['苏禾', '温柔 · 稳重 · 职场倾诉'], ['北辰', '冷感 · 理性 · 帮你拆解烦恼'],
+    ['小满', '甜系 · 撒娇 · 轻松聊天'], ['江叙', '沉稳 · 故事王 · 连载陪读'],
+    ['林澄', '清冷 · 文艺 · 聊旅行与音乐'], ['暖暖', '治愈 · 倾听 · 情绪安抚']
   ];
+  const payCycle = ['vip', 'free', 'coin'];
+  const dramas = Array.from({ length: 72 }, (_, i) => {
+    const [base, genre] = dramaSeeds[i % dramaSeeds.length];
+    const round = Math.floor(i / dramaSeeds.length);
+    return {
+      id: 'd' + (i + 1),
+      title: round ? `${base} ${round + 1}` : base,
+      tags: `${genre} · ${40 + (i % 12) * 5}集`,
+      pay: payCycle[i % 3]
+    };
+  });
+  const videos = Array.from({ length: 68 }, (_, i) => {
+    const [base, author] = videoSeeds[i % videoSeeds.length];
+    const round = Math.floor(i / videoSeeds.length);
+    return {
+      id: 'v' + (i + 1),
+      title: round ? `${base} · 第${round + 1}弹` : base,
+      author
+    };
+  });
+  const roles = Array.from({ length: 48 }, (_, i) => {
+    const [base, slogan] = roleSeeds[i % roleSeeds.length];
+    const round = Math.floor(i / roleSeeds.length);
+    return {
+      id: 'r' + (i + 1),
+      name: round ? `${base}${round + 1}` : base,
+      slogan
+    };
+  });
+  const wishTitles = [
+    '想看一部职场成长短剧', '希望多一些美食教程', '想要甜宠古风漫剧',
+    '求都市修仙题材', '想看独立清醒女主', '希望推出露营旅行系列',
+    '想要更多 ASMR 助眠', '求完结的悬疑短剧', '想看乐队追梦故事',
+    '希望 AI 伴侣多些职场人设', '想要亲子向轻松内容', '求赛博朋克短片'
+  ];
+  const wishStatuses = ['ing', 'making', 'done'];
+  const wishStatusLab = { ing: '许愿中', making: '制作中', done: '已实现' };
+  /* 每态约 40 条，整页完整翻页可演示 */
+  const wishes = Array.from({ length: 120 }, (_, i) => ({
+    id: 'w' + (i + 1),
+    status: wishStatuses[i % 3],
+    support: 80 + (i * 17) % 900,
+    title: `${wishTitles[i % wishTitles.length]} ${Math.floor(i / wishTitles.length) + 1}`,
+    desc: '希望节奏紧凑、人物立体，少一些重复桥段，适合碎片时间刷完。'
+  }));
+  const msgTypes = [
+    ['通', '心愿审核通过', '你提交的心愿已通过审核'],
+    ['更', '内容更新', '你关注的博主发布了新视频'],
+    ['告', '平台公告', 'Web 版体验征集中'],
+    ['赞', '互动通知', '有人赞了你的评论'],
+    ['系', '系统消息', '会员权益即将到期，记得续费'],
+    ['邀', '好友福利', '好友通过你的邀请码注册成功']
+  ];
+  const msgTimes = ['刚刚', '10 分钟前', '今天', '昨天', '周一', '上周', '上月'];
+  const messages = Array.from({ length: 54 }, (_, i) => {
+    const [av, title, body] = msgTypes[i % msgTypes.length];
+    return {
+      id: 'm' + (i + 1),
+      av, title,
+      body: `${body}（示意 ${i + 1}）`,
+      time: msgTimes[i % msgTimes.length]
+    };
+  });
 
   const state = {
     route: 'home',
@@ -741,8 +1704,17 @@ img { display: block; max-width: 100%; }
     roleId: 'r1',
     dramaId: 'd1',
     videoId: 'v1',
-    me: 'home',
-    searchTab: 'video'
+    me: 'history',
+    meMedia: {},
+    searchTab: 'video',
+    feedTab: 'rec',
+    compTab: 'discover',
+    wishTab: 'ing',
+    loginReason: '',
+    dramaMenuId: 'featured',
+    dramaSheetId: '',
+    dramaSecIdx: {},
+    pages: {}
   };
 
   const $ = (s, r = document) => r.querySelector(s);
@@ -759,100 +1731,687 @@ img { display: block; max-width: 100%; }
     </div>`;
   }
 
+  function pagerHTML(key, total) {
+    const size = pageSizeFor(key);
+    const pages = Math.max(1, Math.ceil(total / size));
+    let p = state.pages[key] || 1;
+    if (p > pages) p = pages;
+    if (p < 1) p = 1;
+    state.pages[key] = p;
+    if (total <= size) return '';
+    const nums = [];
+    for (let i = 1; i <= pages; i++) {
+      if (pages <= 7 || i === 1 || i === pages || Math.abs(i - p) <= 1) nums.push(i);
+      else if (nums[nums.length - 1] !== '…') nums.push('…');
+    }
+    return `<nav class="pager" data-pager="${key}" aria-label="翻页">
+      <button type="button" data-pager-act="prev"${p <= 1 ? ' disabled' : ''}>上一页</button>
+      ${nums.map(n => n === '…'
+        ? '<span class="pager-ellipsis">…</span>'
+        : `<button type="button" data-pager-act="${n}" class="${n === p ? 'on' : ''}">${n}</button>`
+      ).join('')}
+      <button type="button" data-pager-act="next"${p >= pages ? ' disabled' : ''}>下一页</button>
+      <span class="pager-info">${p}/${pages} · 共 ${total} 条</span>
+    </nav>`;
+  }
+
+  function pageSlice(arr, key) {
+    const size = pageSizeFor(key);
+    const pages = Math.max(1, Math.ceil(arr.length / size));
+    let p = state.pages[key] || 1;
+    if (p > pages) p = pages;
+    if (p < 1) p = 1;
+    state.pages[key] = p;
+    return arr.slice((p - 1) * size, p * size);
+  }
+
+  function setPagerHost(hostId, key, total) {
+    const host = $('#' + hostId);
+    if (!host) return;
+    host.innerHTML = pagerHTML(key, total);
+  }
+
+  function dramaIds(start, count) {
+    return Array.from({ length: count }, (_, i) => dramas[(start + i) % dramas.length].id);
+  }
+
   function fillHome() {
-    $('#homeRank').innerHTML = dramas.map((d, i) => coverCard({ ...d, rank: i + 1 }, 'drama')).join('');
-    $('#homeDramas').innerHTML = dramas.map(d => coverCard(d, 'drama')).join('');
-    $('#homeVideos').innerHTML = videos.map(v => coverCard(v, 'video')).join('');
-    $('#dramaGrid').innerHTML = dramas.concat(dramas).map(d => coverCard(d, 'drama')).join('');
-    $('#roleGrid').innerHTML = roles.map(r => `
+    $('#homeRank').innerHTML = dramas.slice(0, 18).map((d, i) => coverCard({ ...d, rank: i + 1 }, 'drama')).join('');
+    renderHomeDramas();
+    renderHomeVideos();
+    renderDramaLib();
+    renderDramaOpsBody();
+    renderRoles();
+    renderChatList();
+    renderWishes();
+    renderSearchLists();
+    renderMessages();
+    fillDramaSideEpisodes(1);
+    $('#dramaRec').innerHTML = dramas.slice(0, 9).map(d => `
+      <div class="card" data-open-drama="${d.id}">
+        <div class="ph ph-cover">色块 · 封面</div>
+        <div class="title">${d.title}</div>
+        <div class="sub">${d.tags || '都市 · 40集'}</div>
+      </div>`).join('');
+  }
+
+  function fillDramaSideEpisodes(start) {
+    const from = Math.max(1, start || 1);
+    $('#epGrid').innerHTML = Array.from({ length: 15 }, (_, i) => {
+      const n = from + i;
+      const on = n === from ? ' on' : '';
+      const lock = n >= from + 5 ? '<span class="lock">🔒</span>' : '';
+      return `<button type="button" class="${on.trim()}" data-ep="${n}">${lock}${n}</button>`;
+    }).join('');
+  }
+
+  /* 首页推荐区：固定 6 列 × 3 行，无翻页 */
+  const HOME_GRID_LIMIT = 18;
+
+  function renderHomeDramas() {
+    $('#homeDramas').innerHTML = dramas.slice(0, HOME_GRID_LIMIT).map(d => coverCard(d, 'drama')).join('');
+  }
+
+  function renderHomeVideos() {
+    $('#homeVideos').innerHTML = videos.slice(0, HOME_GRID_LIMIT).map(v => coverCard(v, 'video')).join('');
+  }
+
+  function renderDramaLib() {
+    const list = dramas;
+    $('#dramaLibGrid').innerHTML = pageSlice(list, 'dramaLib').map(d => coverCard(d, 'drama')).join('');
+    setPagerHost('pager-dramaLib', 'dramaLib', list.length);
+  }
+
+  function renderRoles() {
+    const list = roles;
+    $('#roleGrid').innerHTML = pageSlice(list, 'roles').map(r => `
       <div class="companion-card" data-open-role="${r.id}">
         <div class="ph ph-cover">色块 · 角色封面<br/>${r.name}</div>
         <div class="body">
           <div style="font-weight:700">${r.name}</div>
           <div class="muted" style="font-size:12px;margin-top:4px">${r.slogan}</div>
-          <button type="button" class="btn" data-open-role="${r.id}">查看资料</button>
         </div>
       </div>`).join('');
-    const sessions = roles.slice(0, 3).map((r, i) => `
+    setPagerHost('pager-roles', 'roles', list.length);
+  }
+
+  function renderChatList() {
+    const previews = ['你好，今天过得怎么样？', '上次聊到一半…', '我给你讲个故事吧', '有想倾诉的事吗？', '刚看到一部好剧'];
+    $('#chatSideList').innerHTML = roles.map((r, i) => `
       <div class="chat-item" data-open-chat="${r.id}">
         <div class="ph ph-avatar">${r.name[0]}</div>
-        <div><div class="t">${r.name}</div><div class="p">${i === 0 ? '你好，今天过得怎么样？' : '上次聊到…'}</div></div>
-      </div>`).join('');
-    $('#sessionListPage').innerHTML = sessions || '<div class="note">暂无会话</div>';
-    $('#chatSideList').innerHTML = sessions;
-    $('#wishGrid').innerHTML = [1, 2, 3, 4].map(i => `
-      <div class="wish-card">
-        <div class="st">许愿中 · ${120 + i * 17} 人支持</div>
-        <div style="font-weight:700">想看一部职场成长短剧 ${i}</div>
-        <div class="muted" style="font-size:13px;margin-top:6px">希望女主独立清醒，不要无脑恋爱桥段…</div>
-        <button type="button" class="chip" style="margin-top:10px">顶</button>
-      </div>`).join('');
-    $('#searchVideo').innerHTML = videos.map(v => coverCard(v, 'video')).join('');
-    $('#searchDrama').innerHTML = dramas.map(d => coverCard(d, 'drama')).join('');
-    $('#searchUser').innerHTML = videos.slice(0, 3).map(v => `
+        <div><div class="t">${r.name}</div><div class="p">${previews[i % previews.length]}</div></div>
+      </div>`).join('') || '<div class="note" style="margin:12px">暂无会话 · 去发现挑一个角色聊聊</div>';
+  }
+
+  function renderWishes() {
+    const tab = state.wishTab || 'ing';
+    const list = wishes.filter(w => w.status === tab);
+    $('#wishGrid').innerHTML = pageSlice(list, 'wishes').map(w => `
+      <div class="wish-card" data-wish-id="${w.id}" role="button" tabindex="0">
+        <div class="st">${wishStatusLab[w.status]} · ${w.support} 人支持</div>
+        <div class="wish-title">${w.title}</div>
+        <div class="wish-desc">${w.desc}</div>
+        <button type="button" class="chip wish-boost" style="margin-top:10px">顶</button>
+      </div>`).join('') || '<div class="note">该状态下暂无心愿</div>';
+    setPagerHost('pager-wishes', 'wishes', list.length);
+  }
+
+  function openWishDetail(id) {
+    const w = wishes.find(x => x.id === id);
+    if (!w) return;
+    $('#wishDetailTitle').textContent = w.title;
+    $('#wishDetailMeta').textContent =
+      `${wishStatusLab[w.status]} · ${w.support} 人支持 · 编号 ${w.id.toUpperCase()}`;
+    $('#wishDetailBody').textContent =
+      w.desc +
+      '\n\n补充说明（完整内容示意）：希望成片节奏紧凑、人物弧光清晰，少一些重复桥段与注水剧情；适合通勤、午休等碎片时间一次刷完。正式环境将展示提交人、分类标签、进度时间线与关联内容入口。';
+    const modal = $('#wishDetailModal');
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeWishDetail() {
+    const modal = $('#wishDetailModal');
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  function renderSearchLists() {
+    const authors = [...new Map(videos.map(v => [v.author, v])).values()];
+    $('#searchVideo').innerHTML = pageSlice(videos, 'searchVideo').map(v => coverCard(v, 'video')).join('');
+    setPagerHost('pager-searchVideo', 'searchVideo', videos.length);
+    $('#searchDrama').innerHTML = pageSlice(dramas, 'searchDrama').map(d => coverCard(d, 'drama')).join('');
+    setPagerHost('pager-searchDrama', 'searchDrama', dramas.length);
+    $('#searchUser').innerHTML = pageSlice(authors, 'searchUser').map(v => `
       <div class="msg-item" style="cursor:default">
         <div class="ph ph-avatar">博</div>
-        <div><div style="font-weight:600">${v.author}</div><div class="muted" style="font-size:13px">作品 12 · 粉丝 1.2 万</div></div>
+        <div><div style="font-weight:600">${v.author}</div><div class="muted" style="font-size:13px">作品 ${8 + (v.id.length % 20)} · 粉丝 ${(1.2 + (parseInt(v.id.slice(1), 10) % 40) / 10).toFixed(1)} 万</div></div>
         <button type="button" class="chip">关注 +</button>
       </div>`).join('');
-    $('#epGrid').innerHTML = Array.from({ length: 20 }, (_, i) =>
-      `<button type="button" class="${i === 4 ? 'on' : ''}">${i + 1}</button>`).join('');
-    $('#dramaRec').innerHTML = dramas.slice(0, 3).map(d => `
-      <div class="card" data-open-drama="${d.id}">
-        <div class="ph ph-cover" style="aspect-ratio:3/4">推荐<br/>${d.title}</div>
-        <div class="title" style="font-size:12px;margin-top:6px">${d.title}</div>
+    setPagerHost('pager-searchUser', 'searchUser', authors.length);
+    $$('[data-search-tab]').forEach(b => {
+      const tab = b.getAttribute('data-search-tab');
+      if (tab === 'video') b.textContent = `视频 ${videos.length}`;
+      if (tab === 'drama') b.textContent = `短剧/漫剧 ${dramas.length}`;
+      if (tab === 'user') b.textContent = `博主 ${authors.length}`;
+    });
+  }
+
+  function renderMessages() {
+    const list = messages;
+    $('#msgList').innerHTML = pageSlice(list, 'messages').map(m => `
+      <div class="msg-item" data-msg-id="${m.id}" role="button" tabindex="0">
+        <div class="ph ph-avatar">${m.av}</div>
+        <div><div style="font-weight:600">${m.title}</div><div class="muted" style="font-size:13px">${m.body}</div></div>
+        <div class="muted" style="margin-left:auto;font-size:12px;white-space:nowrap">${m.time}</div>
       </div>`).join('');
+    setPagerHost('pager-messages', 'messages', list.length);
+  }
+
+  function openMsgDetail(id) {
+    const m = messages.find(x => x.id === id) || messages[0];
+    if (!m) return;
+    $('#msgDetailTitle').textContent = m.title;
+    $('#msgDetailAv').textContent = m.av;
+    $('#msgDetailTime').textContent = m.time;
+    $('#msgDetailType').textContent = '系统通知 · ' + m.id.toUpperCase();
+    $('#msgDetailBody').textContent =
+      m.body + '\n\n这是消息详情示意。正式环境将展示完整正文、关联订单 / 心愿 / 内容入口等。当前为 Demo 静态文案。';
+    const modal = $('#msgDetailModal');
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeMsgDetail() {
+    const modal = $('#msgDetailModal');
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  function refreshPaged(key) {
+    if (key === 'dramaLib') renderDramaLib();
+    else if (key === 'roles') renderRoles();
+    else if (key === 'wishes') renderWishes();
+    else if (key === 'messages') renderMessages();
+    else if (key === 'searchVideo' || key === 'searchDrama' || key === 'searchUser') renderSearchLists();
+    else if (key.startsWith('ops-')) renderDramaOpsBody();
+    else if (key.startsWith('me-')) renderMe();
+  }
+
+  function meMediaTab(scope) {
+    return state.meMedia[scope] === 'drama' ? 'drama' : 'video';
+  }
+
+  function meMediaSubnav(scope) {
+    const tab = meMediaTab(scope);
+    return `<div class="subnav">
+      <button type="button" data-me-media="video" class="${tab === 'video' ? 'active' : ''}">作品</button>
+      <button type="button" data-me-media="drama" class="${tab === 'drama' ? 'active' : ''}">短剧</button>
+    </div>`;
+  }
+
+  function meMediaListHTML(scope, titles) {
+    const tab = meMediaTab(scope);
+    const isVideo = tab === 'video';
+    const list = isVideo ? videos : dramas;
+    const pageKey = `me-${scope}-${tab}`;
+    const kind = isVideo ? 'video' : 'drama';
+    const countLab = isVideo ? `短视频作品 · 共 ${list.length} 条` : `短剧 · 共 ${list.length} 部`;
+    const sub = titles[tab] + ' · ' + countLab;
+    if (scope === 'bought') {
+      return `<h2>我的购买</h2><p class="panel-sub">${sub}</p>
+        ${meMediaSubnav(scope)}
+        ${pageSlice(list, pageKey).map(item => `
+          <div class="list-row">
+            <span>金币解锁 · ${item.title}</span>
+            <span class="muted">${isVideo ? (item.author || '短视频') : (item.tags || '短剧')} · 已购买</span>
+          </div>`).join('')}
+        ${pagerHTML(pageKey, list.length)}`;
+    }
+    return `<h2>${titles.h2}</h2><p class="panel-sub">${sub}</p>
+      ${meMediaSubnav(scope)}
+      <div class="grid-cards">${pageSlice(list, pageKey).map(item => coverCard(item, kind)).join('')}</div>
+      ${pagerHTML(pageKey, list.length)}`;
   }
 
   function meHTML(key) {
     const map = {
-      home: `<h2>开心柑橘 <span class="tag vip">VIP</span></h2>
-        <div class="muted">用户号 U-1024 · 点击可编辑资料（Demo）</div>
-        <div class="stat-row">
-          <div><div class="n">128</div><div class="l">点赞</div></div>
-          <div><div class="n">36</div><div class="l">关注</div></div>
-          <div><div class="n">52</div><div class="l">收藏</div></div>
+      home: `<div class="me-empty">
+          <div><div class="big">←</div><div style="font-size:15px;color:var(--text);font-weight:600;margin-bottom:6px">从左侧选择功能</div>
+          <div style="font-size:13px;max-width:280px;line-height:1.5">会员、钱包、历史、心愿与账号服务会在此展开 Web 二级页</div></div>
+        </div>`,
+      likes: meMediaListHTML('likes', {
+        h2: '我的点赞',
+        video: '点赞过的短视频',
+        drama: '点赞过的短剧'
+      }),
+      following: (() => {
+        const authors = [...new Map(videos.map(v => [v.author, v])).values()];
+        return `<h2>我的关注</h2><p class="panel-sub">已关注的创作者 · 共 ${authors.length} 人</p>
+        ${pageSlice(authors, 'me-following').map(v => `<div class="list-row"><span>${v.author}</span><button class="chip">进入主页</button></div>`).join('')}
+        ${pagerHTML('me-following', authors.length)}`;
+      })(),
+      fav: meMediaListHTML('fav', {
+        h2: '我的收藏',
+        video: '收藏的短视频',
+        drama: '收藏的短剧'
+      }),
+      vip: `<h2>会员中心</h2><p class="panel-sub">当前：黑金卡 · 剩余 12 天 · 可观看 VIP / 金币内容，AI 无限陪聊</p>
+        <div class="me-pkg">
+          <div class="pkg on"><div class="tag vip">黑金卡</div><div class="price">¥30</div><div class="muted">30 天</div></div>
+          <div class="pkg"><div class="tag vip">骑士卡</div><div class="price">¥78</div><div class="muted">配置天数</div></div>
+          <div class="pkg"><div class="tag vip">皇冠卡</div><div class="price">¥258</div><div class="muted">配置天数</div></div>
         </div>
-        <div class="list-row"><span>VIP 会员</span><span class="muted">黑金卡 · 剩余 12 天</span></div>
-        <div class="list-row"><span>金币余额</span><span class="muted">1280</span></div>
-        <div class="note">左侧铺齐 APP「我的」入口；点左侧切换子页壳。</div>`,
-      likes: `<h2>我的点赞</h2><div class="subnav"><button class="active">作品</button><button>短剧</button></div><div class="grid-cards">${videos.map(v => coverCard(v, 'video')).join('')}</div>`,
-      following: `<h2>我的关注</h2>${videos.slice(0, 4).map(v => `<div class="list-row"><span>${v.author}</span><button class="chip">进入主页</button></div>`).join('')}`,
-      fav: `<h2>我的收藏</h2><div class="subnav"><button class="active">作品</button><button>短剧</button></div><div class="grid-cards">${dramas.slice(0, 4).map(d => coverCard(d, 'drama')).join('')}</div>`,
-      vip: `<h2>VIP 会员</h2><p class="muted">开通后可观看 VIP / 金币内容，AI 无限陪聊等。</p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
-          <div class="wish-card" style="flex:1;min-width:140px"><div class="tag vip">黑金卡</div><div style="font-size:22px;margin:8px 0">¥30</div>30 天</div>
-          <div class="wish-card" style="flex:1;min-width:140px"><div class="tag vip">骑士卡</div><div style="font-size:22px;margin:8px 0">¥78</div>配置天数</div>
-          <div class="wish-card" style="flex:1;min-width:140px"><div class="tag vip">皇冠卡</div><div style="font-size:22px;margin:8px 0">¥258</div>配置天数</div>
+        <button class="login-btn" style="height:42px;width:100%;max-width:280px">立即续费（Demo）</button>`,
+      wallet: `<h2>金币钱包</h2><p class="panel-sub">用于解锁金币视频 / 短剧</p>
+        <div style="font-size:32px;font-weight:700;margin:8px 0 4px">1280 <span style="font-size:16px;font-weight:600;color:var(--muted)">金币</span></div>
+        <div class="me-pkg">
+          <div class="pkg on"><div class="price">60</div><div class="muted">金币 · 示意价</div></div>
+          <div class="pkg"><div class="price">180</div><div class="muted">金币 · 示意价</div></div>
+          <div class="pkg"><div class="price">300</div><div class="muted">金币 · 示意价</div></div>
         </div>
-        <button class="login-btn" style="height:42px">立即开通（Demo）</button>`,
-      wallet: `<h2>金币钱包</h2><div class="n" style="font-size:28px">1280 金币</div><p class="muted">用于解锁金币视频 / 短剧</p>
-        <div class="list-row"><span>充值套餐示意</span><span class="muted">60 / 180 / 300 金币</span></div>
-        <div class="list-row"><span>金币明细</span><span class="muted">入口</span></div>`,
-      invite: `<h2>好友福利</h2><p>邀请码 <strong>A8K2</strong> · 每成功邀请赠 3 天 VIP</p>
-        <div class="ph ph-qr" style="margin:12px 0">色块 · 邀请海报/二维码</div>
-        <button class="chip">复制邀请链接</button>`,
-      history: `<h2>观看历史</h2><div class="subnav"><button class="active">作品</button><button>短剧</button></div><div class="grid-cards">${videos.map(v => coverCard(v, 'video')).join('')}</div>`,
-      bought: `<h2>我的购买</h2><div class="subnav"><button class="active">作品</button><button>短剧</button></div><div class="list-row"><span>金币解锁 · 已购买视频</span><span class="muted">示例</span></div>`,
-      mywishes: `<h2>我的心愿</h2><div class="subnav"><button class="active">我提交的</button><button>我支持的</button></div><div class="wish-card"><div class="st">待审核</div>希望多一些美食教程</div>`,
-      faq: `<h2>联系客服 FAQ</h2><div class="list-row"><span>如何开通 VIP？</span><span class="muted">展开</span></div><div class="list-row"><span>金币怎么用？</span><span class="muted">展开</span></div><button class="chip" style="margin-top:12px">联系客服</button>`,
-      group: `<h2>加入官方群</h2><div class="list-row"><span>官方用户交流群</span><button class="chip">立即加入</button></div><div class="list-row"><span>官方推特</span><button class="chip">立即关注</button></div>`,
-      road: `<h2>回家的路</h2><div class="list-row"><span>主站地址</span><button class="chip">复制</button></div><div class="list-row"><span>备用线路 1</span><button class="chip">进入</button></div><div class="note">对齐 D01-14 模块壳。</div>`,
-      bind: `<h2>绑定邀请码</h2><input placeholder="请输入 4 位邀请码" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text)" /><button class="login-btn" style="height:40px;margin-top:12px">确认绑定</button>`,
-      credential: `<h2>账号凭证</h2><div class="ph ph-cover" style="max-width:280px;aspect-ratio:3/4;margin:12px 0">色块 · 账号凭证卡片<br/>含恢复码示意</div><button class="chip">保存图片</button>`,
-      creator: `<h2>创作者中心</h2><p class="muted">本期提供合作说明与咨询，自助投稿暂未开放。</p><button class="chip">联系客服</button> <button class="chip" data-go="me" data-me="group">加入官方群</button>`,
-      security: `<h2>账号与安全</h2><div class="list-row"><span>账户 ID</span><span class="muted">复制</span></div><div class="list-row"><span>修改用户名</span><span class="muted">›</span></div><div class="list-row"><span>修改头像</span><span class="muted">›</span></div><div class="list-row"><span>修改个性签名</span><span class="muted">›</span></div><button class="chip" style="margin-top:12px" id="btnLogout">退出登录</button>`
+        <div class="list-row"><span>金币明细</span><span class="muted">查看流水 ›</span></div>
+        <button class="login-btn" style="height:42px;width:100%;max-width:280px;margin-top:16px">充值（Demo）</button>`,
+      invite: `<h2>邀请好友</h2><p class="panel-sub">邀请码 A8K2 · 每成功邀请赠 3 天 VIP</p>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;margin:8px 0 16px">
+          <div class="ph ph-qr" style="width:140px;height:140px">邀请海报 / 二维码</div>
+          <div style="flex:1;min-width:200px">
+            <div class="list-row"><span>我的邀请码</span><span style="font-weight:700;letter-spacing:.08em">A8K2</span></div>
+            <div class="list-row"><span>已邀请好友</span><span class="muted">3 人</span></div>
+            <div class="list-row"><span>累计获得 VIP</span><span class="muted">9 天</span></div>
+            <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+              <button class="login-btn" style="height:40px;padding:0 18px">复制邀请链接</button>
+              <button class="chip">保存海报</button>
+            </div>
+          </div>
+        </div>`,
+      history: meMediaListHTML('history', {
+        h2: '观看历史',
+        video: '最近看过的短视频',
+        drama: '最近看过的短剧'
+      }),
+      bought: meMediaListHTML('bought', {
+        h2: '我的购买',
+        video: '已购短视频',
+        drama: '已购短剧'
+      }),
+      mywishes: (() => {
+        const mine = wishes.slice(0, 40);
+        return `<h2>我的心愿</h2><p class="panel-sub">我提交的与我支持的心愿 · 共 ${mine.length} 条</p>
+        <div class="subnav"><button class="active">我提交的</button><button>我支持的</button></div>
+        ${pageSlice(mine, 'me-wishes').map(w => `<div class="wish-card" style="margin-bottom:10px"><div class="st">${wishStatusLab[w.status]}</div>${w.title}</div>`).join('')}
+        ${pagerHTML('me-wishes', mine.length)}`;
+      })(),
+      faq: `<h2>在线客服</h2><p class="panel-sub">订单与使用帮助</p>
+        <div class="list-row"><span>如何开通 VIP？</span><span class="muted">展开 ›</span></div>
+        <div class="list-row"><span>金币怎么用？</span><span class="muted">展开 ›</span></div>
+        <div class="list-row"><span>如何找回账号？</span><span class="muted">展开 ›</span></div>
+        <button class="login-btn" style="height:42px;margin-top:16px;padding:0 20px">联系人工客服</button>`,
+      group: `<h2>加入官方群</h2><p class="panel-sub">官方群交流、商务咨询</p>
+        <div class="list-row"><span>官方用户交流群</span><button class="chip">立即加入</button></div>
+        <div class="list-row"><span>官方推特</span><button class="chip">立即关注</button></div>`,
+      road: `<h2>回家的路</h2><p class="panel-sub">查看最新可用访问入口</p>
+        <div class="list-row"><span>主站地址</span><button class="chip">复制</button></div>
+        <div class="list-row"><span>备用线路 1</span><button class="chip">进入</button></div>
+        <div class="list-row"><span>备用线路 2</span><button class="chip">进入</button></div>`,
+      bind: `<h2>填写邀请码</h2><p class="panel-sub">绑定好友的邀请码（仅一次）</p>
+        <input placeholder="请输入 4 位邀请码" style="width:100%;max-width:320px;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)" />
+        <div><button class="login-btn" style="height:42px;margin-top:14px;padding:0 24px">确认绑定</button></div>`,
+      credential: `<h2>账号凭证</h2><p class="panel-sub">查看账号相关凭证，妥善保存便于找回</p>
+        <div class="ph ph-cover" style="max-width:280px;aspect-ratio:3/4;margin:12px 0">账号凭证卡片<br/>含恢复码示意</div>
+        <button class="chip">保存图片</button>`,
+      creator: `<h2>创作者中心</h2><p class="panel-sub">合作与权益介绍 · 本期提供咨询入口</p>
+        <div class="note" style="margin-bottom:14px">自助投稿暂未开放，可通过客服或官方群沟通合作。</div>
+        <button class="chip">联系客服</button> <button class="chip" data-go="me" data-me="group">加入官方群</button>`,
+      security: `<h2>账号与安全</h2><p class="panel-sub">资料编辑与账号安全设置</p>
+        <div class="list-row"><span>账户 ID</span><span class="muted">U-1024 · 复制</span></div>
+        <div class="list-row"><span>修改用户名</span><span class="muted">开心柑橘 ›</span></div>
+        <div class="list-row"><span>修改头像</span><span class="muted">›</span></div>
+        <div class="list-row"><span>修改个性签名</span><span class="muted">›</span></div>
+        <div class="list-row"><span>修改密码</span><span class="muted">›</span></div>
+        <button class="chip" style="margin-top:16px" id="btnLogout">退出登录</button>`
     };
-    return map[key] || map.home;
+    return map[key] || map.history;
   }
 
   function setAuthUI() {
     const on = state.loggedIn;
     $('#btnAuth').classList.toggle('hidden', on);
     $('#btnAvatar').classList.toggle('hidden', !on);
-    $('#compMineTab').classList.toggle('hidden', !on);
     $('#msgBadge').style.display = on ? '' : 'none';
     $('#toggleLogin').checked = on;
+    if (!on && state.compTab === 'mine') setCompTab('discover');
+    if (!on && state.feedTab === 'follow') setFeedTab('rec', { promptLogin: false });
+  }
+
+  function bindChatSession(id) {
+    const r = roles.find(x => x.id === id) || roles[0];
+    state.roleId = r.id;
+    const title = $('#chatTitle');
+    if (title) title.textContent = r.name;
+    $$('#chatSideList .chat-item').forEach(i => {
+      i.classList.toggle('active', i.getAttribute('data-open-chat') === r.id);
+    });
+  }
+
+  const dramaOpsNames = {
+    featured: '精选推荐',
+    origin: '51原创',
+    aiman: 'AI漫剧',
+    acg: '二次元',
+    live: '真人短剧',
+    horror: '擦边短剧'
+  };
+  /* 运营频道内容形态：对齐 APP 可配三种；列表造数 > 30 以演示翻页 */
+  const dramaChannelConfig = {
+    featured: {
+      mode: 'sections',
+      sections: [
+        { title: '热门推荐', ids: dramaIds(0, 96) },
+        { title: '新剧速看', ids: dramaIds(16, 96) },
+        { title: '本周必看', ids: dramaIds(32, 64) }
+      ]
+    },
+    origin: {
+      mode: 'sections',
+      sections: [
+        { title: '热门推荐', ids: dramaIds(6, 96) },
+        { title: '原创精选', ids: dramaIds(20, 64) }
+      ]
+    },
+    aiman: {
+      mode: 'sheets',
+      sheets: [
+        { id: 'pick', name: '漫剧精选', ids: dramaIds(0, 48) },
+        { id: 'horror', name: '恐怖怪谈', ids: dramaIds(12, 48) },
+        { id: 'story', name: '恐怖故事', ids: dramaIds(24, 48) }
+      ]
+    },
+    acg: {
+      mode: 'plain',
+      ids: dramaIds(0, 48)
+    },
+    live: {
+      mode: 'plain',
+      ids: dramaIds(8, 48)
+    },
+    horror: {
+      mode: 'plain',
+      ids: dramaIds(16, 48)
+    }
+  };
+
+  function dramaCardsByIds(ids) {
+    return ids.map(id => {
+      const d = dramas.find(x => x.id === id) || dramas[0];
+      return coverCard(d, 'drama');
+    }).join('');
+  }
+
+  function renderDramaOpsBody() {
+    const body = $('#dramaOpsBody');
+    if (!body) return;
+    const menu = state.dramaMenuId || 'featured';
+    const cfg = dramaChannelConfig[menu] || dramaChannelConfig.featured;
+    if (cfg.mode === 'sections') {
+      const size = SECTION_PAGE_SIZE;
+      body.innerHTML = cfg.sections.map((sec, i) => {
+        const key = `ops-${menu}-s${i}`;
+        const pageCount = Math.max(1, Math.ceil(sec.ids.length / size));
+        let p = state.pages[key] || 1;
+        if (p > pageCount) p = pageCount;
+        if (p < 1) p = 1;
+        state.pages[key] = p;
+        const grids = [];
+        for (let n = 0; n < pageCount; n++) {
+          const slice = sec.ids.slice(n * size, (n + 1) * size);
+          grids.push(`<div class="grid-cards drama-page-grid">${dramaCardsByIds(slice)}</div>`);
+        }
+        return `<div class="drama-sec" data-sec-key="${key}">
+          <div class="drama-sec-head">
+            <h3 class="drama-sec-title">${sec.title}</h3>
+            <div class="pager-arrows" aria-label="整页翻页">
+              <button type="button" data-slide-page="-1" aria-label="上一页"${p <= 1 ? ' disabled' : ''}>‹</button>
+              <button type="button" data-slide-page="1" aria-label="下一页"${p >= pageCount ? ' disabled' : ''}>›</button>
+            </div>
+          </div>
+          <div class="drama-page-viewport">
+            <div class="drama-page-track" style="transform:translateX(-${(p - 1) * 100}%)">${grids.join('')}</div>
+          </div>
+        </div>`;
+      }).join('');
+      return;
+    }
+    if (cfg.mode === 'sheets') {
+      const sheetId = state.dramaSheetId && cfg.sheets.some(s => s.id === state.dramaSheetId)
+        ? state.dramaSheetId : cfg.sheets[0].id;
+      state.dramaSheetId = sheetId;
+      const cur = cfg.sheets.find(s => s.id === sheetId) || cfg.sheets[0];
+      const key = `ops-${menu}-${sheetId}`;
+      const slice = pageSlice(cur.ids, key);
+      body.innerHTML = `
+        <div class="drama-sheets" id="dramaSheets">
+          ${cfg.sheets.map(s => `
+            <button type="button" data-drama-sheet="${s.id}" class="${s.id === sheetId ? 'active' : ''}">${s.name}</button>
+          `).join('')}
+        </div>
+        <div class="grid-cards">${dramaCardsByIds(slice)}</div>
+        ${pagerHTML(key, cur.ids.length)}`;
+      return;
+    }
+    const key = `ops-${menu}`;
+    const ids = cfg.ids || [];
+    body.innerHTML = `<div class="grid-cards">${dramaCardsByIds(pageSlice(ids, key))}</div>${pagerHTML(key, ids.length)}`;
+  }
+
+  function setDramaCat(id) {
+    if (id) {
+      state.dramaMenuId = id;
+      state.dramaSheetId = '';
+      if (state.dramaSecIdx[id] == null) state.dramaSecIdx[id] = 0;
+    }
+    state.dramaMenuId = state.dramaMenuId || 'featured';
+    $$('#dramaNav .nav-item').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-drama-id') === state.dramaMenuId);
+    });
+    renderDramaOpsBody();
+  }
+
+  function setCompTab(tab) {
+    state.compTab = tab === 'mine' ? 'mine' : 'discover';
+    const title = $('#compTitle');
+    const mineBtn = $('#compMineTab');
+    if (title) title.textContent = state.compTab === 'mine' ? '我的女友' : '发现';
+    if (mineBtn) {
+      if (state.compTab === 'mine') {
+        mineBtn.textContent = '去发现';
+        mineBtn.setAttribute('data-comp-tab', 'discover');
+        mineBtn.classList.add('ghost');
+      } else {
+        mineBtn.textContent = '我的女友';
+        mineBtn.setAttribute('data-comp-tab', 'mine');
+        mineBtn.classList.remove('ghost');
+      }
+    }
+    $('#compDiscover').classList.toggle('hidden', state.compTab !== 'discover');
+    $('#compMine').classList.toggle('hidden', state.compTab !== 'mine');
+    if (state.compTab === 'mine') bindChatSession(state.roleId || roles[0].id);
+  }
+
+  function openLoginModal(reason) {
+    state.loginReason = reason || '';
+    const m = $('#loginModal');
+    const sub = $('#loginModalSub');
+    if (sub) {
+      sub.textContent = reason === 'follow-tab'
+        ? '登录后可查看关注动态 · Demo 表单'
+        : reason === 'companion-mine'
+          ? '登录后可查看我的女友会话 · Demo 表单'
+          : reason === 'comment'
+            ? '登录后可发表评论 · Demo 表单'
+            : '登录后可使用关注、点赞、评论、收藏、分享 · Demo 表单';
+    }
+    m.classList.add('open');
+    m.setAttribute('aria-hidden', 'false');
+    const input = $('#loginModalUser');
+    if (input) setTimeout(() => input.focus(), 0);
+  }
+
+  function closeLoginModal() {
+    const m = $('#loginModal');
+    m.classList.remove('open');
+    m.setAttribute('aria-hidden', 'true');
+  }
+
+  function openDownloadModal() {
+    const m = $('#downloadModal');
+    m.classList.add('open');
+    m.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeDownloadModal() {
+    const m = $('#downloadModal');
+    m.classList.remove('open');
+    m.setAttribute('aria-hidden', 'true');
+  }
+
+  function openVideoCommentDrawer() {
+    const m = $('#videoCommentDrawer');
+    m.classList.add('open');
+    m.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeVideoCommentDrawer() {
+    const m = $('#videoCommentDrawer');
+    m.classList.remove('open');
+    m.setAttribute('aria-hidden', 'true');
+  }
+
+  function getActiveFeedSlide() {
+    const swipe = $('#feedSwipe');
+    if (!swipe) return null;
+    const slides = $$('.feed-slide', swipe);
+    if (!slides.length) return null;
+    const idx = Math.round(swipe.scrollTop / Math.max(swipe.clientHeight, 1));
+    return slides[Math.max(0, Math.min(idx, slides.length - 1))];
+  }
+
+  function openShareModal() {
+    const slide = getActiveFeedSlide();
+    const author = (slide && $('.author', slide) || {}).textContent || '@博主';
+    const desc = (slide && $('.desc', slide) || {}).textContent || '精彩内容';
+    const title = (desc.split('·')[0] || desc).trim();
+    $('#shareCardTitle').textContent = title;
+    $('#shareCardDesc').textContent = desc || author;
+    const m = $('#shareModal');
+    m.classList.add('open');
+    m.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeShareModal() {
+    const m = $('#shareModal');
+    m.classList.remove('open');
+    m.setAttribute('aria-hidden', 'true');
+  }
+
+  function bumpNum(el, delta) {
+    const num = el.querySelector('.num');
+    if (!num) return;
+    const raw = num.textContent.trim();
+    if (raw === '—' || raw === '分享') return;
+    const n = parseInt(raw, 10);
+    if (Number.isNaN(n)) return;
+    num.textContent = String(Math.max(0, n + delta));
+  }
+
+  function handleVideoAct(act) {
+    const type = act.getAttribute('data-act');
+    if (type === 'like' || type === 'fav') {
+      const on = act.classList.toggle('on');
+      const ico = act.querySelector('.ico');
+      if (ico) ico.textContent = type === 'like' ? (on ? '♥' : '♡') : (on ? '★' : '☆');
+      bumpNum(act, on ? 1 : -1);
+      return;
+    }
+    if (type === 'avatar') {
+      const on = act.classList.toggle('on');
+      const lab = act.querySelector('.follow-lab');
+      if (lab) lab.textContent = on ? '已关注' : '+关注';
+      return;
+    }
+    if (type === 'comment') {
+      openVideoCommentDrawer();
+      return;
+    }
+    if (type === 'share') {
+      openShareModal();
+    }
+  }
+
+  function feedSlideHTML(item) {
+    const orient = item.orient === 'landscape' ? 'landscape' : 'portrait';
+    /* 正片用纯色，避免与背后高斯糊成一片；模糊层单独用同色系 */
+    const solid = item.solid || '#5a6578';
+    const blur = item.blur || solid;
+    const ratioLab = orient === 'landscape' ? '横屏 16:9' : '竖屏 9:16';
+    return `<div class="feed-slide">
+      <div class="stage">
+        <div class="stage-blur" style="background:${blur}" aria-hidden="true"></div>
+        <div class="stage-inner ${orient}" style="background:${solid}">
+          <div class="ph ph-player" style="background:transparent;border:0;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45)">${item.ph}<br/><span style="opacity:.75;font-size:11px">${ratioLab}</span></div>
+        </div>
+      </div>
+      <div class="info">
+        <div class="author">${item.author}</div>
+        <div class="desc">${item.desc}</div>
+      </div>
+      <div class="actions">
+        <div class="act" data-need-login data-act="avatar"><div class="ph ph-avatar">头像</div><span class="follow-lab">+关注</span></div>
+        <div class="act" data-need-login data-act="like"><span class="ico">♡</span><span class="num">${item.like}</span></div>
+        <div class="act" data-need-login data-act="comment"><span class="ico">💬</span><span class="num">${item.comment}</span></div>
+        <div class="act" data-need-login data-act="fav"><span class="ico">☆</span><span class="num">${item.fav}</span></div>
+        <div class="act" data-need-login data-act="share"><span class="ico">↗</span><span class="num">分享</span></div>
+      </div>
+    </div>`;
+  }
+
+  function applyFeedContent() {
+    const follow = state.feedTab === 'follow';
+    const items = follow ? [
+      { author: '@山林记', desc: '你关注的创作者更新了 · 雨后采蘑菇 ASMR #户外', like: 12, comment: 8, fav: 3, orient: 'portrait', solid: '#3d8f6e', blur: '#2a5c48', ph: '色块 · 关注流 1/3<br/>雨后采蘑菇 ASMR' },
+      { author: '@整理派', desc: '关注动态 · 办公桌收纳一周复盘 #生活', like: 9, comment: 5, fav: 2, orient: 'landscape', solid: '#5b6b88', blur: '#3a4558', ph: '色块 · 关注流 2/3<br/>办公桌收纳' },
+      { author: '@毛孩日记', desc: '关注动态 · 猫咪起床气合集 #萌宠', like: 28, comment: 16, fav: 11, orient: 'portrait', solid: '#c48a5a', blur: '#8a5e3c', ph: '色块 · 关注流 3/3<br/>猫咪起床气' }
+    ] : [
+      { author: '@厨房里的阿杰', desc: '番茄炒蛋的正确做法 · 测试造数 #美食 #教程', like: 5, comment: 34, fav: 7, orient: 'portrait', solid: '#e08a4a', blur: '#a85f30', ph: '色块 · 推荐流 1/3<br/>竖屏短视频' },
+      { author: '@镜头里', desc: '城市夜景延时 · 一镜到底 #旅行', like: 128, comment: 42, fav: 19, orient: 'landscape', solid: '#3a6ea8', blur: '#244870', ph: '色块 · 推荐流 2/3<br/>横屏夜景延时' },
+      { author: '@运动小课', desc: '三分钟拉伸放松肩颈 #健身', like: 66, comment: 21, fav: 14, orient: 'portrait', solid: '#4cad8a', blur: '#2f6f58', ph: '色块 · 推荐流 3/3<br/>竖屏拉伸' }
+    ];
+    const swipe = $('#feedSwipe');
+    if (swipe) {
+      swipe.innerHTML = items.map(feedSlideHTML).join('');
+      swipe.scrollTop = 0;
+    }
+    $('#feedControls').textContent = follow
+      ? '▶ 00:08 / 02:40 · 音量 · 全屏 · Demo 不接真播'
+      : '▶ 00:12 / 01:05 · 音量 · 全屏 · Demo 不接真播';
+    $('#feedNote').textContent = follow
+      ? '当前：关注流。内容区宽度与其它页一致；横/竖屏空隙用首帧模糊垫底。'
+      : '当前：推荐流。内容区宽度与其它页一致；横/竖屏空隙用首帧模糊垫底。未登录点关注 Tab 先弹登录。';
+  }
+
+  function setFeedTab(tab, { promptLogin = true } = {}) {
+    const want = tab === 'follow' ? 'follow' : 'rec';
+    if (want === 'follow' && !state.loggedIn) {
+      if (promptLogin) openLoginModal('follow-tab');
+      return;
+    }
+    state.feedTab = want;
+    $$('[data-feed-tab]').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-feed-tab') === state.feedTab);
+    });
+    applyFeedContent();
+    if (state.feedTab === 'rec') closeLoginModal();
   }
 
   function setTopbar(mode, crumb) {
@@ -862,7 +2421,7 @@ img { display: block; max-width: 100%; }
     if (!primary) $('#crumbPath').textContent = crumb || '';
     $$('#navPrimary .nav-link').forEach(btn => {
       btn.classList.toggle('active', btn.getAttribute('data-go') === state.route ||
-        (state.route === 'drama-play' && btn.getAttribute('data-go') === 'drama') ||
+        ((state.route === 'drama-play' || state.route === 'drama-lib') && btn.getAttribute('data-go') === 'drama') ||
         (state.route.startsWith('comp') && btn.getAttribute('data-go') === 'companion') ||
         (state.route === 'wish-new' && btn.getAttribute('data-go') === 'wishes') ||
         (state.route === 'video' && btn.getAttribute('data-go') === 'home'));
@@ -871,23 +2430,20 @@ img { display: block; max-width: 100%; }
 
   const secondaryRoutes = {
     video: () => `首页 / 推荐短视频`,
+    'drama-lib': () => '短剧 / 片库筛选',
     'drama-play': () => {
       const d = dramas.find(x => x.id === state.dramaId) || dramas[0];
-      return `${state.backTo === 'drama' ? '找剧' : state.backTo === 'search' ? '搜索' : '首页'} / ${d.title}`;
+      const from = state.backTo === 'drama-lib' ? '片库筛选'
+        : state.backTo === 'drama' ? '短剧'
+        : state.backTo === 'search' ? '搜索' : '首页';
+      return `${from} / ${d.title}`;
     },
     role: () => {
       const r = roles.find(x => x.id === state.roleId) || roles[0];
       return `AI伴侣 / ${r.name}`;
     },
-    chat: () => {
-      const r = roles.find(x => x.id === state.roleId) || roles[0];
-      return `AI伴侣 / 对话 / ${r.name}`;
-    },
     'wish-new': () => '心愿墙 / 填写心愿',
-    search: () => '搜索结果',
-    messages: () => '消息中心',
-    login: () => '登录',
-    me: () => '我的'
+    login: () => '登录'
   };
 
   function show(route, opts = {}) {
@@ -900,10 +2456,10 @@ img { display: block; max-width: 100%; }
       feed: 'view-feed',
       video: 'view-video',
       drama: 'view-drama',
+      'drama-lib': 'view-drama-lib',
       'drama-play': 'view-drama-play',
       companion: 'view-companion',
       role: 'view-role',
-      chat: 'view-chat',
       wishes: 'view-wishes',
       'wish-new': 'view-wish-new',
       search: 'view-search',
@@ -925,25 +2481,33 @@ img { display: block; max-width: 100%; }
       $('#videoDesc').textContent = v.title + ' · 从首页进入的二级播放壳';
     }
     if (route === 'drama-play') {
-      const d = dramas.find(x => x.id === state.dramaId) || dramas[0];
-      $('#dramaTitle').textContent = d.title;
+      renderDramaPlay();
     }
     if (route === 'role') {
       const r = roles.find(x => x.id === state.roleId) || roles[0];
       $('#roleName').textContent = r.name;
       $('#roleSlogan').textContent = r.slogan;
     }
-    if (route === 'chat') {
-      const r = roles.find(x => x.id === state.roleId) || roles[0];
-      $('#chatTitle').textContent = r.name;
-      $$('#chatSideList .chat-item').forEach(i => i.classList.toggle('active', i.getAttribute('data-open-chat') === r.id));
+    if (route === 'companion') {
+      if (opts.compTab === 'mine') setCompTab('mine');
+      else setCompTab('discover');
     }
+    if (route === 'drama') setDramaCat(state.dramaMenuId || 'featured');
     if (route === 'search') {
-      $('#searchQ').textContent = opts.q || $('#searchInput').value || '关键词';
+      const q = (opts.q != null ? opts.q : ($('#searchInput').value || $('#searchPageInput').value || '关键词')).trim() || '关键词';
+      $('#searchQ').textContent = q;
+      $('#searchInput').value = q;
+      $('#searchPageInput').value = q;
     }
     if (route === 'me') {
       if (opts.me) state.me = opts.me;
       renderMe();
+    }
+    if (route === 'feed') {
+      if (opts.feedTab) setFeedTab(opts.feedTab, { promptLogin: !!opts.promptLogin });
+      else setFeedTab('rec', { promptLogin: false });
+    } else {
+      closeLoginModal();
     }
     if (route === 'messages' && !state.loggedIn) {
       show('login', { backTo: 'messages', crumb: '登录' });
@@ -957,11 +2521,99 @@ img { display: block; max-width: 100%; }
   }
 
   function renderMe() {
-    $$('#meNav button').forEach(b => b.classList.toggle('active', b.getAttribute('data-me') === state.me));
+    $$('#meHome [data-me]').forEach(b => b.classList.toggle('active', b.getAttribute('data-me') === state.me));
     $('#mePanel').innerHTML = meHTML(state.me);
     const logout = $('#btnLogout');
     if (logout) logout.onclick = () => { state.loggedIn = false; setAuthUI(); show('home'); };
   }
+
+  const dramaPlaySolids = ['#c47a4a', '#3d6b8a', '#5a7a4e', '#8a5a6b', '#4a5a78'];
+  const dramaPlayBlurbs = [
+    '如月当人，却被无数名门冷眼相待，直到那天…',
+    '重生回到婚礼当天，她决定亲手改写命运。',
+    '闪婚当晚发现丈夫身份不简单，假戏真做开始了。'
+  ];
+
+  function dramaSlideHTML(d, idx, totalEp) {
+    const solid = dramaPlaySolids[idx % dramaPlaySolids.length];
+    const tags = (d.tags || '都市 · 40集').split('·').map(s => s.trim()).filter(Boolean);
+    const tagHtml = tags.slice(0, 4).map(t => `<span>${t}</span>`).join('');
+    const ep = 1 + (idx % 3);
+    const blurb = dramaPlayBlurbs[idx % dramaPlayBlurbs.length];
+    const fav = (1.2 + idx * 0.3).toFixed(1) + '万';
+    const cmt = 180 + idx * 40;
+    const like = 800 + idx * 220;
+    return `<div class="drama-slide" data-drama-id="${d.id}">
+      <div class="dp-stage">
+        <div class="dp-frame" style="background:${solid}">色块 · 竖屏短剧 ${idx + 1}/3<br/><span style="opacity:.7;font-size:11px">9:16 · 左右留黑</span></div>
+      </div>
+      <div class="dp-info">
+        <div class="dp-title">${d.title}</div>
+        <div class="dp-tags">${tagHtml}<span>逆袭</span></div>
+        <div class="dp-ep">第${ep}集 ｜ 剧情简介：${blurb}<span class="chev"> ›</span></div>
+        <button type="button" class="dp-more" data-drama-more="${d.id}">▶ 查看更多 · 全${totalEp}集</button>
+      </div>
+      <div class="dp-acts">
+        <div class="act" data-need-login data-act="fav"><span class="ico">☆</span><span class="num">${fav}</span></div>
+        <div class="act" data-drama-comment data-act="comment"><span class="ico">💬</span><span class="num">${cmt}</span></div>
+        <div class="act" data-need-login data-act="like"><span class="ico">♡</span><span class="num">${like}</span></div>
+        <div class="act" data-need-login data-act="share"><span class="ico">↗</span><span class="num">分享</span></div>
+      </div>
+      <div class="dp-bar">
+        <button type="button" aria-label="播放">▶</button>
+        <button type="button">下一集</button>
+        <span class="dp-time">00:00 / 03:40</span>
+        <div class="dp-progress" aria-hidden="true"><i></i></div>
+        <div class="dp-tools">
+          <button type="button">弹</button>
+          <button type="button">720P</button>
+          <button type="button">倍速</button>
+          <button type="button">音量</button>
+          <button type="button">全屏</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function syncDramaSide(d) {
+    if (!d) return;
+    $('#dramaTitle').textContent = d.title;
+    const tags = (d.tags || '都市 · 40集').split('·').map(s => s.trim()).filter(Boolean);
+    const extra = ['逆袭', '连载中'];
+    $('#dramaSideTags').innerHTML = [...tags, ...extra].slice(0, 5).map(t => `<span>${t}</span>`).join('');
+    $('#dramaIntro').textContent = `简介：${d.title}。${dramaPlayBlurbs[0]}数据对齐 APP C03-08。`;
+    fillDramaSideEpisodes(1);
+    $$('#epRanges button').forEach((b, i) => b.classList.toggle('on', i === 0));
+  }
+
+  function renderDramaPlay() {
+    const cur = dramas.find(x => x.id === state.dramaId) || dramas[0];
+    const idx = Math.max(0, dramas.findIndex(x => x.id === cur.id));
+    const pack = [0, 1, 2].map(i => dramas[(idx + i) % dramas.length]);
+    const totalEp = 77;
+    const swipe = $('#dramaSwipe');
+    if (swipe) {
+      swipe.innerHTML = pack.map((d, i) => dramaSlideHTML(d, i, totalEp)).join('');
+      swipe.scrollTop = 0;
+    }
+    syncDramaSide(cur);
+    setDramaSideTab('detail');
+  }
+
+  function setDramaSideTab(tab) {
+    const want = tab === 'comment' ? 'comment' : 'detail';
+    $$('#dramaSideDrawer [data-drama-tab]').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-drama-tab') === want);
+    });
+    $('#dramaDetail').classList.toggle('active', want === 'detail');
+    $('#dramaComment').classList.toggle('active', want === 'comment');
+  }
+
+  function openDramaDrawer(tab) {
+    setDramaSideTab(tab);
+  }
+
+  function closeDramaDrawer() {}
 
   function openDrama(id, backTo) {
     state.dramaId = id;
@@ -976,50 +2628,148 @@ img { display: block; max-width: 100%; }
     show('role', { backTo: 'companion' });
   }
   function openChat(id) {
+    state.roleId = id;
     if (!state.loggedIn) {
-      state.roleId = id;
-      show('login', { backTo: 'chat', crumb: '登录后聊天' });
+      show('login', { backTo: 'companion-chat', crumb: '登录后聊天' });
       return;
     }
-    state.roleId = id;
-    show('chat', { backTo: 'companion' });
+    show('companion', { compTab: 'mine' });
+    bindChatSession(id);
   }
 
   document.body.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-go],[data-open-drama],[data-open-video],[data-open-role],[data-open-chat],[data-me],[data-filter-demo],[data-feed-tab],[data-drama-tab],[data-comp-tab],[data-wish-tab],[data-search-tab]');
+    const act = e.target.closest('.player-video .act[data-need-login], .dp-acts .act');
+    if (act) {
+      if (act.hasAttribute('data-drama-comment')) {
+        openDramaDrawer('comment');
+        return;
+      }
+      if (act.hasAttribute('data-need-login') && !state.loggedIn) {
+        openLoginModal(act.getAttribute('data-act') === 'comment' ? 'comment' : '');
+        return;
+      }
+      handleVideoAct(act);
+      return;
+    }
+
+    const dramaMore = e.target.closest('[data-drama-more]');
+    if (dramaMore) {
+      const id = dramaMore.getAttribute('data-drama-more');
+      const d = dramas.find(x => x.id === id);
+      if (d) {
+        state.dramaId = d.id;
+        syncDramaSide(d);
+      }
+      setDramaSideTab('detail');
+      return;
+    }
+
+    const epRange = e.target.closest('#epRanges button');
+    if (epRange) {
+      $$('#epRanges button').forEach(b => b.classList.toggle('on', b === epRange));
+      const lab = epRange.textContent || '1—15';
+      const start = parseInt(lab, 10) || 1;
+      fillDramaSideEpisodes(start);
+      return;
+    }
+
+    const epBtn = e.target.closest('#epGrid button[data-ep]');
+    if (epBtn) {
+      $$('#epGrid button').forEach(b => b.classList.toggle('on', b === epBtn));
+      return;
+    }
+
+    const msgItem = e.target.closest('#msgList .msg-item[data-msg-id]');
+    if (msgItem) {
+      openMsgDetail(msgItem.getAttribute('data-msg-id'));
+      return;
+    }
+
+    if (e.target.closest('.wish-boost')) return;
+    const wishCard = e.target.closest('#wishGrid .wish-card[data-wish-id]');
+    if (wishCard) {
+      openWishDetail(wishCard.getAttribute('data-wish-id'));
+      return;
+    }
+
+    const slidePageBtn = e.target.closest('[data-slide-page]');
+    if (slidePageBtn && !slidePageBtn.disabled) {
+      const sec = slidePageBtn.closest('.drama-sec');
+      const key = sec && sec.getAttribute('data-sec-key');
+      if (key) {
+        const dir = parseInt(slidePageBtn.getAttribute('data-slide-page'), 10) || 1;
+        state.pages[key] = (state.pages[key] || 1) + dir;
+        renderDramaOpsBody();
+      }
+      return;
+    }
+
+    const pgBtn = e.target.closest('[data-pager-act]');
+    if (pgBtn && !pgBtn.disabled) {
+      const nav = pgBtn.closest('[data-pager]');
+      if (nav) {
+        const key = nav.getAttribute('data-pager');
+        const act = pgBtn.getAttribute('data-pager-act');
+        let p = state.pages[key] || 1;
+        if (act === 'prev') p -= 1;
+        else if (act === 'next') p += 1;
+        else p = parseInt(act, 10) || 1;
+        state.pages[key] = p;
+        refreshPaged(key);
+      }
+      return;
+    }
+
+    const t = e.target.closest('[data-go],[data-open-drama],[data-open-video],[data-open-role],[data-open-chat],[data-me],[data-me-media],[data-filter-demo],[data-feed-tab],[data-drama-tab],[data-comp-tab],[data-wish-tab],[data-search-tab],[data-drama-cat],[data-drama-sheet]');
     if (!t) return;
 
+    if (t.hasAttribute('data-me-media') && t.closest('#mePanel')) {
+      const media = t.getAttribute('data-me-media') === 'drama' ? 'drama' : 'video';
+      state.meMedia[state.me] = media;
+      state.pages[`me-${state.me}-video`] = 1;
+      state.pages[`me-${state.me}-drama`] = 1;
+      renderMe();
+      return;
+    }
+
+    if (t.hasAttribute('data-drama-cat')) {
+      setDramaCat(t.getAttribute('data-drama-id'));
+      return;
+    }
+    if (t.hasAttribute('data-drama-sheet')) {
+      state.dramaSheetId = t.getAttribute('data-drama-sheet');
+      renderDramaOpsBody();
+      return;
+    }
     if (t.hasAttribute('data-filter-demo')) {
       const row = t.parentElement;
       $$('.chip', row).forEach(c => c.classList.remove('active'));
+      $$('button', row).forEach(c => c.classList.remove('active'));
       t.classList.add('active');
       return;
     }
     if (t.hasAttribute('data-feed-tab')) {
-      $$('[data-feed-tab]').forEach(b => b.classList.remove('active'));
-      t.classList.add('active');
-      const follow = t.getAttribute('data-feed-tab') === 'follow';
-      $('#feedNote').textContent = follow
-        ? '当前：关注流示意（A02）。未登录可在此引导登录；滑切未做。'
-        : '当前：推荐流（A01）。关注流切换仅改文案示意，滑切未做。';
+      setFeedTab(t.getAttribute('data-feed-tab'));
       return;
     }
     if (t.hasAttribute('data-drama-tab')) {
-      const tab = t.getAttribute('data-drama-tab');
-      $$('[data-drama-tab]').forEach(b => b.classList.toggle('active', b === t));
-      $('#dramaDetail').classList.toggle('active', tab === 'detail');
-      $('#dramaComment').classList.toggle('active', tab === 'comment');
+      setDramaSideTab(t.getAttribute('data-drama-tab'));
       return;
     }
     if (t.hasAttribute('data-comp-tab')) {
       const tab = t.getAttribute('data-comp-tab');
-      $$('#companionSub button').forEach(b => b.classList.toggle('active', b === t));
-      $('#compDiscover').classList.toggle('hidden', tab !== 'discover');
-      $('#compMine').classList.toggle('hidden', tab !== 'mine');
+      if (tab === 'mine' && !state.loggedIn) {
+        openLoginModal('companion-mine');
+        return;
+      }
+      setCompTab(tab);
       return;
     }
     if (t.hasAttribute('data-wish-tab')) {
+      state.wishTab = t.getAttribute('data-wish-tab');
+      state.pages.wishes = 1;
       $$('[data-wish-tab]').forEach(b => b.classList.toggle('active', b === t));
+      renderWishes();
       return;
     }
     if (t.hasAttribute('data-search-tab')) {
@@ -1027,12 +2777,19 @@ img { display: block; max-width: 100%; }
       state.searchTab = tab;
       $$('[data-search-tab]').forEach(b => b.classList.toggle('active', b === t));
       $('#searchVideo').classList.toggle('hidden', tab !== 'video');
+      $('#pager-searchVideo').classList.toggle('hidden', tab !== 'video');
       $('#searchDrama').classList.toggle('hidden', tab !== 'drama');
+      $('#pager-searchDrama').classList.toggle('hidden', tab !== 'drama');
       $('#searchUser').classList.toggle('hidden', tab !== 'user');
+      $('#pager-searchUser').classList.toggle('hidden', tab !== 'user');
       return;
     }
     if (t.hasAttribute('data-open-drama')) {
-      openDrama(t.getAttribute('data-open-drama'), state.route === 'search' ? 'search' : state.route === 'drama' ? 'drama' : 'home');
+      const from = state.route === 'search' ? 'search'
+        : state.route === 'drama-lib' ? 'drama-lib'
+        : state.route === 'drama' || state.route === 'drama-play' ? 'drama'
+        : 'home';
+      openDrama(t.getAttribute('data-open-drama'), from);
       return;
     }
     if (t.hasAttribute('data-open-video')) {
@@ -1047,7 +2804,7 @@ img { display: block; max-width: 100%; }
       openChat(t.getAttribute('data-open-chat'));
       return;
     }
-    if (t.hasAttribute('data-me') && t.closest('#meNav, .me-panel, .download-page')) {
+    if (t.hasAttribute('data-me') && t.closest('#meHome, .me-panel, .download-page')) {
       const me = t.getAttribute('data-me');
       if (t.hasAttribute('data-go')) show(t.getAttribute('data-go'), { me });
       else { state.me = me; renderMe(); location.hash = '#/me/' + me; }
@@ -1055,7 +2812,7 @@ img { display: block; max-width: 100%; }
     }
     if (t.hasAttribute('data-go')) {
       const go = t.getAttribute('data-go');
-      if (go === 'me') show('me', { me: t.getAttribute('data-me') || 'home' });
+      if (go === 'me') show('me', { me: t.getAttribute('data-me') || 'history' });
       else show(go);
     }
   });
@@ -1063,44 +2820,141 @@ img { display: block; max-width: 100%; }
   $('#btnBack').onclick = () => {
     const map = {
       video: state.backTo || 'home',
+      'drama-lib': 'drama',
       'drama-play': state.backTo || 'home',
       role: 'companion',
-      chat: 'companion',
       'wish-new': 'wishes',
-      search: 'home',
-      messages: 'home',
-      login: state.backTo || 'home',
-      me: 'home'
+      login: state.backTo === 'companion-chat' ? 'companion' : (state.backTo || 'home')
     };
     const target = map[state.route] || 'home';
-    if (state.route === 'login' && state.backTo === 'chat' && state.loggedIn) {
-      show('chat'); return;
+    if (state.route === 'login' && state.backTo === 'companion-chat' && state.loggedIn) {
+      show('companion', { compTab: 'mine' });
+      bindChatSession(state.roleId);
+      return;
     }
     show(target);
   };
 
+  function runSearch(fromInput) {
+    const q = (fromInput || '').trim() || '关键词';
+    show('search', { q, backTo: state.route === 'search' ? (state.backTo || 'home') : state.route });
+  }
   $('#searchForm').onsubmit = (e) => {
     e.preventDefault();
-    show('search', { q: $('#searchInput').value.trim() || '关键词', backTo: state.route });
+    runSearch($('#searchInput').value);
+  };
+  $('#searchPageForm').onsubmit = (e) => {
+    e.preventDefault();
+    runSearch($('#searchPageInput').value);
   };
 
   $('#btnMsg').onclick = () => show(state.loggedIn ? 'messages' : 'login', { backTo: 'messages' });
   $('#btnAuth').onclick = () => show('login', { backTo: state.route });
-  $('#btnAvatar').onclick = () => show('me', { me: 'home' });
+  $('#btnAvatar').onclick = () => show('me', { me: 'history' });
   $('#btnDoLogin').onclick = () => {
     state.loggedIn = true;
     setAuthUI();
-    if (state.backTo === 'chat') show('chat');
-    else if (state.backTo === 'messages') show('messages');
+    if (state.backTo === 'companion-chat') {
+      show('companion', { compTab: 'mine' });
+      bindChatSession(state.roleId);
+    } else if (state.backTo === 'messages') show('messages');
     else if (state.backTo === 'me') show('me');
+    else if (state.backTo === 'feed-follow') show('feed', { feedTab: 'follow', promptLogin: false });
     else show('home');
   };
   $('#btnStartChat').onclick = () => openChat(state.roleId);
   $('#toggleLogin').onchange = () => {
     state.loggedIn = $('#toggleLogin').checked;
     setAuthUI();
+    if (state.route === 'feed') setFeedTab(state.feedTab, { promptLogin: false });
   };
 
+  setCompTab('discover');
+  setDramaCat('featured');
+
+  $('#btnHeroDownload').onclick = () => openDownloadModal();
+  $('#videoCommentClose').onclick = () => closeVideoCommentDrawer();
+  $('#videoCommentDrawer').addEventListener('click', (e) => {
+    if (e.target === $('#videoCommentDrawer')) closeVideoCommentDrawer();
+  });
+  $('#videoCommentSend').onclick = () => {
+    const input = $('#videoCommentInput');
+    const text = (input.value || '').trim();
+    if (!text) { input.focus(); return; }
+    const list = $('#videoCommentList');
+    const row = document.createElement('div');
+    row.className = 'comment';
+    row.innerHTML = `<div class="ph ph-avatar">我</div><div class="body"><div class="name">我</div>${text.replace(/[<>&]/g, s => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[s]))}<div class="time">刚刚 · 回复</div></div>`;
+    list.appendChild(row);
+    input.value = '';
+    list.scrollTop = list.scrollHeight;
+    const n = $('#videoCommentCount');
+    if (n) n.textContent = String(parseInt(n.textContent, 10) + 1);
+    const active = getActiveFeedSlide();
+    const feedComment = active && $('[data-act="comment"] .num', active);
+    if (feedComment) feedComment.textContent = n.textContent;
+  };
+  $('#shareModalClose').onclick = () => closeShareModal();
+  $('#shareModal').addEventListener('click', (e) => {
+    if (e.target === $('#shareModal')) closeShareModal();
+  });
+  $('#shareSave').onclick = () => { closeShareModal(); };
+  $('#shareCopy').onclick = () => { closeShareModal(); };
+  $('#dramaCommentSend').onclick = () => {
+    if (!state.loggedIn) { openLoginModal('comment'); return; }
+    const input = $('#dramaCommentInput');
+    const text = (input.value || '').trim();
+    if (!text) { input.focus(); return; }
+    const list = $('#dramaComment .comment-scroll');
+    const row = document.createElement('div');
+    row.className = 'comment';
+    row.innerHTML = `<div class="ph ph-avatar">我</div><div class="body"><div class="name">我</div>${text.replace(/[<>&]/g, s => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[s]))}<div class="time">刚刚 · 回复</div></div>`;
+    list.appendChild(row);
+    input.value = '';
+    list.scrollTop = list.scrollHeight;
+  };
+  $('#downloadModalClose').onclick = () => closeDownloadModal();
+  /* 下载二维码为预览说明类：点遮罩可关 */
+  $('#downloadModal').addEventListener('click', (e) => {
+    if (e.target === $('#downloadModal')) closeDownloadModal();
+  });
+  $('#msgDetailClose').onclick = () => closeMsgDetail();
+  $('#msgDetailOk').onclick = () => closeMsgDetail();
+  $('#msgDetailModal').addEventListener('click', (e) => {
+    if (e.target === $('#msgDetailModal')) closeMsgDetail();
+  });
+  $('#wishDetailClose').onclick = () => closeWishDetail();
+  $('#wishDetailOk').onclick = () => closeWishDetail();
+  $('#wishDetailBoost').onclick = () => closeWishDetail();
+  $('#wishDetailModal').addEventListener('click', (e) => {
+    if (e.target === $('#wishDetailModal')) closeWishDetail();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    closeDownloadModal();
+    closeVideoCommentDrawer();
+    closeShareModal();
+    closeMsgDetail();
+    closeWishDetail();
+    closeDramaDrawer();
+  });
+
+  $('#loginModalClose').onclick = () => closeLoginModal();
+  $('#loginModalCancel').onclick = () => closeLoginModal();
+  $('#loginModalSubmit').onclick = () => {
+    const reason = state.loginReason;
+    state.loggedIn = true;
+    setAuthUI();
+    closeLoginModal();
+    if (reason === 'follow-tab') {
+      if (state.route !== 'feed') show('feed', { feedTab: 'follow', promptLogin: false });
+      else setFeedTab('follow', { promptLogin: false });
+    } else if (reason === 'companion-mine') {
+      if (state.route !== 'companion') show('companion');
+      setCompTab('mine');
+    }
+    state.loginReason = '';
+  };
   $('.logo').onclick = () => show('home');
 
   fillHome();
